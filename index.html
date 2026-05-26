@@ -3624,484 +3624,120 @@
   tick();
   setInterval(tick, 1000);
 
-  // ===== FIREBASE REAL-TIME SYNC =====
-  import('https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js').then(({initializeApp}) => {
-  import('https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js').then(({getFirestore, collection, doc, addDoc, onSnapshot, query, orderBy, serverTimestamp}) => {
+  // ===== SUPABASE REAL-TIME SYNC (แทน Firebase) =====
+  (async () => {
+    // ── Settings: ดึงจาก Supabase ──
+    async function loadSettings() {
+      const { data } = await sb.from('settings').select('*');
+      if (!data) return;
+      const contact = data.find(s => s.key === 'contact')?.value || {};
+      const bank    = data.find(s => s.key === 'bankAccount')?.value || {};
 
-    const app = initializeApp({
-      apiKey: "AIzaSyBJhOwy5uaNNWCBs5QGsAcCCK1zF7uHfiU",
-      authDomain: "wuachon-thai.firebaseapp.com",
-      projectId: "wuachon-thai",
-      storageBucket: "wuachon-thai.firebasestorage.app",
-      messagingSenderId: "826988624741",
-      appId: "1:826988624741:web:2cb1cfe6548764dbbcbf8c"
-    });
-    const db = getFirestore(app);
+      // Contact
+      if (contact.phone1)    { const el = document.getElementById('contact-phone1');     if(el) el.textContent = contact.phone1; }
+      if (contact.lineId)    { const el = document.getElementById('contact-line-id');     if(el) el.textContent = contact.lineId; }
+      if (contact.fbName)    { const el = document.getElementById('contact-fb-name');     if(el) el.textContent = contact.fbName; }
+      if (contact.hoursTime) { const el = document.getElementById('contact-phone-hours'); if(el) el.textContent = contact.hoursTime; }
 
-    // expose สำหรับ submitRegister
-    window._fbDb              = db;
-    window._fbCollection      = collection;
-    window._fbAddDoc          = addDoc;
-    window._fbServerTimestamp = serverTimestamp;
-
-    // ── Contact settings (ดึงจาก Firestore real-time) ──
-    onSnapshot(doc(db,'settings','contact'), snap => {
-      if (!snap.exists()) return;
-      const d = snap.data();
-
-      // Phone
-      const phoneBox = document.getElementById('contact-phone-box');
-      if (phoneBox) {
-        if (d.phoneActive === false) { phoneBox.style.display='none'; return; }
-        const ph1 = document.getElementById('contact-phone1');
-        const ph2 = document.getElementById('contact-phone2-wrap');
-        const phr = document.getElementById('contact-phone-hours');
-        const phn = document.getElementById('contact-phone-note');
-        if (ph1 && d.phone1) ph1.textContent = d.phone1;
-        if (phr && d.phoneHours) phr.textContent = d.phoneHours;
-        if (phn && d.phoneNote) phn.textContent = d.phoneNote;
-        if (ph2) ph2.style.display = d.phone2 ? 'block' : 'none';
-      }
-
-      // Line
-      const lineBox = document.getElementById('contact-line-box');
-      if (lineBox) {
-        lineBox.style.display = d.lineActive === false ? 'none' : 'block';
-        const lineId   = document.getElementById('contact-line-id');
-        const lineNote = document.getElementById('contact-line-note');
-        const lineHref = document.getElementById('contact-line-href');
-        if (lineId   && d.lineId)   lineId.textContent   = d.lineId;
-        if (lineNote && d.lineNote) lineNote.textContent  = d.lineNote;
-        if (lineHref && d.lineUrl)  lineHref.href         = d.lineUrl;
-      }
-
-      // Facebook
-      const fbBox = document.getElementById('contact-fb-box');
-      if (fbBox) {
-        fbBox.style.display = d.fbActive === false ? 'none' : 'block';
-        const fbName = document.getElementById('contact-fb-name');
-        const fbNote = document.getElementById('contact-fb-note');
-        const fbHref = document.getElementById('contact-fb-href');
-        if (fbName && d.fbName) fbName.textContent = d.fbName;
-        if (fbNote && d.fbNote) fbNote.textContent = d.fbNote;
-        if (fbHref && d.fbUrl)  fbHref.href        = d.fbUrl;
-      }
-
-      // Hours
-      const hoursDay  = document.getElementById('contact-hours-day');
-      const hoursTime = document.getElementById('contact-hours-time');
-      if (hoursDay  && d.hoursDay)  hoursDay.textContent  = d.hoursDay;
-      if (hoursTime && d.hoursTime) hoursTime.textContent = d.hoursTime;
-    });
-
-    // ── Bank account settings (ดึงจาก Firestore real-time) ──
-    onSnapshot(doc(db,'settings','bankAccount'), snap => {
-      if (!snap.exists()) return;
-      const d = snap.data();
-      // อัปเดต UI หน้าเติมเงิน
-      if (d.bankName) document.getElementById('dep-bank-name').textContent = d.bankName;
-      if (d.accNo)   document.getElementById('dep-acc-no').textContent    = d.accNo;
-      if (d.accName) document.getElementById('dep-acc-name').textContent  = d.accName;
-      // QR Code
-      const qrImg  = document.getElementById('dep-qr-img');
-      const qrPH   = document.getElementById('dep-qr-placeholder');
-      if (d.qrUrl && qrImg) {
-        qrImg.src = d.qrUrl;
-        qrImg.style.display = 'block';
-        qrPH.style.display  = 'none';
-      }
-    });
-
-    // ── Hero settings ──
-    onSnapshot(doc(db,'settings','hero'), snap => {
-      if (!snap.exists()) return;
-      const d = snap.data();
-      if (d.badge)    document.querySelectorAll('.hero-badge').forEach(el => el.textContent = d.badge);
-      if (d.title)    document.getElementById('hero-title-text') && (document.getElementById('hero-title-text').textContent = d.title);
-      if (d.sub)      document.querySelectorAll('.hero-sub').forEach(el => el.textContent = d.sub);
-      if (d.bulls)    document.querySelectorAll('[data-stat="bulls"]').forEach(el => el.textContent = d.bulls);
-      if (d.audience) document.querySelectorAll('[data-stat="audience"]').forEach(el => el.textContent = d.audience);
-      if (d.days)     document.querySelectorAll('[data-stat="days"]').forEach(el => el.textContent = d.days);
-      if (d.eventDate) { countdownTarget = new Date(d.eventDate); }
-    });
-
-    // ── ผลการแข่งขัน (Supabase + Real-time) ──
-    let allHistoryMatches = [];
-
-    async function loadHistory() {
-      const { data, error } = await sb.from('matches')
-        .select('*')
-        .eq('status', 'done')
-        .order('created_at', { ascending: false });
-      if (error) { console.error(error); return; }
-      allHistoryMatches = data || [];
-      renderHistory();
+      // Bank account (ในหน้าเติมเงิน)
+      if (bank.bankName) { const el = document.getElementById('dep-bank-name'); if(el) el.textContent = bank.bankName; }
+      if (bank.accNo)    { const el = document.getElementById('dep-acc-no');    if(el) el.textContent = bank.accNo; }
+      if (bank.accName)  { const el = document.getElementById('dep-acc-name');  if(el) el.textContent = bank.accName; }
     }
+    loadSettings();
 
-    function renderHistory() {
-      const q    = document.getElementById('hist-search')?.value.toLowerCase() || '';
-      const from = document.getElementById('hist-date-from')?.value || '';
-      const to   = document.getElementById('hist-date-to')?.value || '';
-
-      let rows = allHistoryMatches.filter(m => {
-        const matchQ = !q || m.name_a?.toLowerCase().includes(q) || m.name_b?.toLowerCase().includes(q) || m.round?.toLowerCase().includes(q) || m.winner?.toLowerCase().includes(q);
-        let matchD = true;
-        if (from || to) {
-          const d = new Date(m.created_at);
-          if (from && d < new Date(from)) matchD = false;
-          if (to   && d > new Date(to + 'T23:59:59')) matchD = false;
-        }
-        return matchQ && matchD;
-      });
-
-      // สถิติ
-      document.getElementById('hist-total').textContent  = allHistoryMatches.length;
-      const rounds = [...new Set(allHistoryMatches.map(m => m.round).filter(Boolean))];
-      document.getElementById('hist-rounds').textContent = rounds.length;
-      document.getElementById('hist-latest').textContent = allHistoryMatches[0]?.date || '—';
-
-      const list = document.getElementById('history-list');
-      if (!rows.length) {
-        list.innerHTML = `<div class="history-empty"><div class="icon">🏆</div>ยังไม่มีผลการแข่งขัน<br><span style="font-size:13px;opacity:0.5;">จะแสดงผลเมื่อมีการแข่งขันที่จบแล้ว</span></div>`;
-        return;
-      }
-
-      list.innerHTML = '';
-      rows.forEach((m, i) => {
-        const isWinnerA = m.winner && m.winner.trim() === m.name_a?.trim();
-        const isWinnerB = m.winner && m.winner.trim() === m.name_b?.trim();
-        const card = document.createElement('div');
-        card.className = 'history-card';
-        card.style.animationDelay = `${i * 0.06}s`;
-        card.setAttribute('data-id', m.id);
-        card.onclick = () => openHistoryDetail(m);
-        card.innerHTML = `
-          <div class="history-card-inner">
-            <div class="history-bull ${isWinnerA?'winner-side':''}">
-              <div class="history-bull-photo">${m.photo_a?`<img src="${m.photo_a}">`:'🐂'}</div>
-              <div class="history-bull-info">
-                <div class="history-bull-name ${isWinnerA?'winner':''}">${m.name_a||'—'} ${isWinnerA?'🏆':''}</div>
-                <div class="history-bull-owner">${m.owner_a||''}</div>
-                <div class="history-bull-weight">${m.weight_a||''}</div>
-              </div>
-            </div>
-            <div class="history-center">
-              <div class="history-vs">VS</div>
-              <div class="history-date">${m.date||''}</div>
-              <div class="history-round">${m.round||''}</div>
-              ${m.code?`<div style="font-family:'Kanit',sans-serif;font-size:9px;font-weight:900;color:rgba(245,200,66,0.5);letter-spacing:2px;margin-top:2px;">#${m.code}</div>`:''}
-            </div>
-            <div class="history-bull right ${isWinnerB?'winner-side':''}">
-              <div class="history-bull-photo">${m.photo_b?`<img src="${m.photo_b}">`:'🐂'}</div>
-              <div class="history-bull-info">
-                <div class="history-bull-name ${isWinnerB?'winner':''}">${m.name_b||'—'} ${isWinnerB?'🏆':''}</div>
-                <div class="history-bull-owner">${m.owner_b||''}</div>
-                <div class="history-bull-weight">${m.weight_b||''}</div>
-              </div>
-            </div>
-          </div>
-          <div class="history-winner-bar">
-            🏆 ผู้ชนะ: <strong style="color:var(--gold);margin-left:4px;">${m.winner||'—'}</strong>
-            <span class="loc">📍 ${m.location||'—'} · 💰 ${Number(m.prize||0).toLocaleString()} ฿</span>
-          </div>`;
-        list.appendChild(card);
-      });
-    }
-
-    function clearHistFilter() {
-      ['hist-search','hist-date-from','hist-date-to'].forEach(id => {
-        const el = document.getElementById(id); if (el) el.value = '';
-      });
-      renderHistory();
-    }
-
-    // ── เปิด Modal รายละเอียด ──
-    function openHistoryDetail(m) {
-      const isWinnerA = m.winner && m.winner.trim() === m.name_a?.trim();
-      const isWinnerB = m.winner && m.winner.trim() === m.name_b?.trim();
-      const overlay = document.createElement('div');
-      overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:2000;display:flex;align-items:center;justify-content:center;padding:16px;';
-      overlay.onclick = e => { if(e.target===overlay) overlay.remove(); };
-      overlay.innerHTML = `
-        <div style="background:#0d2b14;border:1px solid rgba(245,200,66,0.3);border-radius:16px;width:100%;max-width:480px;max-height:90vh;overflow-y:auto;padding:24px;">
-          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;">
-            <div>
-              <div style="font-family:'Kanit',sans-serif;font-weight:900;font-size:16px;color:var(--gold);">${m.round||'—'}</div>
-              ${m.code?`<div style="font-size:11px;color:rgba(240,255,232,0.4);letter-spacing:2px;margin-top:2px;">#${m.code}</div>`:''}
-            </div>
-            <button onclick="this.closest('[style]').remove()" style="background:none;border:none;color:rgba(240,255,232,0.4);font-size:22px;cursor:pointer;">×</button>
-          </div>
-
-          <!-- ผู้ชนะ Banner -->
-          <div style="background:linear-gradient(135deg,rgba(39,148,63,0.25),rgba(245,200,66,0.1));border:1px solid rgba(245,200,66,0.3);border-radius:10px;padding:14px;margin-bottom:16px;text-align:center;">
-            <div style="font-size:28px;margin-bottom:4px;">🏆</div>
-            <div style="font-family:'Kanit',sans-serif;font-size:12px;color:rgba(240,255,232,0.5);">ผู้ชนะ</div>
-            <div style="font-family:'Kanit',sans-serif;font-weight:900;font-size:22px;color:var(--gold);">${m.winner||'—'}</div>
-          </div>
-
-          <!-- สองฝ่าย -->
-          <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px;">
-            <div style="background:${isWinnerA?'rgba(39,148,63,0.15)':'rgba(0,0,0,0.2)'};border:1px solid ${isWinnerA?'rgba(245,200,66,0.4)':'rgba(255,255,255,0.06)'};border-radius:10px;padding:12px;text-align:center;">
-              <div style="font-size:20px;margin-bottom:6px;">🔴</div>
-              <div style="font-family:'Kanit',sans-serif;font-weight:900;font-size:14px;color:${isWinnerA?'var(--gold)':'var(--cream)'};">${m.name_a||'—'} ${isWinnerA?'🏆':''}</div>
-              <div style="font-size:11px;color:rgba(240,255,232,0.4);margin-top:3px;">${m.owner_a||''}</div>
-              <div style="font-size:11px;color:var(--gold);margin-top:3px;">${m.weight_a||''}</div>
-            </div>
-            <div style="background:${isWinnerB?'rgba(39,148,63,0.15)':'rgba(0,0,0,0.2)'};border:1px solid ${isWinnerB?'rgba(245,200,66,0.4)':'rgba(255,255,255,0.06)'};border-radius:10px;padding:12px;text-align:center;">
-              <div style="font-size:20px;margin-bottom:6px;">🔵</div>
-              <div style="font-family:'Kanit',sans-serif;font-weight:900;font-size:14px;color:${isWinnerB?'var(--gold)':'var(--cream)'};">${m.name_b||'—'} ${isWinnerB?'🏆':''}</div>
-              <div style="font-size:11px;color:rgba(240,255,232,0.4);margin-top:3px;">${m.owner_b||''}</div>
-              <div style="font-size:11px;color:var(--gold);margin-top:3px;">${m.weight_b||''}</div>
-            </div>
-          </div>
-
-          <!-- รายละเอียด -->
-          <div style="display:flex;flex-direction:column;gap:8px;">
-            ${[
-              ['📅 วันที่แข่ง', m.date || '—'],
-              ['🕐 เวลา', m.time || '—'],
-              ['📍 สถานที่', m.location || '—'],
-              ['💰 รางวัล', Number(m.prize||0).toLocaleString() + ' ฿'],
-            ].map(([k,v]) => `
-              <div style="display:flex;justify-content:space-between;align-items:center;padding:8px 12px;background:rgba(0,0,0,0.2);border-radius:8px;">
-                <span style="font-size:12px;color:rgba(240,255,232,0.5);font-family:'Kanit',sans-serif;">${k}</span>
-                <span style="font-size:13px;font-family:'Kanit',sans-serif;font-weight:700;color:var(--cream);">${v}</span>
-              </div>`).join('')}
-          </div>
-
-          <button onclick="this.closest('[style]').remove()" style="width:100%;margin-top:16px;font-family:'Kanit',sans-serif;font-weight:700;font-size:13px;padding:12px;border-radius:10px;border:1px solid rgba(39,148,63,0.4);background:transparent;color:rgba(240,255,232,0.6);cursor:pointer;">ปิด</button>
-        </div>`;
-      document.body.appendChild(overlay);
-    }
-
-    // ── Real-time Subscribe matches ──
-    function subscribeMatchResults() {
-      sb.channel('match-results')
-        .on('postgres_changes', {
-          event: 'UPDATE',
-          schema: 'public',
-          table: 'matches'
-        }, payload => {
-          const m = payload.new;
-          if (m.status === 'done' && m.winner) {
-            // อัปเดต allHistoryMatches
-            const idx = allHistoryMatches.findIndex(x => x.id === m.id);
-            if (idx !== -1) {
-              allHistoryMatches[idx] = { ...allHistoryMatches[idx], ...m };
-            } else {
-              allHistoryMatches.unshift(m);
-            }
-            renderHistory();
-
-            // แสดง notification banner
-            const notif = document.getElementById('result-notif');
-            const title = document.getElementById('result-notif-title');
-            const sub   = document.getElementById('result-notif-sub');
-            if (notif && title && sub) {
-              title.textContent = `🏆 ผลการแข่งขัน: ${m.round||''}`;
-              sub.textContent   = `${m.name_a} VS ${m.name_b} · ผู้ชนะ: ${m.winner} · ${m.date||''}`;
-              notif.style.display = 'block';
-              // ถ้าอยู่หน้าอื่น ให้แสดง toast
-              if (document.getElementById('page-history').style.display === 'none') {
-                showFEToast(`🏆 ผลการแข่งขัน: ${m.winner} ชนะ! คลิกดูผล`);
-              }
-            }
-          }
-        })
-        .subscribe();
-    }
-    // ── Matches (ตารางแข่ง) ──
-    onSnapshot(query(collection(db,'matches'), orderBy('createdAt','asc')), snap => {
-      if (snap.empty) return;
-
-      // อัปเดตการ์ดกิจกรรมหน้าแรก — แบบสองฝ่าย
+    // ── Matches: แสดงบนหน้าแรก ──
+    async function loadHomeMatches() {
+      const { data } = await sb.from('matches').select('*').order('created_at', { ascending: false }).limit(20);
+      if (!data) return;
       const evGrid = document.getElementById('events-grid-fb');
-      if (evGrid) {
-        evGrid.innerHTML = '';
-        if (snap.empty) {
-          evGrid.innerHTML = '<div style="text-align:center;padding:40px 20px;color:rgba(240,255,232,0.3);font-family:\'Kanit\',sans-serif;"><div style="font-size:32px;margin-bottom:10px;">🐂</div>ยังไม่มีรายการแข่งขัน</div>';
-          return;
-        }
-        snap.docs.filter(d => d.data().status === 'done').forEach((d, i) => {
-          const m = d.data();
-          const isLive = m.status === 'live';
-          const isDone = m.status === 'done';
-          const statusClass = isLive ? 'status-live' : isDone ? 'status-done' : 'status-upcoming';
-          const statusLabel = isLive ? '● LIVE' : isDone ? 'จบแล้ว' : 'รอแข่ง';
-          const prizeNum = Number(m.prize || 0);
-
-          const card = document.createElement('div');
-          card.className = `match-card-fe${isLive ? ' live' : ''}`;
-          card.style.animationDelay = `${i * 0.08}s`;
-          card.onclick = () => openModal({
-            round: m.round || '', bullA: m.nameA, ownerA: m.ownerA, weightA: m.weightA,
-            bullB: m.nameB, ownerB: m.ownerB, weightB: m.weightB,
-            date: m.date, time: m.time, loc: m.location,
-            prize: `${prizeNum.toLocaleString()} บาท`,
-            winner: m.winner || '', photoA: m.photoA || '', photoB: m.photoB || ''
-          });
-
-          card.innerHTML = `
-            <!-- Header -->
-            <div class="match-header">
-              <div class="match-round">🏆 ${m.round || 'รายการแข่งขัน'}</div>
-              <div class="match-meta">
-                <span>📅 ${m.date || '—'}</span>
-                ${m.time ? `<span>⏰ ${m.time}</span>` : ''}
-                ${prizeNum ? `<span>💰 ${prizeNum.toLocaleString()} ฿</span>` : ''}
-              </div>
-              <span class="match-status-badge ${statusClass}">${isLive ? '<span class="live-dot"></span>' : ''}${statusLabel}</span>
-            </div>
-
-            <!-- Body -->
-            <div class="match-body">
-              <!-- แดง (เจ้าบ้าน) -->
-              <div class="team-side red-side">
-                <div class="team-photo red-photo">
-                  ${m.photoA ? `<img src="${m.photoA}" alt="${m.nameA}">` : '🐂'}
-                </div>
-                <div class="team-info">
-                  <div class="team-label red">🔴 เจ้าบ้าน</div>
-                  <div class="team-name${isDone && m.winner === m.nameA ? ' winner-name' : ''}">${m.nameA || '—'}${isDone && m.winner === m.nameA ? ' 🏆' : ''}</div>
-                  ${m.ownerA ? `<div class="team-owner">เจ้าของ: ${m.ownerA}</div>` : ''}
-                  <div class="team-stats">
-                    ${m.weightA ? `<span class="team-stat-tag">⚖️ ${m.weightA}</span>` : ''}
-                  </div>
-                </div>
-              </div>
-
-              <!-- VS Center -->
-              <div class="match-vs-center">
-                <div class="vs-text">VS</div>
-                ${m.time ? `<div class="match-time-center">${m.time}</div>` : ''}
-                ${m.date ? `<div class="match-date-center">${m.date}</div>` : ''}
-                ${prizeNum ? `<div class="prize-badge">รางวัล<br>${prizeNum.toLocaleString()} ฿</div>` : ''}
-              </div>
-
-              <!-- น้ำเงิน (ทีมเยือน) -->
-              <div class="team-side blue-side">
-                <div class="team-photo blue-photo">
-                  ${m.photoB ? `<img src="${m.photoB}" alt="${m.nameB}">` : '🐃'}
-                </div>
-                <div class="team-info">
-                  <div class="team-label blue">🔵 ทีมเยือน</div>
-                  <div class="team-name${isDone && m.winner === m.nameB ? ' winner-name' : ''}">${m.nameB || '—'}${isDone && m.winner === m.nameB ? ' 🏆' : ''}</div>
-                  ${m.ownerB ? `<div class="team-owner">เจ้าของ: ${m.ownerB}</div>` : ''}
-                  <div class="team-stats">
-                    ${m.weightB ? `<span class="team-stat-tag">⚖️ ${m.weightB}</span>` : ''}
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <!-- Footer -->
-            <div class="match-footer">
-              ${m.location ? `<div class="match-location">📍 ${m.location}</div>` : '<div></div>'}
-              ${isDone && m.winner ? `<div class="match-winner-bar">🏆 ผู้ชนะ: ${m.winner}</div>` : ''}
-              <button class="match-detail-btn" onclick="event.stopPropagation();openModal({round:'${m.round||''}',bullA:'${m.nameA||''}',ownerA:'${m.ownerA||''}',weightA:'${m.weightA||''}',bullB:'${m.nameB||''}',ownerB:'${m.ownerB||''}',weightB:'${m.weightB||''}',date:'${m.date||''}',time:'${m.time||''}',loc:'${m.location||''}',prize:'${prizeNum.toLocaleString()} บาท',winner:'${m.winner||''}',photoA:'${m.photoA||''}',photoB:'${m.photoB||''}'})">ดูรายละเอียด →</button>
-            </div>`;
-
-          evGrid.appendChild(card);
-        });
-      }
-
-      // อัปเดตหน้าตาราง — แบบสองฝ่าย
-      const schedWrap = document.getElementById('schedule-fb-wrap');
-      if (!schedWrap) return;
-
-      if (snap.empty) {
-        schedWrap.innerHTML = '<div style="text-align:center;padding:60px 20px;color:rgba(255,248,236,0.35);font-family:\'Kanit\',sans-serif;"><div style="font-size:48px;margin-bottom:14px;">🐂</div>ยังไม่มีรายการแข่งขัน</div>';
+      if (!evGrid) return;
+      evGrid.innerHTML = '';
+      if (!data.length) {
+        evGrid.innerHTML = '<div style="text-align:center;padding:40px 20px;color:rgba(240,255,232,0.3);font-family:\'Kanit\',sans-serif;"><div style="font-size:32px;margin-bottom:10px;">🐂</div>ยังไม่มีรายการแข่งขัน</div>';
         return;
       }
-
-      // จัดกลุ่มตาม round
-      const groups = {};
-      snap.docs.forEach(d => {
-        const m = d.data(); m._id = d.id;
-        const key = m.round || 'ไม่ระบุรุ่น';
-        if (!groups[key]) groups[key] = [];
-        groups[key].push(m);
-      });
-
-      schedWrap.innerHTML = '';
-      Object.entries(groups).forEach(([round, matches]) => {
-        const g = document.createElement('div');
-        g.style.cssText = 'margin-bottom:28px;';
-        g.innerHTML = `<div style="display:flex;align-items:center;gap:10px;margin-bottom:14px;padding:0 4px;"><div style="font-family:'Kanit',sans-serif;font-weight:900;font-size:16px;color:var(--gold);">🏆 ${round}</div><div style="flex:1;height:1px;background:rgba(245,200,66,0.15);"></div><div style="font-size:12px;color:rgba(240,255,232,0.35);font-family:'Kanit',sans-serif;">${matches.length} คู่</div></div>`;
-        matches.forEach((m, i) => {
-          const isLive = m.status === 'live';
-          const isDone = m.status === 'done';
-          const prizeNum = Number(m.prize || 0);
-          const statusClass = isLive ? 'status-live' : isDone ? 'status-done' : 'status-upcoming';
-          const statusLabel = isLive ? '● LIVE' : isDone ? 'จบแล้ว' : 'รอแข่ง';
-          const card = document.createElement('div');
-          card.className = `match-card-fe${isLive ? ' live' : ''}`;
-          card.style.cssText = `margin-bottom:12px;animation-delay:${i*0.06}s;`;
-          card.onclick = () => openModal({
-            round: m.round||'', bullA: m.nameA, ownerA: m.ownerA, weightA: m.weightA,
-            bullB: m.nameB, ownerB: m.ownerB, weightB: m.weightB,
-            date: m.date, time: m.time, loc: m.location,
-            prize: `${prizeNum.toLocaleString()} บาท`,
-            winner: m.winner||'', photoA: m.photoA||'', photoB: m.photoB||''
-          });
-          card.innerHTML = `
-            <div class="match-header">
-              <div class="match-round">🏆 ${m.round||'รายการแข่งขัน'}</div>
-              <div class="match-meta">
-                ${m.date?`<span>📅 ${m.date}</span>`:''}
-                ${m.time?`<span>⏰ ${m.time}</span>`:''}
-                ${prizeNum?`<span>💰 ${prizeNum.toLocaleString()} ฿</span>`:''}
-              </div>
-              <span class="match-status-badge ${statusClass}">${isLive?'<span class="live-dot"></span>':''}${statusLabel}</span>
-            </div>
-            <div class="match-body">
-              <div class="team-side red-side">
-                <div class="team-photo red-photo">${m.photoA?`<img src="${m.photoA}" alt="${m.nameA}">`:'🐂'}</div>
-                <div class="team-info">
-                  <div class="team-label red">🔴 เจ้าบ้าน</div>
-                  <div class="team-name${isDone&&m.winner===m.nameA?' winner-name':''}">${m.nameA||'—'}${isDone&&m.winner===m.nameA?' 🏆':''}</div>
-                  ${m.ownerA?`<div class="team-owner">เจ้าของ: ${m.ownerA}</div>`:''}
-                  <div class="team-stats">${m.weightA?`<span class="team-stat-tag">⚖️ ${m.weightA}</span>`:''}</div>
-                </div>
-              </div>
-              <div class="match-vs-center">
-                <div class="vs-text">VS</div>
-                ${m.time?`<div class="match-time-center">${m.time}</div>`:''}
-                ${m.date?`<div class="match-date-center">${m.date}</div>`:''}
-                ${prizeNum?`<div class="prize-badge">รางวัล<br>${prizeNum.toLocaleString()} ฿</div>`:''}
-              </div>
-              <div class="team-side blue-side">
-                <div class="team-photo blue-photo">${m.photoB?`<img src="${m.photoB}" alt="${m.nameB}">`:'🐃'}</div>
-                <div class="team-info">
-                  <div class="team-label blue">🔵 ทีมเยือน</div>
-                  <div class="team-name${isDone&&m.winner===m.nameB?' winner-name':''}">${m.nameB||'—'}${isDone&&m.winner===m.nameB?' 🏆':''}</div>
-                  ${m.ownerB?`<div class="team-owner">เจ้าของ: ${m.ownerB}</div>`:''}
-                  <div class="team-stats">${m.weightB?`<span class="team-stat-tag">⚖️ ${m.weightB}</span>`:''}</div>
-                </div>
-              </div>
-            </div>
-            <div class="match-footer">
-              ${m.location?`<div class="match-location">📍 ${m.location}</div>`:'<div></div>'}
-              ${isDone&&m.winner?`<div class="match-winner-bar">🏆 ผู้ชนะ: ${m.winner}</div>`:''}
-              <button class="match-detail-btn" onclick="event.stopPropagation()">ดูรายละเอียด →</button>
-            </div>`;
-          g.appendChild(card);
+      data.forEach((m, i) => {
+        const isLive   = m.status === 'live';
+        const isDone   = m.status === 'done';
+        const statusClass = isLive ? 'status-live' : isDone ? 'status-done' : 'status-upcoming';
+        const statusLabel = isLive ? '● LIVE' : isDone ? 'จบแล้ว' : 'รอแข่ง';
+        const prizeNum = Number(m.prize || 0);
+        const card = document.createElement('div');
+        card.className = `match-card-fe${isLive ? ' live' : ''}`;
+        card.style.animationDelay = `${i * 0.08}s`;
+        card.onclick = () => openModal({
+          round: m.round||'', bullA: m.name_a, ownerA: m.owner_a, weightA: m.weight_a,
+          bullB: m.name_b, ownerB: m.owner_b, weightB: m.weight_b,
+          date: m.date, time: m.time, loc: m.location,
+          prize: `${prizeNum.toLocaleString()} บาท`,
+          winner: m.winner||'', photoA: m.photo_a||'', photoB: m.photo_b||''
         });
-        schedWrap.appendChild(g);
+        card.innerHTML = `
+          <div class="match-header">
+            <div class="match-round">🏆 ${m.round||'รายการแข่งขัน'}</div>
+            <div class="match-meta">
+              <span>📅 ${m.date||'—'}</span>
+              ${m.time?`<span>⏰ ${m.time}</span>`:''}
+              ${prizeNum?`<span>💰 ${prizeNum.toLocaleString()} ฿</span>`:''}
+            </div>
+            <span class="match-status-badge ${statusClass}">${isLive?'<span class="live-dot"></span>':''}${statusLabel}</span>
+          </div>
+          <div class="match-body">
+            <div class="team-side red-side">
+              <div class="team-photo red-photo">${m.photo_a?`<img src="${m.photo_a}" alt="${m.name_a}">`:'🐂'}</div>
+              <div class="team-info">
+                <div class="team-name${isDone&&m.winner===m.name_a?' winner-name':''}">${m.name_a||'—'}${isDone&&m.winner===m.name_a?' 🏆':''}</div>
+                ${m.owner_a?`<div class="team-owner">เจ้าของ: ${m.owner_a}</div>`:''}
+                ${m.weight_a?`<div class="team-weight">${m.weight_a}</div>`:''}
+              </div>
+            </div>
+            <div class="match-center">
+              <div class="vs-text">VS</div>
+              ${m.code?`<div style="font-size:10px;color:rgba(245,200,66,0.5);letter-spacing:2px;font-family:\'Kanit\',sans-serif;">#${m.code}</div>`:''}
+            </div>
+            <div class="team-side blue-side">
+              <div class="team-photo blue-photo">${m.photo_b?`<img src="${m.photo_b}" alt="${m.name_b}">`:'🐃'}</div>
+              <div class="team-info">
+                <div class="team-name${isDone&&m.winner===m.name_b?' winner-name':''}">${m.name_b||'—'}${isDone&&m.winner===m.name_b?' 🏆':''}</div>
+                ${m.owner_b?`<div class="team-owner">เจ้าของ: ${m.owner_b}</div>`:''}
+                ${m.weight_b?`<div class="team-weight">${m.weight_b}</div>`:''}
+              </div>
+            </div>
+          </div>
+          ${isDone&&m.winner?`<div class="match-footer-done">🏆 ผู้ชนะ: <strong>${m.winner}</strong></div>`:''}
+          <button class="match-detail-btn" onclick="event.stopPropagation();openModal({round:'${(m.round||'').replace(/'/g,"\\'")}',bullA:'${(m.name_a||'').replace(/'/g,"\\'")}',ownerA:'${(m.owner_a||'').replace(/'/g,"\\'")}',weightA:'${m.weight_a||''}',bullB:'${(m.name_b||'').replace(/'/g,"\\'")}',ownerB:'${(m.owner_b||'').replace(/'/g,"\\'")}',weightB:'${m.weight_b||''}',date:'${m.date||''}',time:'${m.time||''}',loc:'${(m.location||'').replace(/'/g,"\\'")}',prize:'${prizeNum.toLocaleString()} บาท',winner:'${m.winner||''}',photoA:'${m.photo_a||''}',photoB:'${m.photo_b||''}'})">ดูรายละเอียด →</button>`;
+        evGrid.appendChild(card);
       });
-    });
+    }
+    loadHomeMatches();
 
-    // ── News ticker ──
-    onSnapshot(query(collection(db,'news'), orderBy('createdAt','desc')), snap => {
-      const published = snap.docs.filter(d => d.data().status === 'published').map(d => d.data().title);
-      if (published.length === 0) return;
-      const doubled = [...published, ...published];
-      const ticker = document.querySelector('.ticker-track');
-      if (ticker) ticker.innerHTML = doubled.map(t => `<span class="ticker-item">${t}</span>`).join('');
-    });
+    // Real-time matches (หน้าแรก)
+    sb.channel('home-matches')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'matches' }, () => {
+        loadHomeMatches();
+      })
+      .subscribe();
 
-  });
-  });
+    // ── News Ticker ──
+    async function loadNewsTicker() {
+      const { data } = await sb.from('news').select('title,status').eq('status','published').order('created_at',{ascending:false}).limit(20);
+      if (!data?.length) return;
+      const doubled = [...data, ...data];
+      const ticker  = document.querySelector('.ticker-track');
+      if (ticker) ticker.innerHTML = doubled.map(n => `<span class="ticker-item">${n.title}</span>`).join('');
+    }
+    loadNewsTicker();
+
+    // Real-time news ticker
+    sb.channel('home-news')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'news' }, () => {
+        loadNewsTicker();
+      })
+      .subscribe();
+
+  })();
+
 
   const mainContent = document.getElementById('main-content');
 
@@ -4718,17 +4354,15 @@
     const dateStr = `${now.getDate()} พ.ค. 68 · ${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}`;
     const nick    = currentUser?.nick || 'ไม่ระบุ';
 
-    // บันทึกลง Firestore (ถ้ามี Firebase)
+    // บันทึกลง Supabase
     try {
-      if (window._fbDb && window._fbAddDoc && window._fbCollection && window._fbServerTimestamp) {
-        await window._fbAddDoc(window._fbCollection(window._fbDb, 'support'), {
-          nick, type: currentSupportType, subject, msg,
-          rating: currentRating || null,
-          status: 'pending',
-          createdAt: window._fbServerTimestamp()
-        });
-      }
-    } catch(e) { console.warn('Firebase:', e.message); }
+      await sb.from('support').insert({
+        nick, type: currentSupportType, subject,
+        message: msg,
+        rating: currentRating || null,
+        status: 'pending'
+      });
+    } catch(e) { console.warn('Support save error:', e.message); }
 
     // แสดงในประวัติ
     const histEl   = document.getElementById('support-history');
