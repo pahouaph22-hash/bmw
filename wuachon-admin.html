@@ -847,23 +847,57 @@ async function saveContactSettings() {
 
 // ── NOTIFICATIONS (Real-time) ──
 function subscribeNotifications() {
-  sb.channel('new-deposits')
+  sb.channel('realtime-changes')
+    // deposits ใหม่
     .on('postgres_changes', { event:'INSERT', schema:'public', table:'deposits' }, payload => {
       const d = payload.new;
-      let n = parseInt(document.getElementById('notif-num').textContent)||0;
+      // อัปเดต badge แจ้งเตือน
+      let n = parseInt(document.getElementById('notif-num').textContent) || 0;
       n++;
       document.getElementById('notif-num').textContent = n;
       document.getElementById('notif-badge').style.display = 'inline';
       showToast(`🔔 ${d.nick} ขอเติมเงิน ${Number(d.amount).toLocaleString()} ฿`);
-      loadDeposits(); loadOverview();
+      // reload ข้อมูล
+      loadDeposits();
+      loadOverview();
     })
-    .on('postgres_changes', { event:'INSERT', schema:'public', table:'withdrawals' }, () => {
-      loadWithdrawals(); loadOverview();
+    // deposits อัปเดต (อนุมัติ/ปฏิเสธ)
+    .on('postgres_changes', { event:'UPDATE', schema:'public', table:'deposits' }, () => {
+      loadDeposits();
+      loadOverview();
     })
-    .on('postgres_changes', { event:'INSERT', schema:'public', table:'members' }, () => {
-      loadMembers(); loadOverview();
+    // withdrawals ใหม่
+    .on('postgres_changes', { event:'INSERT', schema:'public', table:'withdrawals' }, payload => {
+      const w = payload.new;
+      let n = parseInt(document.getElementById('notif-num').textContent) || 0;
+      n++;
+      document.getElementById('notif-num').textContent = n;
+      document.getElementById('notif-badge').style.display = 'inline';
+      showToast(`🔔 ${w.nick} ขอถอนเงิน ${Number(w.amount).toLocaleString()} ฿`);
+      loadWithdrawals();
+      loadOverview();
     })
-    .subscribe();
+    // withdrawals อัปเดต
+    .on('postgres_changes', { event:'UPDATE', schema:'public', table:'withdrawals' }, () => {
+      loadWithdrawals();
+      loadOverview();
+    })
+    // members ใหม่
+    .on('postgres_changes', { event:'INSERT', schema:'public', table:'members' }, payload => {
+      const m = payload.new;
+      showToast(`👤 สมาชิกใหม่: ${m.nick}`);
+      loadMembers();
+      loadOverview();
+    })
+    // members อัปเดต (ยอดเงิน)
+    .on('postgres_changes', { event:'UPDATE', schema:'public', table:'members' }, () => {
+      loadMembers();
+    })
+    .subscribe(status => {
+      if (status === 'SUBSCRIBED') {
+        console.log('✅ Realtime connected');
+      }
+    });
 }
 
 // close modals on overlay click
