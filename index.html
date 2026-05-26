@@ -3164,6 +3164,38 @@
           <div class="acc-info-val" id="acc-info-addr">—</div>
         </div>
       </div>
+
+      <!-- เปลี่ยนรหัสผ่าน -->
+      <div style="background:rgba(255,255,255,0.04);border:1px solid rgba(39,148,63,0.2);border-radius:12px;padding:16px;margin-bottom:16px;">
+        <div style="font-family:'Kanit',sans-serif;font-weight:700;font-size:13px;color:rgba(240,255,232,0.7);margin-bottom:12px;">🔒 เปลี่ยนรหัสผ่าน</div>
+
+        <!-- Toggle -->
+        <div id="change-pass-toggle">
+          <button onclick="document.getElementById('change-pass-toggle').style.display='none';document.getElementById('change-pass-form').style.display='block';"
+            style="font-family:'Kanit',sans-serif;font-size:13px;font-weight:700;padding:10px 18px;border-radius:9px;border:1px solid rgba(39,148,63,0.4);background:transparent;color:var(--accent);cursor:pointer;width:100%;">
+            🔑 เปลี่ยนรหัสผ่านใหม่
+          </button>
+        </div>
+
+        <!-- Form -->
+        <div id="change-pass-form" style="display:none;">
+          <input class="acc-input" type="password" id="cp-old" placeholder="รหัสผ่านปัจจุบัน" style="margin-bottom:8px;">
+          <input class="acc-input" type="password" id="cp-new" placeholder="รหัสผ่านใหม่ (อย่างน้อย 6 ตัวอักษร)" style="margin-bottom:8px;">
+          <input class="acc-input" type="password" id="cp-new2" placeholder="ยืนยันรหัสผ่านใหม่" style="margin-bottom:10px;">
+          <div id="cp-error" style="display:none;font-size:12px;color:#f87171;font-family:'Sarabun',sans-serif;margin-bottom:10px;padding:8px 12px;background:rgba(200,16,46,0.1);border-radius:7px;border:1px solid rgba(200,16,46,0.2);"></div>
+          <div style="display:flex;gap:8px;">
+            <button onclick="submitChangePass()"
+              style="flex:1;font-family:'Kanit',sans-serif;font-size:13px;font-weight:700;padding:11px;border-radius:9px;border:none;background:var(--green);color:#fff;cursor:pointer;">
+              ✅ ยืนยันเปลี่ยนรหัสผ่าน
+            </button>
+            <button onclick="document.getElementById('change-pass-form').style.display='none';document.getElementById('change-pass-toggle').style.display='block';document.getElementById('cp-error').style.display='none';"
+              style="font-family:'Kanit',sans-serif;font-size:13px;font-weight:700;padding:11px 16px;border-radius:9px;border:1px solid rgba(240,255,232,0.2);background:transparent;color:rgba(240,255,232,0.5);cursor:pointer;">
+              ยกเลิก
+            </button>
+          </div>
+        </div>
+      </div>
+
       <div class="money-grid">
         <div class="money-card">
           <div class="money-card-icon">💰</div>
@@ -3838,6 +3870,50 @@
     t.textContent = msg;
     document.body.appendChild(t);
     setTimeout(() => t.remove(), 4000);
+  }
+
+  // ── เปลี่ยนรหัสผ่าน (ลูกค้าทำเอง) ──
+  async function submitChangePass() {
+    const oldPass = document.getElementById('cp-old').value;
+    const newPass = document.getElementById('cp-new').value;
+    const newPass2 = document.getElementById('cp-new2').value;
+    const errEl  = document.getElementById('cp-error');
+
+    // Validate
+    if (!oldPass || !newPass || !newPass2) {
+      errEl.style.display = 'block'; errEl.textContent = '⚠️ กรุณากรอกข้อมูลให้ครบครับ'; return;
+    }
+    if (newPass.length < 6) {
+      errEl.style.display = 'block'; errEl.textContent = '⚠️ รหัสผ่านใหม่ต้องมีอย่างน้อย 6 ตัวอักษรครับ'; return;
+    }
+    if (newPass !== newPass2) {
+      errEl.style.display = 'block'; errEl.textContent = '⚠️ รหัสผ่านใหม่ไม่ตรงกันครับ'; return;
+    }
+    errEl.style.display = 'none';
+
+    // เช็ครหัสเดิม
+    const phone = currentUser?.phone;
+    const oldHash    = btoa(unescape(encodeURIComponent(phone + ':' + oldPass)));
+    const oldHashAlt = btoa(phone + ':' + oldPass);
+
+    const { data } = await sb.from('members').select('password').eq('id', currentUser.id).maybeSingle();
+    if (!data || (data.password !== oldHash && data.password !== oldHashAlt)) {
+      errEl.style.display = 'block'; errEl.textContent = '❌ รหัสผ่านปัจจุบันไม่ถูกต้องครับ'; return;
+    }
+
+    // บันทึกรหัสใหม่
+    const newHash = btoa(unescape(encodeURIComponent(phone + ':' + newPass)));
+    const { error } = await sb.from('members').update({ password: newHash }).eq('id', currentUser.id);
+    if (error) { errEl.style.display = 'block'; errEl.textContent = '❌ เกิดข้อผิดพลาด: ' + error.message; return; }
+
+    // ล้าง form
+    document.getElementById('cp-old').value   = '';
+    document.getElementById('cp-new').value   = '';
+    document.getElementById('cp-new2').value  = '';
+    document.getElementById('change-pass-form').style.display   = 'none';
+    document.getElementById('change-pass-toggle').style.display = 'block';
+
+    showFEToast('✅ เปลี่ยนรหัสผ่านสำเร็จแล้วครับ!');
   }
 
   // ── Supabase Config ──

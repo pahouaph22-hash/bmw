@@ -1090,19 +1090,21 @@ async function saveEditPhone() {
   const { data: exist } = await sb.from('members').select('nick').eq('phone', newPhone).neq('id', editMemberId).maybeSingle();
   if (exist) { showToast('⚠️ เบอร์โทรนี้ถูกใช้แล้วครับ','error'); return; }
 
-  // อัปเดตเบอร์โทรและ hash password ใหม่ (ถ้ามี password เดิม ให้ update hash ด้วย)
   const m = allMembers.find(x => x.id === editMemberId);
-  const updates = { phone: newPhone };
-  if (m?.password) {
-    // password hash เดิมใช้ phone+password ต้อง re-hash ด้วยเบอร์ใหม่
-    // แต่เราไม่รู้ password จริง ให้ set เป็น null ก่อน (ลูกค้าต้องตั้งรหัสใหม่)
-    updates.password = null;
-  }
+  // เปลี่ยนเบอร์ → reset password (ลูกค้าต้องตั้งใหม่เพราะ hash ใช้เบอร์เดิม)
+  const updates = { phone: newPhone, password: null };
   const { error } = await sb.from('members').update(updates).eq('id', editMemberId);
   if (error) { showToast('❌ ' + error.message,'error'); return; }
-  showToast('✅ เปลี่ยนเบอร์โทรแล้วครับ (ลูกค้าต้องตั้งรหัสผ่านใหม่)');
+
+  // อัปเดต allMembers
+  const idx = allMembers.findIndex(x => x.id === editMemberId);
+  if (idx !== -1) allMembers[idx] = { ...allMembers[idx], phone: newPhone, password: null };
+
+  showToast(`✅ เปลี่ยนเบอร์โทรเป็น ${newPhone} แล้วครับ\n⚠️ รหัสผ่านถูก reset — ลูกค้าต้องตั้งรหัสผ่านใหม่`);
   document.getElementById('e-phone-old').value = newPhone;
   document.getElementById('e-phone-new').value = '';
+  // อัปเดต fillEditForm
+  document.getElementById('e-phone-old').value = newPhone;
   loadMembers();
 }
 
@@ -1112,14 +1114,21 @@ async function saveEditPass() {
   if (!pass1 || pass1.length < 6) { showToast('⚠️ รหัสผ่านต้องมีอย่างน้อย 6 ตัวอักษรครับ','error'); return; }
   if (pass1 !== pass2)             { showToast('⚠️ รหัสผ่านไม่ตรงกันครับ','error'); return; }
 
-  // หา phone ของสมาชิก (ใช้ทำ hash)
+  // หา phone ล่าสุดของสมาชิก
   const m = allMembers.find(x => x.id === editMemberId);
   if (!m) { showToast('❌ ไม่พบข้อมูลสมาชิกครับ','error'); return; }
 
-  const pwHash = btoa(m.phone + ':' + pass1);
+  // ✅ ใช้ hash เดียวกับที่หน้าบ้าน Login ใช้
+  const pwHash = btoa(unescape(encodeURIComponent(m.phone + ':' + pass1)));
+
   const { error } = await sb.from('members').update({ password: pwHash }).eq('id', editMemberId);
   if (error) { showToast('❌ ' + error.message,'error'); return; }
-  showToast(`✅ เปลี่ยนรหัสผ่านให้ ${m.nick} แล้วครับ`);
+
+  // อัปเดต allMembers
+  const idx = allMembers.findIndex(x => x.id === editMemberId);
+  if (idx !== -1) allMembers[idx] = { ...allMembers[idx], password: pwHash };
+
+  showToast(`✅ เปลี่ยนรหัสผ่านให้ ${m.nick} แล้วครับ ลูกค้าสามารถ Login ด้วยรหัสใหม่ได้ทันที`);
   document.getElementById('e-pass-new').value  = '';
   document.getElementById('e-pass-new2').value = '';
 }
@@ -1726,98 +1735,129 @@ function updateDepStats() {
   document.getElementById('dep-pending-badge').textContent  = pending;
   document.getElementById('dep-approved-badge').textContent = approved;
 }
-
 function renderDeps(rows) { filterDep(); }
 
 function filterDep() {
   const qP = document.getElementById('dep-search-pending')?.value.toLowerCase()  || '';
   const qA = document.getElementById('dep-search-approved')?.value.toLowerCase() || '';
-
-  const pending = allDeps.filter(d =>
-    d.status === 'pending' &&
-    (!qP || d.nick?.toLowerCase().includes(qP) || d.txn?.includes(qP)) &&
-    inDateRange(d.created_at, 'dep-pending-from', 'dep-pending-to')
-  );
-  const approved = allDeps.filter(d =>
-    d.status !== 'pending' &&
-    (!qA || d.nick?.toLowerCase().includes(qA) || d.txn?.includes(qA)) &&
-    inDateRange(d.created_at, 'dep-approved-from', 'dep-approved-to')
-  );
-
+  const pending  = allDeps.filter(d => d.status === 'pending' && (!qP || d.nick?.toLowerCase().includes(qP) || d.txn?.includes(qP)) && inDateRange(d.created_at, 'dep-pending-from', 'dep-pending-to'));
+  const approved = allDeps.filter(d => d.status !== 'pending' && (!qA || d.nick?.toLowerCase().includes(qA) || d.txn?.includes(qA)) && inDateRange(d.created_at, 'dep-approved-from', 'dep-approved-to'));
   const rp = document.getElementById('dep-pending-result');
   const ra = document.getElementById('dep-approved-result');
-  if (rp) rp.textContent = document.getElementById('dep-pending-from')?.value || document.getElementById('dep-pending-to')?.value ? `พบ ${pending.length} รายการ` : '';
-  if (ra) ra.textContent = document.getElementById('dep-approved-from')?.value || document.getElementById('dep-approved-to')?.value ? `พบ ${approved.length} รายการ` : '';
+  if (rp) rp.textContent = (document.getElementById('dep-pending-from')?.value || document.getElementById('dep-pending-to')?.value) ? `พบ ${pending.length} รายการ` : '';
+  if (ra) ra.textContent = (document.getElementById('dep-approved-from')?.value || document.getElementById('dep-approved-to')?.value) ? `พบ ${approved.length} รายการ` : '';
 
-  // render แยก
+  // ── ตาราง รอตรวจสอบ ──
   const pt = document.getElementById('dep-pending-tbody');
+  if (!pending.length) {
+    pt.innerHTML = '<tr class="loading-row"><td colspan="8" style="color:var(--green);">✅ ไม่มีรายการรอตรวจสอบแล้วครับ</td></tr>';
+  } else {
+    pt.innerHTML = pending.map(d => `
+      <tr id="dep-row-${d.id}" style="transition:all .3s;">
+        <td><strong>${d.nick}</strong></td>
+        <td style="font-size:12px;">${d.fname||''} ${d.lname||''}</td>
+        <td style="font-size:12px;">${d.phone||'—'}</td>
+        <td><strong style="color:var(--green);">+${Number(d.amount).toLocaleString()} ฿</strong></td>
+        <td style="font-size:12px;">${d.bank||'—'}</td>
+        <td style="font-family:'Kanit',sans-serif;font-size:11px;color:#aaa;">${d.txn||'—'}</td>
+        <td style="font-size:12px;color:#aaa;">${fmtDate(d.created_at)}</td>
+        <td style="display:flex;gap:5px;">
+          <button class="action-btn green" onclick="approveDeposit('${d.id}','${d.nick}',${d.amount})">✅ อนุมัติ</button>
+          <button class="action-btn red" onclick="openReject('${d.id}','deposit','${d.nick}',${d.amount})">❌ ปฏิเสธ</button>
+        </td>
+      </tr>`).join('');
+  }
+
+  // ── ตาราง อนุมัติแล้ว (คลิกดูรายละเอียด) ──
   const at = document.getElementById('dep-approved-tbody');
-  if (!pending.length) { pt.innerHTML = '<tr class="loading-row"><td colspan="8">ไม่มีรายการรอตรวจสอบ</td></tr>'; }
-  else { pt.innerHTML = pending.map(d => `
-    <tr id="dep-row-${d.id}">
-      <td><strong>${d.nick}</strong></td>
-      <td style="font-size:12px;">${d.fname||''} ${d.lname||''}</td>
-      <td style="font-size:12px;">${d.phone||'—'}</td>
-      <td><strong style="color:var(--green);">+${Number(d.amount).toLocaleString()} ฿</strong></td>
-      <td style="font-size:12px;">${d.bank||'—'}</td>
-      <td style="font-family:'Kanit',sans-serif;font-size:11px;color:#aaa;">${d.txn||'—'}</td>
-      <td style="font-size:12px;color:#aaa;">${fmtDate(d.created_at)}</td>
-      <td style="display:flex;gap:5px;">
-        <button class="action-btn green" onclick="approveDeposit('${d.id}','${d.nick}',${d.amount})">✅ อนุมัติ</button>
-        <button class="action-btn red" onclick="openReject('${d.id}','deposit','${d.nick}',${d.amount})">❌ ปฏิเสธ</button>
-      </td>
-    </tr>`).join(''); }
-  if (!approved.length) { at.innerHTML = '<tr class="loading-row"><td colspan="10">ยังไม่มีรายการอนุมัติ</td></tr>'; }
-  else { at.innerHTML = approved.map(d => `
-    <tr>
-      <td><strong>${d.nick}</strong></td>
-      <td style="font-size:12px;">${d.fname||''} ${d.lname||''}</td>
-      <td style="font-size:12px;">${d.phone||'—'}</td>
-      <td><strong style="color:var(--green);">+${Number(d.amount).toLocaleString()} ฿</strong></td>
-      <td style="font-size:12px;">${d.bank||'—'}</td>
-      <td style="font-family:'Kanit',sans-serif;font-size:11px;color:#aaa;">${d.txn||'—'}</td>
-      <td style="font-size:12px;color:#aaa;">${fmtDate(d.created_at)}</td>
-      <td style="font-size:12px;font-family:'Kanit',sans-serif;color:var(--green);font-weight:700;">${d.approved_by||'Admin'}</td>
-      <td style="font-size:12px;color:#aaa;">${d.approved_at ? fmtDate(d.approved_at) : '—'}</td>
-      <td><span class="badge ${d.status==='approved'?'badge-approved':'badge-rejected'}">${d.status==='approved'?'✅ สำเร็จ':'❌ ปฏิเสธ'}</span></td>
-    </tr>`).join(''); }
+  if (!approved.length) {
+    at.innerHTML = '<tr class="loading-row"><td colspan="10">ยังไม่มีรายการอนุมัติ</td></tr>';
+  } else {
+    at.innerHTML = approved.map(d => {
+      const safeD = JSON.stringify(d).replace(/\\/g,'\\\\').replace(/"/g,'&quot;');
+      return `
+        <tr style="cursor:pointer;transition:background .15s;" onmouseover="this.style.background='#f0faf0'" onmouseout="this.style.background=''" onclick="openDepDetail(JSON.parse(this.dataset.d))" data-d="${safeD}">
+          <td><strong>${d.nick}</strong></td>
+          <td style="font-size:12px;">${d.fname||''} ${d.lname||''}</td>
+          <td style="font-size:12px;">${d.phone||'—'}</td>
+          <td><strong style="color:var(--green);">+${Number(d.amount).toLocaleString()} ฿</strong></td>
+          <td style="font-size:12px;">${d.bank||'—'}</td>
+          <td style="font-family:'Kanit',sans-serif;font-size:11px;color:#aaa;">${d.txn||'—'}</td>
+          <td style="font-size:12px;color:#aaa;">${fmtDate(d.created_at)}</td>
+          <td style="font-size:12px;font-family:'Kanit',sans-serif;color:var(--green);font-weight:700;">${d.approved_by||'Admin'}</td>
+          <td style="font-size:12px;color:#aaa;">${d.approved_at ? fmtDate(d.approved_at) : '—'}</td>
+          <td>
+            <span class="badge ${d.status==='approved'?'badge-approved':'badge-rejected'}">${d.status==='approved'?'✅ สำเร็จ':'❌ ปฏิเสธ'}</span>
+            <div style="font-size:10px;color:#aaa;margin-top:2px;">🔍 คลิกดูรายละเอียด</div>
+          </td>
+        </tr>`;
+    }).join('');
+  }
+}
+
+// ── Modal รายละเอียดเติมเงิน ──
+function openDepDetail(d) {
+  const overlay = document.createElement('div');
+  overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:3000;display:flex;align-items:center;justify-content:center;padding:16px;';
+  overlay.onclick = e => { if(e.target===overlay) overlay.remove(); };
+  const statusColor = d.status==='approved' ? '#27943F' : d.status==='rejected' ? 'var(--red)' : '#7A4F00';
+  const statusLabel = d.status==='approved' ? '✅ อนุมัติสำเร็จ' : d.status==='rejected' ? '❌ ปฏิเสธ' : '⏳ รอตรวจสอบ';
+  const rows = [
+    ['👤 ชื่อบัญชี', d.nick||'—'],
+    ['🙍 ชื่อ-สกุล', ((d.fname||'') + ' ' + (d.lname||'')).trim()||'—'],
+    ['📱 เบอร์โทร', d.phone||'—'],
+    ['💵 จำนวนเงิน', '+' + Number(d.amount).toLocaleString() + ' ฿'],
+    ['🏦 ธนาคารที่โอนจาก', d.bank||'—'],
+    ['🔢 TXN', d.txn||'—'],
+    ['🕐 เวลาที่ส่งคำขอ', fmtDate(d.created_at)],
+    ['👮 ผู้อนุมัติ', d.approved_by||'—'],
+    ['✅ เวลาอนุมัติ', d.approved_at ? fmtDate(d.approved_at) : '—'],
+    d.reason ? ['❌ เหตุผลปฏิเสธ', d.reason] : null,
+  ].filter(Boolean);
+  overlay.innerHTML = `
+    <div style="background:#fff;border-radius:16px;padding:24px;width:100%;max-width:460px;max-height:90vh;overflow-y:auto;box-shadow:0 20px 60px rgba(0,0,0,.3);">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;">
+        <div style="font-family:'Kanit',sans-serif;font-weight:900;font-size:16px;">💰 รายละเอียดการเติมเงิน</div>
+        <button onclick="this.closest('[style*=fixed]').remove()" style="background:none;border:none;font-size:22px;cursor:pointer;color:#aaa;">×</button>
+      </div>
+      <div style="background:${d.status==='approved'?'#EAF3DE':d.status==='rejected'?'#FCEBEB':'#FAEEDA'};border-radius:10px;padding:14px;margin-bottom:16px;text-align:center;">
+        <div style="font-family:'Kanit',sans-serif;font-weight:900;font-size:18px;color:${statusColor};">${statusLabel}</div>
+        ${d.approved_at ? '<div style="font-size:12px;color:#888;margin-top:4px;">' + fmtDate(d.approved_at) + '</div>' : ''}
+      </div>
+      <div style="display:flex;flex-direction:column;gap:8px;">
+        ${rows.map(([k,v]) => `<div style="display:flex;justify-content:space-between;align-items:center;padding:9px 12px;background:#f8f8f5;border-radius:8px;gap:12px;"><span style="font-size:12px;color:#888;font-family:'Kanit',sans-serif;white-space:nowrap;">${k}</span><span style="font-size:13px;font-family:'Kanit',sans-serif;font-weight:700;color:#1a1a1a;text-align:right;">${v}</span></div>`).join('')}
+      </div>
+      <button onclick="this.closest('[style*=fixed]').remove()" style="width:100%;margin-top:16px;font-family:'Kanit',sans-serif;font-weight:700;font-size:13px;padding:12px;border-radius:10px;border:1px solid #ddd;background:#fff;cursor:pointer;color:#666;">ปิด</button>
+    </div>`;
+  document.body.appendChild(overlay);
 }
 
 async function approveDeposit(id, nick, amount) {
-  const btn = document.querySelector(`#dep-row-${id} .action-btn.green`);
+  const row = document.getElementById(`dep-row-${id}`);
+  const btn = row?.querySelector('.action-btn.green');
   if (btn) { btn.disabled = true; btn.textContent = '⏳ กำลังอนุมัติ...'; }
 
-  // เพิ่มยอดเงินสมาชิก
   const { data: member } = await sb.from('members').select('balance').eq('nick', nick).maybeSingle();
   if (member) {
     await sb.from('members').update({ balance: Number(member.balance||0) + Number(amount) }).eq('nick', nick);
   }
-
   const approvedAt = new Date().toISOString();
+  let res = await sb.from('deposits').update({ status:'approved', approved_by:'Admin', approved_at:approvedAt }).eq('id', id);
+  if (res.error) res = await sb.from('deposits').update({ status:'approved' }).eq('id', id);
+  if (res.error) { showToast('❌ ' + res.error.message, 'error'); if(btn){btn.disabled=false;btn.textContent='✅ อนุมัติ';} return; }
 
-  // try update ด้วย approved columns ก่อน
-  let updateResult = await sb.from('deposits').update({
-    status: 'approved',
-    approved_by: 'Admin',
-    approved_at: approvedAt
-  }).eq('id', id);
+  // Fade แถวออก
+  if (row) { row.style.transition='all .35s'; row.style.opacity='0'; row.style.transform='translateX(30px)'; row.style.background='#f0faf0'; }
 
-  // ถ้า error เพราะ column ไม่มี ให้ update แค่ status
-  if (updateResult.error) {
-    updateResult = await sb.from('deposits').update({ status: 'approved' }).eq('id', id);
-  }
-
-  if (updateResult.error) {
-    showToast('❌ ' + updateResult.error.message, 'error');
-    if (btn) { btn.disabled = false; btn.textContent = '✅ อนุมัติ'; }
-    return;
-  }
+  // อัปเดต memory
+  const idx = allDeps.findIndex(d => d.id === id);
+  if (idx !== -1) allDeps[idx] = { ...allDeps[idx], status:'approved', approved_by:'Admin', approved_at:approvedAt };
 
   showToast(`✅ อนุมัติเติมเงิน +${Number(amount).toLocaleString()} ฿ ให้ ${nick}`);
-  // reload ใหม่จาก Supabase ทันที
-  await loadDeposits();
-  loadOverview();
+
+  setTimeout(() => { updateDepStats(); filterDep(); loadOverview(); }, 380);
 }
+
 
 // ── WITHDRAWALS ──
 let allWiths = [];
