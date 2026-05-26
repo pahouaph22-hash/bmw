@@ -18,11 +18,11 @@ body{font-family:'Sarabun',sans-serif;background:#f4f4f0;color:#1a1a1a;min-heigh
 .stext{color:rgba(255,248,236,.7);font-size:12px;font-family:'Kanit',sans-serif;}
 .logout-btn{background:rgba(255,255,255,.08);color:rgba(255,248,236,.7);font-family:'Kanit',sans-serif;font-size:12px;padding:5px 12px;border:1px solid rgba(255,255,255,.15);border-radius:6px;cursor:pointer;transition:all .15s;}
 .logout-btn:hover{background:rgba(200,16,46,0.3);color:#fff;}
-.topnav{background:#fff;border-bottom:1px solid #e5e5e0;padding:0 16px;display:flex;align-items:center;gap:2px;flex-shrink:0;overflow-x:auto;flex-wrap:wrap;}
-.sb-item{display:flex;align-items:center;gap:5px;padding:11px 12px;font-family:'Kanit',sans-serif;font-size:12px;font-weight:600;color:#666;cursor:pointer;border-bottom:3px solid transparent;transition:all .15s;white-space:nowrap;}
+.topnav{background:#fff;border-bottom:1px solid #e5e5e0;padding:0 12px;display:flex;align-items:center;gap:0;flex-shrink:0;overflow-x:auto;}
+.sb-item{display:flex;align-items:center;gap:4px;padding:12px 10px;font-family:'Kanit',sans-serif;font-size:12px;font-weight:600;color:#666;cursor:pointer;border-bottom:3px solid transparent;transition:all .15s;white-space:nowrap;}
 .sb-item:hover{color:#1a1a1a;background:#faf9f5;}
 .sb-item.active{color:var(--green);border-bottom-color:var(--green);}
-.sb-divider{width:1px;height:24px;background:#e5e5e0;margin:0 4px;align-self:center;flex-shrink:0;}
+.sb-divider{width:1px;height:20px;background:#e5e5e0;margin:0 2px;align-self:center;flex-shrink:0;}
 .layout{flex:1;overflow:hidden;}
 .main{padding:22px;overflow-y:auto;max-height:calc(100vh - 110px);}
 .panel{display:none;}.panel.active{display:block;}
@@ -143,11 +143,12 @@ tr:hover td{background:#fafaf8;}
   <div class="sb-item" onclick="switchPanel('members')" data-panel="members">👥 สมาชิก</div>
   <div class="sb-item" onclick="switchPanel('matches')" data-panel="matches">🏆 คู่แข่งขัน</div>
   <div class="sb-item" onclick="switchPanel('verdict')" data-panel="verdict">⚖️ แพ้ชนะ <span id="verdict-badge" style="display:none;background:var(--red);color:#fff;font-size:10px;font-weight:700;padding:1px 6px;border-radius:999px;margin-left:2px;">0</span></div>
-  <div class="sb-item" onclick="switchPanel('news')" data-panel="news">📰 ข่าวสาร</div>
+  <div class="sb-divider"></div>
   <div class="sb-item" onclick="switchPanel('deposit')" data-panel="deposit">💰 เติมเงิน</div>
   <div class="sb-item" onclick="switchPanel('withdraw')" data-panel="withdraw">🏧 ถอนเงิน</div>
-  <div class="sb-item" onclick="switchPanel('bets')" data-panel="bets">🎯 การเดิมพัน</div>
+  <div class="sb-item" onclick="switchPanel('bets')" data-panel="bets">🎯 เดิมพัน</div>
   <div class="sb-divider"></div>
+  <div class="sb-item" onclick="switchPanel('news')" data-panel="news">📰 ข่าวสาร</div>
   <div class="sb-item" onclick="switchPanel('settings')" data-panel="settings">⚙️ ตั้งค่า</div>
 </div>
 
