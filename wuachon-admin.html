@@ -1785,34 +1785,38 @@ function filterDep() {
 
 async function approveDeposit(id, nick, amount) {
   const btn = document.querySelector(`#dep-row-${id} .action-btn.green`);
-  if (btn) { btn.disabled = true; btn.textContent = 'กำลังอนุมัติ...'; }
+  if (btn) { btn.disabled = true; btn.textContent = '⏳ กำลังอนุมัติ...'; }
 
   // เพิ่มยอดเงินสมาชิก
-  const { data: member } = await sb.from('members').select('balance').eq('nick',nick).maybeSingle();
+  const { data: member } = await sb.from('members').select('balance').eq('nick', nick).maybeSingle();
   if (member) {
-    await sb.from('members').update({ balance: Number(member.balance||0)+Number(amount) }).eq('nick',nick);
+    await sb.from('members').update({ balance: Number(member.balance||0) + Number(amount) }).eq('nick', nick);
   }
 
   const approvedAt = new Date().toISOString();
-  const { error } = await sb.from('deposits').update({
+
+  // try update ด้วย approved columns ก่อน
+  let updateResult = await sb.from('deposits').update({
     status: 'approved',
     approved_by: 'Admin',
     approved_at: approvedAt
   }).eq('id', id);
 
-  if (error) { showToast('❌ ' + error.message, 'error'); if (btn) { btn.disabled=false; btn.textContent='✅ อนุมัติ'; } return; }
-
-  // อัปเดต allDeps ทันทีโดยไม่รอ reload
-  const idx = allDeps.findIndex(d => d.id === id);
-  if (idx !== -1) {
-    allDeps[idx] = { ...allDeps[idx], status:'approved', approved_by:'Admin', approved_at: approvedAt };
+  // ถ้า error เพราะ column ไม่มี ให้ update แค่ status
+  if (updateResult.error) {
+    updateResult = await sb.from('deposits').update({ status: 'approved' }).eq('id', id);
   }
 
-  // re-render ทันที
-  updateDepStats();
-  renderDeps(allDeps);
-  loadOverview();
+  if (updateResult.error) {
+    showToast('❌ ' + updateResult.error.message, 'error');
+    if (btn) { btn.disabled = false; btn.textContent = '✅ อนุมัติ'; }
+    return;
+  }
+
   showToast(`✅ อนุมัติเติมเงิน +${Number(amount).toLocaleString()} ฿ ให้ ${nick}`);
+  // reload ใหม่จาก Supabase ทันที
+  await loadDeposits();
+  loadOverview();
 }
 
 // ── WITHDRAWALS ──
@@ -1891,28 +1895,32 @@ function filterWith() {
 
 async function approveWithdraw(id, nick, amount) {
   const btn = document.querySelector(`#with-row-${id} .action-btn.green`);
-  if (btn) { btn.disabled = true; btn.textContent = 'กำลังบันทึก...'; }
+  if (btn) { btn.disabled = true; btn.textContent = '⏳ กำลังบันทึก...'; }
 
   const approvedAt = new Date().toISOString();
-  const { error } = await sb.from('withdrawals').update({
+
+  // try update ด้วย approved columns ก่อน
+  let updateResult = await sb.from('withdrawals').update({
     status: 'approved',
     approved_by: 'Admin',
     approved_at: approvedAt
   }).eq('id', id);
 
-  if (error) { showToast('❌ ' + error.message, 'error'); if (btn) { btn.disabled=false; btn.textContent='✅ โอนแล้ว'; } return; }
-
-  // อัปเดต allWiths ทันที
-  const idx = allWiths.findIndex(w => w.id === id);
-  if (idx !== -1) {
-    allWiths[idx] = { ...allWiths[idx], status:'approved', approved_by:'Admin', approved_at: approvedAt };
+  // ถ้า error เพราะ column ไม่มี ให้ update แค่ status
+  if (updateResult.error) {
+    updateResult = await sb.from('withdrawals').update({ status: 'approved' }).eq('id', id);
   }
 
-  // re-render ทันที
-  updateWithStats();
-  renderWiths(allWiths);
-  loadOverview();
+  if (updateResult.error) {
+    showToast('❌ ' + updateResult.error.message, 'error');
+    if (btn) { btn.disabled = false; btn.textContent = '✅ โอนแล้ว'; }
+    return;
+  }
+
   showToast(`✅ บันทึกการโอนให้ ${nick} แล้วครับ`);
+  // reload ใหม่จาก Supabase ทันที
+  await loadWithdrawals();
+  loadOverview();
 }
 
 // ── REJECT MODAL ──

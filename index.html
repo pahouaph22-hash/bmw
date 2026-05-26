@@ -2840,10 +2840,10 @@
 
           <!-- ฟอร์ม Login -->
           <div id="form-login" style="display:none;">
-            <div class="reg-section-label">เข้าสู่ระบบด้วยเบอร์โทรศัพท์</div>
+            <div class="reg-section-label">เข้าสู่ระบบ</div>
             <div class="reg-group">
-              <label class="reg-label">เบอร์โทรศัพท์</label>
-              <input class="reg-input" type="tel" id="l-phone" placeholder="0xx-xxx-xxxx">
+              <label class="reg-label">เบอร์โทรศัพท์ <em>หรือ</em> ชื่อบัญชี</label>
+              <input class="reg-input" type="text" id="l-phone" placeholder="0xx-xxx-xxxx หรือ ชื่อบัญชีของคุณ">
             </div>
             <div class="reg-group">
               <label class="reg-label">รหัสผ่าน</label>
@@ -3912,8 +3912,8 @@
       return;
     }
 
-    // Hash password (simple)
-    const pwHash = btoa(phone + ':' + password);
+    // Hash password (consistent กับ login)
+    const pwHash = btoa(unescape(encodeURIComponent(phone + ':' + password)));
 
     // บันทึกลง Supabase
     const { data, error } = await sb.from('members').insert({
@@ -3941,30 +3941,58 @@
 
   // ── Login ──
   async function submitLogin() {
-    const phone    = document.getElementById('l-phone').value.trim();
-    const password = document.getElementById('l-password').value;
-    const errEl    = document.getElementById('login-error');
-    const btn      = document.querySelector('#form-login .reg-submit');
+    const loginInput = document.getElementById('l-phone').value.trim().replace(/-/g,'');
+    const password   = document.getElementById('l-password').value;
+    const errEl      = document.getElementById('login-error');
+    const btn        = document.querySelector('#form-login .reg-submit');
 
-    if (!phone || !password) {
+    if (!loginInput || !password) {
       errEl.style.display = 'block';
-      errEl.textContent = '⚠️ กรุณากรอกเบอร์โทรและรหัสผ่านครับ';
+      errEl.textContent = '⚠️ กรุณากรอกเบอร์โทร/ชื่อบัญชี และรหัสผ่านครับ';
       return;
     }
     errEl.style.display = 'none';
     btn.disabled = true;
     btn.textContent = 'กำลังตรวจสอบ...';
 
-    const pwHash = btoa(phone + ':' + password);
-    const { data, error } = await sb.from('members')
-      .select('*').eq('phone', phone).eq('password', pwHash).maybeSingle();
+    // ค้นหาด้วย phone หรือ nick
+    const isPhone = /^[0-9]{9,10}$/.test(loginInput);
+    let data, error;
+
+    if (isPhone) {
+      // ค้นด้วยเบอร์โทร
+      ({ data, error } = await sb.from('members').select('*').eq('phone', loginInput).maybeSingle());
+    } else {
+      // ค้นด้วยชื่อบัญชี (nick)
+      ({ data, error } = await sb.from('members').select('*').eq('nick', loginInput).maybeSingle());
+    }
+
+    // ถ้าไม่เจอด้วยวิธีแรก ลองอีกวิธี
+    if (!data && !error) {
+      if (isPhone) {
+        ({ data, error } = await sb.from('members').select('*').eq('nick', loginInput).maybeSingle());
+      } else {
+        ({ data, error } = await sb.from('members').select('*').eq('phone', loginInput).maybeSingle());
+      }
+    }
 
     btn.disabled = false;
     btn.textContent = '🔑 เข้าสู่ระบบ →';
 
-    if (error || !data) {
+    if (!data) {
       errEl.style.display = 'block';
-      errEl.textContent = '❌ เบอร์โทรหรือรหัสผ่านไม่ถูกต้องครับ';
+      errEl.textContent = '❌ ไม่พบบัญชีนี้ในระบบครับ';
+      return;
+    }
+
+    // เปรียบรหัสผ่าน (ใช้เบอร์โทรจริงในการ hash เสมอ)
+    const phone   = data.phone;
+    const pwHash  = btoa(unescape(encodeURIComponent(phone + ':' + password)));
+    const pwHashAlt = btoa(phone + ':' + password);
+
+    if (data.password !== pwHash && data.password !== pwHashAlt) {
+      errEl.style.display = 'block';
+      errEl.textContent = '❌ รหัสผ่านไม่ถูกต้องครับ';
       return;
     }
 
