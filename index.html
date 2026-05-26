@@ -4022,6 +4022,55 @@
     window.scrollTo(0, 0);
   }
 
+  // ── Real-time listener สำหรับ txn status ──
+  function subscribeTxnStatus() {
+    if (!currentUser) return;
+    const nick = currentUser.nick;
+    sb.channel('txn-status-' + nick)
+      .on('postgres_changes', { event:'UPDATE', schema:'public', table:'deposits',
+          filter: `nick=eq.${nick}` }, payload => {
+        const d = payload.new;
+        if (d.status === 'approved') {
+          // อัปเดตยอดเงิน
+          currentUser.balance = (currentUser.balance || 0) + Number(d.amount);
+          sessionStorage.setItem('bw_user', JSON.stringify(currentUser));
+          updateAccBalance(currentUser.balance);
+          showFEToast(`✅ เติมเงิน +${Number(d.amount).toLocaleString()} ฿ สำเร็จแล้วครับ!`);
+          loadTxnHistory();
+        } else if (d.status === 'rejected') {
+          showFEToast(`❌ คำขอเติมเงินถูกปฏิเสธ: ${d.reason || ''}`);
+          loadTxnHistory();
+        }
+      })
+      .on('postgres_changes', { event:'UPDATE', schema:'public', table:'withdrawals',
+          filter: `nick=eq.${nick}` }, payload => {
+        const w = payload.new;
+        if (w.status === 'approved') {
+          showFEToast(`✅ ถอนเงิน -${Number(w.amount).toLocaleString()} ฿ สำเร็จแล้วครับ!`);
+          loadTxnHistory();
+        } else if (w.status === 'rejected') {
+          // คืนเงิน
+          currentUser.balance = (currentUser.balance || 0) + Number(w.amount);
+          sessionStorage.setItem('bw_user', JSON.stringify(currentUser));
+          updateAccBalance(currentUser.balance);
+          showFEToast(`❌ คำขอถอนเงินถูกปฏิเสธ คืนเงิน +${Number(w.amount).toLocaleString()} ฿`);
+          loadTxnHistory();
+        }
+      })
+      .subscribe();
+  }
+
+  function showFEToast(msg) {
+    const existing = document.getElementById('toast-fe');
+    if (existing) existing.remove();
+    const t = document.createElement('div');
+    t.id = 'toast-fe';
+    t.style.cssText = 'position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:#1a1a1a;color:#fff;font-family:\'Kanit\',sans-serif;font-size:13px;padding:12px 22px;border-radius:10px;z-index:9999;box-shadow:0 8px 24px rgba(0,0,0,0.4);';
+    t.textContent = msg;
+    document.body.appendChild(t);
+    setTimeout(() => t.remove(), 4000);
+  }
+
   // ── Supabase Config ──
   const SUPA_URL = 'https://xzlpdeqlfczjkospfqqi.supabase.co';
   const SUPA_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inh6bHBkZXFsZmN6amtvc3BmcXFpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzk2NzgyMjAsImV4cCI6MjA5NTI1NDIyMH0.W0pDFJy3lFeO4ht9DpNzeDgVdGvSz94p0KWGfzc0Igw';
@@ -4154,6 +4203,7 @@
     currentUser = data;
     sessionStorage.setItem('bw_user', JSON.stringify(currentUser));
     setLoggedIn(data.nick);
+    subscribeTxnStatus();
     hideRegister();
     goToMyAccount();
   }

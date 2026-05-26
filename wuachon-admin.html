@@ -242,22 +242,39 @@ tr:hover td{background:#fafaf8;}
     <div class="stat-card"><div class="stat-label">อนุมัติแล้ว</div><div class="stat-val green" id="dep-approved-count">0</div></div>
     <div class="stat-card"><div class="stat-label">ยอดเติมรวม</div><div class="stat-val gold" id="dep-total">0 ฿</div></div>
   </div>
-  <div class="card">
-    <div class="card-title">💰 รายการเติมเงิน
-      <div style="display:flex;gap:8px;">
-        <input id="dep-search" placeholder="ค้นหา..." style="font-family:'Sarabun',sans-serif;font-size:12px;padding:6px 12px;border:1px solid #ddd;border-radius:7px;width:180px;" oninput="filterDep()">
-        <select id="dep-filter" onchange="filterDep()" style="font-family:'Kanit',sans-serif;font-size:12px;padding:6px 10px;border:1px solid #ddd;border-radius:7px;">
-          <option value="all">ทั้งหมด</option>
-          <option value="pending">รอตรวจสอบ</option>
-          <option value="approved">อนุมัติแล้ว</option>
-          <option value="rejected">ปฏิเสธ</option>
-        </select>
+
+  <!-- Tab: รอตรวจสอบ -->
+  <div class="card" style="margin-bottom:16px;">
+    <div class="card-title" style="background:#fff5f5;margin:-18px -18px 14px;padding:14px 18px;border-radius:12px 12px 0 0;border-bottom:2px solid #FCEBEB;">
+      <div style="display:flex;align-items:center;gap:8px;">
+        <span style="width:10px;height:10px;border-radius:50%;background:var(--red);display:inline-block;animation:pulse .8s infinite;"></span>
+        ⏳ รอการตรวจสอบ
+        <span id="dep-pending-badge" style="background:var(--red);color:#fff;font-family:'Kanit',sans-serif;font-size:11px;font-weight:700;padding:2px 8px;border-radius:999px;">0</span>
       </div>
+      <input id="dep-search-pending" placeholder="ค้นหา..." style="font-family:'Sarabun',sans-serif;font-size:12px;padding:6px 12px;border:1px solid #ddd;border-radius:7px;width:160px;" oninput="filterDep()">
     </div>
     <div style="overflow-x:auto;">
       <table>
-        <thead><tr><th>ชื่อบัญชี</th><th>จำนวน</th><th>ธนาคาร</th><th>TXN</th><th>เวลา</th><th>สถานะ</th><th>จัดการ</th></tr></thead>
-        <tbody id="dep-tbody"><tr class="loading-row"><td colspan="7">กำลังโหลด...</td></tr></tbody>
+        <thead><tr><th>ชื่อบัญชี</th><th>ชื่อ-นามสกุล</th><th>เบอร์โทร</th><th>จำนวน</th><th>ธนาคาร</th><th>TXN</th><th>เวลา</th><th>จัดการ</th></tr></thead>
+        <tbody id="dep-pending-tbody"><tr class="loading-row"><td colspan="8">กำลังโหลด...</td></tr></tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Tab: อนุมัติแล้ว -->
+  <div class="card">
+    <div class="card-title" style="background:#f0faf0;margin:-18px -18px 14px;padding:14px 18px;border-radius:12px 12px 0 0;border-bottom:2px solid #c8eac8;">
+      <div style="display:flex;align-items:center;gap:8px;">
+        <span style="color:var(--green);">✅</span>
+        อนุมัติแล้ว / สำเร็จ
+        <span id="dep-approved-badge" style="background:var(--green);color:#fff;font-family:'Kanit',sans-serif;font-size:11px;font-weight:700;padding:2px 8px;border-radius:999px;">0</span>
+      </div>
+      <input id="dep-search-approved" placeholder="ค้นหา..." style="font-family:'Sarabun',sans-serif;font-size:12px;padding:6px 12px;border:1px solid #ddd;border-radius:7px;width:160px;" oninput="filterDep()">
+    </div>
+    <div style="overflow-x:auto;">
+      <table>
+        <thead><tr><th>ชื่อบัญชี</th><th>ชื่อ-นามสกุล</th><th>เบอร์โทร</th><th>จำนวน</th><th>ธนาคาร</th><th>TXN</th><th>เวลา</th><th>ผู้อนุมัติ</th><th>เวลาอนุมัติ</th><th>สถานะ</th></tr></thead>
+        <tbody id="dep-approved-tbody"><tr class="loading-row"><td colspan="10">กำลังโหลด...</td></tr></tbody>
       </table>
     </div>
   </div>
@@ -270,22 +287,39 @@ tr:hover td{background:#fafaf8;}
     <div class="stat-card"><div class="stat-label">โอนแล้ว</div><div class="stat-val green" id="with-done-count">0</div></div>
     <div class="stat-card"><div class="stat-label">ยอดถอนรวม</div><div class="stat-val gold" id="with-total">0 ฿</div></div>
   </div>
-  <div class="card">
-    <div class="card-title">🏧 รายการถอนเงิน
-      <div style="display:flex;gap:8px;">
-        <input id="with-search" placeholder="ค้นหา..." style="font-family:'Sarabun',sans-serif;font-size:12px;padding:6px 12px;border:1px solid #ddd;border-radius:7px;width:180px;" oninput="filterWith()">
-        <select id="with-filter" onchange="filterWith()" style="font-family:'Kanit',sans-serif;font-size:12px;padding:6px 10px;border:1px solid #ddd;border-radius:7px;">
-          <option value="all">ทั้งหมด</option>
-          <option value="pending">รอดำเนินการ</option>
-          <option value="approved">โอนแล้ว</option>
-          <option value="rejected">ปฏิเสธ</option>
-        </select>
+
+  <!-- Tab: รอดำเนินการ -->
+  <div class="card" style="margin-bottom:16px;">
+    <div class="card-title" style="background:#fff5f5;margin:-18px -18px 14px;padding:14px 18px;border-radius:12px 12px 0 0;border-bottom:2px solid #FCEBEB;">
+      <div style="display:flex;align-items:center;gap:8px;">
+        <span style="width:10px;height:10px;border-radius:50%;background:var(--red);display:inline-block;animation:pulse .8s infinite;"></span>
+        ⏳ รอดำเนินการ
+        <span id="with-pending-badge" style="background:var(--red);color:#fff;font-family:'Kanit',sans-serif;font-size:11px;font-weight:700;padding:2px 8px;border-radius:999px;">0</span>
       </div>
+      <input id="with-search-pending" placeholder="ค้นหา..." style="font-family:'Sarabun',sans-serif;font-size:12px;padding:6px 12px;border:1px solid #ddd;border-radius:7px;width:160px;" oninput="filterWith()">
     </div>
     <div style="overflow-x:auto;">
       <table>
-        <thead><tr><th>ชื่อบัญชี</th><th>จำนวน</th><th>ธนาคาร</th><th>เลขบัญชี</th><th>TXN</th><th>เวลา</th><th>สถานะ</th><th>จัดการ</th></tr></thead>
-        <tbody id="with-tbody"><tr class="loading-row"><td colspan="8">กำลังโหลด...</td></tr></tbody>
+        <thead><tr><th>ชื่อบัญชี</th><th>จำนวน</th><th>ธนาคารปลายทาง</th><th>เลขบัญชี</th><th>ชื่อบัญชี</th><th>TXN</th><th>เวลา</th><th>จัดการ</th></tr></thead>
+        <tbody id="with-pending-tbody"><tr class="loading-row"><td colspan="8">กำลังโหลด...</td></tr></tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Tab: โอนแล้ว -->
+  <div class="card">
+    <div class="card-title" style="background:#f0faf0;margin:-18px -18px 14px;padding:14px 18px;border-radius:12px 12px 0 0;border-bottom:2px solid #c8eac8;">
+      <div style="display:flex;align-items:center;gap:8px;">
+        <span style="color:var(--green);">✅</span>
+        โอนแล้ว / สำเร็จ
+        <span id="with-approved-badge" style="background:var(--green);color:#fff;font-family:'Kanit',sans-serif;font-size:11px;font-weight:700;padding:2px 8px;border-radius:999px;">0</span>
+      </div>
+      <input id="with-search-approved" placeholder="ค้นหา..." style="font-family:'Sarabun',sans-serif;font-size:12px;padding:6px 12px;border:1px solid #ddd;border-radius:7px;width:160px;" oninput="filterWith()">
+    </div>
+    <div style="overflow-x:auto;">
+      <table>
+        <thead><tr><th>ชื่อบัญชี</th><th>จำนวน</th><th>ธนาคาร</th><th>เลขบัญชี</th><th>TXN</th><th>เวลา</th><th>ผู้อนุมัติ</th><th>เวลาอนุมัติ</th><th>สถานะ</th></tr></thead>
+        <tbody id="with-approved-tbody"><tr class="loading-row"><td colspan="9">กำลังโหลด...</td></tr></tbody>
       </table>
     </div>
   </div>
@@ -664,42 +698,59 @@ function updateDepStats() {
   const pending  = allDeps.filter(d=>d.status==='pending').length;
   const approved = allDeps.filter(d=>d.status==='approved').length;
   const total    = allDeps.filter(d=>d.status==='approved').reduce((s,d)=>s+Number(d.amount||0),0);
-  document.getElementById('dep-pending-count').textContent = pending;
+  document.getElementById('dep-pending-count').textContent  = pending;
   document.getElementById('dep-approved-count').textContent = approved;
-  document.getElementById('dep-total').textContent = total.toLocaleString()+' ฿';
+  document.getElementById('dep-total').textContent          = total.toLocaleString()+' ฿';
+  document.getElementById('dep-pending-badge').textContent  = pending;
+  document.getElementById('dep-approved-badge').textContent = approved;
 }
 
 function renderDeps(rows) {
-  const tb = document.getElementById('dep-tbody');
-  if (!rows.length) { tb.innerHTML = '<tr class="loading-row"><td colspan="7">ไม่มีรายการ</td></tr>'; return; }
-  tb.innerHTML = rows.map(d => `
-    <tr>
+  const qPending  = document.getElementById('dep-search-pending')?.value.toLowerCase()  || '';
+  const qApproved = document.getElementById('dep-search-approved')?.value.toLowerCase() || '';
+
+  const pending  = rows.filter(d => d.status === 'pending'  && (!qPending  || d.nick?.toLowerCase().includes(qPending)  || d.txn?.includes(qPending)));
+  const approved = rows.filter(d => d.status !== 'pending'  && (!qApproved || d.nick?.toLowerCase().includes(qApproved) || d.txn?.includes(qApproved)));
+
+  // ตาราง รอตรวจสอบ
+  const pt = document.getElementById('dep-pending-tbody');
+  if (!pending.length) { pt.innerHTML = '<tr class="loading-row"><td colspan="8">ไม่มีรายการรอตรวจสอบ</td></tr>'; }
+  else { pt.innerHTML = pending.map(d => `
+    <tr id="dep-row-${d.id}">
       <td><strong>${d.nick}</strong></td>
+      <td style="font-size:12px;">${d.fname||''} ${d.lname||''}</td>
+      <td style="font-size:12px;">${d.phone||'—'}</td>
       <td><strong style="color:var(--green);">+${Number(d.amount).toLocaleString()} ฿</strong></td>
       <td style="font-size:12px;">${d.bank||'—'}</td>
       <td style="font-family:'Kanit',sans-serif;font-size:11px;color:#aaa;">${d.txn||'—'}</td>
       <td style="font-size:12px;color:#aaa;">${fmtDate(d.created_at)}</td>
-      <td><span class="badge badge-${d.status==='pending'?'pending':d.status==='approved'?'approved':'rejected'}">${d.status==='pending'?'⏳ รอ':d.status==='approved'?'✅ อนุมัติ':'❌ ปฏิเสธ'}</span></td>
       <td style="display:flex;gap:5px;">
-        ${d.status==='pending'?`
-          <button class="action-btn green" onclick="approveDeposit('${d.id}','${d.nick}',${d.amount})">✅ อนุมัติ</button>
-          <button class="action-btn red" onclick="openReject('${d.id}','deposit','${d.nick}',${d.amount})">❌ ปฏิเสธ</button>
-        `:'<span style="font-size:11px;color:#aaa;">ดำเนินการแล้ว</span>'}
+        <button class="action-btn green" onclick="approveDeposit('${d.id}','${d.nick}',${d.amount})">✅ อนุมัติ</button>
+        <button class="action-btn red" onclick="openReject('${d.id}','deposit','${d.nick}',${d.amount})">❌ ปฏิเสธ</button>
       </td>
-    </tr>`).join('');
+    </tr>`).join(''); }
+
+  // ตาราง อนุมัติแล้ว
+  const at = document.getElementById('dep-approved-tbody');
+  if (!approved.length) { at.innerHTML = '<tr class="loading-row"><td colspan="10">ยังไม่มีรายการอนุมัติ</td></tr>'; }
+  else { at.innerHTML = approved.map(d => `
+    <tr>
+      <td><strong>${d.nick}</strong></td>
+      <td style="font-size:12px;">${d.fname||''} ${d.lname||''}</td>
+      <td style="font-size:12px;">${d.phone||'—'}</td>
+      <td><strong style="color:var(--green);">+${Number(d.amount).toLocaleString()} ฿</strong></td>
+      <td style="font-size:12px;">${d.bank||'—'}</td>
+      <td style="font-family:'Kanit',sans-serif;font-size:11px;color:#aaa;">${d.txn||'—'}</td>
+      <td style="font-size:12px;color:#aaa;">${fmtDate(d.created_at)}</td>
+      <td style="font-size:12px;font-family:'Kanit',sans-serif;color:var(--green);font-weight:700;">${d.approved_by||'Admin'}</td>
+      <td style="font-size:12px;color:#aaa;">${d.approved_at ? fmtDate(d.approved_at) : '—'}</td>
+      <td><span class="badge ${d.status==='approved'?'badge-approved':'badge-rejected'}">${d.status==='approved'?'✅ สำเร็จ':'❌ ปฏิเสธ'}</span></td>
+    </tr>`).join(''); }
 }
 
-function filterDep() {
-  const q = document.getElementById('dep-search').value.toLowerCase();
-  const f = document.getElementById('dep-filter').value;
-  let rows = allDeps;
-  if (f !== 'all') rows = rows.filter(d=>d.status===f);
-  if (q) rows = rows.filter(d=>d.nick?.toLowerCase().includes(q)||d.txn?.includes(q));
-  renderDeps(rows);
-}
+function filterDep() { renderDeps(allDeps); }
 
 async function approveDeposit(id, nick, amount) {
-  // เพิ่มยอดเงินสมาชิก
   const { data: member } = await sb.from('members').select('balance').eq('nick',nick).maybeSingle();
   if (member) {
     await sb.from('members').update({ balance: Number(member.balance||0)+Number(amount) }).eq('nick',nick);
@@ -709,8 +760,11 @@ async function approveDeposit(id, nick, amount) {
     approved_by: 'Admin',
     approved_at: new Date().toISOString()
   }).eq('id',id);
+  // fade ออกจาก pending ทันที
+  const row = document.getElementById(`dep-row-${id}`);
+  if (row) { row.style.transition='opacity .3s,transform .3s'; row.style.opacity='0'; row.style.transform='translateX(20px)'; setTimeout(()=>{ loadDeposits(); loadOverview(); },350); }
+  else { loadDeposits(); loadOverview(); }
   showToast(`✅ อนุมัติเติมเงิน +${Number(amount).toLocaleString()} ฿ ให้ ${nick}`);
-  loadDeposits(); loadOverview();
 }
 
 // ── WITHDRAWALS ──
@@ -726,15 +780,42 @@ function updateWithStats() {
   const pending = allWiths.filter(w=>w.status==='pending').length;
   const done    = allWiths.filter(w=>w.status==='approved').length;
   const total   = allWiths.filter(w=>w.status==='approved').reduce((s,w)=>s+Number(w.amount||0),0);
-  document.getElementById('with-pending-count').textContent = pending;
-  document.getElementById('with-done-count').textContent = done;
-  document.getElementById('with-total').textContent = total.toLocaleString()+' ฿';
+  document.getElementById('with-pending-count').textContent  = pending;
+  document.getElementById('with-done-count').textContent     = done;
+  document.getElementById('with-total').textContent          = total.toLocaleString()+' ฿';
+  document.getElementById('with-pending-badge').textContent  = pending;
+  document.getElementById('with-approved-badge').textContent = done;
 }
 
 function renderWiths(rows) {
-  const tb = document.getElementById('with-tbody');
-  if (!rows.length) { tb.innerHTML = '<tr class="loading-row"><td colspan="8">ไม่มีรายการ</td></tr>'; return; }
-  tb.innerHTML = rows.map(w => `
+  const qPending  = document.getElementById('with-search-pending')?.value.toLowerCase()  || '';
+  const qApproved = document.getElementById('with-search-approved')?.value.toLowerCase() || '';
+
+  const pending  = rows.filter(w => w.status === 'pending'  && (!qPending  || w.nick?.toLowerCase().includes(qPending)  || w.txn?.includes(qPending)));
+  const approved = rows.filter(w => w.status !== 'pending'  && (!qApproved || w.nick?.toLowerCase().includes(qApproved) || w.txn?.includes(qApproved)));
+
+  // ตาราง รอดำเนินการ
+  const pt = document.getElementById('with-pending-tbody');
+  if (!pending.length) { pt.innerHTML = '<tr class="loading-row"><td colspan="8">ไม่มีรายการรอดำเนินการ</td></tr>'; }
+  else { pt.innerHTML = pending.map(w => `
+    <tr id="with-row-${w.id}">
+      <td><strong>${w.nick}</strong></td>
+      <td><strong style="color:var(--red);">−${Number(w.amount).toLocaleString()} ฿</strong></td>
+      <td style="font-size:12px;">${w.bank||'—'}</td>
+      <td style="font-size:12px;">${w.acc_no||'—'}</td>
+      <td style="font-size:12px;">${w.acc_name||'—'}</td>
+      <td style="font-family:'Kanit',sans-serif;font-size:11px;color:#aaa;">${w.txn||'—'}</td>
+      <td style="font-size:12px;color:#aaa;">${fmtDate(w.created_at)}</td>
+      <td style="display:flex;gap:5px;">
+        <button class="action-btn green" onclick="approveWithdraw('${w.id}','${w.nick}',${w.amount})">✅ โอนแล้ว</button>
+        <button class="action-btn red" onclick="openReject('${w.id}','withdraw','${w.nick}',${w.amount})">❌ ปฏิเสธ</button>
+      </td>
+    </tr>`).join(''); }
+
+  // ตาราง โอนแล้ว
+  const at = document.getElementById('with-approved-tbody');
+  if (!approved.length) { at.innerHTML = '<tr class="loading-row"><td colspan="9">ยังไม่มีรายการโอน</td></tr>'; }
+  else { at.innerHTML = approved.map(w => `
     <tr>
       <td><strong>${w.nick}</strong></td>
       <td><strong style="color:var(--red);">−${Number(w.amount).toLocaleString()} ฿</strong></td>
@@ -742,24 +823,13 @@ function renderWiths(rows) {
       <td style="font-size:12px;">${w.acc_no||'—'}</td>
       <td style="font-family:'Kanit',sans-serif;font-size:11px;color:#aaa;">${w.txn||'—'}</td>
       <td style="font-size:12px;color:#aaa;">${fmtDate(w.created_at)}</td>
-      <td><span class="badge badge-${w.status==='pending'?'pending':w.status==='approved'?'approved':'rejected'}">${w.status==='pending'?'⏳ รอ':w.status==='approved'?'✅ โอนแล้ว':'❌ ปฏิเสธ'}</span></td>
-      <td style="display:flex;gap:5px;">
-        ${w.status==='pending'?`
-          <button class="action-btn green" onclick="approveWithdraw('${w.id}','${w.nick}',${w.amount})">✅ โอนแล้ว</button>
-          <button class="action-btn red" onclick="openReject('${w.id}','withdraw','${w.nick}',${w.amount})">❌ ปฏิเสธ</button>
-        `:'<span style="font-size:11px;color:#aaa;">ดำเนินการแล้ว</span>'}
-      </td>
-    </tr>`).join('');
+      <td style="font-size:12px;font-family:'Kanit',sans-serif;color:var(--green);font-weight:700;">${w.approved_by||'Admin'}</td>
+      <td style="font-size:12px;color:#aaa;">${w.approved_at ? fmtDate(w.approved_at) : '—'}</td>
+      <td><span class="badge ${w.status==='approved'?'badge-approved':'badge-rejected'}">${w.status==='approved'?'✅ สำเร็จ':'❌ ปฏิเสธ'}</span></td>
+    </tr>`).join(''); }
 }
 
-function filterWith() {
-  const q = document.getElementById('with-search').value.toLowerCase();
-  const f = document.getElementById('with-filter').value;
-  let rows = allWiths;
-  if (f !== 'all') rows = rows.filter(w=>w.status===f);
-  if (q) rows = rows.filter(w=>w.nick?.toLowerCase().includes(q)||w.txn?.includes(q));
-  renderWiths(rows);
-}
+function filterWith() { renderWiths(allWiths); }
 
 async function approveWithdraw(id, nick, amount) {
   await sb.from('withdrawals').update({
@@ -767,8 +837,11 @@ async function approveWithdraw(id, nick, amount) {
     approved_by: 'Admin',
     approved_at: new Date().toISOString()
   }).eq('id',id);
+  // fade ออกจาก pending ทันที
+  const row = document.getElementById(`with-row-${id}`);
+  if (row) { row.style.transition='opacity .3s,transform .3s'; row.style.opacity='0'; row.style.transform='translateX(20px)'; setTimeout(()=>{ loadWithdrawals(); loadOverview(); },350); }
+  else { loadWithdrawals(); loadOverview(); }
   showToast(`✅ บันทึกการโอนให้ ${nick} แล้วครับ`);
-  loadWithdrawals(); loadOverview();
 }
 
 // ── REJECT MODAL ──
