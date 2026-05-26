@@ -669,6 +669,7 @@ tr:hover td{background:#fafaf8;}
         <button id="etab-info"  onclick="switchEditTab('info')"  class="mptab active" style="font-size:12px;padding:7px 14px;">👤 ข้อมูลส่วนตัว</button>
         <button id="etab-phone" onclick="switchEditTab('phone')" class="mptab" style="font-size:12px;padding:7px 14px;">📱 เปลี่ยนเบอร์</button>
         <button id="etab-pass"  onclick="switchEditTab('pass')"  class="mptab" style="font-size:12px;padding:7px 14px;">🔒 รหัสผ่าน</button>
+        <button id="etab-bank"  onclick="switchEditTab('bank')"  class="mptab" style="font-size:12px;padding:7px 14px;">🏦 บัญชีธนาคาร</button>
         <button id="etab-bal"   onclick="switchEditTab('bal')"   class="mptab" style="font-size:12px;padding:7px 14px;">💰 ปรับยอดเงิน</button>
       </div>
 
@@ -698,6 +699,28 @@ tr:hover td{background:#fafaf8;}
         <div class="fg" style="margin-bottom:8px;"><label>รหัสผ่านใหม่</label><input type="password" id="e-pass-new" placeholder="อย่างน้อย 6 ตัวอักษร"></div>
         <div class="fg" style="margin-bottom:14px;"><label>ยืนยันรหัสผ่านใหม่</label><input type="password" id="e-pass-new2" placeholder="พิมพ์อีกครั้ง"></div>
         <button class="btn-save" onclick="saveEditPass()">🔒 เปลี่ยนรหัสผ่าน</button>
+      </div>
+
+      <!-- บัญชีธนาคาร (Admin แก้ไขได้) -->
+      <div id="epanel-bank" style="display:none;">
+        <div style="background:#E8F5E9;border:1px solid #A5D6A7;border-radius:8px;padding:10px 14px;margin-bottom:12px;font-size:12px;color:#2E7D32;">
+          🔒 เฉพาะ Admin เท่านั้นที่สามารถแก้ไขบัญชีธนาคารของลูกค้าได้ครับ
+        </div>
+        <div style="background:#f8f8f5;border-radius:8px;padding:10px 14px;margin-bottom:12px;font-size:12px;color:#666;font-family:'Kanit',sans-serif;">
+          บัญชีปัจจุบัน: <strong id="e-bank-current">—</strong>
+        </div>
+        <div class="fg" style="margin-bottom:8px;"><label>ธนาคาร</label>
+          <select id="e-bank-name">
+            <option value="">— เลือกธนาคาร —</option>
+            <option>กสิกรไทย (KBank)</option><option>ไทยพาณิชย์ (SCB)</option>
+            <option>กรุงเทพ (BBL)</option><option>กรุงศรีอยุธยา (BAY)</option>
+            <option>กรุงไทย (KTB)</option><option>ทหารไทยธนชาต (TTB)</option>
+            <option>PromptPay / พร้อมเพย์</option><option>อื่นๆ</option>
+          </select>
+        </div>
+        <div class="fg" style="margin-bottom:8px;"><label>เลขบัญชี</label><input id="e-bank-accno" placeholder="xxx-x-xxxxx-x"></div>
+        <div class="fg" style="margin-bottom:14px;"><label>ชื่อเจ้าของบัญชี</label><input id="e-bank-accname" placeholder="ชื่อตรงกับสมุดบัญชี"></div>
+        <button class="btn-save" onclick="saveEditBank()">🏦 บันทึกบัญชีธนาคาร</button>
       </div>
 
       <!-- ปรับยอดเงิน -->
@@ -1058,15 +1081,52 @@ function fillEditForm(m) {
   document.getElementById('e-bal-old').value   = Number(m.balance||0).toLocaleString() + ' ฿';
   document.getElementById('e-bal-new').value   = m.balance || 0;
   document.getElementById('e-bal-note').value  = '';
+  // bank account
+  const bankCurrent = document.getElementById('e-bank-current');
+  if (bankCurrent) bankCurrent.textContent = m.bank_accno ? `${m.bank_name||'—'} · ${m.bank_accno} · ${m.bank_accname||'—'}` : 'ยังไม่ได้ผูกบัญชี';
+  if (document.getElementById('e-bank-name'))    document.getElementById('e-bank-name').value    = m.bank_name    || '';
+  if (document.getElementById('e-bank-accno'))   document.getElementById('e-bank-accno').value   = m.bank_accno   || '';
+  if (document.getElementById('e-bank-accname')) document.getElementById('e-bank-accname').value = m.bank_accname || '';
 }
 
 function switchEditTab(tab) {
-  ['info','phone','pass','bal'].forEach(t => {
+  ['info','phone','pass','bank','bal'].forEach(t => {
     const panel = document.getElementById(`epanel-${t}`);
     const btn   = document.getElementById(`etab-${t}`);
     if (panel) panel.style.display = t === tab ? 'block' : 'none';
     if (btn)   btn.classList.toggle('active', t === tab);
   });
+}
+
+async function saveEditBank() {
+  const bankName  = document.getElementById('e-bank-name').value;
+  const accNo     = document.getElementById('e-bank-accno').value.trim().replace(/-/g,'');
+  const accName   = document.getElementById('e-bank-accname').value.trim();
+
+  if (!bankName)  { showToast('⚠️ กรุณาเลือกธนาคารครับ','error'); return; }
+  if (!accNo)     { showToast('⚠️ กรุณากรอกเลขบัญชีครับ','error'); return; }
+  if (!accName)   { showToast('⚠️ กรุณากรอกชื่อเจ้าของบัญชีครับ','error'); return; }
+
+  // เช็คซ้ำ
+  const { data: exist } = await sb.from('members').select('nick')
+    .eq('bank_accno', accNo).neq('id', editMemberId).maybeSingle();
+  if (exist) { showToast(`⚠️ เลขบัญชีนี้ถูกผูกกับ "${exist.nick}" แล้วครับ`,'error'); return; }
+
+  const { error } = await sb.from('members').update({
+    bank_name: bankName, bank_accno: accNo, bank_accname: accName
+  }).eq('id', editMemberId);
+
+  if (error) { showToast('❌ ' + error.message,'error'); return; }
+
+  // อัปเดต allMembers
+  const idx = allMembers.findIndex(x => x.id === editMemberId);
+  if (idx !== -1) allMembers[idx] = { ...allMembers[idx], bank_name:bankName, bank_accno:accNo, bank_accname:accName };
+
+  // อัปเดต display
+  document.getElementById('e-bank-current').textContent = `${bankName} · ${accNo} · ${accName}`;
+
+  showToast(`✅ บันทึกบัญชีธนาคารให้ลูกค้าแล้วครับ`);
+  loadMembers();
 }
 
 async function saveEditInfo() {

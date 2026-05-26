@@ -3351,53 +3351,81 @@
 
     <!-- WITHDRAW TAB -->
     <div class="acc-panel" id="acc-withdraw">
-      <div class="money-form">
-        <div class="money-form-title">🏧 ถอนเงิน</div>
 
-        <!-- ยอดปัจจุบัน -->
-        <div style="background:rgba(248,113,113,0.07);border:1px solid rgba(248,113,113,0.2);border-radius:10px;padding:14px 16px;margin-bottom:14px;display:flex;align-items:center;justify-content:space-between;">
-          <div>
-            <div style="font-family:'Kanit',sans-serif;font-size:13px;color:rgba(240,255,232,0.6);">ยอดเงินที่ถอนได้</div>
-            <div style="font-size:11px;color:rgba(240,255,232,0.35);margin-top:2px;">ขั้นต่ำ 100 บาท</div>
-          </div>
-          <div style="font-family:'Kanit',sans-serif;font-weight:900;font-size:20px;color:#f87171;" id="acc-with-balance">0 ฿</div>
+      <!-- ยอดเงินปัจจุบัน -->
+      <div style="background:rgba(248,113,113,0.07);border:1px solid rgba(248,113,113,0.2);border-radius:10px;padding:14px 16px;margin-bottom:16px;display:flex;align-items:center;justify-content:space-between;">
+        <div>
+          <div style="font-family:'Kanit',sans-serif;font-size:13px;color:rgba(240,255,232,0.6);">ยอดเงินที่ถอนได้</div>
+          <div style="font-size:11px;color:rgba(240,255,232,0.35);margin-top:2px;">ขั้นต่ำ 100 บาท</div>
         </div>
-
-        <div class="fg" style="margin-bottom:0;">
-          <label style="font-family:'Kanit',sans-serif;font-size:11px;font-weight:700;color:rgba(240,255,232,0.45);letter-spacing:.5px;margin-bottom:6px;display:block;">จำนวนเงินที่ต้องการถอน</label>
-          <input class="acc-input" type="number" id="with-amount" placeholder="ขั้นต่ำ 100 บาท" min="100">
-        </div>
-
-        <!-- Quick amount buttons -->
-        <div style="display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap;">
-          <button onclick="setWithAmount(100)" style="font-family:'Kanit',sans-serif;font-size:12px;font-weight:700;padding:6px 14px;border-radius:7px;border:1px solid rgba(248,113,113,0.3);background:transparent;color:rgba(240,255,232,0.6);cursor:pointer;">100</button>
-          <button onclick="setWithAmount(500)" style="font-family:'Kanit',sans-serif;font-size:12px;font-weight:700;padding:6px 14px;border-radius:7px;border:1px solid rgba(248,113,113,0.3);background:transparent;color:rgba(240,255,232,0.6);cursor:pointer;">500</button>
-          <button onclick="setWithAmount(1000)" style="font-family:'Kanit',sans-serif;font-size:12px;font-weight:700;padding:6px 14px;border-radius:7px;border:1px solid rgba(248,113,113,0.3);background:transparent;color:rgba(240,255,232,0.6);cursor:pointer;">1,000</button>
-          <button onclick="setWithAll()" style="font-family:'Kanit',sans-serif;font-size:12px;font-weight:700;padding:6px 14px;border-radius:7px;border:1px solid rgba(248,113,113,0.3);background:rgba(248,113,113,0.08);color:#f87171;cursor:pointer;">ทั้งหมด</button>
-        </div>
-
-        <select class="acc-input" id="with-bank">
-          <option value="">เลือกธนาคารปลายทาง</option>
-          <option>กสิกรไทย (KBank)</option>
-          <option>ไทยพาณิชย์ (SCB)</option>
-          <option>กรุงเทพ (BBL)</option>
-          <option>กรุงศรีอยุธยา (BAY)</option>
-          <option>กรุงไทย (KTB)</option>
-          <option>ทหารไทยธนชาต (TTB)</option>
-          <option>อื่นๆ</option>
-        </select>
-
-        <input class="acc-input" type="text" id="with-accno" placeholder="เลขบัญชีปลายทาง เช่น 123-4-56789-0">
-        <input class="acc-input" type="text" id="with-accname" placeholder="ชื่อเจ้าของบัญชีปลายทาง">
-
-        <div class="acc-notice">
-          ⚠️ <strong>หมายเหตุ:</strong> ยอดเงินจะถูกหักทันทีเมื่อส่งคำขอ และจะได้รับเงินภายใน <strong>24 ชั่วโมง</strong> หลังจาก Admin ดำเนินการ
-        </div>
-
-        <button class="acc-btn acc-btn-with" onclick="submitWithdraw()">🏧 ส่งคำขอถอนเงิน</button>
+        <div style="font-family:'Kanit',sans-serif;font-weight:900;font-size:20px;color:#f87171;" id="acc-with-balance">0 ฿</div>
       </div>
 
-      <!-- ประวัติการถอนเงิน -->
+      <!-- ── กรณียังไม่ผูกบัญชี ── -->
+      <div id="with-no-bank" style="display:none;">
+        <div style="background:rgba(245,200,66,0.08);border:1px solid rgba(245,200,66,0.3);border-radius:12px;padding:18px;text-align:center;margin-bottom:16px;">
+          <div style="font-size:32px;margin-bottom:8px;">🏦</div>
+          <div style="font-family:'Kanit',sans-serif;font-weight:700;font-size:14px;color:var(--gold);margin-bottom:6px;">ยังไม่ได้ผูกบัญชีธนาคาร</div>
+          <div style="font-size:12px;color:rgba(240,255,232,0.5);margin-bottom:14px;">กรุณาผูกบัญชีธนาคารก่อนทำการถอนเงินครับ<br>สามารถทำได้เพียงครั้งเดียว — แก้ไขได้โดย Admin เท่านั้น</div>
+
+          <!-- ฟอร์มผูกบัญชีครั้งแรก -->
+          <div style="text-align:left;">
+            <div style="font-family:'Kanit',sans-serif;font-size:11px;font-weight:700;color:rgba(240,255,232,0.45);margin-bottom:6px;letter-spacing:.5px;">ผูกบัญชีธนาคาร</div>
+            <select class="acc-input" id="bind-bank-name" style="margin-bottom:8px;">
+              <option value="">เลือกธนาคาร</option>
+              <option>กสิกรไทย (KBank)</option>
+              <option>ไทยพาณิชย์ (SCB)</option>
+              <option>กรุงเทพ (BBL)</option>
+              <option>กรุงศรีอยุธยา (BAY)</option>
+              <option>กรุงไทย (KTB)</option>
+              <option>ทหารไทยธนชาต (TTB)</option>
+              <option>PromptPay / พร้อมเพย์</option>
+              <option>อื่นๆ</option>
+            </select>
+            <input class="acc-input" type="text" id="bind-bank-accno" placeholder="เลขบัญชี เช่น 123-4-56789-0" style="margin-bottom:8px;">
+            <input class="acc-input" type="text" id="bind-bank-accname" placeholder="ชื่อเจ้าของบัญชี (ตรงกับสมุดบัญชี)" style="margin-bottom:12px;">
+            <div class="acc-notice" style="margin-bottom:12px;">
+              ⚠️ <strong>สำคัญ:</strong> ตรวจสอบข้อมูลให้ถูกต้องก่อนบันทึก เนื่องจากไม่สามารถแก้ไขได้ด้วยตัวเองครับ
+            </div>
+            <button class="acc-btn acc-btn-with" onclick="bindBankAccount()">🔗 ผูกบัญชีธนาคาร</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── กรณีผูกบัญชีแล้ว ── -->
+      <div id="with-has-bank" style="display:none;">
+        <!-- แสดงบัญชีที่ผูกไว้ -->
+        <div style="background:rgba(39,148,63,0.08);border:1px solid rgba(39,148,63,0.25);border-radius:10px;padding:14px 16px;margin-bottom:14px;">
+          <div style="font-family:'Kanit',sans-serif;font-size:11px;color:rgba(240,255,232,0.4);margin-bottom:6px;letter-spacing:.5px;">บัญชีปลายทาง (ผูกไว้แล้ว)</div>
+          <div style="display:flex;align-items:center;justify-content:space-between;">
+            <div>
+              <div style="font-family:'Kanit',sans-serif;font-weight:700;font-size:14px;color:var(--cream);" id="with-display-bank">—</div>
+              <div style="font-family:'Kanit',sans-serif;font-size:13px;color:var(--gold);margin-top:2px;" id="with-display-accno">—</div>
+              <div style="font-size:12px;color:rgba(240,255,232,0.5);margin-top:2px;" id="with-display-accname">—</div>
+            </div>
+            <div style="font-size:20px;">🏦</div>
+          </div>
+          <div style="font-size:11px;color:rgba(240,255,232,0.3);margin-top:8px;">🔒 ต้องการเปลี่ยนบัญชี กรุณาติดต่อ Admin ครับ</div>
+        </div>
+
+        <!-- ฟอร์มถอนเงิน -->
+        <div class="money-form" style="background:transparent;padding:0;">
+          <label style="font-family:'Kanit',sans-serif;font-size:11px;font-weight:700;color:rgba(240,255,232,0.45);letter-spacing:.5px;margin-bottom:6px;display:block;">จำนวนเงินที่ต้องการถอน</label>
+          <input class="acc-input" type="number" id="with-amount" placeholder="ขั้นต่ำ 100 บาท" min="100">
+          <div style="display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap;">
+            <button onclick="setWithAmount(100)" style="font-family:'Kanit',sans-serif;font-size:12px;font-weight:700;padding:6px 14px;border-radius:7px;border:1px solid rgba(248,113,113,0.3);background:transparent;color:rgba(240,255,232,0.6);cursor:pointer;">100</button>
+            <button onclick="setWithAmount(500)" style="font-family:'Kanit',sans-serif;font-size:12px;font-weight:700;padding:6px 14px;border-radius:7px;border:1px solid rgba(248,113,113,0.3);background:transparent;color:rgba(240,255,232,0.6);cursor:pointer;">500</button>
+            <button onclick="setWithAmount(1000)" style="font-family:'Kanit',sans-serif;font-size:12px;font-weight:700;padding:6px 14px;border-radius:7px;border:1px solid rgba(248,113,113,0.3);background:transparent;color:rgba(240,255,232,0.6);cursor:pointer;">1,000</button>
+            <button onclick="setWithAll()" style="font-family:'Kanit',sans-serif;font-size:12px;font-weight:700;padding:6px 14px;border-radius:7px;border:1px solid rgba(248,113,113,0.3);background:rgba(248,113,113,0.08);color:#f87171;cursor:pointer;">ทั้งหมด</button>
+          </div>
+          <div class="acc-notice" style="margin-bottom:12px;">
+            ⚠️ ยอดเงินจะถูกหักทันทีเมื่อส่งคำขอ และจะได้รับเงินภายใน <strong>24 ชั่วโมง</strong> หลังจาก Admin ดำเนินการ
+          </div>
+          <button class="acc-btn acc-btn-with" onclick="submitWithdraw()">🏧 ส่งคำขอถอนเงิน</button>
+        </div>
+      </div>
+
+      <!-- ── ประวัติการถอนเงิน ── -->
       <div style="margin-top:20px;">
         <div style="font-family:'Kanit',sans-serif;font-weight:700;font-size:14px;color:rgba(240,255,232,0.7);margin-bottom:12px;display:flex;align-items:center;justify-content:space-between;">
           <span>📋 ประวัติการถอนเงิน</span>
@@ -4256,6 +4284,7 @@
     loadTxnHistory();
     loadDepHistory();
     loadWithHistory();
+    loadWithdrawPanel();
     showMyAccount();
   }
 
@@ -4378,48 +4407,146 @@
     }).join('');
   }
 
-  // ── ประวัติถอนเงิน ──
+  // ── โหลดหน้าถอนเงิน (เช็คว่าผูกบัญชีหรือยัง) ──
+  async function loadWithdrawPanel() {
+    if (!currentUser) return;
+    // ดึงข้อมูลล่าสุด
+    const { data } = await sb.from('members')
+      .select('bank_name,bank_accno,bank_accname,balance')
+      .eq('nick', currentUser.nick).maybeSingle();
+
+    if (data) {
+      currentUser.bank_name    = data.bank_name;
+      currentUser.bank_accno   = data.bank_accno;
+      currentUser.bank_accname = data.bank_accname;
+      currentUser.balance      = data.balance;
+      updateAccBalance(data.balance || 0);
+    }
+
+    const hasBank = !!(currentUser.bank_accno);
+    document.getElementById('with-no-bank').style.display  = hasBank ? 'none' : 'block';
+    document.getElementById('with-has-bank').style.display = hasBank ? 'block' : 'none';
+
+    if (hasBank) {
+      document.getElementById('with-display-bank').textContent    = currentUser.bank_name    || '—';
+      document.getElementById('with-display-accno').textContent   = currentUser.bank_accno   || '—';
+      document.getElementById('with-display-accname').textContent = currentUser.bank_accname || '—';
+    }
+  }
+
+  // ── ผูกบัญชีธนาคารครั้งแรก ──
+  async function bindBankAccount() {
+    const bankName  = document.getElementById('bind-bank-name').value;
+    const accNo     = document.getElementById('bind-bank-accno').value.trim().replace(/-/g,'');
+    const accName   = document.getElementById('bind-bank-accname').value.trim();
+
+    if (!bankName)  { showFEToast('⚠️ กรุณาเลือกธนาคารครับ'); return; }
+    if (!accNo)     { showFEToast('⚠️ กรุณากรอกเลขบัญชีครับ'); return; }
+    if (!accName)   { showFEToast('⚠️ กรุณากรอกชื่อเจ้าของบัญชีครับ'); return; }
+    if (!/^[0-9]{10,15}$/.test(accNo)) {
+      showFEToast('⚠️ เลขบัญชีไม่ถูกต้อง (ตัวเลข 10-15 หลัก)'); return;
+    }
+
+    // เช็คเลขบัญชีซ้ำ
+    const { data: exist } = await sb.from('members')
+      .select('nick').eq('bank_accno', accNo).neq('nick', currentUser.nick).maybeSingle();
+    if (exist) {
+      showFEToast('❌ เลขบัญชีนี้ถูกผูกกับบัญชีอื่นแล้วครับ'); return;
+    }
+
+    const { error } = await sb.from('members').update({
+      bank_name: bankName, bank_accno: accNo, bank_accname: accName
+    }).eq('nick', currentUser.nick);
+
+    if (error) { showFEToast('❌ เกิดข้อผิดพลาด: ' + error.message); return; }
+
+    currentUser.bank_name    = bankName;
+    currentUser.bank_accno   = accNo;
+    currentUser.bank_accname = accName;
+    sessionStorage.setItem('bw_user', JSON.stringify(currentUser));
+
+    showFEToast('✅ ผูกบัญชีธนาคารสำเร็จแล้วครับ!');
+    loadWithdrawPanel();
+    loadWithHistory();
+  }
+
+  // ── ถอนเงิน (ใช้บัญชีที่ผูกไว้) ──
+  async function submitWithdraw() {
+    const amount  = parseInt(document.getElementById('with-amount').value);
+    const balance = currentUser?.balance || 0;
+
+    if (!currentUser) { alert('กรุณา Login ก่อนครับ'); return; }
+    if (!currentUser.bank_accno) { showFEToast('⚠️ กรุณาผูกบัญชีธนาคารก่อนครับ'); return; }
+    if (!amount || amount < 100) { showFEToast('⚠️ กรุณาใส่จำนวนเงินขั้นต่ำ 100 บาทครับ'); return; }
+    if (amount > balance) { showFEToast(`❌ ยอดเงินไม่เพียงพอครับ (คงเหลือ: ${balance.toLocaleString()} ฿)`); return; }
+
+    const txn  = genTxnFE(9);
+    const nick = currentUser.nick;
+
+    // หักยอดเงินทันที
+    const newBalance = balance - amount;
+    const { error: balErr } = await sb.from('members')
+      .update({ balance: newBalance }).eq('nick', nick);
+    if (balErr) { showFEToast('❌ เกิดข้อผิดพลาด: ' + balErr.message); return; }
+    updateAccBalance(newBalance);
+
+    // บันทึกคำขอถอนเงิน (ใช้บัญชีที่ผูกไว้)
+    const { error: withErr } = await sb.from('withdrawals').insert({
+      nick, amount, txn, status: 'pending',
+      bank:     currentUser.bank_name,
+      acc_no:   currentUser.bank_accno,
+      acc_name: currentUser.bank_accname,
+    });
+
+    if (withErr) {
+      // คืนเงินถ้า insert ล้มเหลว
+      await sb.from('members').update({ balance }).eq('nick', nick);
+      updateAccBalance(balance);
+      showFEToast('❌ เกิดข้อผิดพลาด: ' + withErr.message); return;
+    }
+
+    document.getElementById('with-amount').value = '';
+    showFEToast(`✅ ส่งคำขอถอนเงิน ${amount.toLocaleString()} ฿ แล้วครับ! รอ Admin ดำเนินการ`);
+    loadWithHistory();
+  }
+  // ── loadWithHistory ──
   async function loadWithHistory() {
     if (!currentUser) return;
     const el = document.getElementById('with-history-list');
     if (!el) return;
     el.innerHTML = '<div style="text-align:center;padding:16px;color:rgba(240,255,232,0.3);font-family:\'Kanit\',sans-serif;">กำลังโหลด...</div>';
-
-    const { data } = await sb.from('withdrawals')
-      .select('*').eq('nick', currentUser.nick)
-      .order('created_at', { ascending: false }).limit(20);
-
+    const { data } = await sb.from('withdrawals').select('*').eq('nick', currentUser.nick).order('created_at',{ascending:false}).limit(20);
     if (!data?.length) {
       el.innerHTML = '<div style="text-align:center;padding:20px;color:rgba(240,255,232,0.25);font-family:\'Kanit\',sans-serif;">ยังไม่มีประวัติการถอนเงินครับ</div>';
       return;
     }
-
     el.innerHTML = data.map(w => {
-      const isPending  = w.status === 'pending';
       const isApproved = w.status === 'approved';
       const isRejected = w.status === 'rejected';
-      const statusColor = isApproved ? '#4ade80' : isRejected ? '#f87171' : '#F5C842';
-      const statusBg    = isApproved ? 'rgba(74,222,128,0.1)' : isRejected ? 'rgba(248,113,113,0.1)' : 'rgba(245,200,66,0.1)';
-      const statusLabel = isApproved ? '✅ โอนแล้ว' : isRejected ? '❌ ปฏิเสธ' : '⏳ รอดำเนินการ';
-      const dateStr = new Date(w.created_at).toLocaleString('th-TH', { dateStyle:'short', timeStyle:'short' });
-      const approvedStr = w.approved_at ? new Date(w.approved_at).toLocaleString('th-TH', { dateStyle:'short', timeStyle:'short' }) : null;
-
+      const dateStr    = new Date(w.created_at).toLocaleString('th-TH',{dateStyle:\'short\',timeStyle:\'short\'});
+      const approvedStr = w.approved_at ? new Date(w.approved_at).toLocaleString('th-TH',{dateStyle:\'short\',timeStyle:\'short\'}) : null;
+      let statusHtml = isApproved
+        ? `<span style="font-family:\'Kanit\',sans-serif;font-size:11px;font-weight:700;padding:4px 12px;border-radius:999px;background:rgba(74,222,128,0.15);color:#4ade80;">✅ โอนสำเร็จ</span>`
+        : isRejected
+          ? `<span style="font-family:\'Kanit\',sans-serif;font-size:11px;font-weight:700;padding:4px 12px;border-radius:999px;background:rgba(248,113,113,0.15);color:#f87171;">❌ ปฏิเสธ</span>`
+          : `<span style="font-family:\'Kanit\',sans-serif;font-size:11px;font-weight:700;padding:4px 12px;border-radius:999px;background:rgba(245,200,66,0.12);color:#F5C842;">⏳ รอดำเนินการ</span>`;
       return `
         <div style="background:rgba(255,255,255,0.04);border:1px solid ${isApproved?'rgba(74,222,128,0.2)':isRejected?'rgba(248,113,113,0.2)':'rgba(245,200,66,0.2)'};border-radius:10px;padding:14px;margin-bottom:10px;">
           <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">
-            <div style="font-family:'Kanit',sans-serif;font-weight:900;font-size:18px;color:#f87171;">−${Number(w.amount).toLocaleString()} ฿</div>
-            <span style="font-family:'Kanit',sans-serif;font-size:11px;font-weight:700;padding:4px 10px;border-radius:999px;background:${statusBg};color:${statusColor};">${statusLabel}</span>
+            <div style="font-family:\'Kanit\',sans-serif;font-weight:900;font-size:18px;color:#f87171;">−${Number(w.amount).toLocaleString()} ฿</div>
+            ${statusHtml}
           </div>
           <div style="display:flex;flex-direction:column;gap:4px;">
-            <div style="font-size:12px;color:rgba(240,255,232,0.5);">🏦 ${w.bank||'—'} &nbsp;·&nbsp; 💳 ${w.acc_no||'—'} &nbsp;·&nbsp; 🕐 ${dateStr}</div>
-            <div style="font-size:11px;color:rgba(240,255,232,0.3);">ชื่อบัญชี: ${w.acc_name||'—'}</div>
-            <div style="font-size:11px;color:rgba(240,255,232,0.3);font-family:'Kanit',sans-serif;">TXN: ${w.txn||'—'}</div>
-            ${isApproved && approvedStr ? `<div style="font-size:11px;color:#4ade80;">✅ โอนเมื่อ: ${approvedStr} · โดย ${w.approved_by||'Admin'}</div>` : ''}
-            ${isRejected && w.reason ? `<div style="font-size:11px;color:#f87171;">❌ เหตุผล: ${w.reason}</div>` : ''}
+            <div style="font-size:12px;color:rgba(240,255,232,0.5);">🏦 ${w.bank||'—'} · 💳 ${w.acc_no||'—'}</div>
+            <div style="font-size:11px;color:rgba(240,255,232,0.35);">ชื่อบัญชี: ${w.acc_name||'—'}</div>
+            <div style="font-size:11px;color:rgba(240,255,232,0.3);">TXN: ${w.txn||'—'} · 🕐 ${dateStr}</div>
+            ${isApproved&&approvedStr?`<div style="font-size:11px;color:#4ade80;">✅ โอนเมื่อ: ${approvedStr} · โดย ${w.approved_by||'Admin'}</div>`:''}
+            ${isRejected&&w.reason?`<div style="font-size:11px;color:#f87171;">❌ เหตุผล: ${w.reason}</div>`:''}
           </div>
         </div>`;
     }).join('');
   }
+
 
   function switchAccTab(id, el) {
     document.querySelectorAll('.acc-panel').forEach(p => p.classList.remove('active'));
@@ -4429,7 +4556,7 @@
     // โหลดประวัติเมื่อเข้าแต่ละแท็บ
     if (id === 'txn')      loadTxnHistory();
     if (id === 'deposit')  loadDepHistory();
-    if (id === 'withdraw') loadWithHistory();
+    if (id === 'withdraw') { loadWithdrawPanel(); loadWithHistory(); }
   }
 
   // Deposit slip preview — ต้องรอ DOM โหลดก่อน
@@ -4498,57 +4625,6 @@
     loadDepHistory();
   }
 
-  async function submitWithdraw() {
-    const amount  = parseInt(document.getElementById('with-amount').value);
-    const bank    = document.getElementById('with-bank').value;
-    const accno   = document.getElementById('with-accno').value.trim();
-    const accname = document.getElementById('with-accname').value.trim();
-    const balance = currentUser?.balance || 0;
-
-    if (!currentUser) { alert('กรุณา Login ก่อนครับ'); return; }
-    if (!amount || amount < 100) { alert('กรุณาใส่จำนวนเงินขั้นต่ำ 100 บาทครับ'); return; }
-    if (amount > balance) { alert(`ยอดเงินไม่เพียงพอครับ\nยอดคงเหลือ: ${balance.toLocaleString()} บาท`); return; }
-    if (!bank) { alert('กรุณาเลือกธนาคารปลายทางครับ'); return; }
-    if (!accno || !accname) { alert('กรุณากรอกเลขบัญชีและชื่อบัญชีปลายทางครับ'); return; }
-
-    const txn  = genTxnFE(9);
-    const nick = currentUser.nick || '';
-
-    // ✅ ตัดยอดเงินทันที
-    const newBalance = balance - amount;
-    const { error: balErr } = await sb.from('members')
-      .update({ balance: newBalance })
-      .eq('nick', nick);
-
-    if (balErr) { alert('❌ เกิดข้อผิดพลาด: ' + balErr.message); return; }
-
-    // อัปเดต UI ยอดเงิน
-    updateAccBalance(newBalance);
-
-    // ✅ บันทึกลง Supabase withdrawals
-    const { error: withErr } = await sb.from('withdrawals').insert({
-      nick,
-      amount, bank,
-      acc_no: accno,
-      acc_name: accname,
-      txn, status: 'pending'
-    });
-
-    if (withErr) { alert('❌ เกิดข้อผิดพลาด: ' + withErr.message); return; }
-
-    // เพิ่มใน txn list UI
-    addTxnItem('with','🏧','ถอนเงิน (รอดำเนินการ)',`${bank} · ${accno}`,txn,`-${amount.toLocaleString()} ฿`,'with');
-
-    // reset form
-    document.getElementById('with-amount').value = '';
-    document.getElementById('with-bank').value = '';
-    document.getElementById('with-accno').value = '';
-    document.getElementById('with-accname').value = '';
-    document.getElementById('acc-with-balance').textContent = newBalance.toLocaleString() + ' ฿';
-
-    alert(`✅ ส่งคำขอถอนเงินสำเร็จแล้วครับ!\nTXN: ${txn}\nยอดเงินถูกหักแล้ว รอ Admin โอนให้ครับ`);
-    loadWithHistory();
-  }
 
   function addTxnItem(type, icon, label, sub, txn, amount, amtClass) {
     const now = new Date();
