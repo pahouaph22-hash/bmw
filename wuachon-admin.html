@@ -1989,38 +1989,49 @@ function filterWith() {
       <td style="font-size:12px;color:#aaa;">${fmtDate(w.created_at)}</td>
       <td style="font-size:12px;font-family:'Kanit',sans-serif;color:var(--green);font-weight:700;">${w.approved_by||'Admin'}</td>
       <td style="font-size:12px;color:#aaa;">${w.approved_at ? fmtDate(w.approved_at) : '—'}</td>
-      <td><span class="badge ${w.status==='approved'?'badge-approved':'badge-rejected'}">${w.status==='approved'?'✅ สำเร็จ':'❌ ปฏิเสธ'}</span></td>
+      <td><span class="badge ${w.status==='approved'?'badge-approved':'badge-rejected'}">${w.status==='approved'?'✅ โอนสำเร็จ':'❌ ปฏิเสธ'}</span></td>
     </tr>`).join(''); }
 }
 
 async function approveWithdraw(id, nick, amount) {
-  const btn = document.querySelector(`#with-row-${id} .action-btn.green`);
+  const row = document.getElementById(`with-row-${id}`);
+  const btn = row?.querySelector('.action-btn.green');
   if (btn) { btn.disabled = true; btn.textContent = '⏳ กำลังบันทึก...'; }
 
   const approvedAt = new Date().toISOString();
-
-  // try update ด้วย approved columns ก่อน
-  let updateResult = await sb.from('withdrawals').update({
-    status: 'approved',
-    approved_by: 'Admin',
-    approved_at: approvedAt
+  let res = await sb.from('withdrawals').update({
+    status: 'approved', approved_by: 'Admin', approved_at: approvedAt
   }).eq('id', id);
+  if (res.error) res = await sb.from('withdrawals').update({ status: 'approved' }).eq('id', id);
 
-  // ถ้า error เพราะ column ไม่มี ให้ update แค่ status
-  if (updateResult.error) {
-    updateResult = await sb.from('withdrawals').update({ status: 'approved' }).eq('id', id);
-  }
-
-  if (updateResult.error) {
-    showToast('❌ ' + updateResult.error.message, 'error');
+  if (res.error) {
+    showToast('❌ ' + res.error.message, 'error');
     if (btn) { btn.disabled = false; btn.textContent = '✅ โอนแล้ว'; }
     return;
   }
 
-  showToast(`✅ บันทึกการโอนให้ ${nick} แล้วครับ`);
-  // reload ใหม่จาก Supabase ทันที
-  await loadWithdrawals();
-  loadOverview();
+  // ── Fade แถวออกจาก pending ทันที ──
+  if (row) {
+    row.style.transition = 'all .35s';
+    row.style.opacity    = '0';
+    row.style.transform  = 'translateX(30px)';
+    row.style.background = '#f0faf0';
+  }
+
+  // อัปเดต allWiths ใน memory ทันที
+  const idx = allWiths.findIndex(w => w.id === id);
+  if (idx !== -1) {
+    allWiths[idx] = { ...allWiths[idx], status:'approved', approved_by:'Admin', approved_at: approvedAt };
+  }
+
+  showToast(`✅ โอนสำเร็จ! บันทึกให้ ${nick} แล้วครับ`);
+
+  // รอ animation เสร็จแล้ว re-render
+  setTimeout(() => {
+    updateWithStats();
+    filterWith();
+    loadOverview();
+  }, 380);
 }
 
 // ── REJECT MODAL ──
