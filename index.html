@@ -3336,6 +3336,17 @@
         </div>
       </div>
 
+      <!-- ประวัติการเติมเงิน -->
+      <div style="margin-top:20px;">
+        <div style="font-family:'Kanit',sans-serif;font-weight:700;font-size:14px;color:rgba(240,255,232,0.7);margin-bottom:12px;display:flex;align-items:center;justify-content:space-between;">
+          <span>📋 ประวัติการเติมเงิน</span>
+          <button onclick="loadDepHistory()" style="font-family:'Kanit',sans-serif;font-size:11px;padding:4px 12px;border-radius:6px;border:1px solid rgba(39,148,63,0.3);background:transparent;color:var(--accent);cursor:pointer;">🔄 รีเฟรช</button>
+        </div>
+        <div id="dep-history-list">
+          <div style="text-align:center;padding:20px;color:rgba(240,255,232,0.3);font-family:'Kanit',sans-serif;font-size:13px;">กำลังโหลด...</div>
+        </div>
+      </div>
+
     </div>
 
     <!-- WITHDRAW TAB -->
@@ -3385,6 +3396,18 @@
 
         <button class="acc-btn acc-btn-with" onclick="submitWithdraw()">🏧 ส่งคำขอถอนเงิน</button>
       </div>
+
+      <!-- ประวัติการถอนเงิน -->
+      <div style="margin-top:20px;">
+        <div style="font-family:'Kanit',sans-serif;font-weight:700;font-size:14px;color:rgba(240,255,232,0.7);margin-bottom:12px;display:flex;align-items:center;justify-content:space-between;">
+          <span>📋 ประวัติการถอนเงิน</span>
+          <button onclick="loadWithHistory()" style="font-family:'Kanit',sans-serif;font-size:11px;padding:4px 12px;border-radius:6px;border:1px solid rgba(248,113,113,0.3);background:transparent;color:#f87171;cursor:pointer;">🔄 รีเฟรช</button>
+        </div>
+        <div id="with-history-list">
+          <div style="text-align:center;padding:20px;color:rgba(240,255,232,0.3);font-family:'Kanit',sans-serif;font-size:13px;">กำลังโหลด...</div>
+        </div>
+      </div>
+
     </div>
 
     <!-- BET HISTORY TAB -->
@@ -3826,15 +3849,16 @@
   function subscribeTxnStatus() {
     if (!currentUser) return;
     const nick = currentUser.nick;
+
     sb.channel('txn-status-' + nick)
-      .on('postgres_changes', { event:'UPDATE', schema:'public', table:'deposits',
-          filter: `nick=eq.${nick}` }, payload => {
+      .on('postgres_changes', {
+        event: 'UPDATE', schema: 'public', table: 'deposits'
+      }, payload => {
         const d = payload.new;
+        if (d.nick !== nick) return; // กรอง nick เอง
         if (d.status === 'approved') {
-          // อัปเดตยอดเงิน
-          currentUser.balance = (currentUser.balance || 0) + Number(d.amount);
-          sessionStorage.setItem('bw_user', JSON.stringify(currentUser));
-          updateAccBalance(currentUser.balance);
+          // ดึงยอดจริงจาก Supabase แทนการบวกเอง
+          refreshBalance();
           showFEToast(`✅ เติมเงิน +${Number(d.amount).toLocaleString()} ฿ สำเร็จแล้วครับ!`);
           loadTxnHistory();
         } else if (d.status === 'rejected') {
@@ -3842,23 +3866,45 @@
           loadTxnHistory();
         }
       })
-      .on('postgres_changes', { event:'UPDATE', schema:'public', table:'withdrawals',
-          filter: `nick=eq.${nick}` }, payload => {
+      .on('postgres_changes', {
+        event: 'UPDATE', schema: 'public', table: 'withdrawals'
+      }, payload => {
         const w = payload.new;
+        if (w.nick !== nick) return;
         if (w.status === 'approved') {
           showFEToast(`✅ ถอนเงิน -${Number(w.amount).toLocaleString()} ฿ สำเร็จแล้วครับ!`);
           loadTxnHistory();
         } else if (w.status === 'rejected') {
-          // คืนเงิน
-          currentUser.balance = (currentUser.balance || 0) + Number(w.amount);
-          sessionStorage.setItem('bw_user', JSON.stringify(currentUser));
-          updateAccBalance(currentUser.balance);
-          showFEToast(`❌ คำขอถอนเงินถูกปฏิเสธ คืนเงิน +${Number(w.amount).toLocaleString()} ฿`);
+          refreshBalance(); // คืนเงิน
+          showFEToast(`❌ คำขอถอนเงินถูกปฏิเสธ คืนเงินให้แล้วครับ`);
           loadTxnHistory();
         }
       })
+      .on('postgres_changes', {
+        event: 'UPDATE', schema: 'public', table: 'members'
+      }, payload => {
+        const m = payload.new;
+        if (m.nick !== nick) return;
+        // ยอดเงินเปลี่ยนแปลง → อัปเดตทันที
+        updateAccBalance(Number(m.balance || 0));
+        currentUser.balance = Number(m.balance || 0);
+        sessionStorage.setItem('bw_user', JSON.stringify(currentUser));
+      })
       .subscribe();
-    subscribeMatchResults();
+  }
+
+  // ── ดึงยอดเงินล่าสุดจาก Supabase ──
+  async function refreshBalance() {
+    if (!currentUser) return;
+    const { data } = await sb.from('members')
+      .select('balance')
+      .eq('nick', currentUser.nick)
+      .maybeSingle();
+    if (data) {
+      updateAccBalance(Number(data.balance || 0));
+      currentUser.balance = Number(data.balance || 0);
+      sessionStorage.setItem('bw_user', JSON.stringify(currentUser));
+    }
   }
 
   function showFEToast(msg) {
@@ -4077,6 +4123,8 @@
     sessionStorage.setItem('bw_user', JSON.stringify(currentUser));
     setLoggedIn(data.nick);
     subscribeTxnStatus();
+    subscribeMatchResults();
+    refreshBalance();
     hideRegister();
     goToMyAccount();
   }
@@ -4107,7 +4155,19 @@
   if (savedUser) {
     try {
       currentUser = JSON.parse(savedUser);
-      if (currentUser?.nick) setLoggedIn(currentUser.nick);
+      if (currentUser?.nick) {
+        setLoggedIn(currentUser.nick);
+        // ดึงยอดเงินล่าสุดจาก Supabase ทันที
+        sb.from('members').select('balance').eq('nick', currentUser.nick).maybeSingle().then(({ data }) => {
+          if (data) {
+            currentUser.balance = Number(data.balance || 0);
+            sessionStorage.setItem('bw_user', JSON.stringify(currentUser));
+            updateAccBalance(currentUser.balance);
+          }
+        });
+        subscribeTxnStatus();
+        subscribeMatchResults();
+      }
     } catch(e) {}
   }
 
@@ -4194,6 +4254,8 @@
     document.getElementById('acc-info-addr').textContent     = `${currentUser.addr1||''} ${currentUser.addr2||''}`.trim() || '—';
     updateAccBalance(currentUser.balance || 0);
     loadTxnHistory();
+    loadDepHistory();
+    loadWithHistory();
     showMyAccount();
   }
 
@@ -4274,13 +4336,100 @@
     window.scrollTo(0, 0);
   }
 
+  // ── ประวัติเติมเงิน ──
+  async function loadDepHistory() {
+    if (!currentUser) return;
+    const el = document.getElementById('dep-history-list');
+    if (!el) return;
+    el.innerHTML = '<div style="text-align:center;padding:16px;color:rgba(240,255,232,0.3);font-family:\'Kanit\',sans-serif;">กำลังโหลด...</div>';
+
+    const { data } = await sb.from('deposits')
+      .select('*').eq('nick', currentUser.nick)
+      .order('created_at', { ascending: false }).limit(20);
+
+    if (!data?.length) {
+      el.innerHTML = '<div style="text-align:center;padding:20px;color:rgba(240,255,232,0.25);font-family:\'Kanit\',sans-serif;">ยังไม่มีประวัติการเติมเงินครับ</div>';
+      return;
+    }
+
+    el.innerHTML = data.map(d => {
+      const isPending  = d.status === 'pending';
+      const isApproved = d.status === 'approved';
+      const isRejected = d.status === 'rejected';
+      const statusColor = isApproved ? '#4ade80' : isRejected ? '#f87171' : '#F5C842';
+      const statusBg    = isApproved ? 'rgba(74,222,128,0.1)' : isRejected ? 'rgba(248,113,113,0.1)' : 'rgba(245,200,66,0.1)';
+      const statusLabel = isApproved ? '✅ อนุมัติแล้ว' : isRejected ? '❌ ปฏิเสธ' : '⏳ รอตรวจสอบ';
+      const dateStr = new Date(d.created_at).toLocaleString('th-TH', { dateStyle:'short', timeStyle:'short' });
+      const approvedStr = d.approved_at ? new Date(d.approved_at).toLocaleString('th-TH', { dateStyle:'short', timeStyle:'short' }) : null;
+
+      return `
+        <div style="background:rgba(255,255,255,0.04);border:1px solid ${isApproved?'rgba(74,222,128,0.2)':isRejected?'rgba(248,113,113,0.2)':'rgba(245,200,66,0.2)'};border-radius:10px;padding:14px;margin-bottom:10px;">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">
+            <div style="font-family:'Kanit',sans-serif;font-weight:900;font-size:18px;color:#4ade80;">+${Number(d.amount).toLocaleString()} ฿</div>
+            <span style="font-family:'Kanit',sans-serif;font-size:11px;font-weight:700;padding:4px 10px;border-radius:999px;background:${statusBg};color:${statusColor};">${statusLabel}</span>
+          </div>
+          <div style="display:flex;flex-direction:column;gap:4px;">
+            <div style="font-size:12px;color:rgba(240,255,232,0.5);">🏦 ${d.bank||'—'} &nbsp;·&nbsp; 🕐 ${dateStr}</div>
+            <div style="font-size:11px;color:rgba(240,255,232,0.3);font-family:'Kanit',sans-serif;">TXN: ${d.txn||'—'}</div>
+            ${isApproved && approvedStr ? `<div style="font-size:11px;color:#4ade80;">✅ อนุมัติเมื่อ: ${approvedStr} · โดย ${d.approved_by||'Admin'}</div>` : ''}
+            ${isRejected && d.reason ? `<div style="font-size:11px;color:#f87171;">❌ เหตุผล: ${d.reason}</div>` : ''}
+          </div>
+        </div>`;
+    }).join('');
+  }
+
+  // ── ประวัติถอนเงิน ──
+  async function loadWithHistory() {
+    if (!currentUser) return;
+    const el = document.getElementById('with-history-list');
+    if (!el) return;
+    el.innerHTML = '<div style="text-align:center;padding:16px;color:rgba(240,255,232,0.3);font-family:\'Kanit\',sans-serif;">กำลังโหลด...</div>';
+
+    const { data } = await sb.from('withdrawals')
+      .select('*').eq('nick', currentUser.nick)
+      .order('created_at', { ascending: false }).limit(20);
+
+    if (!data?.length) {
+      el.innerHTML = '<div style="text-align:center;padding:20px;color:rgba(240,255,232,0.25);font-family:\'Kanit\',sans-serif;">ยังไม่มีประวัติการถอนเงินครับ</div>';
+      return;
+    }
+
+    el.innerHTML = data.map(w => {
+      const isPending  = w.status === 'pending';
+      const isApproved = w.status === 'approved';
+      const isRejected = w.status === 'rejected';
+      const statusColor = isApproved ? '#4ade80' : isRejected ? '#f87171' : '#F5C842';
+      const statusBg    = isApproved ? 'rgba(74,222,128,0.1)' : isRejected ? 'rgba(248,113,113,0.1)' : 'rgba(245,200,66,0.1)';
+      const statusLabel = isApproved ? '✅ โอนแล้ว' : isRejected ? '❌ ปฏิเสธ' : '⏳ รอดำเนินการ';
+      const dateStr = new Date(w.created_at).toLocaleString('th-TH', { dateStyle:'short', timeStyle:'short' });
+      const approvedStr = w.approved_at ? new Date(w.approved_at).toLocaleString('th-TH', { dateStyle:'short', timeStyle:'short' }) : null;
+
+      return `
+        <div style="background:rgba(255,255,255,0.04);border:1px solid ${isApproved?'rgba(74,222,128,0.2)':isRejected?'rgba(248,113,113,0.2)':'rgba(245,200,66,0.2)'};border-radius:10px;padding:14px;margin-bottom:10px;">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">
+            <div style="font-family:'Kanit',sans-serif;font-weight:900;font-size:18px;color:#f87171;">−${Number(w.amount).toLocaleString()} ฿</div>
+            <span style="font-family:'Kanit',sans-serif;font-size:11px;font-weight:700;padding:4px 10px;border-radius:999px;background:${statusBg};color:${statusColor};">${statusLabel}</span>
+          </div>
+          <div style="display:flex;flex-direction:column;gap:4px;">
+            <div style="font-size:12px;color:rgba(240,255,232,0.5);">🏦 ${w.bank||'—'} &nbsp;·&nbsp; 💳 ${w.acc_no||'—'} &nbsp;·&nbsp; 🕐 ${dateStr}</div>
+            <div style="font-size:11px;color:rgba(240,255,232,0.3);">ชื่อบัญชี: ${w.acc_name||'—'}</div>
+            <div style="font-size:11px;color:rgba(240,255,232,0.3);font-family:'Kanit',sans-serif;">TXN: ${w.txn||'—'}</div>
+            ${isApproved && approvedStr ? `<div style="font-size:11px;color:#4ade80;">✅ โอนเมื่อ: ${approvedStr} · โดย ${w.approved_by||'Admin'}</div>` : ''}
+            ${isRejected && w.reason ? `<div style="font-size:11px;color:#f87171;">❌ เหตุผล: ${w.reason}</div>` : ''}
+          </div>
+        </div>`;
+    }).join('');
+  }
+
   function switchAccTab(id, el) {
     document.querySelectorAll('.acc-panel').forEach(p => p.classList.remove('active'));
     document.querySelectorAll('.acc-tab').forEach(t => t.classList.remove('active'));
     document.getElementById('acc-'+id).classList.add('active');
     el.classList.add('active');
-    // โหลดประวัติเมื่อเข้าแท็บธุรกรรม
-    if (id === 'txn') loadTxnHistory();
+    // โหลดประวัติเมื่อเข้าแต่ละแท็บ
+    if (id === 'txn')      loadTxnHistory();
+    if (id === 'deposit')  loadDepHistory();
+    if (id === 'withdraw') loadWithHistory();
   }
 
   // Deposit slip preview — ต้องรอ DOM โหลดก่อน
@@ -4346,6 +4495,7 @@
     goDepStep1();
 
     alert(`✅ ส่งคำขอเติมเงินสำเร็จแล้วครับ!\nTXN: ${txn}\nAdmin จะตรวจสอบและอนุมัติโดยเร็วที่สุดครับ`);
+    loadDepHistory();
   }
 
   async function submitWithdraw() {
@@ -4397,6 +4547,7 @@
     document.getElementById('acc-with-balance').textContent = newBalance.toLocaleString() + ' ฿';
 
     alert(`✅ ส่งคำขอถอนเงินสำเร็จแล้วครับ!\nTXN: ${txn}\nยอดเงินถูกหักแล้ว รอ Admin โอนให้ครับ`);
+    loadWithHistory();
   }
 
   function addTxnItem(type, icon, label, sub, txn, amount, amtClass) {
