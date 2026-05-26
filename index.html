@@ -4317,25 +4317,29 @@
     if (!amount || amount < 100) { alert('กรุณาระบุจำนวนเงินขั้นต่ำ 100 บาทครับ'); return; }
     if (!bank)    { alert('กรุณาเลือกธนาคารที่โอนจากครับ'); return; }
     if (!hasSlip) { alert('กรุณาแนบสลิปการโอนเงินครับ'); return; }
+    if (!currentUser) { alert('กรุณา Login ก่อนครับ'); return; }
+
     const txn  = genTxnFE(4);
-    const nick = currentUser?.nick || '';
-    // บันทึกลง Firestore collection 'deposits' → Admin จะเห็น real-time
-    try {
-      if (window._fbDb && window._fbAddDoc && window._fbCollection && window._fbServerTimestamp) {
-        await window._fbAddDoc(window._fbCollection(window._fbDb, 'deposits'), {
-          nick, fname: currentUser?.fname || '', lname: currentUser?.lname || '',
-          phone: currentUser?.phone || '',
-          amount, bank, txn,
-          status: 'pending',
-          createdAt: window._fbServerTimestamp()
-        });
-      }
-    } catch(e) { console.warn('Firebase:', e.message); }
-    // เพิ่มใน txn list
+    const nick = currentUser.nick || '';
+
+    // ✅ บันทึกลง Supabase deposits
+    const { error } = await sb.from('deposits').insert({
+      nick,
+      fname: currentUser.fname || '',
+      lname: currentUser.lname || '',
+      phone: currentUser.phone || '',
+      amount, bank, txn,
+      status: 'pending'
+    });
+
+    if (error) {
+      alert('❌ เกิดข้อผิดพลาด: ' + error.message);
+      return;
+    }
+
+    // เพิ่มใน txn list UI
     addTxnItem('dep','💰','เติมเงิน (รอตรวจสอบ)',`${bank} · รอ Admin อนุมัติ`,txn,`+${amount.toLocaleString()} ฿`,'dep');
-    // อัปเดต total deposit
-    const totalDepEl = document.getElementById('acc-total-dep');
-    if (totalDepEl) { const c = parseInt(totalDepEl.textContent.replace(/,/g,''))||0; totalDepEl.textContent=(c+amount).toLocaleString()+' ฿'; }
+
     // reset form
     document.getElementById('dep-amount').value = '';
     document.getElementById('dep-bank-from').value = '';
@@ -4344,8 +4348,8 @@
     document.getElementById('dep-slip-box').style.borderColor = 'rgba(39,148,63,0.3)';
     document.getElementById('dep-slip-file').value = '';
     document.getElementById('dep-amount-preview').style.display = 'none';
-    // กลับ step 1
     goDepStep1();
+
     alert(`✅ ส่งคำขอเติมเงินสำเร็จแล้วครับ!\nTXN: ${txn}\nAdmin จะตรวจสอบและอนุมัติโดยเร็วที่สุดครับ`);
   }
 
@@ -4355,36 +4359,49 @@
     const accno   = document.getElementById('with-accno').value.trim();
     const accname = document.getElementById('with-accname').value.trim();
     const balance = currentUser?.balance || 0;
+
+    if (!currentUser) { alert('กรุณา Login ก่อนครับ'); return; }
     if (!amount || amount < 100) { alert('กรุณาใส่จำนวนเงินขั้นต่ำ 100 บาทครับ'); return; }
     if (amount > balance) { alert(`ยอดเงินไม่เพียงพอครับ\nยอดคงเหลือ: ${balance.toLocaleString()} บาท`); return; }
     if (!bank) { alert('กรุณาเลือกธนาคารปลายทางครับ'); return; }
     if (!accno || !accname) { alert('กรุณากรอกเลขบัญชีและชื่อบัญชีปลายทางครับ'); return; }
-    const txn = genTxnFE(9);
+
+    const txn  = genTxnFE(9);
+    const nick = currentUser.nick || '';
+
     // ✅ ตัดยอดเงินทันที
-    updateAccBalance(balance - amount);
-    // อัปเดต total withdraw
-    const totalWithEl = document.getElementById('acc-total-with');
-    if (totalWithEl) {
-      const curr = parseInt(totalWithEl.textContent.replace(/,/g,'')) || 0;
-      totalWithEl.textContent = (curr + amount).toLocaleString() + ' ฿';
-    }
-    // บันทึกลง Firestore (ถ้ามี Firebase)
-    try {
-      if (window._fbDb && window._fbAddDoc && window._fbCollection && window._fbServerTimestamp) {
-        await window._fbAddDoc(window._fbCollection(window._fbDb, 'withdrawals'), {
-          nick: currentUser?.nick || '',
-          amount, bank, accno, accname, txn,
-          status: 'pending',
-          createdAt: window._fbServerTimestamp()
-        });
-      }
-    } catch(e) { console.warn('Firebase:', e.message); }
-    addTxnItem('with', '🏧', 'ถอนเงิน (รอดำเนินการ)', `${bank} · ${accno}`, txn, `-${amount.toLocaleString()} ฿`, 'with');
+    const newBalance = balance - amount;
+    const { error: balErr } = await sb.from('members')
+      .update({ balance: newBalance })
+      .eq('nick', nick);
+
+    if (balErr) { alert('❌ เกิดข้อผิดพลาด: ' + balErr.message); return; }
+
+    // อัปเดต UI ยอดเงิน
+    updateAccBalance(newBalance);
+
+    // ✅ บันทึกลง Supabase withdrawals
+    const { error: withErr } = await sb.from('withdrawals').insert({
+      nick,
+      amount, bank,
+      acc_no: accno,
+      acc_name: accname,
+      txn, status: 'pending'
+    });
+
+    if (withErr) { alert('❌ เกิดข้อผิดพลาด: ' + withErr.message); return; }
+
+    // เพิ่มใน txn list UI
+    addTxnItem('with','🏧','ถอนเงิน (รอดำเนินการ)',`${bank} · ${accno}`,txn,`-${amount.toLocaleString()} ฿`,'with');
+
+    // reset form
     document.getElementById('with-amount').value = '';
     document.getElementById('with-bank').value = '';
     document.getElementById('with-accno').value = '';
     document.getElementById('with-accname').value = '';
-    alert(`✅ ส่งคำขอถอนเงินสำเร็จแล้วครับ!\nTXN: ${txn}\nยอดเงินถูกหักแล้ว รอ Admin โอนให้`);
+    document.getElementById('acc-with-balance').textContent = newBalance.toLocaleString() + ' ฿';
+
+    alert(`✅ ส่งคำขอถอนเงินสำเร็จแล้วครับ!\nTXN: ${txn}\nยอดเงินถูกหักแล้ว รอ Admin โอนให้ครับ`);
   }
 
   function addTxnItem(type, icon, label, sub, txn, amount, amtClass) {
