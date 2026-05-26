@@ -384,6 +384,62 @@ tr:hover td{background:#fafaf8;}
 </div>
 </div>
 
+<!-- MODAL: แก้ไขข้อมูลสมาชิก -->
+<div class="modal-overlay" id="edit-member-modal">
+  <div class="modal-box" style="max-width:520px;">
+    <div class="modal-title">✏️ แก้ไขข้อมูลสมาชิก</div>
+    <div id="edit-member-info" style="background:#f8f8f5;border-radius:8px;padding:10px 14px;margin-bottom:16px;font-size:13px;color:#666;"></div>
+
+    <!-- แท็บ -->
+    <div style="display:flex;border-bottom:2px solid #f0f0eb;margin-bottom:16px;">
+      <button id="etab-info"  onclick="switchEditTab('info')"  style="font-family:'Kanit',sans-serif;font-size:13px;font-weight:700;padding:9px 18px;border:none;background:none;cursor:pointer;color:var(--green);border-bottom:2px solid var(--green);margin-bottom:-2px;">👤 ข้อมูลส่วนตัว</button>
+      <button id="etab-phone" onclick="switchEditTab('phone')" style="font-family:'Kanit',sans-serif;font-size:13px;font-weight:700;padding:9px 18px;border:none;background:none;cursor:pointer;color:#aaa;">📱 เปลี่ยนเบอร์โทร</button>
+      <button id="etab-pass"  onclick="switchEditTab('pass')"  style="font-family:'Kanit',sans-serif;font-size:13px;font-weight:700;padding:9px 18px;border:none;background:none;cursor:pointer;color:#aaa;">🔒 เปลี่ยนรหัสผ่าน</button>
+      <button id="etab-bal"   onclick="switchEditTab('bal')"   style="font-family:'Kanit',sans-serif;font-size:13px;font-weight:700;padding:9px 18px;border:none;background:none;cursor:pointer;color:#aaa;">💰 ปรับยอดเงิน</button>
+    </div>
+
+    <!-- ข้อมูลส่วนตัว -->
+    <div id="epanel-info">
+      <div class="form-row">
+        <div class="fg"><label>ชื่อจริง</label><input id="e-fname" placeholder="ชื่อจริง"></div>
+        <div class="fg"><label>นามสกุล</label><input id="e-lname" placeholder="นามสกุล"></div>
+      </div>
+      <div class="fg" style="margin-bottom:12px;"><label>ชื่อบัญชี (Nick)</label><input id="e-nick" placeholder="ชื่อบัญชี" readonly style="background:#f5f5f0;color:#999;cursor:not-allowed;"></div>
+      <div class="fg" style="margin-bottom:16px;"><label>ที่อยู่</label><input id="e-addr1" placeholder="ที่อยู่บรรทัด 1" style="margin-bottom:6px;"><input id="e-addr2" placeholder="ที่อยู่บรรทัด 2"></div>
+      <button class="btn-save" onclick="saveEditInfo()">💾 บันทึกข้อมูล</button>
+    </div>
+
+    <!-- เปลี่ยนเบอร์โทร -->
+    <div id="epanel-phone" style="display:none;">
+      <div style="background:#FFF8E1;border:1px solid #FFD54F;border-radius:8px;padding:10px 14px;margin-bottom:14px;font-size:12px;color:#795548;">⚠️ เบอร์โทรใช้เป็น Username Login หากเปลี่ยนแล้ว ลูกค้าต้องใช้เบอร์ใหม่ในการ Login</div>
+      <div class="fg" style="margin-bottom:8px;"><label>เบอร์โทรปัจจุบัน</label><input id="e-phone-old" readonly style="background:#f5f5f0;color:#999;cursor:not-allowed;"></div>
+      <div class="fg" style="margin-bottom:16px;"><label>เบอร์โทรใหม่</label><input id="e-phone-new" type="tel" placeholder="0xx-xxx-xxxx" maxlength="10"></div>
+      <button class="btn-save" onclick="saveEditPhone()">📱 เปลี่ยนเบอร์โทร</button>
+    </div>
+
+    <!-- เปลี่ยนรหัสผ่าน -->
+    <div id="epanel-pass" style="display:none;">
+      <div style="background:#E8F5E9;border:1px solid #A5D6A7;border-radius:8px;padding:10px 14px;margin-bottom:14px;font-size:12px;color:#2E7D32;">✅ Admin สามารถตั้งรหัสผ่านใหม่ให้ลูกค้าได้โดยตรง ไม่ต้องรู้รหัสเดิม</div>
+      <div class="fg" style="margin-bottom:8px;"><label>รหัสผ่านใหม่</label><input type="password" id="e-pass-new" placeholder="อย่างน้อย 6 ตัวอักษร"></div>
+      <div class="fg" style="margin-bottom:16px;"><label>ยืนยันรหัสผ่านใหม่</label><input type="password" id="e-pass-new2" placeholder="พิมพ์อีกครั้ง"></div>
+      <button class="btn-save" onclick="saveEditPass()">🔒 เปลี่ยนรหัสผ่าน</button>
+    </div>
+
+    <!-- ปรับยอดเงิน -->
+    <div id="epanel-bal" style="display:none;">
+      <div style="background:#FFF3E0;border:1px solid #FFCC80;border-radius:8px;padding:10px 14px;margin-bottom:14px;font-size:12px;color:#E65100;">⚠️ การปรับยอดเงินโดยตรงจะบันทึกทันที กรุณาตรวจสอบให้ถูกต้องก่อนบันทึก</div>
+      <div class="fg" style="margin-bottom:8px;"><label>ยอดเงินปัจจุบัน (฿)</label><input id="e-bal-old" readonly style="background:#f5f5f0;color:#999;cursor:not-allowed;font-family:'Kanit',sans-serif;font-weight:700;"></div>
+      <div class="fg" style="margin-bottom:8px;"><label>ยอดเงินใหม่ (฿)</label><input type="number" id="e-bal-new" placeholder="0" min="0"></div>
+      <div class="fg" style="margin-bottom:16px;"><label>หมายเหตุ (สาเหตุที่ปรับ)</label><input id="e-bal-note" placeholder="เช่น แก้ไขความผิดพลาด, โบนัส ฯลฯ"></div>
+      <button class="btn-save" onclick="saveEditBal()">💰 ปรับยอดเงิน</button>
+    </div>
+
+    <div style="margin-top:14px;">
+      <button onclick="document.getElementById('edit-member-modal').classList.remove('open')" style="font-family:'Kanit',sans-serif;font-size:13px;padding:10px 16px;border-radius:8px;border:1px solid #ddd;background:#fff;cursor:pointer;width:100%;">ปิด</button>
+    </div>
+  </div>
+</div>
+
 <!-- MODAL: ตัดสินผล -->
 <div class="modal-overlay" id="verdict-modal">
   <div class="modal-box">
@@ -557,7 +613,10 @@ function renderMembers(rows) {
       <td>${m.phone}</td>
       <td><strong style="color:var(--green);">${Number(m.balance||0).toLocaleString()} ฿</strong></td>
       <td style="font-size:12px;color:#aaa;">${fmtDate(m.created_at)}</td>
-      <td><button class="action-btn red" onclick="deleteMember('${m.id}','${m.nick}')">ลบ</button></td>
+      <td style="display:flex;gap:5px;">
+        <button class="action-btn gold" onclick="openEditMember('${m.id}')">✏️ แก้ไข</button>
+        <button class="action-btn red" onclick="deleteMember('${m.id}','${m.nick}')">ลบ</button>
+      </td>
     </tr>`).join('');
 }
 
@@ -567,6 +626,123 @@ function filterMembers() {
     m.nick?.toLowerCase().includes(q) || m.phone?.includes(q) || m.fname?.toLowerCase().includes(q)
   ) : allMembers);
 }
+
+// ── EDIT MEMBER ──
+let editMemberId = null;
+
+function openEditMember(memberId) {
+  const m = allMembers.find(x => x.id === memberId);
+  if (!m) return;
+  editMemberId = memberId;
+
+  // แสดงข้อมูลในหัว modal
+  document.getElementById('edit-member-info').innerHTML = `
+    <strong style="font-family:'Kanit',sans-serif;">${m.nick}</strong> &nbsp;·&nbsp; ${m.fname} ${m.lname} &nbsp;·&nbsp; ${m.phone}
+    &nbsp;·&nbsp; <span style="color:var(--green);font-weight:700;">${Number(m.balance||0).toLocaleString()} ฿</span>`;
+
+  // กรอกข้อมูล
+  document.getElementById('e-fname').value    = m.fname || '';
+  document.getElementById('e-lname').value    = m.lname || '';
+  document.getElementById('e-nick').value     = m.nick  || '';
+  document.getElementById('e-addr1').value    = m.addr1 || '';
+  document.getElementById('e-addr2').value    = m.addr2 || '';
+  document.getElementById('e-phone-old').value = m.phone || '';
+  document.getElementById('e-phone-new').value = '';
+  document.getElementById('e-pass-new').value  = '';
+  document.getElementById('e-pass-new2').value = '';
+  document.getElementById('e-bal-old').value   = Number(m.balance||0).toLocaleString() + ' ฿';
+  document.getElementById('e-bal-new').value   = m.balance || 0;
+  document.getElementById('e-bal-note').value  = '';
+
+  switchEditTab('info');
+  document.getElementById('edit-member-modal').classList.add('open');
+}
+
+function switchEditTab(tab) {
+  ['info','phone','pass','bal'].forEach(t => {
+    document.getElementById(`epanel-${t}`).style.display = t === tab ? 'block' : 'none';
+    const btn = document.getElementById(`etab-${t}`);
+    btn.style.color       = t === tab ? 'var(--green)' : '#aaa';
+    btn.style.borderBottom = t === tab ? '2px solid var(--green)' : '2px solid transparent';
+  });
+}
+
+async function saveEditInfo() {
+  const fname = document.getElementById('e-fname').value.trim();
+  const lname = document.getElementById('e-lname').value.trim();
+  const addr1 = document.getElementById('e-addr1').value.trim();
+  const addr2 = document.getElementById('e-addr2').value.trim();
+  if (!fname || !lname) { showToast('⚠️ กรุณากรอกชื่อและนามสกุลครับ','error'); return; }
+  const { error } = await sb.from('members').update({ fname, lname, addr1, addr2 }).eq('id', editMemberId);
+  if (error) { showToast('❌ ' + error.message,'error'); return; }
+  showToast('✅ บันทึกข้อมูลส่วนตัวแล้วครับ');
+  loadMembers();
+}
+
+async function saveEditPhone() {
+  const newPhone = document.getElementById('e-phone-new').value.trim().replace(/-/g,'');
+  if (!newPhone || !/^[0-9]{9,10}$/.test(newPhone)) {
+    showToast('⚠️ เบอร์โทรไม่ถูกต้องครับ','error'); return;
+  }
+  // เช็คเบอร์ซ้ำ
+  const { data: exist } = await sb.from('members').select('nick').eq('phone', newPhone).neq('id', editMemberId).maybeSingle();
+  if (exist) { showToast('⚠️ เบอร์โทรนี้ถูกใช้แล้วครับ','error'); return; }
+
+  // อัปเดตเบอร์โทรและ hash password ใหม่ (ถ้ามี password เดิม ให้ update hash ด้วย)
+  const m = allMembers.find(x => x.id === editMemberId);
+  const updates = { phone: newPhone };
+  if (m?.password) {
+    // password hash เดิมใช้ phone+password ต้อง re-hash ด้วยเบอร์ใหม่
+    // แต่เราไม่รู้ password จริง ให้ set เป็น null ก่อน (ลูกค้าต้องตั้งรหัสใหม่)
+    updates.password = null;
+  }
+  const { error } = await sb.from('members').update(updates).eq('id', editMemberId);
+  if (error) { showToast('❌ ' + error.message,'error'); return; }
+  showToast('✅ เปลี่ยนเบอร์โทรแล้วครับ (ลูกค้าต้องตั้งรหัสผ่านใหม่)');
+  document.getElementById('e-phone-old').value = newPhone;
+  document.getElementById('e-phone-new').value = '';
+  loadMembers();
+}
+
+async function saveEditPass() {
+  const pass1 = document.getElementById('e-pass-new').value;
+  const pass2 = document.getElementById('e-pass-new2').value;
+  if (!pass1 || pass1.length < 6) { showToast('⚠️ รหัสผ่านต้องมีอย่างน้อย 6 ตัวอักษรครับ','error'); return; }
+  if (pass1 !== pass2)             { showToast('⚠️ รหัสผ่านไม่ตรงกันครับ','error'); return; }
+
+  // หา phone ของสมาชิก (ใช้ทำ hash)
+  const m = allMembers.find(x => x.id === editMemberId);
+  if (!m) { showToast('❌ ไม่พบข้อมูลสมาชิกครับ','error'); return; }
+
+  const pwHash = btoa(m.phone + ':' + pass1);
+  const { error } = await sb.from('members').update({ password: pwHash }).eq('id', editMemberId);
+  if (error) { showToast('❌ ' + error.message,'error'); return; }
+  showToast(`✅ เปลี่ยนรหัสผ่านให้ ${m.nick} แล้วครับ`);
+  document.getElementById('e-pass-new').value  = '';
+  document.getElementById('e-pass-new2').value = '';
+}
+
+async function saveEditBal() {
+  const newBal = parseFloat(document.getElementById('e-bal-new').value);
+  const note   = document.getElementById('e-bal-note').value.trim();
+  if (isNaN(newBal) || newBal < 0) { showToast('⚠️ กรุณากรอกยอดเงินที่ถูกต้องครับ','error'); return; }
+  if (!note) { showToast('⚠️ กรุณากรอกหมายเหตุด้วยครับ','error'); return; }
+
+  const m = allMembers.find(x => x.id === editMemberId);
+  if (!confirm(`ยืนยันปรับยอดเงิน?\n\nสมาชิก: ${m?.nick}\nยอดเดิม: ${Number(m?.balance||0).toLocaleString()} ฿\nยอดใหม่: ${newBal.toLocaleString()} ฿\nหมายเหตุ: ${note}`)) return;
+
+  const { error } = await sb.from('members').update({ balance: newBal }).eq('id', editMemberId);
+  if (error) { showToast('❌ ' + error.message,'error'); return; }
+  showToast(`✅ ปรับยอดเงิน ${m?.nick} เป็น ${newBal.toLocaleString()} ฿ แล้วครับ`);
+  document.getElementById('e-bal-old').value = newBal.toLocaleString() + ' ฿';
+  loadMembers();
+}
+
+// close modal on overlay click
+document.getElementById('edit-member-modal').addEventListener('click', e => {
+  if (e.target === document.getElementById('edit-member-modal'))
+    e.target.classList.remove('open');
+});
 
 async function deleteMember(id, nick) {
   if (!confirm(`ยืนยันลบสมาชิก "${nick}" ออกจากระบบ?`)) return;
@@ -751,19 +927,34 @@ function renderDeps(rows) {
 function filterDep() { renderDeps(allDeps); }
 
 async function approveDeposit(id, nick, amount) {
+  const btn = document.querySelector(`#dep-row-${id} .action-btn.green`);
+  if (btn) { btn.disabled = true; btn.textContent = 'กำลังอนุมัติ...'; }
+
+  // เพิ่มยอดเงินสมาชิก
   const { data: member } = await sb.from('members').select('balance').eq('nick',nick).maybeSingle();
   if (member) {
     await sb.from('members').update({ balance: Number(member.balance||0)+Number(amount) }).eq('nick',nick);
   }
-  await sb.from('deposits').update({
+
+  const approvedAt = new Date().toISOString();
+  const { error } = await sb.from('deposits').update({
     status: 'approved',
     approved_by: 'Admin',
-    approved_at: new Date().toISOString()
-  }).eq('id',id);
-  // fade ออกจาก pending ทันที
-  const row = document.getElementById(`dep-row-${id}`);
-  if (row) { row.style.transition='opacity .3s,transform .3s'; row.style.opacity='0'; row.style.transform='translateX(20px)'; setTimeout(()=>{ loadDeposits(); loadOverview(); },350); }
-  else { loadDeposits(); loadOverview(); }
+    approved_at: approvedAt
+  }).eq('id', id);
+
+  if (error) { showToast('❌ ' + error.message, 'error'); if (btn) { btn.disabled=false; btn.textContent='✅ อนุมัติ'; } return; }
+
+  // อัปเดต allDeps ทันทีโดยไม่รอ reload
+  const idx = allDeps.findIndex(d => d.id === id);
+  if (idx !== -1) {
+    allDeps[idx] = { ...allDeps[idx], status:'approved', approved_by:'Admin', approved_at: approvedAt };
+  }
+
+  // re-render ทันที
+  updateDepStats();
+  renderDeps(allDeps);
+  loadOverview();
   showToast(`✅ อนุมัติเติมเงิน +${Number(amount).toLocaleString()} ฿ ให้ ${nick}`);
 }
 
@@ -832,15 +1023,28 @@ function renderWiths(rows) {
 function filterWith() { renderWiths(allWiths); }
 
 async function approveWithdraw(id, nick, amount) {
-  await sb.from('withdrawals').update({
+  const btn = document.querySelector(`#with-row-${id} .action-btn.green`);
+  if (btn) { btn.disabled = true; btn.textContent = 'กำลังบันทึก...'; }
+
+  const approvedAt = new Date().toISOString();
+  const { error } = await sb.from('withdrawals').update({
     status: 'approved',
     approved_by: 'Admin',
-    approved_at: new Date().toISOString()
-  }).eq('id',id);
-  // fade ออกจาก pending ทันที
-  const row = document.getElementById(`with-row-${id}`);
-  if (row) { row.style.transition='opacity .3s,transform .3s'; row.style.opacity='0'; row.style.transform='translateX(20px)'; setTimeout(()=>{ loadWithdrawals(); loadOverview(); },350); }
-  else { loadWithdrawals(); loadOverview(); }
+    approved_at: approvedAt
+  }).eq('id', id);
+
+  if (error) { showToast('❌ ' + error.message, 'error'); if (btn) { btn.disabled=false; btn.textContent='✅ โอนแล้ว'; } return; }
+
+  // อัปเดต allWiths ทันที
+  const idx = allWiths.findIndex(w => w.id === id);
+  if (idx !== -1) {
+    allWiths[idx] = { ...allWiths[idx], status:'approved', approved_by:'Admin', approved_at: approvedAt };
+  }
+
+  // re-render ทันที
+  updateWithStats();
+  renderWiths(allWiths);
+  loadOverview();
   showToast(`✅ บันทึกการโอนให้ ${nick} แล้วครับ`);
 }
 
@@ -861,17 +1065,28 @@ async function confirmReject() {
   const reason = document.getElementById('reject-reason').value.trim();
   if (!reason) { showToast('⚠️ กรุณาระบุเหตุผลครับ','error'); return; }
   const { id, type, nick, amount } = rejectTarget;
+
   if (type === 'withdraw') {
     // คืนเงิน
     const { data: member } = await sb.from('members').select('balance').eq('nick',nick).maybeSingle();
     if (member) await sb.from('members').update({ balance: Number(member.balance||0)+Number(amount) }).eq('nick',nick);
-    await sb.from('withdrawals').update({ status:'rejected', reason }).eq('id',id);
+    const { error } = await sb.from('withdrawals').update({ status:'rejected', reason }).eq('id',id);
+    if (error) { showToast('❌ '+error.message,'error'); return; }
+    // อัปเดต allWiths ทันที
+    const idx = allWiths.findIndex(w => w.id === id);
+    if (idx !== -1) allWiths[idx] = { ...allWiths[idx], status:'rejected', reason };
+    updateWithStats();
+    renderWiths(allWiths);
     showToast(`❌ ปฏิเสธ คืนเงิน +${Number(amount).toLocaleString()} ฿ ให้ ${nick}`);
-    loadWithdrawals();
   } else {
-    await sb.from('deposits').update({ status:'rejected', reason }).eq('id',id);
+    const { error } = await sb.from('deposits').update({ status:'rejected', reason }).eq('id',id);
+    if (error) { showToast('❌ '+error.message,'error'); return; }
+    // อัปเดต allDeps ทันที
+    const idx = allDeps.findIndex(d => d.id === id);
+    if (idx !== -1) allDeps[idx] = { ...allDeps[idx], status:'rejected', reason };
+    updateDepStats();
+    renderDeps(allDeps);
     showToast(`❌ ปฏิเสธรายการเติมเงินของ ${nick}`);
-    loadDeposits();
   }
   document.getElementById('reject-modal').classList.remove('open');
   loadOverview();
