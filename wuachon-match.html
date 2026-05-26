@@ -1,0 +1,442 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>รายละเอียดการแข่งขัน — วัวชนไทย</title>
+<link href="https://fonts.googleapis.com/css2?family=Kanit:wght@400;500;700;900&family=Sarabun:wght@400;500&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box;}
+:root{
+  --green:#1B6B2F;--green2:#27943F;--green3:#0d3d1a;
+  --gold:#F5C842;--dark:#071a0c;--dark2:#0f2e18;--dark3:#183d22;
+  --cream:#F0FFE8;--red:#C8102E;--accent:#4ADE80;
+}
+html{scroll-behavior:smooth;}
+body{font-family:'Sarabun',sans-serif;background:var(--dark);color:var(--cream);min-height:100vh;}
+
+/* NAV */
+nav{background:rgba(7,26,12,0.95);border-bottom:1px solid rgba(245,200,66,0.2);padding:14px 28px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100;backdrop-filter:blur(12px);}
+.nav-logo{font-family:'Kanit',sans-serif;font-weight:900;font-size:20px;color:var(--gold);text-decoration:none;}
+.nav-logo em{color:var(--accent);font-style:normal;}
+.nav-back{font-family:'Kanit',sans-serif;font-size:13px;font-weight:700;color:rgba(240,255,232,0.55);text-decoration:none;display:flex;align-items:center;gap:6px;transition:color .2s;}
+.nav-back:hover{color:var(--gold);}
+
+/* PAGE */
+.page{max-width:860px;margin:0 auto;padding:32px 24px 60px;}
+
+/* MATCH INFO */
+.match-info-bar{background:var(--dark2);border:1px solid rgba(255,255,255,0.08);border-radius:14px;padding:16px 20px;margin-bottom:20px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;}
+.match-round{font-family:'Kanit',sans-serif;font-weight:900;font-size:16px;color:var(--gold);}
+.match-meta{font-size:12px;color:rgba(240,255,232,0.45);font-family:'Kanit',sans-serif;display:flex;gap:14px;flex-wrap:wrap;}
+.status-badge{font-family:'Kanit',sans-serif;font-size:11px;font-weight:700;padding:4px 12px;border-radius:999px;letter-spacing:1px;}
+.s-upcoming{background:rgba(245,200,66,0.1);color:var(--gold);border:1px solid rgba(245,200,66,0.25);}
+.s-live{background:rgba(239,68,68,0.15);color:#f87171;border:1px solid rgba(239,68,68,0.35);}
+.s-done{background:rgba(74,222,128,0.1);color:var(--accent);border:1px solid rgba(74,222,128,0.2);}
+.live-dot{display:inline-block;width:7px;height:7px;border-radius:50%;background:#f87171;margin-right:4px;animation:pulse 1s infinite;}
+@keyframes pulse{0%,100%{opacity:1;}50%{opacity:.3;}}
+
+/* ARENA */
+.arena{background:var(--dark2);border:1px solid rgba(255,255,255,0.08);border-radius:16px;overflow:hidden;margin-bottom:20px;}
+.arena-body{display:grid;grid-template-columns:1fr 100px 1fr;align-items:center;padding:28px 20px;gap:10px;}
+.team{display:flex;flex-direction:column;align-items:center;gap:10px;text-align:center;}
+.team-photo{width:80px;height:80px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:38px;border:3px solid transparent;overflow:hidden;transition:transform .2s;}
+.team-photo img{width:100%;height:100%;object-fit:cover;}
+.team-photo:hover{transform:scale(1.05);}
+.red-photo{border-color:rgba(239,68,68,0.45);background:radial-gradient(circle,rgba(239,68,68,0.1),rgba(239,68,68,0.03));box-shadow:0 0 20px rgba(239,68,68,0.12);}
+.blue-photo{border-color:rgba(59,130,246,0.45);background:radial-gradient(circle,rgba(59,130,246,0.1),rgba(59,130,246,0.03));box-shadow:0 0 20px rgba(59,130,246,0.12);}
+.team-label{font-family:'Kanit',sans-serif;font-size:10px;font-weight:700;letter-spacing:2px;}
+.red-label{color:rgba(239,68,68,0.7);}
+.blue-label{color:rgba(59,130,246,0.7);}
+.team-name{font-family:'Kanit',sans-serif;font-weight:900;font-size:20px;color:var(--cream);}
+.team-name.winner{color:var(--gold);}
+.team-owner{font-size:12px;color:rgba(240,255,232,0.45);}
+.team-tags{display:flex;gap:6px;flex-wrap:wrap;justify-content:center;}
+.tag{font-family:'Kanit',sans-serif;font-size:10px;font-weight:700;padding:3px 9px;border-radius:5px;background:rgba(255,255,255,0.06);color:rgba(240,255,232,0.5);border:1px solid rgba(255,255,255,0.07);}
+.pool-info{display:flex;align-items:center;gap:5px;font-size:11px;color:rgba(240,255,232,0.4);font-family:'Kanit',sans-serif;}
+.pool-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0;}
+.red-dot{background:#f87171;}
+.blue-dot{background:#60a5fa;}
+
+.vs-col{display:flex;flex-direction:column;align-items:center;gap:10px;}
+.vs-circle{width:56px;height:56px;border-radius:50%;background:rgba(255,255,255,0.04);border:2px solid rgba(255,255,255,0.1);display:flex;align-items:center;justify-content:center;font-family:'Kanit',sans-serif;font-weight:900;font-size:14px;color:rgba(240,255,232,0.25);}
+.prize-box{background:rgba(245,200,66,0.07);border:1px solid rgba(245,200,66,0.15);border-radius:8px;padding:6px 10px;text-align:center;}
+.prize-label{font-size:9px;color:rgba(240,255,232,0.4);font-family:'Kanit',sans-serif;}
+.prize-val{font-family:'Kanit',sans-serif;font-weight:900;font-size:14px;color:var(--gold);}
+
+/* BET PANEL */
+.bet-panel{background:rgba(0,0,0,0.2);border-top:1px solid rgba(255,255,255,0.05);padding:22px 20px;}
+.bet-section{font-family:'Kanit',sans-serif;font-size:12px;font-weight:700;color:rgba(240,255,232,0.45);letter-spacing:.5px;margin-bottom:10px;margin-top:18px;}
+.bet-section:first-child{margin-top:0;}
+
+.side-btns{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:0;}
+.side-btn{padding:13px;border-radius:10px;text-align:center;cursor:pointer;font-family:'Kanit',sans-serif;font-weight:700;font-size:14px;border:2px solid transparent;transition:all .2s;opacity:.6;user-select:none;}
+.side-btn.red-btn{background:rgba(239,68,68,0.08);border-color:rgba(239,68,68,0.2);color:#f87171;}
+.side-btn.red-btn.active{background:rgba(239,68,68,0.18);border-color:#f87171;opacity:1;box-shadow:0 0 18px rgba(239,68,68,0.2);}
+.side-btn.blue-btn{background:rgba(59,130,246,0.08);border-color:rgba(59,130,246,0.2);color:#60a5fa;}
+.side-btn.blue-btn.active{background:rgba(59,130,246,0.18);border-color:#60a5fa;opacity:1;box-shadow:0 0 18px rgba(59,130,246,0.2);}
+
+.quick-btns{display:flex;gap:7px;flex-wrap:wrap;margin-bottom:10px;}
+.quick-btn{font-family:'Kanit',sans-serif;font-size:12px;font-weight:700;padding:7px 14px;border-radius:7px;border:1px solid rgba(245,200,66,0.2);background:transparent;color:rgba(240,255,232,0.6);cursor:pointer;transition:all .15s;}
+.quick-btn:hover{background:rgba(245,200,66,0.1);color:var(--gold);border-color:var(--gold);}
+
+.amount-wrap{position:relative;margin-bottom:8px;}
+.amount-input{font-family:'Sarabun',sans-serif;font-size:15px;padding:12px 44px 12px 14px;border:1px solid rgba(255,255,255,0.12);border-radius:10px;background:rgba(255,255,255,0.05);color:var(--cream);width:100%;transition:border-color .2s;}
+.amount-input:focus{outline:none;border-color:var(--gold);}
+.amount-input::placeholder{color:rgba(240,255,232,0.25);}
+.amount-currency{position:absolute;right:13px;top:50%;transform:translateY(-50%);font-family:'Kanit',sans-serif;font-weight:700;color:rgba(240,255,232,0.3);font-size:13px;}
+.balance-hint{font-size:12px;color:rgba(240,255,232,0.4);font-family:'Kanit',sans-serif;margin-bottom:0;}
+
+.odds-presets{display:flex;gap:7px;flex-wrap:wrap;margin-bottom:8px;}
+.odds-btn{font-family:'Kanit',sans-serif;font-size:12px;font-weight:700;padding:7px 14px;border-radius:7px;border:1px solid rgba(245,200,66,0.2);background:transparent;color:rgba(240,255,232,0.5);cursor:pointer;transition:all .15s;}
+.odds-btn:hover{border-color:var(--gold);color:var(--gold);}
+.odds-btn.active{background:rgba(245,200,66,0.12);border-color:var(--gold);color:var(--gold);}
+.odds-custom{display:flex;align-items:center;gap:8px;}
+.odds-custom span{font-size:12px;color:rgba(240,255,232,0.45);font-family:'Kanit',sans-serif;}
+.odds-input{font-family:'Kanit',sans-serif;font-size:14px;font-weight:700;padding:8px 10px;border:1px solid rgba(245,200,66,0.25);border-radius:8px;background:rgba(255,255,255,0.05);color:var(--gold);width:80px;text-align:center;}
+.odds-input:focus{outline:none;border-color:var(--gold);}
+
+.expect-row{background:rgba(245,200,66,0.06);border:1px solid rgba(245,200,66,0.15);border-radius:10px;padding:12px 16px;margin:12px 0;display:none;align-items:center;justify-content:space-between;}
+.expect-row.show{display:flex;}
+.expect-stake{font-family:'Kanit',sans-serif;font-weight:700;font-size:16px;color:var(--cream);}
+.expect-arrow{font-size:18px;color:rgba(240,255,232,0.2);}
+.expect-win{font-family:'Kanit',sans-serif;font-weight:900;font-size:20px;color:var(--gold);}
+
+.submit-btn{width:100%;background:linear-gradient(135deg,var(--green),var(--green2));color:#fff;font-family:'Kanit',sans-serif;font-weight:900;font-size:16px;padding:14px;border:none;border-radius:11px;cursor:pointer;letter-spacing:1px;transition:all .2s;box-shadow:0 4px 18px rgba(27,107,47,0.3);margin-top:4px;}
+.submit-btn:hover{opacity:.88;transform:translateY(-2px);}
+
+.status-box{margin-top:14px;padding:13px 16px;border-radius:10px;font-family:'Kanit',sans-serif;font-size:13px;line-height:1.6;display:none;animation:fadeUp .3s ease;}
+.status-box.show{display:block;}
+.status-waiting{background:rgba(245,200,66,0.08);border:1px solid rgba(245,200,66,0.2);color:var(--gold);}
+.status-matched{background:rgba(74,222,128,0.08);border:1px solid rgba(74,222,128,0.2);color:var(--accent);}
+
+/* QUEUE */
+.queue-section{border-top:1px solid rgba(255,255,255,0.05);padding:20px;}
+.queue-title-row{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;}
+.queue-title{font-family:'Kanit',sans-serif;font-weight:700;font-size:13px;color:rgba(240,255,232,0.6);letter-spacing:.5px;}
+.queue-count{font-size:11px;color:rgba(240,255,232,0.35);font-family:'Kanit',sans-serif;}
+.queue-thead{display:grid;grid-template-columns:14px 80px 1fr 90px 80px 70px;gap:8px;padding:5px 12px;font-family:'Kanit',sans-serif;font-size:10px;color:rgba(240,255,232,0.3);letter-spacing:1px;margin-bottom:6px;}
+.queue-item{display:grid;grid-template-columns:14px 80px 1fr 90px 80px 70px;gap:8px;align-items:center;padding:10px 12px;border-radius:10px;background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.06);margin-bottom:7px;transition:all .3s;}
+.queue-item.red-q{border-left:3px solid rgba(239,68,68,0.5);}
+.queue-item.blue-q{border-left:3px solid rgba(59,130,246,0.5);}
+.q-nick{font-family:'Kanit',sans-serif;font-weight:700;font-size:13px;color:var(--cream);}
+.q-side{font-size:12px;color:rgba(240,255,232,0.5);}
+.q-odds{font-family:'Kanit',sans-serif;font-size:12px;font-weight:700;color:var(--gold);}
+.q-amount{font-family:'Kanit',sans-serif;font-size:13px;font-weight:700;color:var(--cream);}
+.join-btn{font-family:'Kanit',sans-serif;font-size:11px;font-weight:700;padding:6px 12px;border-radius:7px;border:1px solid var(--green);background:transparent;color:var(--accent);cursor:pointer;transition:all .15s;white-space:nowrap;}
+.join-btn:hover{background:var(--green);color:#fff;}
+.queue-empty{text-align:center;padding:24px;font-family:'Kanit',sans-serif;font-size:13px;color:rgba(240,255,232,0.3);}
+
+/* LOADING */
+.loading{display:flex;align-items:center;justify-content:center;gap:10px;padding:80px;color:rgba(240,255,232,0.4);font-family:'Kanit',sans-serif;}
+.spinner{width:22px;height:22px;border:3px solid rgba(245,200,66,0.2);border-top-color:var(--gold);border-radius:50%;animation:spin .7s linear infinite;}
+@keyframes spin{to{transform:rotate(360deg);}}
+@keyframes fadeUp{from{opacity:0;transform:translateY(14px);}to{opacity:1;transform:translateY(0);}}
+</style>
+</head>
+<body>
+
+<nav>
+  <a href="wuachon-frontend.html" class="nav-logo">วัวชน<em>ไทย</em></a>
+  <a href="wuachon-schedule.html" class="nav-back">← ตารางแข่งขัน</a>
+</nav>
+
+<div class="page" id="page">
+  <div class="loading"><div class="spinner"></div> กำลังโหลดข้อมูล...</div>
+</div>
+
+<!-- TOAST -->
+<div id="toast" style="position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:#1a1a1a;color:#fff;font-family:'Kanit',sans-serif;font-size:13px;padding:12px 24px;border-radius:10px;z-index:999;box-shadow:0 8px 24px rgba(0,0,0,0.4);display:none;"></div>
+
+<script type="module">
+import { initializeApp }       from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js';
+import { getFirestore, doc, collection, onSnapshot, addDoc, serverTimestamp } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js';
+
+const app = initializeApp({
+  apiKey: "AIzaSyBJhOwy5uaNNWCBs5QGsAcCCK1zF7uHfiU",
+  authDomain: "wuachon-thai.firebaseapp.com",
+  projectId: "wuachon-thai",
+  storageBucket: "wuachon-thai.firebasestorage.app",
+  messagingSenderId: "826988624741",
+  appId: "1:826988624741:web:2cb1cfe6548764dbbcbf8c"
+});
+const db = getFirestore(app);
+
+// อ่าน match ID จาก URL
+const matchId = new URLSearchParams(location.search).get('id');
+if (!matchId) { location.href = 'wuachon-schedule.html'; }
+
+// อ่าน user จาก sessionStorage
+const currentUser = JSON.parse(sessionStorage.getItem('wuachon_user') || 'null');
+
+let matchData = null;
+let selectedSide = null;
+
+// โหลดข้อมูล match
+onSnapshot(doc(db, 'matches', matchId), snap => {
+  if (!snap.exists()) { document.getElementById('page').innerHTML = '<div style="text-align:center;padding:60px;font-family:\'Kanit\',sans-serif;color:rgba(240,255,232,0.4);">ไม่พบรายการแข่งขันนี้</div>'; return; }
+  matchData = { id: snap.id, ...snap.data() };
+  renderPage();
+});
+
+// โหลด bet queue real-time
+let betsUnsubscribe = null;
+
+function renderPage() {
+  const m = matchData;
+  const isLive = m.status === 'live';
+  const isDone = m.status === 'done';
+  const prizeNum = Number(m.prize || 0);
+  const statusBadge = isLive
+    ? `<span class="status-badge s-live"><span class="live-dot"></span>LIVE</span>`
+    : isDone ? `<span class="status-badge s-done">✅ จบแล้ว</span>`
+             : `<span class="status-badge s-upcoming">⏳ รอแข่ง</span>`;
+
+  const bal = currentUser?.balance || 0;
+
+  document.getElementById('page').innerHTML = `
+    <!-- Info Bar -->
+    <div class="match-info-bar">
+      <div>
+        <div class="match-round">🏆 ${m.round || 'รายการแข่งขัน'}</div>
+        <div class="match-meta">
+          ${m.date ? `<span>📅 ${m.date}</span>` : ''}
+          ${m.time ? `<span>⏰ ${m.time}</span>` : ''}
+          ${m.location ? `<span>📍 ${m.location}</span>` : ''}
+          ${prizeNum ? `<span>💰 ${prizeNum.toLocaleString()} ฿</span>` : ''}
+        </div>
+      </div>
+      ${statusBadge}
+    </div>
+
+    <!-- Arena -->
+    <div class="arena">
+      <div class="arena-body">
+        <!-- Red -->
+        <div class="team">
+          <div class="team-photo red-photo">${m.photoA ? `<img src="${m.photoA}">` : '🐂'}</div>
+          <div class="team-label red-label">🔴 เจ้าบ้าน</div>
+          <div class="team-name${isDone && m.winner === m.nameA ? ' winner' : ''}">${m.nameA || '—'}${isDone && m.winner === m.nameA ? ' 🏆' : ''}</div>
+          <div class="team-owner">${m.ownerA || ''}</div>
+          <div class="team-tags">${m.weightA ? `<span class="tag">⚖️ ${m.weightA}</span>` : ''}</div>
+          <div class="pool-info"><span class="pool-dot red-dot"></span><span id="red-pool">ยอดเดิมพัน: — ฿</span></div>
+        </div>
+        <!-- VS -->
+        <div class="vs-col">
+          <div class="vs-circle">VS</div>
+          ${prizeNum ? `<div class="prize-box"><div class="prize-label">รางวัล</div><div class="prize-val">${prizeNum.toLocaleString()} ฿</div></div>` : ''}
+        </div>
+        <!-- Blue -->
+        <div class="team">
+          <div class="team-photo blue-photo">${m.photoB ? `<img src="${m.photoB}">` : '🐃'}</div>
+          <div class="team-label blue-label">🔵 ทีมเยือน</div>
+          <div class="team-name${isDone && m.winner === m.nameB ? ' winner' : ''}">${m.nameB || '—'}${isDone && m.winner === m.nameB ? ' 🏆' : ''}</div>
+          <div class="team-owner">${m.ownerB || ''}</div>
+          <div class="team-tags">${m.weightB ? `<span class="tag">⚖️ ${m.weightB}</span>` : ''}</div>
+          <div class="pool-info"><span class="pool-dot blue-dot"></span><span id="blue-pool">ยอดเดิมพัน: — ฿</span></div>
+        </div>
+      </div>
+
+      ${!isDone ? `
+      <!-- Bet Panel -->
+      <div class="bet-panel">
+        <div class="bet-section">① เลือกวัวที่ต้องการเดิมพัน</div>
+        <div class="side-btns">
+          <div class="side-btn red-btn" id="red-btn" onclick="selectSide('red')">🔴 ${m.nameA || '—'}</div>
+          <div class="side-btn blue-btn" id="blue-btn" onclick="selectSide('blue')">🔵 ${m.nameB || '—'}</div>
+        </div>
+
+        <div class="bet-section">② จำนวนเงินเดิมพัน</div>
+        <div class="quick-btns">
+          <button class="quick-btn" onclick="setAmount(100)">100</button>
+          <button class="quick-btn" onclick="setAmount(500)">500</button>
+          <button class="quick-btn" onclick="setAmount(1000)">1,000</button>
+          <button class="quick-btn" onclick="setAmount(5000)">5,000</button>
+        </div>
+        <div class="amount-wrap">
+          <input type="number" id="bet-amount" class="amount-input" placeholder="ขั้นต่ำ 100 ฿" min="100" oninput="calcExpect()">
+          <span class="amount-currency">฿</span>
+        </div>
+        <div class="balance-hint">ยอดเงินคงเหลือ: <span id="balance-hint" style="color:var(--accent);">${bal.toLocaleString()} ฿</span></div>
+
+        <div class="bet-section">③ กำหนดอัตราต่อรอง</div>
+        <div class="odds-presets">
+          <button class="odds-btn active" onclick="setOdds(1.5,this)">1 : 1.5</button>
+          <button class="odds-btn" onclick="setOdds(1.8,this)">1 : 1.8</button>
+          <button class="odds-btn" onclick="setOdds(2.0,this)">1 : 2.0</button>
+          <button class="odds-btn" onclick="setOdds(2.5,this)">1 : 2.5</button>
+          <button class="odds-btn" onclick="setOdds(3.0,this)">1 : 3.0</button>
+        </div>
+        <div class="odds-custom">
+          <span>กำหนดเอง 1 :</span>
+          <input type="number" id="odds-input" class="odds-input" value="1.5" min="1.1" max="10" step="0.1" oninput="calcExpect()">
+        </div>
+
+        <div class="expect-row" id="expect-row">
+          <div><div style="font-size:11px;color:rgba(240,255,232,0.4);margin-bottom:3px;">วางเดิมพัน</div><div class="expect-stake" id="expect-stake">0 ฿</div></div>
+          <div class="expect-arrow">→</div>
+          <div style="text-align:right;"><div style="font-size:11px;color:rgba(240,255,232,0.4);margin-bottom:3px;">หากชนะจะได้รับ</div><div class="expect-win" id="expect-win">0 ฿</div></div>
+        </div>
+
+        <button class="submit-btn" onclick="placeBet()">🎯 วางเดิมพันและรอจับคู่</button>
+        <div class="status-box" id="status-box"></div>
+      </div>` : `
+      <div style="padding:20px;text-align:center;font-family:'Kanit',sans-serif;color:${m.winner ? 'var(--gold)' : 'rgba(240,255,232,0.5)'}">
+        ${m.winner ? `🏆 ผู้ชนะ: <strong>${m.winner}</strong>` : 'การแข่งขันสิ้นสุดแล้ว'}
+      </div>`}
+
+      <!-- Queue Section -->
+      <div class="queue-section">
+        <div class="queue-title-row">
+          <div class="queue-title">📋 รายการรอจับคู่</div>
+          <div class="queue-count" id="queue-count">— รายการ</div>
+        </div>
+        <div class="queue-thead"><span></span><span>ชื่อบัญชี</span><span>วัวที่เลือก</span><span>อัตราต่อรอง</span><span>จำนวนเงิน</span><span></span></div>
+        <div id="queue-list"><div class="queue-empty">ยังไม่มีรายการรอจับคู่</div></div>
+      </div>
+    </div>`;
+
+  // Subscribe bets real-time
+  if (betsUnsubscribe) betsUnsubscribe();
+  betsUnsubscribe = onSnapshot(collection(db, 'matches', matchId, 'bets'), snap => {
+    const bets = snap.docs.map(d => ({ id: d.id, ...d.data() })).filter(b => b.status === 'waiting');
+    renderQueue(bets);
+    // อัปเดต pool
+    const redTotal  = snap.docs.filter(d => d.data().side === 'red').reduce((s,d) => s + (d.data().amount||0), 0);
+    const blueTotal = snap.docs.filter(d => d.data().side === 'blue').reduce((s,d) => s + (d.data().amount||0), 0);
+    const rp = document.getElementById('red-pool');
+    const bp = document.getElementById('blue-pool');
+    if (rp) rp.textContent  = `ยอดเดิมพัน: ${redTotal.toLocaleString()} ฿`;
+    if (bp) bp.textContent  = `ยอดเดิมพัน: ${blueTotal.toLocaleString()} ฿`;
+  });
+}
+
+function renderQueue(bets) {
+  const list  = document.getElementById('queue-list');
+  const count = document.getElementById('queue-count');
+  if (!list) return;
+  if (count) count.textContent = bets.length + ' รายการ';
+  if (bets.length === 0) { list.innerHTML = '<div class="queue-empty">ยังไม่มีรายการรอจับคู่</div>'; return; }
+  list.innerHTML = bets.map(b => `
+    <div class="queue-item ${b.side === 'red' ? 'red-q' : 'blue-q'}" id="qi-${b.id}">
+      <span class="pool-dot ${b.side === 'red' ? 'red-dot' : 'blue-dot'}"></span>
+      <span class="q-nick">${b.nick || '—'}</span>
+      <span class="q-side">${b.side === 'red' ? '🔴' : '🔵'} ${b.sideName || ''}</span>
+      <span class="q-odds">1 : ${b.odds}</span>
+      <span class="q-amount">${(b.amount||0).toLocaleString()} ฿</span>
+      <button class="join-btn" onclick="joinBet('${b.id}','${b.nick}','${b.sideName}',${b.amount},${b.odds})">จับคู่</button>
+    </div>`).join('');
+}
+
+// ── Functions ──
+window.selectSide = side => {
+  selectedSide = side;
+  document.getElementById('red-btn')?.classList.toggle('active', side === 'red');
+  document.getElementById('blue-btn')?.classList.toggle('active', side === 'blue');
+  calcExpect();
+};
+
+window.setAmount = n => { const el = document.getElementById('bet-amount'); if (el) { el.value = n; calcExpect(); } };
+
+window.setOdds = (val, btn) => {
+  document.querySelectorAll('.odds-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  const el = document.getElementById('odds-input');
+  if (el) el.value = val;
+  calcExpect();
+};
+
+window.calcExpect = () => {
+  const amount = parseFloat(document.getElementById('bet-amount')?.value) || 0;
+  const odds   = parseFloat(document.getElementById('odds-input')?.value)  || 1.5;
+  const row    = document.getElementById('expect-row');
+  if (amount >= 100 && selectedSide) {
+    row?.classList.add('show');
+    const stakeEl = document.getElementById('expect-stake');
+    const winEl   = document.getElementById('expect-win');
+    if (stakeEl) stakeEl.textContent = amount.toLocaleString() + ' ฿';
+    if (winEl)   winEl.textContent   = (amount * odds).toLocaleString('th-TH', {maximumFractionDigits:0}) + ' ฿';
+  } else {
+    row?.classList.remove('show');
+  }
+};
+
+window.placeBet = async () => {
+  if (!currentUser) { alert('กรุณาสมัครสมาชิกและเข้าสู่ระบบก่อนวางเดิมพันครับ'); return; }
+  const amount = parseFloat(document.getElementById('bet-amount')?.value) || 0;
+  const odds   = parseFloat(document.getElementById('odds-input')?.value)  || 1.5;
+  const bal    = currentUser.balance || 0;
+  if (!selectedSide) { alert('กรุณาเลือกวัวที่ต้องการเดิมพันก่อนครับ'); return; }
+  if (amount < 100)  { alert('จำนวนเงินขั้นต่ำ 100 บาทครับ'); return; }
+  if (amount > bal)  { alert(`ยอดเงินไม่เพียงพอครับ\nคงเหลือ: ${bal.toLocaleString()} บาท`); return; }
+
+  const m        = matchData;
+  const sideName = selectedSide === 'red' ? m.nameA : m.nameB;
+  const txn      = '7' + Array.from({length:8},()=>Math.floor(Math.random()*10)).join('');
+
+  // หักยอดเงิน (update sessionStorage)
+  currentUser.balance = bal - amount;
+  sessionStorage.setItem('wuachon_user', JSON.stringify(currentUser));
+  document.getElementById('balance-hint').textContent = currentUser.balance.toLocaleString() + ' ฿';
+
+  // บันทึกลง Firestore → matches/{id}/bets
+  await addDoc(collection(db, 'matches', matchId, 'bets'), {
+    nick: currentUser.nick, side: selectedSide, sideName, amount, odds, txn,
+    status: 'waiting', createdAt: serverTimestamp()
+  });
+
+  // แสดงสถานะ
+  const box = document.getElementById('status-box');
+  if (box) {
+    box.className = 'status-box show status-waiting';
+    box.innerHTML = `⏳ รอจับคู่ · เลือก <strong>${sideName}</strong> · อัตรา 1:${odds} · ${amount.toLocaleString()} ฿<br><span style="font-size:11px;opacity:.7;">ยอดเงินถูกหักแล้ว · คาดว่าจะได้ ${(amount*odds).toLocaleString('th-TH',{maximumFractionDigits:0})} ฿ หากชนะ</span>`;
+  }
+  document.getElementById('bet-amount').value = '';
+  document.getElementById('expect-row')?.classList.remove('show');
+  showToast(`✅ วางเดิมพันแล้ว · TXN: ${txn}`);
+};
+
+window.joinBet = async (betDocId, opponentNick, opponentSide, amount, odds) => {
+  if (!currentUser) { alert('กรุณาสมัครสมาชิกก่อนครับ'); return; }
+  const bal = currentUser.balance || 0;
+  if (amount > bal) { alert(`ยอดเงินไม่เพียงพอครับ\nคงเหลือ: ${bal.toLocaleString()} บาท`); return; }
+
+  const m       = matchData;
+  const mySide  = opponentSide === m.nameA ? m.nameB : m.nameA;
+  const txn     = '7' + Array.from({length:8},()=>Math.floor(Math.random()*10)).join('');
+  const potential = (amount * odds).toLocaleString('th-TH',{maximumFractionDigits:0});
+
+  if (!confirm(`ยืนยันจับคู่?\n\nคุณเลือก: ${mySide}\nจำนวน: ${amount.toLocaleString()} ฿\nอัตรา: 1:${odds}\nหากชนะจะได้: ${potential} ฿`)) return;
+
+  // หักยอด
+  currentUser.balance = bal - amount;
+  sessionStorage.setItem('wuachon_user', JSON.stringify(currentUser));
+  document.getElementById('balance-hint').textContent = currentUser.balance.toLocaleString() + ' ฿';
+
+  // ลบรายการออกจาก queue (fade out)
+  const qItem = document.getElementById(`qi-${betDocId}`);
+  if (qItem) {
+    qItem.style.transition = 'all .3s ease';
+    qItem.style.opacity    = '0';
+    qItem.style.transform  = 'translateX(20px)';
+    setTimeout(() => qItem.remove(), 300);
+  }
+
+  // บันทึกการจับคู่ลง Firestore
+  await addDoc(collection(db, 'matches', matchId, 'bets'), {
+    nick: currentUser.nick, side: opponentSide === m.nameA ? 'blue' : 'red',
+    sideName: mySide, amount, odds, txn, status: 'matched',
+    matchedWith: opponentNick, createdAt: serverTimestamp()
+  });
+
+  showToast(`✅ จับคู่กับ ${opponentNick} สำเร็จ! · TXN: ${txn}`);
+};
+
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg; t.style.display = 'block';
+  setTimeout(() => { t.style.display = 'none'; }, 3000);
+}
+</script>
+</body>
+</html>
