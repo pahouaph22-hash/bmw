@@ -704,7 +704,11 @@ async function approveDeposit(id, nick, amount) {
   if (member) {
     await sb.from('members').update({ balance: Number(member.balance||0)+Number(amount) }).eq('nick',nick);
   }
-  await sb.from('deposits').update({ status:'approved' }).eq('id',id);
+  await sb.from('deposits').update({
+    status: 'approved',
+    approved_by: 'Admin',
+    approved_at: new Date().toISOString()
+  }).eq('id',id);
   showToast(`✅ อนุมัติเติมเงิน +${Number(amount).toLocaleString()} ฿ ให้ ${nick}`);
   loadDeposits(); loadOverview();
 }
@@ -758,7 +762,11 @@ function filterWith() {
 }
 
 async function approveWithdraw(id, nick, amount) {
-  await sb.from('withdrawals').update({ status:'approved' }).eq('id',id);
+  await sb.from('withdrawals').update({
+    status: 'approved',
+    approved_by: 'Admin',
+    approved_at: new Date().toISOString()
+  }).eq('id',id);
   showToast(`✅ บันทึกการโอนให้ ${nick} แล้วครับ`);
   loadWithdrawals(); loadOverview();
 }
