@@ -70,6 +70,26 @@ tr:hover td{background:#fafaf8;}
 .modal-title{font-family:'Kanit',sans-serif;font-weight:900;font-size:16px;margin-bottom:16px;}
 .toast{position:fixed;bottom:20px;right:20px;background:#1a1a1a;color:#fff;font-family:'Kanit',sans-serif;font-size:13px;padding:12px 20px;border-radius:10px;z-index:9999;display:none;animation:slideIn .3s ease;}
 @keyframes slideIn{from{transform:translateX(100%);opacity:0;}to{transform:translateX(0);opacity:1;}}
+.vd-card{background:#fff;border:1px solid #e5e5e0;border-radius:16px;overflow:hidden;transition:box-shadow .2s;}
+.vd-card:hover{box-shadow:0 6px 24px rgba(0,0,0,.08);}
+.vd-card-header{background:linear-gradient(135deg,#1A0A00,#2d1200);padding:14px 18px;display:flex;align-items:center;justify-content:space-between;}
+.vd-card-round{font-family:'Kanit',sans-serif;font-weight:900;font-size:14px;color:#F5C842;}
+.vd-card-meta{font-size:11px;color:rgba(255,248,236,.5);font-family:'Kanit',sans-serif;}
+.vd-card-code{font-family:'Kanit',sans-serif;font-size:11px;font-weight:900;letter-spacing:2px;color:rgba(245,200,66,.6);}
+.vd-bulls{display:grid;grid-template-columns:1fr 60px 1fr;align-items:center;padding:20px 18px;}
+.vd-bull{display:flex;flex-direction:column;align-items:center;gap:8px;}
+.vd-bull-icon{font-size:52px;line-height:1;}
+.vd-bull-name{font-family:'Kanit',sans-serif;font-weight:900;font-size:15px;color:#1a1a1a;text-align:center;}
+.vd-bull-owner{font-size:11px;color:#aaa;text-align:center;}
+.vd-bull-weight{font-family:'Kanit',sans-serif;font-size:11px;font-weight:700;color:var(--green);background:#EAF3DE;padding:2px 8px;border-radius:4px;}
+.vd-vs{font-family:'Kanit',sans-serif;font-weight:900;font-size:18px;color:#ccc;text-align:center;}
+.vd-actions{display:grid;grid-template-columns:1fr 1fr;border-top:1px solid #f0f0eb;}
+.vd-btn{font-family:'Kanit',sans-serif;font-weight:900;font-size:14px;padding:16px;border:none;cursor:pointer;transition:all .15s;display:flex;align-items:center;justify-content:center;gap:8px;}
+.vd-btn-a{background:#FEF2F2;color:var(--red);}
+.vd-btn-a:hover{background:var(--red);color:#fff;}
+.vd-btn-b{background:#EFF6FF;color:#1877F2;border-left:1px solid #f0f0eb;}
+.vd-btn-b:hover{background:#1877F2;color:#fff;}
+.vd-done-card{background:#f8fff8;border:1px solid #c8eac8;border-radius:10px;padding:14px 16px;display:flex;align-items:center;justify-content:space-between;gap:12px;}
 .mptab{font-family:'Kanit',sans-serif;font-size:13px;font-weight:700;padding:9px 16px;border:none;background:none;cursor:pointer;color:#aaa;border-bottom:2px solid transparent;margin-bottom:-2px;transition:all .15s;}
 .mptab:hover{color:#1a1a1a;}
 .mptab.active{color:var(--green);border-bottom-color:var(--green);}
@@ -122,6 +142,7 @@ tr:hover td{background:#fafaf8;}
   <div class="sb-item active" onclick="switchPanel('overview')" data-panel="overview">📊 ภาพรวม</div>
   <div class="sb-item" onclick="switchPanel('members')" data-panel="members">👥 สมาชิก</div>
   <div class="sb-item" onclick="switchPanel('matches')" data-panel="matches">🏆 คู่แข่งขัน</div>
+  <div class="sb-item" onclick="switchPanel('verdict')" data-panel="verdict">⚖️ แพ้ชนะ <span id="verdict-badge" style="display:none;background:var(--red);color:#fff;font-size:10px;font-weight:700;padding:1px 6px;border-radius:999px;margin-left:2px;">0</span></div>
   <div class="sb-item" onclick="switchPanel('news')" data-panel="news">📰 ข่าวสาร</div>
   <div class="sb-item" onclick="switchPanel('deposit')" data-panel="deposit">💰 เติมเงิน</div>
   <div class="sb-item" onclick="switchPanel('withdraw')" data-panel="withdraw">🏧 ถอนเงิน</div>
@@ -263,6 +284,48 @@ tr:hover td{background:#fafaf8;}
         </thead>
         <tbody id="matches-tbody"><tr class="loading-row"><td colspan="8">กำลังโหลด...</td></tr></tbody>
       </table>
+    </div>
+  </div>
+</div>
+
+<!-- VERDICT -->
+<div id="panel-verdict" class="panel">
+
+  <!-- สถิติ -->
+  <div class="stat-grid" style="grid-template-columns:repeat(3,1fr);margin-bottom:20px;">
+    <div class="stat-card">
+      <div class="stat-label">รอตัดสิน</div>
+      <div class="stat-val red" id="vd-waiting-count">0</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">ตัดสินแล้ว</div>
+      <div class="stat-val green" id="vd-done-count">0</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">ทั้งหมด</div>
+      <div class="stat-val gold" id="vd-total-count">0</div>
+    </div>
+  </div>
+
+  <!-- รอตัดสิน -->
+  <div id="vd-pending-section">
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px;">
+      <div style="width:10px;height:10px;border-radius:50%;background:var(--red);animation:pulse .8s infinite;flex-shrink:0;"></div>
+      <h3 style="font-family:'Kanit',sans-serif;font-weight:900;font-size:16px;color:#1a1a1a;">รายการที่แข่งจบแล้ว รอตัดสินผล</h3>
+    </div>
+    <div id="vd-pending-list" style="display:flex;flex-direction:column;gap:16px;">
+      <div style="text-align:center;padding:40px;color:#aaa;font-family:'Kanit',sans-serif;">กำลังโหลด...</div>
+    </div>
+  </div>
+
+  <!-- ตัดสินแล้ว -->
+  <div style="margin-top:32px;">
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px;">
+      <span style="color:var(--green);font-size:18px;">✅</span>
+      <h3 style="font-family:'Kanit',sans-serif;font-weight:900;font-size:16px;color:#1a1a1a;">ตัดสินแล้ว</h3>
+    </div>
+    <div id="vd-done-list" style="display:flex;flex-direction:column;gap:10px;">
+      <div style="text-align:center;padding:20px;color:#aaa;font-family:'Kanit',sans-serif;">กำลังโหลด...</div>
     </div>
   </div>
 </div>
@@ -760,12 +823,14 @@ function loadAll() {
   loadOverview();
   loadMembers();
   loadMatches();
+  loadVerdict();
   loadNews();
   loadDeposits();
   loadWithdrawals();
   loadBets();
   loadSettings();
   subscribeNotifications();
+  subscribeVerdictUpdates();
 }
 
 // ── OVERVIEW ──
@@ -1084,6 +1149,258 @@ async function deleteMember(id, nick) {
 // ── MATCHES ──
 let allMatches = [];
 let verdictMatchId = null;
+
+// ── VERDICT PANEL ──
+async function loadVerdict() {
+  const { data } = await sb.from('matches')
+    .select('*')
+    .eq('status', 'done')
+    .order('created_at', { ascending: false });
+
+  const rows = data || [];
+  const pending = rows.filter(m => !m.winner);
+  const done    = rows.filter(m =>  m.winner);
+
+  // สถิติ
+  document.getElementById('vd-waiting-count').textContent = pending.length;
+  document.getElementById('vd-done-count').textContent    = done.length;
+  document.getElementById('vd-total-count').textContent   = rows.length;
+
+  // badge ใน topnav
+  const badge = document.getElementById('verdict-badge');
+  if (pending.length > 0) {
+    badge.textContent = pending.length;
+    badge.style.display = 'inline';
+  } else {
+    badge.style.display = 'none';
+  }
+
+  renderVerdictPending(pending);
+  renderVerdictDone(done);
+}
+
+function renderVerdictPending(rows) {
+  const el = document.getElementById('vd-pending-list');
+  if (!rows.length) {
+    el.innerHTML = `
+      <div style="text-align:center;padding:40px 20px;background:#f8fff8;border:2px dashed #c8eac8;border-radius:12px;">
+        <div style="font-size:40px;margin-bottom:10px;">✅</div>
+        <div style="font-family:'Kanit',sans-serif;font-weight:700;font-size:14px;color:var(--green);">ตัดสินผลครบทุกรายการแล้วครับ!</div>
+      </div>`;
+    return;
+  }
+
+  el.innerHTML = '';
+  rows.forEach(m => {
+    const card = document.createElement('div');
+    card.className = 'vd-card';
+    card.id = `vd-card-${m.id}`;
+    card.innerHTML = `
+      <div class="vd-card-header">
+        <div>
+          <div class="vd-card-round">🏆 ${m.round || '—'}</div>
+          <div class="vd-card-meta">📅 ${m.date||'—'} &nbsp;·&nbsp; 🕐 ${m.time||'—'} &nbsp;·&nbsp; 📍 ${m.location||'—'}</div>
+        </div>
+        ${m.code ? `<div class="vd-card-code">#${m.code}</div>` : ''}
+      </div>
+
+      <div class="vd-bulls">
+        <!-- วัวฝั่ง A -->
+        <div class="vd-bull">
+          <div class="vd-bull-icon">🐂</div>
+          <div class="vd-bull-name">${m.name_a || '—'}</div>
+          <div class="vd-bull-owner">${m.owner_a || ''}</div>
+          ${m.weight_a ? `<div class="vd-bull-weight">⚖️ ${m.weight_a}</div>` : ''}
+          <div style="font-family:'Kanit',sans-serif;font-size:11px;color:#aaa;margin-top:4px;">🔴 เจ้าบ้าน</div>
+        </div>
+
+        <!-- VS -->
+        <div class="vd-vs">VS</div>
+
+        <!-- วัวฝั่ง B -->
+        <div class="vd-bull">
+          <div class="vd-bull-icon">🐃</div>
+          <div class="vd-bull-name">${m.name_b || '—'}</div>
+          <div class="vd-bull-owner">${m.owner_b || ''}</div>
+          ${m.weight_b ? `<div class="vd-bull-weight">⚖️ ${m.weight_b}</div>` : ''}
+          <div style="font-family:'Kanit',sans-serif;font-size:11px;color:#aaa;margin-top:4px;">🔵 ทีมเยือน</div>
+        </div>
+      </div>
+
+      <!-- ปุ่มตัดสิน -->
+      <div style="padding:0 18px 14px;background:#FFFBEB;border-top:2px dashed #FDE68A;">
+        <div style="text-align:center;font-family:'Kanit',sans-serif;font-size:12px;font-weight:700;color:#92400E;padding:8px 0 10px;">
+          ⚖️ เลือกผู้ชนะการแข่งขัน
+        </div>
+        <div class="vd-actions" style="border-radius:10px;overflow:hidden;border:1px solid #e5e5e0;">
+          <button class="vd-btn vd-btn-a" onclick="doVerdict('${m.id}','${(m.name_a||'').replace(/'/g,"\\'")}','A','${(m.round||'').replace(/'/g,"\\'")}','${(m.name_b||'').replace(/'/g,"\\'")}')">
+            🔴 ${m.name_a||'เจ้าบ้าน'}<br><span style="font-size:10px;font-weight:400;opacity:.7;">กด = ชนะ</span>
+          </button>
+          <button class="vd-btn vd-btn-b" onclick="doVerdict('${m.id}','${(m.name_b||'').replace(/'/g,"\\'")}','B','${(m.round||'').replace(/'/g,"\\'")}','${(m.name_a||'').replace(/'/g,"\\'")}')">
+            🔵 ${m.name_b||'ทีมเยือน'}<br><span style="font-size:10px;font-weight:400;opacity:.7;">กด = ชนะ</span>
+          </button>
+        </div>
+      </div>`;
+    el.appendChild(card);
+  });
+}
+
+function renderVerdictDone(rows) {
+  const el = document.getElementById('vd-done-list');
+  if (!rows.length) {
+    el.innerHTML = '<div style="text-align:center;padding:20px;color:#aaa;font-family:\'Kanit\',sans-serif;">ยังไม่มีรายการที่ตัดสินแล้ว</div>';
+    return;
+  }
+  el.innerHTML = rows.map(m => `
+    <div class="vd-done-card">
+      <div style="flex:1;">
+        <div style="font-family:'Kanit',sans-serif;font-weight:700;font-size:13px;">${m.round||'—'}
+          ${m.code?`<span style="font-size:10px;color:#aaa;letter-spacing:1px;margin-left:6px;">#${m.code}</span>`:''}
+        </div>
+        <div style="font-size:12px;color:#aaa;margin-top:2px;">${m.name_a||'—'} <span style="color:#ccc;">VS</span> ${m.name_b||'—'}</div>
+        <div style="font-size:11px;color:#aaa;margin-top:1px;">📅 ${m.date||'—'} · 📍 ${m.location||'—'}</div>
+      </div>
+      <div style="text-align:right;flex-shrink:0;">
+        <div style="font-size:10px;color:#aaa;font-family:'Kanit',sans-serif;">🏆 ผู้ชนะ</div>
+        <div style="font-family:'Kanit',sans-serif;font-weight:900;font-size:14px;color:var(--green);">${m.winner}</div>
+        <button style="margin-top:5px;font-family:'Kanit',sans-serif;font-size:10px;padding:3px 10px;border-radius:5px;border:1px solid #ddd;background:#fff;cursor:pointer;color:#666;" onclick="reopenVerdict('${m.id}')">✏️ แก้ไข</button>
+      </div>
+    </div>`).join('');
+}
+
+async function doVerdict(matchId, winnerName, side, round, loserName) {
+  const sideLabel = side === 'A' ? '🔴 เจ้าบ้าน' : '🔵 ทีมเยือน';
+
+  // ── ดึงข้อมูล bets ของแมชนี้ก่อน ──
+  const { data: bets, error: bErr } = await sb.from('bets')
+    .select('*')
+    .eq('match_id', matchId)
+    .in('status', ['waiting', 'matched']);
+
+  if (bErr) { showToast('❌ โหลดข้อมูลเดิมพันไม่ได้: ' + bErr.message, 'error'); return; }
+
+  const allBetRows = bets || [];
+  const m = allMatches.find(x => x.id === matchId);
+
+  // ── คำนวณยอดรวม ──
+  const totalAll    = allBetRows.reduce((s, b) => s + Number(b.amount || 0), 0);
+  const fee         = Math.floor(totalAll * 0.07);
+  const payoutPool  = totalAll - fee;
+
+  // ฝั่งชนะ = side_name ตรงกับ winnerName
+  const winnerBets  = allBetRows.filter(b => b.side_name === winnerName);
+  const winnerTotal = winnerBets.reduce((s, b) => s + Number(b.amount || 0), 0);
+  const loserBets   = allBetRows.filter(b => b.side_name !== winnerName);
+  const loserTotal  = loserBets.reduce((s, b) => s + Number(b.amount || 0), 0);
+
+  // สรุปตัวเลขสำหรับ confirm
+  const summaryLines = winnerBets.length > 0
+    ? winnerBets.map(b => {
+        const ratio   = winnerTotal > 0 ? Number(b.amount) / winnerTotal : 0;
+        const payout  = Math.floor(payoutPool * ratio);
+        return `  · ${b.nick}: ลง ${Number(b.amount).toLocaleString()} ฿ → ได้รับ ${payout.toLocaleString()} ฿`;
+      }).join('\n')
+    : '  (ไม่มีคนทายฝั่งนี้)';
+
+  const confirmMsg = [
+    `ยืนยันผลการแข่งขัน?`,
+    ``,
+    `📋 ${round}`,
+    `🏆 ผู้ชนะ: ${winnerName} (${sideLabel})`,
+    `❌ แพ้: ${loserName}`,
+    ``,
+    `💰 ยอดเดิมพันรวม: ${totalAll.toLocaleString()} ฿`,
+    `   🔴 ฝั่งเจ้าบ้าน: ${side==='A'?winnerTotal:loserTotal} ฿`,
+    `   🔵 ฝั่งทีมเยือน: ${side==='B'?winnerTotal:loserTotal} ฿`,
+    `✂️ หักค่าบริการ 7%: ${fee.toLocaleString()} ฿`,
+    `💵 จ่ายคืนฝั่งชนะ: ${payoutPool.toLocaleString()} ฿`,
+    ``,
+    `📤 รายการโอน:`,
+    summaryLines,
+  ].join('\n');
+
+  if (!confirm(confirmMsg)) return;
+
+  // ── บันทึกผลแมช ──
+  const { error: mErr } = await sb.from('matches')
+    .update({ winner: winnerName })
+    .eq('id', matchId);
+  if (mErr) { showToast('❌ ' + mErr.message, 'error'); return; }
+
+  // ── จ่ายเงินให้ฝั่งชนะ ──
+  let paidCount = 0;
+  for (const bet of winnerBets) {
+    const ratio  = winnerTotal > 0 ? Number(bet.amount) / winnerTotal : 0;
+    const payout = Math.floor(payoutPool * ratio);
+    if (payout <= 0) continue;
+
+    // ดึงยอดเงินปัจจุบันของสมาชิก
+    const { data: mem } = await sb.from('members')
+      .select('balance, nick')
+      .eq('nick', bet.nick)
+      .maybeSingle();
+
+    if (mem) {
+      const newBal = Number(mem.balance || 0) + payout;
+      await sb.from('members').update({ balance: newBal }).eq('nick', bet.nick);
+    }
+
+    // อัปเดตสถานะ bet → won
+    await sb.from('bets').update({ status: 'won' }).eq('id', bet.id);
+    paidCount++;
+  }
+
+  // ── อัปเดต bets ฝั่งแพ้ → lost ──
+  for (const bet of loserBets) {
+    await sb.from('bets').update({ status: 'lost' }).eq('id', bet.id);
+  }
+
+  // ── อัปเดต allMatches ──
+  const idx = allMatches.findIndex(x => x.id === matchId);
+  if (idx !== -1) allMatches[idx] = { ...allMatches[idx], winner: winnerName };
+
+  // Animate card ออก
+  const card = document.getElementById(`vd-card-${matchId}`);
+  if (card) {
+    card.style.transition = 'all .35s';
+    card.style.transform  = 'translateX(30px)';
+    card.style.opacity    = '0';
+    setTimeout(() => { loadVerdict(); loadOverview(); }, 400);
+  } else {
+    loadVerdict(); loadOverview();
+  }
+
+  if (winnerBets.length > 0) {
+    showToast(`🏆 ${winnerName} ชนะ! โอนรางวัล ${payoutPool.toLocaleString()} ฿ ให้ ${paidCount} คน (หัก fee ${fee.toLocaleString()} ฿) ✅`);
+  } else {
+    showToast(`🏆 ${winnerName} ชนะ! (ไม่มีคนทายฝั่งนี้ ไม่มีการจ่ายรางวัล)`);
+  }
+}
+
+async function reopenVerdict(matchId) {
+  if (!confirm('ต้องการแก้ไขผลการแข่งขันนี้?')) return;
+  await sb.from('matches').update({ winner: null }).eq('id', matchId);
+  const idx = allMatches.findIndex(m => m.id === matchId);
+  if (idx !== -1) allMatches[idx] = { ...allMatches[idx], winner: null };
+  loadVerdict();
+  showToast('✅ รีเซ็ตผลแล้ว กรุณาตัดสินใหม่ครับ');
+}
+
+// Real-time: เมื่อมีแมชจบใหม่ → โหลด verdict panel
+function subscribeVerdictUpdates() {
+  sb.channel('verdict-matches')
+    .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'matches' }, payload => {
+      const m = payload.new;
+      if (m.status === 'done') {
+        loadVerdict();
+        // แสดง badge ถ้าไม่ได้อยู่หน้า verdict
+        if (currentPanel !== 'verdict' && !m.winner) {
+          showToast(`⚔️ "${m.round}" แข่งจบแล้ว! รอตัดสินผลครับ`);
+        }
+      }
+    })
+    .subscribe();
+}
 
 async function loadMatches() {
   const { data } = await sb.from('matches').select('*').order('created_at',{ascending:false});
