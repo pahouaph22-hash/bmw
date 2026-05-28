@@ -3738,6 +3738,7 @@
   <div class="footer-copy">© 2568 ศึกวัวชนภาคใต้ · สงวนลิขสิทธิ์</div>
 </footer>
 
+
 <script>
   const target = new Date();
   target.setDate(target.getDate() + 12);
@@ -3942,6 +3943,170 @@
     window.scrollTo(0, 0);
     loadHistory();
   }
+
+  let allHistoryMatches = [];
+
+  window.loadHistory = async function loadHistory() {
+    const { data } = await sb.from('matches').select('*').eq('status','done').order('created_at',{ascending:false});
+    allHistoryMatches = data || [];
+    renderHistory();
+  }
+
+  window.renderHistory = function renderHistory() {
+    const q    = document.getElementById('hist-search')?.value.toLowerCase() || '';
+    const from = document.getElementById('hist-date-from')?.value || '';
+    const to   = document.getElementById('hist-date-to')?.value || '';
+    let rows = allHistoryMatches.filter(m => {
+      const mq = !q || m.name_a?.toLowerCase().includes(q) || m.name_b?.toLowerCase().includes(q) || m.round?.toLowerCase().includes(q);
+      let md = true;
+      if (from || to) {
+        const d = new Date(m.created_at);
+        if (from && d < new Date(from)) md = false;
+        if (to   && d > new Date(to+'T23:59:59')) md = false;
+      }
+      return mq && md;
+    });
+    const htEl = document.getElementById('hist-total');   if(htEl) htEl.textContent = allHistoryMatches.length;
+    const hrEl = document.getElementById('hist-rounds');  if(hrEl) hrEl.textContent = [...new Set(allHistoryMatches.map(m=>m.round).filter(Boolean))].length;
+    const hlEl = document.getElementById('hist-latest');  if(hlEl) hlEl.textContent = allHistoryMatches[0]?.date || '—';
+    const list = document.getElementById('history-list');
+    if (!list) return;
+    if (!rows.length) { list.innerHTML = `<div class="history-empty"><div class="icon">🏆</div>ยังไม่มีผลการแข่งขันครับ</div>`; return; }
+    list.innerHTML = '';
+    rows.forEach((m,i) => {
+      const isWinA = m.winner === m.name_a;
+      const isWinB = m.winner === m.name_b;
+      const card = document.createElement('div');
+      card.className = 'history-card';
+      card.style.animationDelay = `${i*0.06}s`;
+      card.onclick = () => openHistoryDetail(m);
+      card.innerHTML = `
+        <div class="history-card-inner">
+          <div class="history-bull ${isWinA?'winner-side':''}">
+            <div class="history-bull-photo">${m.photo_a?`<img src="${m.photo_a}">`:'🐂'}</div>
+            <div class="history-bull-info">
+              <div class="history-bull-name ${isWinA?'winner':''}">${m.name_a||'—'} ${isWinA?'🏆':''}</div>
+              <div class="history-bull-owner">${m.owner_a||''}</div>
+              <div class="history-bull-weight">${m.weight_a||''}</div>
+            </div>
+          </div>
+          <div class="history-center">
+            <div class="history-vs">VS</div>
+            <div class="history-date">${m.date||''}</div>
+            <div class="history-round">${m.round||''}</div>
+            ${m.code?`<div style="font-size:9px;color:rgba(245,200,66,0.5);letter-spacing:2px;font-family:'Kanit',sans-serif;">#${m.code}</div>`:''}
+          </div>
+          <div class="history-bull right ${isWinB?'winner-side':''}">
+            <div class="history-bull-photo">${m.photo_b?`<img src="${m.photo_b}">`:'🐂'}</div>
+            <div class="history-bull-info">
+              <div class="history-bull-name ${isWinB?'winner':''}">${m.name_b||'—'} ${isWinB?'🏆':''}</div>
+              <div class="history-bull-owner">${m.owner_b||''}</div>
+              <div class="history-bull-weight">${m.weight_b||''}</div>
+            </div>
+          </div>
+        </div>
+        <div class="history-winner-bar">🏆 ผู้ชนะ: <strong style="color:var(--gold);margin-left:4px;">${m.winner||'—'}</strong>
+          <span class="loc">📍 ${m.location||'—'} · 💰 ${Number(m.prize||0).toLocaleString()} ฿</span>
+        </div>`;
+      list.appendChild(card);
+    });
+  }
+
+  // duplicate removed
+    const q    = document.getElementById('hist-search')?.value.toLowerCase() || '';
+    const from = document.getElementById('hist-date-from')?.value || '';
+    const to   = document.getElementById('hist-date-to')?.value || '';
+    let rows = allHistoryMatches.filter(m => {
+      const mq = !q || m.name_a?.toLowerCase().includes(q) || m.name_b?.toLowerCase().includes(q) || m.round?.toLowerCase().includes(q);
+      let md = true;
+      if (from || to) {
+        const d = new Date(m.created_at);
+        if (from && d < new Date(from)) md = false;
+        if (to   && d > new Date(to+'T23:59:59')) md = false;
+      }
+      return mq && md;
+    });
+    document.getElementById('hist-total').textContent  = allHistoryMatches.length;
+    document.getElementById('hist-rounds').textContent = [...new Set(allHistoryMatches.map(m=>m.round).filter(Boolean))].length;
+    document.getElementById('hist-latest').textContent = allHistoryMatches[0]?.date || '—';
+    const list = document.getElementById('history-list');
+    if (!list) return;
+    if (!rows.length) { list.innerHTML = `<div class="history-empty"><div class="icon">🏆</div>ยังไม่มีผลการแข่งขัน</div>`; return; }
+    list.innerHTML = '';
+    rows.forEach((m,i) => {
+      const isWinA = m.winner === m.name_a;
+      const isWinB = m.winner === m.name_b;
+      const card = document.createElement('div');
+      card.className = 'history-card';
+      card.style.animationDelay = `${i*0.06}s`;
+      card.onclick = () => openHistoryDetail(m);
+      card.innerHTML = `
+        <div class="history-card-inner">
+          <div class="history-bull ${isWinA?'winner-side':''}">
+            <div class="history-bull-photo">${m.photo_a?`<img src="${m.photo_a}">`:'🐂'}</div>
+            <div class="history-bull-info">
+              <div class="history-bull-name ${isWinA?'winner':''}">${m.name_a||'—'} ${isWinA?'🏆':''}</div>
+              <div class="history-bull-owner">${m.owner_a||''}</div>
+              <div class="history-bull-weight">${m.weight_a||''}</div>
+            </div>
+          </div>
+          <div class="history-center">
+            <div class="history-vs">VS</div>
+            <div class="history-date">${m.date||''}</div>
+            <div class="history-round">${m.round||''}</div>
+            ${m.code?`<div style="font-size:9px;color:rgba(245,200,66,0.5);letter-spacing:2px;font-family:'Kanit',sans-serif;">#${m.code}</div>`:''}
+          </div>
+          <div class="history-bull right ${isWinB?'winner-side':''}">
+            <div class="history-bull-photo">${m.photo_b?`<img src="${m.photo_b}">`:'🐂'}</div>
+            <div class="history-bull-info">
+              <div class="history-bull-name ${isWinB?'winner':''}">${m.name_b||'—'} ${isWinB?'🏆':''}</div>
+              <div class="history-bull-owner">${m.owner_b||''}</div>
+              <div class="history-bull-weight">${m.weight_b||''}</div>
+            </div>
+          </div>
+        </div>
+        <div class="history-winner-bar">🏆 ผู้ชนะ: <strong style="color:var(--gold);margin-left:4px;">${m.winner||'—'}</strong>
+          <span class="loc">📍 ${m.location||'—'} · 💰 ${Number(m.prize||0).toLocaleString()} ฿</span>
+        </div>`;
+      list.appendChild(card);
+    });
+  }
+
+  function openHistoryDetail(m) {
+    const isWinA = m.winner === m.name_a;
+    const isWinB = m.winner === m.name_b;
+    const ov = document.createElement('div');
+    ov.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:2000;display:flex;align-items:center;justify-content:center;padding:16px;';
+    ov.onclick=e=>{if(e.target===ov)ov.remove();};
+    ov.innerHTML=`<div style="background:#0d2b14;border:1px solid rgba(245,200,66,0.3);border-radius:16px;width:100%;max-width:480px;max-height:90vh;overflow-y:auto;padding:24px;">
+      <div style="display:flex;justify-content:space-between;margin-bottom:16px;">
+        <div><div style="font-family:'Kanit',sans-serif;font-weight:900;font-size:16px;color:var(--gold);">${m.round||'—'}</div>${m.code?`<div style="font-size:11px;color:rgba(240,255,232,0.4);letter-spacing:2px;">#${m.code}</div>`:''}</div>
+        <button onclick="this.closest('[style]').remove()" style="background:none;border:none;color:rgba(240,255,232,0.4);font-size:22px;cursor:pointer;">×</button>
+      </div>
+      <div style="background:linear-gradient(135deg,rgba(39,148,63,0.25),rgba(245,200,66,0.1));border:1px solid rgba(245,200,66,0.3);border-radius:10px;padding:14px;margin-bottom:16px;text-align:center;">
+        <div style="font-size:28px;margin-bottom:4px;">🏆</div>
+        <div style="font-family:'Kanit',sans-serif;font-size:12px;color:rgba(240,255,232,0.5);">ผู้ชนะ</div>
+        <div style="font-family:'Kanit',sans-serif;font-weight:900;font-size:22px;color:var(--gold);">${m.winner||'—'}</div>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px;">
+        <div style="background:${isWinA?'rgba(39,148,63,0.15)':'rgba(0,0,0,0.2)'};border:1px solid ${isWinA?'rgba(245,200,66,0.4)':'rgba(255,255,255,0.06)'};border-radius:10px;padding:12px;text-align:center;">
+          <div style="font-size:20px;">🔴</div><div style="font-family:'Kanit',sans-serif;font-weight:900;font-size:14px;color:${isWinA?'var(--gold)':'var(--cream)'};">${m.name_a||'—'} ${isWinA?'🏆':''}</div>
+          <div style="font-size:11px;color:rgba(240,255,232,0.4);">${m.owner_a||''}</div>
+        </div>
+        <div style="background:${isWinB?'rgba(39,148,63,0.15)':'rgba(0,0,0,0.2)'};border:1px solid ${isWinB?'rgba(245,200,66,0.4)':'rgba(255,255,255,0.06)'};border-radius:10px;padding:12px;text-align:center;">
+          <div style="font-size:20px;">🔵</div><div style="font-family:'Kanit',sans-serif;font-weight:900;font-size:14px;color:${isWinB?'var(--gold)':'var(--cream)'};">${m.name_b||'—'} ${isWinB?'🏆':''}</div>
+          <div style="font-size:11px;color:rgba(240,255,232,0.4);">${m.owner_b||''}</div>
+        </div>
+      </div>
+      ${[['📅 วันที่',m.date||'—'],['🕐 เวลา',m.time||'—'],['📍 สถานที่',m.location||'—'],['💰 รางวัล',Number(m.prize||0).toLocaleString()+' ฿']].map(([k,v])=>`
+        <div style="display:flex;justify-content:space-between;padding:8px 12px;background:rgba(0,0,0,0.2);border-radius:8px;margin-bottom:6px;">
+          <span style="font-size:12px;color:rgba(240,255,232,0.5);">${k}</span>
+          <span style="font-family:'Kanit',sans-serif;font-weight:700;color:var(--cream);">${v}</span>
+        </div>`).join('')}
+      <button onclick="this.closest('[style]').remove()" style="width:100%;margin-top:14px;font-family:'Kanit',sans-serif;font-weight:700;font-size:13px;padding:12px;border-radius:10px;border:1px solid rgba(39,148,63,0.4);background:transparent;color:rgba(240,255,232,0.6);cursor:pointer;">ปิด</button>
+    </div>`;
+    document.body.appendChild(ov);
+  }
   window.hideHistory = function hideHistory() {
     document.getElementById('page-history').style.display = 'none';
     document.getElementById('main-content').style.display = 'block';
@@ -4100,7 +4265,7 @@
     showFEToast('✅ เปลี่ยนรหัสผ่านสำเร็จแล้วครับ!');
   }
 
-  function clearHistFilter() {
+  window.clearHistFilter = function clearHistFilter() {
     ['hist-search','hist-date-from','hist-date-to'].forEach(id => {
       const el = document.getElementById(id); if (el) el.value = '';
     });
@@ -4673,7 +4838,7 @@
     document.getElementById('with-amount').value = currentUser?.balance || 0;
   }
 
-  function showMyAccount() {
+  window.showMyAccount = function showMyAccount() {
     document.getElementById('main-content').style.display  = 'none';
     document.getElementById('page-schedule').style.display  = 'none';
     document.getElementById('page-register').style.display  = 'none';
@@ -4991,7 +5156,7 @@
     if (ratingWrap) ratingWrap.style.display = currentSupportType === 'feedback' ? 'block' : 'none';
   }
 
-  function setRating(n) {
+  window.setRating = function setRating(n) {
     currentRating = n;
     const stars = document.querySelectorAll('.star-btn');
     stars.forEach((s, i) => s.classList.toggle('active', i < n));
@@ -5006,7 +5171,7 @@
     if (nameEl) nameEl.textContent = file ? `📎 ${file.name}` : '';
   }
 
-  async function submitSupport() {
+  window.submitSupport = async function submitSupport() {
     const subject = document.getElementById('support-subject').value.trim();
     const msg     = document.getElementById('support-msg').value.trim();
     if (!subject) { alert('กรุณาใส่หัวข้อเรื่องที่ต้องการแจ้งครับ'); return; }
@@ -5075,12 +5240,12 @@
     calcExpected(matchId);
   }
 
-  function setBetAmount(matchId, amount) {
+  window.setBetAmount = function setBetAmount(matchId, amount) {
     const input = document.getElementById(`bet-amount-${matchId}`);
     if (input) { input.value = amount; calcExpected(matchId); }
   }
 
-  function setOdds(matchId, odds, btn) {
+  window.setOdds = function setOdds(matchId, odds, btn) {
     // active state
     btn.closest('.bet-odds-presets').querySelectorAll('.bet-odds-preset').forEach(b => b.classList.remove('active'));
     btn.classList.add('active');
@@ -5267,7 +5432,7 @@
                  round:'รุ่นน้ำหนัก 500 กก.', date:'29 พ.ค. 68', time:'09:00 น.', loc:'สนาม A พัทลุง', prize:'200,000' },
   };
 
-  function openMatchDetail(matchId) {
+  window.openMatchDetail = function openMatchDetail(matchId) {
     const m = matchData[matchId] || {};
     // อัปเดต arena
     document.getElementById('detail-arena').innerHTML = `
@@ -5321,7 +5486,7 @@
     window.scrollTo(0, 0);
   }
 
-  function closeMatchDetail() {
+  window.closeMatchDetail = function closeMatchDetail() {
     document.getElementById('sched-detail-view').style.display = 'none';
     document.getElementById('sched-list-view').style.display   = 'block';
     window.scrollTo(0, 0);
