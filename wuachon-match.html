@@ -229,7 +229,7 @@ function renderPage() {
           ${m.time?`<span>⏰ ${m.time}</span>`:''}
           ${m.location?`<span>📍 ${m.location}</span>`:''}
           ${prizeNum?`<span>💰 ${prizeNum.toLocaleString()} ฿</span>`:''}
-          ${m.code?`<span style="font-family:'Kanit',sans-serif;font-weight:900;color:var(--gold);">#${m.code}</span>`:''}
+          ${m.code?`<div style="font-family:'Kanit',sans-serif;font-weight:900;font-size:18px;color:var(--gold);letter-spacing:4px;margin-top:4px;">${m.code}</div>`:''}
         </div>
       </div>
       ${statusBadge}

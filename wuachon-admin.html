@@ -496,16 +496,25 @@ tr:hover td{background:#fafaf8;}
   <div class="stat-grid" style="grid-template-columns:repeat(3,1fr);">
     <div class="stat-card"><div class="stat-label">เดิมพันทั้งหมด</div><div class="stat-val" id="bet-total-count">0</div></div>
     <div class="stat-card"><div class="stat-label">รอจับคู่</div><div class="stat-val gold" id="bet-waiting-count">0</div></div>
-    <div class="stat-card"><div class="stat-label">จับคู่แล้ว</div><div class="stat-val green" id="bet-matched-count">0</div></div>
+    <div class="stat-card"><div class="stat-label">จับคู่แล้ว/ผลแล้ว</div><div class="stat-val green" id="bet-matched-count">0</div></div>
   </div>
   <div class="card">
-    <div class="card-title">🎯 รายการเดิมพันทั้งหมด</div>
+    <div class="card-title" style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;">
+      <span>🎯 รายการเดิมพันทั้งหมด</span>
+      <div style="display:flex;align-items:center;gap:6px;">
+        <span id="bet-realtime-dot" style="width:8px;height:8px;border-radius:50%;background:var(--green);display:inline-block;animation:pulse .8s infinite;"></span>
+        <span style="font-size:11px;color:var(--green);font-family:'Kanit',sans-serif;font-weight:700;">Real-time</span>
+      </div>
+    </div>
     <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px;">
-      <input id="bet-search" placeholder="ค้นหาชื่อบัญชี / TXN..." oninput="filterBets()" style="font-family:'Sarabun',sans-serif;font-size:12px;padding:6px 12px;border:1px solid #ddd;border-radius:7px;flex:1;min-width:180px;">
+      <input id="bet-search" placeholder="ค้นหาชื่อบัญชี / TXN..." oninput="filterBets()" style="font-family:'Sarabun',sans-serif;font-size:12px;padding:6px 12px;border:1px solid #ddd;border-radius:7px;flex:1;min-width:150px;">
+      <input id="bet-code-search" placeholder="🔍 รหัส 4 หลัก เช่น 1234" oninput="filterBets()" style="font-family:'Kanit',sans-serif;font-size:13px;font-weight:700;padding:6px 12px;border:2px solid #F5C842;border-radius:7px;width:170px;letter-spacing:3px;color:#B8860B;">
       <select id="bet-status-filter" onchange="filterBets()" style="font-family:'Kanit',sans-serif;font-size:12px;padding:6px 10px;border:1px solid #ddd;border-radius:7px;">
         <option value="all">ทั้งหมด</option>
         <option value="waiting">⏳ รอจับคู่</option>
-        <option value="matched">✅ จับคู่แล้ว</option>
+        <option value="matched">🤝 จับคู่แล้ว</option>
+        <option value="won">🏆 ชนะ</option>
+        <option value="lost">❌ แพ้</option>
       </select>
     </div>
     <div class="date-filter" style="margin-bottom:12px;">
@@ -519,12 +528,13 @@ tr:hover td{background:#fafaf8;}
     </div>
     <div style="overflow-x:auto;">
       <table>
-        <thead><tr><th>ชื่อบัญชี</th><th>วัวที่เลือก</th><th>อัตราต่อรอง</th><th>จำนวนเงิน</th><th>TXN</th><th>สถานะ</th><th>จับคู่กับ</th><th>เวลา</th></tr></thead>
-        <tbody id="bets-tbody"><tr class="loading-row"><td colspan="8">กำลังโหลด...</td></tr></tbody>
+        <thead><tr><th>ชื่อบัญชี</th><th>รหัสแมช</th><th>วัวที่เลือก</th><th>อัตรา</th><th>จำนวน</th><th>TXN</th><th>สถานะ</th><th>จับคู่กับ</th><th>เวลา</th></tr></thead>
+        <tbody id="bets-tbody"><tr class="loading-row"><td colspan="9">กำลังโหลด...</td></tr></tbody>
       </table>
     </div>
   </div>
 </div>
+
 
 <!-- SETTINGS -->
 <div id="panel-settings" class="panel">
@@ -855,6 +865,7 @@ function loadAll() {
   loadSettings();
   subscribeNotifications();
   subscribeVerdictUpdates();
+  subscribeBetsRealtime();
 }
 
 // ── OVERVIEW ──
@@ -1593,7 +1604,7 @@ function renderMatchRows(rows) {
         <td>
           <div style="font-family:'Kanit',sans-serif;font-weight:700;font-size:13px;">${m.round||'—'}</div>
           <div style="font-size:11px;color:#aaa;">${m.time||''} · ${m.location||''}</div>
-          ${m.code ? `<div style="display:inline-block;margin-top:3px;background:#1B6B2F;color:#fff;font-family:'Kanit',sans-serif;font-weight:900;font-size:11px;padding:2px 8px;border-radius:4px;letter-spacing:2px;">#${m.code}</div>` : ''}
+          ${m.code ? `<div style="display:inline-block;margin-top:3px;background:#1B6B2F;color:#fff;font-family:'Kanit',sans-serif;font-weight:900;font-size:12px;padding:2px 10px;border-radius:4px;letter-spacing:3px;">${m.code}</div>` : ''}
         </td>
         <td>
           <div style="font-family:'Kanit',sans-serif;font-weight:700;color:var(--red);">🔴 ${m.name_a||'—'}</div>
@@ -1666,19 +1677,15 @@ async function quickStatus(matchId, currentStatus) {
   showToast(`✅ เปลี่ยนสถานะเป็น ${label} แล้วครับ`);
 }
 
-// ── สร้าง Match Code 5 หลักไม่ซ้ำ ──
+// ── สร้าง Match Code 4 หลักไม่ซ้ำ ──
 async function generateMatchCode() {
-  let code, exists;
-  let attempts = 0;
+  let code, attempts = 0;
   do {
-    // สุ่มตัวเลข 5 หลัก ผสมตัวอักษรพิมพ์ใหญ่ เพื่อให้ดูน่าสนใจขึ้น
-    const chars  = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
-    code = Array.from({length:5}, () => chars[Math.floor(Math.random()*chars.length)]).join('');
+    code = String(Math.floor(Math.random() * 9000) + 1000);
     const { data } = await sb.from('matches').select('id').eq('code', code).maybeSingle();
-    exists = !!data;
+    if (!data) break;
     attempts++;
-    if (attempts > 20) break; // safety
-  } while (exists);
+  } while (attempts < 30);
   return code;
 }
 
@@ -2081,39 +2088,67 @@ async function confirmReject() {
 // ── BETS ──
 let allBetsData = [];
 async function loadBets() {
-  const { data } = await sb.from('bets').select('*').order('created_at',{ascending:false});
+  // Join กับ matches เพื่อได้ code และ round
+  const { data } = await sb.from('bets')
+    .select('*, matches(round, code, name_a, name_b, date)')
+    .order('created_at', { ascending: false });
   allBetsData = data || [];
   filterBets();
 }
 
 function filterBets() {
   const q      = document.getElementById('bet-search')?.value.toLowerCase() || '';
+  const code   = document.getElementById('bet-code-search')?.value.trim() || '';
   const status = document.getElementById('bet-status-filter')?.value || 'all';
   const rows   = allBetsData.filter(b => {
-    const matchQ = !q || b.nick?.toLowerCase().includes(q) || b.txn?.includes(q) || b.side_name?.toLowerCase().includes(q);
-    const matchS = status === 'all' || b.status === status;
-    const matchD = inDateRange(b.created_at, 'bet-date-from', 'bet-date-to');
-    return matchQ && matchS && matchD;
+    const matchQ    = !q || b.nick?.toLowerCase().includes(q) || b.txn?.includes(q) || b.side_name?.toLowerCase().includes(q);
+    const matchCode = !code || b.matches?.code === code;
+    const matchS    = status === 'all' || b.status === status;
+    const matchD    = inDateRange(b.created_at, 'bet-date-from', 'bet-date-to');
+    return matchQ && matchCode && matchS && matchD;
   });
+
   const res = document.getElementById('bet-filter-result');
-  const hasDate = document.getElementById('bet-date-from')?.value || document.getElementById('bet-date-to')?.value;
-  if (res) res.textContent = hasDate ? `พบ ${rows.length} รายการ` : '';
+  if (res) res.textContent = (q || code || status !== 'all' || document.getElementById('bet-date-from')?.value) ? `พบ ${rows.length} รายการ` : '';
+
   document.getElementById('bet-total-count').textContent   = allBetsData.length;
-  document.getElementById('bet-waiting-count').textContent = allBetsData.filter(b=>b.status==='waiting').length;
-  document.getElementById('bet-matched-count').textContent = allBetsData.filter(b=>b.status==='matched').length;
+  document.getElementById('bet-waiting-count').textContent = allBetsData.filter(b => b.status === 'waiting').length;
+  document.getElementById('bet-matched-count').textContent = allBetsData.filter(b => ['matched','won','lost'].includes(b.status)).length;
+
   const tb = document.getElementById('bets-tbody');
-  if (!rows.length) { tb.innerHTML = '<tr class="loading-row"><td colspan="8">ไม่พบรายการ</td></tr>'; return; }
-  tb.innerHTML = rows.map(b => `
-    <tr>
+  if (!rows.length) { tb.innerHTML = '<tr class="loading-row"><td colspan="9">ไม่พบรายการ</td></tr>'; return; }
+  tb.innerHTML = rows.map(b => {
+    const m = b.matches || {};
+    const statusBadge = b.status === 'matched' ? '<span class="badge badge-approved">🤝 จับคู่</span>'
+      : b.status === 'waiting' ? '<span class="badge badge-pending">⏳ รอจับคู่</span>'
+      : b.status === 'won'     ? '<span class="badge badge-approved">🏆 ชนะ</span>'
+      : b.status === 'lost'    ? '<span class="badge badge-rejected">❌ แพ้</span>'
+      : `<span class="badge">${b.status}</span>`;
+    return `<tr>
       <td><strong>${b.nick}</strong></td>
+      <td>${m.code ? `<span style="font-family:'Kanit',sans-serif;font-weight:900;font-size:13px;color:#B8860B;background:#FFF8E1;padding:2px 8px;border-radius:4px;letter-spacing:2px;">${m.code}</span>` : '—'}</td>
       <td>${b.side==='red'?'🔴':'🔵'} ${b.side_name||'—'}</td>
       <td style="font-family:'Kanit',sans-serif;font-size:13px;color:#B8860B;">1 : ${b.odds}</td>
       <td><strong>${Number(b.amount).toLocaleString()} ฿</strong></td>
       <td style="font-family:'Kanit',sans-serif;font-size:11px;color:#aaa;">${b.txn||'—'}</td>
-      <td><span class="badge badge-${b.status==='matched'?'approved':b.status==='waiting'?'pending':'rejected'}">${b.status==='matched'?'✅ จับคู่':b.status==='waiting'?'⏳ รอ':'—'}</span></td>
+      <td>${statusBadge}</td>
       <td style="font-size:12px;">${b.matched_with||'—'}</td>
       <td style="font-size:12px;color:#aaa;">${fmtDate(b.created_at)}</td>
-    </tr>`).join('');
+    </tr>`;
+  }).join('');
+}
+
+// Real-time bets subscription
+function subscribeBetsRealtime() {
+  sb.channel('admin-bets-rt')
+    .on('postgres_changes', { event: '*', schema: 'public', table: 'bets' }, () => {
+      loadBets();
+      loadOverview();
+    })
+    .subscribe(() => {
+      const dot = document.getElementById('bet-realtime-dot');
+      if (dot) dot.style.background = 'var(--green)';
+    });
 }
 
 
