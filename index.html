@@ -5,33 +5,32 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>วัวชนไทย — ศึกวัวชนภาคใต้</title>
 <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@400;500;700;900&family=Sarabun:wght@400;500&display=swap" rel="stylesheet">
-<script src="https://unpkg.com/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
 <script>
-// ── Global stubs: ทำให้ onclick ทำงานได้ก่อน main script โหลด ──
-// เมื่อ main script โหลดแล้ว window.xxx จะถูก override ด้วย function จริง
-var _pending = {};
-['showRegister','hideRegister','showSchedule','hideSchedule',
- 'showHistory','hideHistory','showMyAccount','hideMyAccount',
- 'goToMyAccount','logout','openModal','closeModal',
- 'switchAuthTab','submitRegister','submitLogin',
- 'switchAccTab','setDepAmount','setWithAmount','setWithAll',
- 'submitDeposit','submitWithdraw','bindBankAccount',
- 'submitChangePass','toggleNotifCenter','clearNotifications',
- 'loadDepHistory','loadWithHistory','loadBetHistory',
- 'loadDashboard','loadWithdrawPanel','clearHistFilter',
- 'setRating','submitSupport','renderHistory','loadHistory',
- 'openMatchDetail','closeMatchDetail','setOdds','setBetAmount',
- 'toggleFAQ'
-].forEach(function(fn) {
-  window[fn] = function() {
-    var args = arguments;
-    // รอ 100ms แล้วลองอีกครั้ง (main script น่าจะโหลดแล้ว)
-    setTimeout(function() {
-      if (window['_real_' + fn]) window['_real_' + fn].apply(null, args);
-    }, 100);
+// ── Global stubs ── รันก่อน CDN และ main script ──
+(function(){
+var fns=['showRegister','hideRegister','showSchedule','hideSchedule',
+'showHistory','hideHistory','showMyAccount','hideMyAccount',
+'goToMyAccount','logout','openModal','closeModal',
+'switchAuthTab','submitRegister','submitLogin',
+'switchAccTab','setDepAmount','setWithAmount','setWithAll',
+'submitDeposit','submitWithdraw','bindBankAccount',
+'submitChangePass','toggleNotifCenter','clearNotifications',
+'loadDepHistory','loadWithHistory','loadBetHistory',
+'loadDashboard','loadWithdrawPanel','clearHistFilter',
+'setRating','submitSupport','renderHistory','loadHistory',
+'openHistoryDetail','hideHistory','toggleFAQ'];
+fns.forEach(function(fn){
+  window[fn]=function(){
+    var a=arguments;
+    var t=setInterval(function(){
+      if(window['_real_'+fn]){clearInterval(t);window['_real_'+fn].apply(null,a);}
+    },50);
+    setTimeout(function(){clearInterval(t);},5000);
   };
 });
+})();
 </script>
+<script src="https://unpkg.com/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
 <style>
   *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
   :root {
@@ -3839,7 +3838,7 @@ var _pending = {};
       if (!evGrid) return;
       evGrid.innerHTML = '';
       if (!data.length) {
-        evGrid.innerHTML = '<div style="text-align:center;padding:40px 20px;color:rgba(240,255,232,0.3);font-family:\'Kanit\',sans-serif;"><div style="font-size:32px;margin-bottom:10px;">🐂</div>ยังไม่มีรายการแข่งขัน</div>';
+        evGrid.innerHTML = '<div style="text-align:center;padding:40px 20px;color:rgba(240,255,232,0.3);font-family:Kanit,sans-serif;"><div style="font-size:32px;margin-bottom:10px;">🐂</div>ยังไม่มีรายการแข่งขัน</div>';
         return;
       }
       data.forEach((m, i) => {
@@ -3879,7 +3878,7 @@ var _pending = {};
             </div>
             <div class="match-center">
               <div class="vs-text">VS</div>
-              ${m.code?`<div style="font-size:10px;color:rgba(245,200,66,0.5);letter-spacing:2px;font-family:\'Kanit\',sans-serif;">#${m.code}</div>`:''}
+              ${m.code?`<div style="font-size:10px;color:rgba(245,200,66,0.5);letter-spacing:2px;font-family:Kanit,sans-serif;">#${m.code}</div>`:''}
             </div>
             <div class="team-side blue-side">
               <div class="team-photo blue-photo">${m.photo_b?`<img src="${m.photo_b}" alt="${m.name_b}">`:'🐃'}</div>
@@ -3891,7 +3890,7 @@ var _pending = {};
             </div>
           </div>
           ${isDone&&m.winner?`<div class="match-footer-done">🏆 ผู้ชนะ: <strong>${m.winner}</strong></div>`:''}
-          <button class="match-detail-btn" onclick="event.stopPropagation();openModal({round:'${(m.round||'').replace(/'/g,"\\'")}',bullA:'${(m.name_a||'').replace(/'/g,"\\'")}',ownerA:'${(m.owner_a||'').replace(/'/g,"\\'")}',weightA:'${m.weight_a||''}',bullB:'${(m.name_b||'').replace(/'/g,"\\'")}',ownerB:'${(m.owner_b||'').replace(/'/g,"\\'")}',weightB:'${m.weight_b||''}',date:'${m.date||''}',time:'${m.time||''}',loc:'${(m.location||'').replace(/'/g,"\\'")}',prize:'${prizeNum.toLocaleString()} บาท',winner:'${m.winner||''}',photoA:'${m.photo_a||''}',photoB:'${m.photo_b||''}'})">ดูรายละเอียด →</button>`;
+          <button class="match-detail-btn" onclick="event.stopPropagation();openModal({round:'${(m.round||'').replace(/'/g,"\'")}',bullA:'${(m.name_a||'').replace(/'/g,"\'")}',ownerA:'${(m.owner_a||'').replace(/'/g,"\'")}',weightA:'${m.weight_a||''}',bullB:'${(m.name_b||'').replace(/'/g,"\'")}',ownerB:'${(m.owner_b||'').replace(/'/g,"\'")}',weightB:'${m.weight_b||''}',date:'${m.date||''}',time:'${m.time||''}',loc:'${(m.location||'').replace(/'/g,"\'")}',prize:'${prizeNum.toLocaleString()} บาท',winner:'${m.winner||''}',photoA:'${m.photo_a||''}',photoB:'${m.photo_b||''}'})">ดูรายละเอียด →</button>`;
         evGrid.appendChild(card);
       });
     }
@@ -4020,7 +4019,7 @@ var _pending = {};
             <div class="history-vs">VS</div>
             <div class="history-date">${m.date||''}</div>
             <div class="history-round">${m.round||''}</div>
-            ${m.code?`<div style="font-size:9px;color:rgba(245,200,66,0.5);letter-spacing:2px;font-family:'Kanit',sans-serif;">#${m.code}</div>`:''}
+            ${m.code?`<div style="font-size:9px;color:rgba(245,200,66,0.5);letter-spacing:2px;font-family:Kanit,sans-serif;">#${m.code}</div>`:''}
           </div>
           <div class="history-bull right ${isWinB?'winner-side':''}">
             <div class="history-bull-photo">${m.photo_b?`<img src="${m.photo_b}">`:'🐂'}</div>
@@ -4038,65 +4037,6 @@ var _pending = {};
     });
   }
 
-  // duplicate removed
-    const q    = document.getElementById('hist-search')?.value.toLowerCase() || '';
-    const from = document.getElementById('hist-date-from')?.value || '';
-    const to   = document.getElementById('hist-date-to')?.value || '';
-    let rows = allHistoryMatches.filter(m => {
-      const mq = !q || m.name_a?.toLowerCase().includes(q) || m.name_b?.toLowerCase().includes(q) || m.round?.toLowerCase().includes(q);
-      let md = true;
-      if (from || to) {
-        const d = new Date(m.created_at);
-        if (from && d < new Date(from)) md = false;
-        if (to   && d > new Date(to+'T23:59:59')) md = false;
-      }
-      return mq && md;
-    });
-    document.getElementById('hist-total').textContent  = allHistoryMatches.length;
-    document.getElementById('hist-rounds').textContent = [...new Set(allHistoryMatches.map(m=>m.round).filter(Boolean))].length;
-    document.getElementById('hist-latest').textContent = allHistoryMatches[0]?.date || '—';
-    const list = document.getElementById('history-list');
-    if (!list) return;
-    if (!rows.length) { list.innerHTML = `<div class="history-empty"><div class="icon">🏆</div>ยังไม่มีผลการแข่งขัน</div>`; return; }
-    list.innerHTML = '';
-    rows.forEach((m,i) => {
-      const isWinA = m.winner === m.name_a;
-      const isWinB = m.winner === m.name_b;
-      const card = document.createElement('div');
-      card.className = 'history-card';
-      card.style.animationDelay = `${i*0.06}s`;
-      card.onclick = () => openHistoryDetail(m);
-      card.innerHTML = `
-        <div class="history-card-inner">
-          <div class="history-bull ${isWinA?'winner-side':''}">
-            <div class="history-bull-photo">${m.photo_a?`<img src="${m.photo_a}">`:'🐂'}</div>
-            <div class="history-bull-info">
-              <div class="history-bull-name ${isWinA?'winner':''}">${m.name_a||'—'} ${isWinA?'🏆':''}</div>
-              <div class="history-bull-owner">${m.owner_a||''}</div>
-              <div class="history-bull-weight">${m.weight_a||''}</div>
-            </div>
-          </div>
-          <div class="history-center">
-            <div class="history-vs">VS</div>
-            <div class="history-date">${m.date||''}</div>
-            <div class="history-round">${m.round||''}</div>
-            ${m.code?`<div style="font-size:9px;color:rgba(245,200,66,0.5);letter-spacing:2px;font-family:'Kanit',sans-serif;">#${m.code}</div>`:''}
-          </div>
-          <div class="history-bull right ${isWinB?'winner-side':''}">
-            <div class="history-bull-photo">${m.photo_b?`<img src="${m.photo_b}">`:'🐂'}</div>
-            <div class="history-bull-info">
-              <div class="history-bull-name ${isWinB?'winner':''}">${m.name_b||'—'} ${isWinB?'🏆':''}</div>
-              <div class="history-bull-owner">${m.owner_b||''}</div>
-              <div class="history-bull-weight">${m.weight_b||''}</div>
-            </div>
-          </div>
-        </div>
-        <div class="history-winner-bar">🏆 ผู้ชนะ: <strong style="color:var(--gold);margin-left:4px;">${m.winner||'—'}</strong>
-          <span class="loc">📍 ${m.location||'—'} · 💰 ${Number(m.prize||0).toLocaleString()} ฿</span>
-        </div>`;
-      list.appendChild(card);
-    });
-  }
 
   window.openHistoryDetail = window._real_openHistoryDetail = function openHistoryDetail(m) {
     const isWinA = m.winner === m.name_a;
@@ -4106,30 +4046,30 @@ var _pending = {};
     ov.onclick=e=>{if(e.target===ov)ov.remove();};
     ov.innerHTML=`<div style="background:#0d2b14;border:1px solid rgba(245,200,66,0.3);border-radius:16px;width:100%;max-width:480px;max-height:90vh;overflow-y:auto;padding:24px;">
       <div style="display:flex;justify-content:space-between;margin-bottom:16px;">
-        <div><div style="font-family:'Kanit',sans-serif;font-weight:900;font-size:16px;color:var(--gold);">${m.round||'—'}</div>${m.code?`<div style="font-size:11px;color:rgba(240,255,232,0.4);letter-spacing:2px;">#${m.code}</div>`:''}</div>
+        <div><div style="font-family:Kanit,sans-serif;font-weight:900;font-size:16px;color:var(--gold);">${m.round||'—'}</div>${m.code?`<div style="font-size:11px;color:rgba(240,255,232,0.4);letter-spacing:2px;">#${m.code}</div>`:''}</div>
         <button onclick="this.closest('[style]').remove()" style="background:none;border:none;color:rgba(240,255,232,0.4);font-size:22px;cursor:pointer;">×</button>
       </div>
       <div style="background:linear-gradient(135deg,rgba(39,148,63,0.25),rgba(245,200,66,0.1));border:1px solid rgba(245,200,66,0.3);border-radius:10px;padding:14px;margin-bottom:16px;text-align:center;">
         <div style="font-size:28px;margin-bottom:4px;">🏆</div>
-        <div style="font-family:'Kanit',sans-serif;font-size:12px;color:rgba(240,255,232,0.5);">ผู้ชนะ</div>
-        <div style="font-family:'Kanit',sans-serif;font-weight:900;font-size:22px;color:var(--gold);">${m.winner||'—'}</div>
+        <div style="font-family:Kanit,sans-serif;font-size:12px;color:rgba(240,255,232,0.5);">ผู้ชนะ</div>
+        <div style="font-family:Kanit,sans-serif;font-weight:900;font-size:22px;color:var(--gold);">${m.winner||'—'}</div>
       </div>
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px;">
         <div style="background:${isWinA?'rgba(39,148,63,0.15)':'rgba(0,0,0,0.2)'};border:1px solid ${isWinA?'rgba(245,200,66,0.4)':'rgba(255,255,255,0.06)'};border-radius:10px;padding:12px;text-align:center;">
-          <div style="font-size:20px;">🔴</div><div style="font-family:'Kanit',sans-serif;font-weight:900;font-size:14px;color:${isWinA?'var(--gold)':'var(--cream)'};">${m.name_a||'—'} ${isWinA?'🏆':''}</div>
+          <div style="font-size:20px;">🔴</div><div style="font-family:Kanit,sans-serif;font-weight:900;font-size:14px;color:${isWinA?'var(--gold)':'var(--cream)'};">${m.name_a||'—'} ${isWinA?'🏆':''}</div>
           <div style="font-size:11px;color:rgba(240,255,232,0.4);">${m.owner_a||''}</div>
         </div>
         <div style="background:${isWinB?'rgba(39,148,63,0.15)':'rgba(0,0,0,0.2)'};border:1px solid ${isWinB?'rgba(245,200,66,0.4)':'rgba(255,255,255,0.06)'};border-radius:10px;padding:12px;text-align:center;">
-          <div style="font-size:20px;">🔵</div><div style="font-family:'Kanit',sans-serif;font-weight:900;font-size:14px;color:${isWinB?'var(--gold)':'var(--cream)'};">${m.name_b||'—'} ${isWinB?'🏆':''}</div>
+          <div style="font-size:20px;">🔵</div><div style="font-family:Kanit,sans-serif;font-weight:900;font-size:14px;color:${isWinB?'var(--gold)':'var(--cream)'};">${m.name_b||'—'} ${isWinB?'🏆':''}</div>
           <div style="font-size:11px;color:rgba(240,255,232,0.4);">${m.owner_b||''}</div>
         </div>
       </div>
       ${[['📅 วันที่',m.date||'—'],['🕐 เวลา',m.time||'—'],['📍 สถานที่',m.location||'—'],['💰 รางวัล',Number(m.prize||0).toLocaleString()+' ฿']].map(([k,v])=>`
         <div style="display:flex;justify-content:space-between;padding:8px 12px;background:rgba(0,0,0,0.2);border-radius:8px;margin-bottom:6px;">
           <span style="font-size:12px;color:rgba(240,255,232,0.5);">${k}</span>
-          <span style="font-family:'Kanit',sans-serif;font-weight:700;color:var(--cream);">${v}</span>
+          <span style="font-family:Kanit,sans-serif;font-weight:700;color:var(--cream);">${v}</span>
         </div>`).join('')}
-      <button onclick="this.closest('[style]').remove()" style="width:100%;margin-top:14px;font-family:'Kanit',sans-serif;font-weight:700;font-size:13px;padding:12px;border-radius:10px;border:1px solid rgba(39,148,63,0.4);background:transparent;color:rgba(240,255,232,0.6);cursor:pointer;">ปิด</button>
+      <button onclick="this.closest('[style]').remove()" style="width:100%;margin-top:14px;font-family:Kanit,sans-serif;font-weight:700;font-size:13px;padding:12px;border-radius:10px;border:1px solid rgba(39,148,63,0.4);background:transparent;color:rgba(240,255,232,0.6);cursor:pointer;">ปิด</button>
     </div>`;
     document.body.appendChild(ov);
   }
@@ -4241,7 +4181,7 @@ var _pending = {};
     if (existing) existing.remove();
     const t = document.createElement('div');
     t.id = 'toast-fe';
-    t.style.cssText = 'position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:#1a1a1a;color:#fff;font-family:\'Kanit\',sans-serif;font-size:13px;padding:12px 22px;border-radius:10px;z-index:9999;box-shadow:0 8px 24px rgba(0,0,0,0.4);';
+    t.style.cssText = 'position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:#1a1a1a;color:#fff;font-family:Kanit,sans-serif;font-size:13px;padding:12px 22px;border-radius:10px;z-index:9999;box-shadow:0 8px 24px rgba(0,0,0,0.4);';
     t.textContent = msg;
     document.body.appendChild(t);
     setTimeout(() => t.remove(), 4000);
@@ -4371,9 +4311,9 @@ var _pending = {};
           return `<div style="display:flex;align-items:center;justify-content:space-between;padding:9px 12px;background:rgba(255,255,255,0.04);border-radius:8px;margin-bottom:6px;">
             <div style="display:flex;align-items:center;gap:8px;">
               <span style="font-size:18px;">${icon}</span>
-              <div><div style="font-family:'Kanit',sans-serif;font-size:13px;color:var(--cream);">${label}</div><div style="font-size:10px;color:rgba(240,255,232,0.3);">${stLabel} ${r.status||''}</div></div>
+              <div><div style="font-family:Kanit,sans-serif;font-size:13px;color:var(--cream);">${label}</div><div style="font-size:10px;color:rgba(240,255,232,0.3);">${stLabel} ${r.status||''}</div></div>
             </div>
-            <div style="font-family:'Kanit',sans-serif;font-weight:700;font-size:14px;color:${color};">${amt}</div>
+            <div style="font-family:Kanit,sans-serif;font-weight:700;font-size:14px;color:${color};">${amt}</div>
           </div>`;
         }).join('');
       }
@@ -4404,7 +4344,7 @@ var _pending = {};
     if (profEl) { profEl.textContent = (profit>=0?'+':'')+profit.toLocaleString()+' ฿'; profEl.style.color = profit>=0?'#4ade80':'#f87171'; }
 
     if (!el) return;
-    if (!rows.length) { el.innerHTML = '<div style="text-align:center;padding:24px;color:rgba(240,255,232,0.25);font-family:\'Kanit\',sans-serif;">ยังไม่มีประวัติการเดิมพันครับ</div>'; return; }
+    if (!rows.length) { el.innerHTML = '<div style="text-align:center;padding:24px;color:rgba(240,255,232,0.25);font-family:Kanit,sans-serif;">ยังไม่มีประวัติการเดิมพันครับ</div>'; return; }
 
     el.innerHTML = rows.map(b => {
       const m        = b.matches || {};
@@ -4423,7 +4363,7 @@ var _pending = {};
           <div class="bet-card-inner">
             <div class="bet-bull">
               <div class="bet-bull-name my-pick">${myPick} ★</div>
-              <div style="font-size:11px;color:rgba(240,255,232,0.4);margin-top:3px;">เดิมพัน: <span style="color:var(--gold);font-family:'Kanit',sans-serif;font-weight:700;">${Number(b.amount).toLocaleString()} ฿</span></div>
+              <div style="font-size:11px;color:rgba(240,255,232,0.4);margin-top:3px;">เดิมพัน: <span style="color:var(--gold);font-family:Kanit,sans-serif;font-weight:700;">${Number(b.amount).toLocaleString()} ฿</span></div>
               <div style="font-size:10px;color:rgba(240,255,232,0.3);margin-top:2px;">อัตรา 1:${b.odds}</div>
             </div>
             <div class="bet-center">
@@ -4437,8 +4377,8 @@ var _pending = {};
             </div>
           </div>
           <div class="bet-result-bar ${isWon?'bet-result-win':isLost?'bet-result-lose':''}" style="${isWaiting?'background:rgba(245,200,66,0.08);border-top:1px solid rgba(245,200,66,0.15);':''}">
-            <div style="font-family:'Kanit',sans-serif;font-size:13px;color:${resultColor};">${resultLabel} ${isWaiting?'— รอผลการแข่งขัน':isWon?'— คุณชนะ!':'— คุณแพ้'}</div>
-            <div style="font-family:'Kanit',sans-serif;font-weight:900;font-size:16px;color:${isWon?'var(--gold)':'rgba(240,255,232,0.4)'};">${payout}</div>
+            <div style="font-family:Kanit,sans-serif;font-size:13px;color:${resultColor};">${resultLabel} ${isWaiting?'— รอผลการแข่งขัน':isWon?'— คุณชนะ!':'— คุณแพ้'}</div>
+            <div style="font-family:Kanit,sans-serif;font-weight:900;font-size:16px;color:${isWon?'var(--gold)':'rgba(240,255,232,0.4)'};">${payout}</div>
           </div>
         </div>`;
     }).join('');
@@ -4492,7 +4432,7 @@ var _pending = {};
     const el = document.getElementById('notif-list');
     if (!el) return;
     if (!notifications.length) {
-      el.innerHTML = '<div style="text-align:center;padding:20px;color:rgba(240,255,232,0.25);font-family:\'Kanit\',sans-serif;font-size:13px;">ยังไม่มีการแจ้งเตือนครับ</div>';
+      el.innerHTML = '<div style="text-align:center;padding:20px;color:rgba(240,255,232,0.25);font-family:Kanit,sans-serif;font-size:13px;">ยังไม่มีการแจ้งเตือนครับ</div>';
       return;
     }
     el.innerHTML = notifications.map(n => {
@@ -4734,7 +4674,7 @@ var _pending = {};
     list.innerHTML = '';
 
     if (!allTxn.length) {
-      list.innerHTML = '<div style="text-align:center;padding:24px;color:rgba(240,255,232,0.3);font-family:\'Kanit\',sans-serif;">ยังไม่มีรายการครับ</div>';
+      list.innerHTML = '<div style="text-align:center;padding:24px;color:rgba(240,255,232,0.3);font-family:Kanit,sans-serif;">ยังไม่มีรายการครับ</div>';
       return;
     }
 
@@ -4748,11 +4688,11 @@ var _pending = {};
       let statusHtml = '';
       if (isApproved) {
         const approvedTime = txn.approved_at ? new Date(txn.approved_at).toLocaleString('th-TH', { dateStyle:'short', timeStyle:'short' }) : '—';
-        statusHtml = `<div style="font-size:10px;color:var(--accent);font-family:'Kanit',sans-serif;margin-top:2px;">✅ อนุมัติแล้ว · ${txn.approved_by || 'Admin'} · ${approvedTime}</div>`;
+        statusHtml = `<div style="font-size:10px;color:var(--accent);font-family:Kanit,sans-serif;margin-top:2px;">✅ อนุมัติแล้ว · ${txn.approved_by || 'Admin'} · ${approvedTime}</div>`;
       } else if (isRejected) {
-        statusHtml = `<div style="font-size:10px;color:#f87171;font-family:'Kanit',sans-serif;margin-top:2px;">❌ ปฏิเสธ${txn.reason ? ' · ' + txn.reason : ''}</div>`;
+        statusHtml = `<div style="font-size:10px;color:#f87171;font-family:Kanit,sans-serif;margin-top:2px;">❌ ปฏิเสธ${txn.reason ? ' · ' + txn.reason : ''}</div>`;
       } else {
-        statusHtml = `<div style="font-size:10px;color:rgba(240,255,232,0.4);font-family:'Kanit',sans-serif;margin-top:2px;">⏳ รอ Admin ตรวจสอบ</div>`;
+        statusHtml = `<div style="font-size:10px;color:rgba(240,255,232,0.4);font-family:Kanit,sans-serif;margin-top:2px;">⏳ รอ Admin ตรวจสอบ</div>`;
       }
 
       const dateStr = new Date(txn.created_at).toLocaleString('th-TH', { dateStyle:'short', timeStyle:'short' });
@@ -4884,14 +4824,14 @@ var _pending = {};
     if (!currentUser) return;
     const el = document.getElementById('dep-history-list');
     if (!el) return;
-    el.innerHTML = '<div style="text-align:center;padding:16px;color:rgba(240,255,232,0.3);font-family:\'Kanit\',sans-serif;">กำลังโหลด...</div>';
+    el.innerHTML = '<div style="text-align:center;padding:16px;color:rgba(240,255,232,0.3);font-family:Kanit,sans-serif;">กำลังโหลด...</div>';
 
     const { data } = await sb.from('deposits')
       .select('*').eq('nick', currentUser.nick)
       .order('created_at', { ascending: false }).limit(20);
 
     if (!data?.length) {
-      el.innerHTML = '<div style="text-align:center;padding:20px;color:rgba(240,255,232,0.25);font-family:\'Kanit\',sans-serif;">ยังไม่มีประวัติการเติมเงินครับ</div>';
+      el.innerHTML = '<div style="text-align:center;padding:20px;color:rgba(240,255,232,0.25);font-family:Kanit,sans-serif;">ยังไม่มีประวัติการเติมเงินครับ</div>';
       return;
     }
 
@@ -4908,12 +4848,12 @@ var _pending = {};
       return `
         <div style="background:rgba(255,255,255,0.04);border:1px solid ${isApproved?'rgba(74,222,128,0.2)':isRejected?'rgba(248,113,113,0.2)':'rgba(245,200,66,0.2)'};border-radius:10px;padding:14px;margin-bottom:10px;">
           <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">
-            <div style="font-family:'Kanit',sans-serif;font-weight:900;font-size:18px;color:#4ade80;">+${Number(d.amount).toLocaleString()} ฿</div>
-            <span style="font-family:'Kanit',sans-serif;font-size:11px;font-weight:700;padding:4px 10px;border-radius:999px;background:${statusBg};color:${statusColor};">${statusLabel}</span>
+            <div style="font-family:Kanit,sans-serif;font-weight:900;font-size:18px;color:#4ade80;">+${Number(d.amount).toLocaleString()} ฿</div>
+            <span style="font-family:Kanit,sans-serif;font-size:11px;font-weight:700;padding:4px 10px;border-radius:999px;background:${statusBg};color:${statusColor};">${statusLabel}</span>
           </div>
           <div style="display:flex;flex-direction:column;gap:4px;">
             <div style="font-size:12px;color:rgba(240,255,232,0.5);">🏦 ${d.bank||'—'} &nbsp;·&nbsp; 🕐 ${dateStr}</div>
-            <div style="font-size:11px;color:rgba(240,255,232,0.3);font-family:'Kanit',sans-serif;">TXN: ${d.txn||'—'}</div>
+            <div style="font-size:11px;color:rgba(240,255,232,0.3);font-family:Kanit,sans-serif;">TXN: ${d.txn||'—'}</div>
             ${isApproved && approvedStr ? `<div style="font-size:11px;color:#4ade80;">✅ อนุมัติเมื่อ: ${approvedStr} · โดย ${d.approved_by||'Admin'}</div>` : ''}
             ${isRejected && d.reason ? `<div style="font-size:11px;color:#f87171;">❌ เหตุผล: ${d.reason}</div>` : ''}
           </div>
@@ -5028,26 +4968,26 @@ var _pending = {};
     if (!currentUser) return;
     const el = document.getElementById('with-history-list');
     if (!el) return;
-    el.innerHTML = '<div style="text-align:center;padding:16px;color:rgba(240,255,232,0.3);font-family:\'Kanit\',sans-serif;">กำลังโหลด...</div>';
+    el.innerHTML = '<div style="text-align:center;padding:16px;color:rgba(240,255,232,0.3);font-family:Kanit,sans-serif;">กำลังโหลด...</div>';
     const { data } = await sb.from('withdrawals').select('*').eq('nick', currentUser.nick).order('created_at',{ascending:false}).limit(20);
     if (!data?.length) {
-      el.innerHTML = '<div style="text-align:center;padding:20px;color:rgba(240,255,232,0.25);font-family:\'Kanit\',sans-serif;">ยังไม่มีประวัติการถอนเงินครับ</div>';
+      el.innerHTML = '<div style="text-align:center;padding:20px;color:rgba(240,255,232,0.25);font-family:Kanit,sans-serif;">ยังไม่มีประวัติการถอนเงินครับ</div>';
       return;
     }
     el.innerHTML = data.map(w => {
       const isApproved = w.status === 'approved';
       const isRejected = w.status === 'rejected';
-      const dateStr    = new Date(w.created_at).toLocaleString('th-TH',{dateStyle:\'short\',timeStyle:\'short\'});
-      const approvedStr = w.approved_at ? new Date(w.approved_at).toLocaleString('th-TH',{dateStyle:\'short\',timeStyle:\'short\'}) : null;
+      const dateStr    = new Date(w.created_at).toLocaleString('th-TH',{dateStyle:'short',timeStyle:'short'});
+      const approvedStr = w.approved_at ? new Date(w.approved_at).toLocaleString('th-TH',{dateStyle:'short',timeStyle:'short'}) : null;
       let statusHtml = isApproved
-        ? `<span style="font-family:\'Kanit\',sans-serif;font-size:11px;font-weight:700;padding:4px 12px;border-radius:999px;background:rgba(74,222,128,0.15);color:#4ade80;">✅ โอนสำเร็จ</span>`
+        ? `<span style="font-family:Kanit,sans-serif;font-size:11px;font-weight:700;padding:4px 12px;border-radius:999px;background:rgba(74,222,128,0.15);color:#4ade80;">✅ โอนสำเร็จ</span>`
         : isRejected
-          ? `<span style="font-family:\'Kanit\',sans-serif;font-size:11px;font-weight:700;padding:4px 12px;border-radius:999px;background:rgba(248,113,113,0.15);color:#f87171;">❌ ปฏิเสธ</span>`
-          : `<span style="font-family:\'Kanit\',sans-serif;font-size:11px;font-weight:700;padding:4px 12px;border-radius:999px;background:rgba(245,200,66,0.12);color:#F5C842;">⏳ รอดำเนินการ</span>`;
+          ? `<span style="font-family:Kanit,sans-serif;font-size:11px;font-weight:700;padding:4px 12px;border-radius:999px;background:rgba(248,113,113,0.15);color:#f87171;">❌ ปฏิเสธ</span>`
+          : `<span style="font-family:Kanit,sans-serif;font-size:11px;font-weight:700;padding:4px 12px;border-radius:999px;background:rgba(245,200,66,0.12);color:#F5C842;">⏳ รอดำเนินการ</span>`;
       return `
         <div style="background:rgba(255,255,255,0.04);border:1px solid ${isApproved?'rgba(74,222,128,0.2)':isRejected?'rgba(248,113,113,0.2)':'rgba(245,200,66,0.2)'};border-radius:10px;padding:14px;margin-bottom:10px;">
           <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">
-            <div style="font-family:\'Kanit\',sans-serif;font-weight:900;font-size:18px;color:#f87171;">−${Number(w.amount).toLocaleString()} ฿</div>
+            <div style="font-family:Kanit,sans-serif;font-weight:900;font-size:18px;color:#f87171;">−${Number(w.amount).toLocaleString()} ฿</div>
             ${statusHtml}
           </div>
           <div style="display:flex;flex-direction:column;gap:4px;">
@@ -5164,7 +5104,7 @@ var _pending = {};
       </div>
       <div>
         <div class="txn-amount ${amtClass}">${amount}</div>
-        <div style="font-size:10px;color:rgba(240,255,232,0.3);text-align:right;margin-top:2px;font-family:'Kanit',sans-serif;">${sub}</div>
+        <div style="font-size:10px;color:rgba(240,255,232,0.3);text-align:right;margin-top:2px;font-family:Kanit,sans-serif;">${sub}</div>
       </div>`;
     const list = document.getElementById('acc-txn-list');
     if (list) list.insertBefore(item, list.firstChild);
@@ -5229,16 +5169,16 @@ var _pending = {};
       item.innerHTML = `
         <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;flex-wrap:wrap;gap:6px;">
           <div style="display:flex;align-items:center;gap:8px;">
-            <span style="font-family:'Kanit',sans-serif;font-size:11px;font-weight:700;background:rgba(39,148,63,0.15);color:var(--accent);padding:3px 10px;border-radius:999px;">${typeLabel[currentSupportType]}</span>
+            <span style="font-family:Kanit,sans-serif;font-size:11px;font-weight:700;background:rgba(39,148,63,0.15);color:var(--accent);padding:3px 10px;border-radius:999px;">${typeLabel[currentSupportType]}</span>
             ${currentRating ? `<span style="font-size:12px;color:var(--gold);">${'★'.repeat(currentRating)}${'☆'.repeat(5-currentRating)}</span>` : ''}
           </div>
-          <div style="font-size:11px;color:rgba(240,255,232,0.35);font-family:'Kanit',sans-serif;">${dateStr}</div>
+          <div style="font-size:11px;color:rgba(240,255,232,0.35);font-family:Kanit,sans-serif;">${dateStr}</div>
         </div>
-        <div style="font-family:'Kanit',sans-serif;font-weight:600;font-size:14px;color:var(--cream);margin-bottom:5px;">${subject}</div>
+        <div style="font-family:Kanit,sans-serif;font-weight:600;font-size:14px;color:var(--cream);margin-bottom:5px;">${subject}</div>
         <div style="font-size:13px;color:rgba(240,255,232,0.55);line-height:1.6;">${msg}</div>
         <div style="margin-top:10px;display:flex;align-items:center;gap:6px;">
           <span style="width:8px;height:8px;border-radius:50%;background:#F5A800;display:inline-block;"></span>
-          <span style="font-family:'Kanit',sans-serif;font-size:11px;color:rgba(240,255,232,0.4);">รอเจ้าหน้าที่ตรวจสอบ</span>
+          <span style="font-family:Kanit,sans-serif;font-size:11px;color:rgba(240,255,232,0.4);">รอเจ้าหน้าที่ตรวจสอบ</span>
         </div>`;
       histList.insertBefore(item, histList.firstChild);
     }
@@ -5414,7 +5354,7 @@ var _pending = {};
     if (existing) existing.remove();
     const t = document.createElement('div');
     t.id = 'toast-fe';
-    t.style.cssText = 'position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:#1a1a1a;color:#fff;font-family:\'Kanit\',sans-serif;font-size:13px;padding:12px 22px;border-radius:10px;z-index:999;box-shadow:0 8px 24px rgba(0,0,0,0.4);animation:fadeUp .3s ease;';
+    t.style.cssText = 'position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:#1a1a1a;color:#fff;font-family:Kanit,sans-serif;font-size:13px;padding:12px 22px;border-radius:10px;z-index:999;box-shadow:0 8px 24px rgba(0,0,0,0.4);animation:fadeUp .3s ease;';
     t.textContent = msg;
     document.body.appendChild(t);
     setTimeout(() => t.remove(), 3000);
@@ -5436,7 +5376,7 @@ var _pending = {};
       </div>
       <div>
         <div class="txn-amount with">-${parseFloat(amount).toLocaleString()} ฿</div>
-        <div style="font-size:10px;color:rgba(240,255,232,0.3);text-align:right;margin-top:2px;font-family:'Kanit',sans-serif;">รอผล · คาด ${potential} ฿</div>
+        <div style="font-size:10px;color:rgba(240,255,232,0.3);text-align:right;margin-top:2px;font-family:Kanit,sans-serif;">รอผล · คาด ${potential} ฿</div>
       </div>`;
     list.insertBefore(item, list.firstChild);
   }
@@ -5491,8 +5431,8 @@ var _pending = {};
     // อัปเดต header
     document.getElementById('detail-header').innerHTML = `
       <div style="background:rgba(0,0,0,0.2);border:1px solid rgba(255,255,255,0.06);border-radius:12px;padding:14px 18px;margin-bottom:14px;">
-        <div style="font-family:'Kanit',sans-serif;font-weight:900;font-size:16px;color:var(--gold);margin-bottom:4px;">🏆 ${m.round||''}</div>
-        <div style="font-size:12px;color:rgba(240,255,232,0.45);font-family:'Kanit',sans-serif;">📅 ${m.date||''} &nbsp;·&nbsp; ⏰ ${m.time||''} &nbsp;·&nbsp; 📍 ${m.loc||''}</div>
+        <div style="font-family:Kanit,sans-serif;font-weight:900;font-size:16px;color:var(--gold);margin-bottom:4px;">🏆 ${m.round||''}</div>
+        <div style="font-size:12px;color:rgba(240,255,232,0.45);font-family:Kanit,sans-serif;">📅 ${m.date||''} &nbsp;·&nbsp; ⏰ ${m.time||''} &nbsp;·&nbsp; 📍 ${m.loc||''}</div>
       </div>`;
     // reset form
     betSelections[1] = null;
