@@ -866,6 +866,7 @@ function loadAll() {
   subscribeNotifications();
   subscribeVerdictUpdates();
   subscribeBetsRealtime();
+  subscribeMatchesRealtime();
 }
 
 // ── OVERVIEW ──
@@ -1697,29 +1698,61 @@ async function addMatch() {
 
   const status = document.getElementById('m-status').value;
   const winner = document.getElementById('m-winner-preset').value || null;
+  const code   = await generateMatchCode();
 
-  // สร้าง code ไม่ซ้ำ
-  const code = await generateMatchCode();
-
-  const { error } = await sb.from('matches').insert({
-    code,
-    round, date: document.getElementById('m-date').value,
-    time: document.getElementById('m-time').value,
+  const payload = {
+    round,
+    date:     document.getElementById('m-date').value,
+    time:     document.getElementById('m-time').value,
     location: document.getElementById('m-loc').value,
-    prize: parseFloat(document.getElementById('m-prize').value)||0,
-    status: winner ? 'done' : status,
-    winner: winner || null,
-    name_a: nameA, owner_a: document.getElementById('m-owner-a').value,
+    prize:    parseFloat(document.getElementById('m-prize').value)||0,
+    status:   winner ? 'done' : status,
+    winner:   winner || null,
+    name_a:   nameA, owner_a: document.getElementById('m-owner-a').value,
     weight_a: document.getElementById('m-weight-a').value,
-    name_b: nameB, owner_b: document.getElementById('m-owner-b').value,
+    name_b:   nameB, owner_b: document.getElementById('m-owner-b').value,
     weight_b: document.getElementById('m-weight-b').value,
+  };
+
+  // ลองใส่ code ก่อน ถ้า column ยังไม่มีให้ fallback
+  let result = await sb.from('matches').insert({ ...payload, code });
+  if (result.error && result.error.message.toLowerCase().includes('code')) {
+    result = await sb.from('matches').insert(payload);
+    if (result.error) { showToast('❌ '+result.error.message,'error'); return; }
+    showToast('✅ เพิ่มคู่แข่งขันแล้วครับ (กรุณารัน match-code-4digit.sql)');
+  } else if (result.error) {
+    showToast('❌ '+result.error.message,'error'); return;
+  } else {
+    showToast(`✅ เพิ่มคู่แข่งขันแล้วครับ · รหัส: ${code}`);
+  }
+
+  ['m-round','m-date','m-time','m-loc','m-prize','m-name-a','m-owner-a','m-weight-a','m-name-b','m-owner-b','m-weight-b'].forEach(id => {
+    const el = document.getElementById(id); if(el) el.value='';
   });
-  if (error) { showToast('❌ '+error.message,'error'); return; }
-  showToast(`✅ เพิ่มคู่แข่งขันแล้วครับ · รหัส: ${code}`);
-  ['m-round','m-date','m-time','m-loc','m-prize','m-name-a','m-owner-a','m-weight-a','m-name-b','m-owner-b','m-weight-b'].forEach(id => document.getElementById(id).value='');
-  document.getElementById('m-winner-preset').value = '';
+  const wp = document.getElementById('m-winner-preset'); if(wp) wp.value='';
   loadMatches(); loadOverview();
 }
+
+// Real-time matches — Admin เห็นทันที + หน้าบ้านก็ได้รับผ่าน Supabase channel
+function subscribeMatchesRealtime() {
+  sb.channel('admin-matches-rt')
+    .on('postgres_changes', { event: '*', schema: 'public', table: 'matches' }, payload => {
+      const ev = payload.eventType;
+      const m  = payload.new || payload.old;
+      if (ev === 'INSERT') { allMatches.unshift(m); }
+      else if (ev === 'UPDATE') {
+        const idx = allMatches.findIndex(x => x.id === m.id);
+        if (idx !== -1) allMatches[idx] = { ...allMatches[idx], ...m };
+        else allMatches.unshift(m);
+      } else if (ev === 'DELETE') {
+        allMatches = allMatches.filter(x => x.id !== m.id);
+      }
+      filterMatches_();
+      loadOverview();
+    })
+    .subscribe();
+}
+
 
 function openVerdict(id, nameA, nameB, round) {
   verdictMatchId = id;
