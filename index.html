@@ -3777,6 +3777,11 @@
   tick();
   setInterval(tick, 1000);
 
+  // ── Supabase Config ──
+  const SUPA_URL = 'https://xzlpdeqlfczjkospfqqi.supabase.co';
+  const SUPA_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inh6bHBkZXFsZmN6amtvc3BmcXFpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzk2NzgyMjAsImV4cCI6MjA5NTI1NDIyMH0.W0pDFJy3lFeO4ht9DpNzeDgVdGvSz94p0KWGfzc0Igw';
+  const sb = supabase.createClient(SUPA_URL, SUPA_KEY);
+
   // ===== SUPABASE REAL-TIME SYNC (แทน Firebase) =====
   (async () => {
     // ── Settings: ดึงจาก Supabase ──
@@ -4311,11 +4316,6 @@
       </div>`;
     }).join('');
   }
-
-  // ── Supabase Config ──
-  const SUPA_URL = 'https://xzlpdeqlfczjkospfqqi.supabase.co';
-  const SUPA_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inh6bHBkZXFsZmN6amtvc3BmcXFpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzk2NzgyMjAsImV4cCI6MjA5NTI1NDIyMH0.W0pDFJy3lFeO4ht9DpNzeDgVdGvSz94p0KWGfzc0Igw';
-  const sb = supabase.createClient(SUPA_URL, SUPA_KEY);
 
   // ── Auth Tab Switch ──
   function switchAuthTab(tab) {
