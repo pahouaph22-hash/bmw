@@ -3190,14 +3190,13 @@
 
     <!-- DASHBOARD TAB -->
     <div class="acc-panel active" id="acc-dashboard">
-      <!-- ยอดเงิน big display -->
-      <div style="background:linear-gradient(135deg,rgba(27,107,47,0.3),rgba(39,148,63,0.15));border:1px solid rgba(39,148,63,0.3);border-radius:16px;padding:20px;margin-bottom:14px;text-align:center;">
+      <!-- ยอดเงิน big display -->      <div style="background:linear-gradient(135deg,rgba(27,107,47,0.3),rgba(39,148,63,0.15));border:1px solid rgba(39,148,63,0.3);border-radius:16px;padding:20px;margin-bottom:14px;text-align:center;">
         <div style="font-family:'Kanit',sans-serif;font-size:12px;color:rgba(240,255,232,0.5);margin-bottom:4px;">ยอดเงินคงเหลือ</div>
         <div style="font-family:'Kanit',sans-serif;font-weight:900;font-size:36px;color:#4ade80;" id="dash-balance">0</div>
         <div style="font-family:'Kanit',sans-serif;font-size:13px;color:rgba(240,255,232,0.4);">บาท</div>
         <div style="display:flex;gap:10px;margin-top:14px;justify-content:center;">
-          <button onclick="switchAccTab('deposit',document.querySelector('.acc-tab:nth-child(3)'))" style="font-family:'Kanit',sans-serif;font-size:13px;font-weight:700;padding:10px 20px;border-radius:10px;border:none;background:var(--green);color:#fff;cursor:pointer;flex:1;max-width:140px;">💰 เติมเงิน</button>
-          <button onclick="switchAccTab('withdraw',document.querySelector('.acc-tab:nth-child(4)'))" style="font-family:'Kanit',sans-serif;font-size:13px;font-weight:700;padding:10px 20px;border-radius:10px;border:1px solid rgba(248,113,113,0.4);background:transparent;color:#f87171;cursor:pointer;flex:1;max-width:140px;">🏧 ถอนเงิน</button>
+          <button onclick="switchAccTab('deposit', null)" style="font-family:'Kanit',sans-serif;font-size:13px;font-weight:700;padding:10px 20px;border-radius:10px;border:none;background:var(--green);color:#fff;cursor:pointer;flex:1;max-width:140px;">💰 เติมเงิน</button>
+          <button onclick="switchAccTab('withdraw', null)" style="font-family:'Kanit',sans-serif;font-size:13px;font-weight:700;padding:10px 20px;border-radius:10px;border:1px solid rgba(248,113,113,0.4);background:transparent;color:#f87171;cursor:pointer;flex:1;max-width:140px;">🏧 ถอนเงิน</button>
         </div>
       </div>
 
@@ -3252,7 +3251,7 @@
     </div>
 
     <!-- INFO TAB -->
-    <div class="acc-panel active" id="acc-info">
+    <div class="acc-panel" id="acc-info">
       <div class="acc-info-grid">
         <div class="acc-info-item">
           <div class="acc-info-label">ชื่อ-นามสกุล</div>
@@ -4096,6 +4095,13 @@
     showFEToast('✅ เปลี่ยนรหัสผ่านสำเร็จแล้วครับ!');
   }
 
+  function clearHistFilter() {
+    ['hist-search','hist-date-from','hist-date-to'].forEach(id => {
+      const el = document.getElementById(id); if (el) el.value = '';
+    });
+    renderHistory();
+  }
+
   // ── DASHBOARD ──
   async function loadDashboard() {
     if (!currentUser) return;
@@ -4870,8 +4876,15 @@
     document.querySelectorAll('.acc-tab').forEach(t => t.classList.remove('active'));
     const panel = document.getElementById('acc-'+id);
     if (panel) panel.classList.add('active');
-    if (el && el.classList) el.classList.add('active');
-    // โหลดข้อมูลตาม tab
+    // sync active tab button
+    if (el && el.classList) {
+      el.classList.add('active');
+    } else {
+      // หา tab ที่ตรงกับ id
+      document.querySelectorAll('.acc-tab').forEach(t => {
+        if (t.getAttribute('onclick')?.includes(`'${id}'`)) t.classList.add('active');
+      });
+    }
     if (id === 'dashboard') loadDashboard();
     if (id === 'txn')       loadTxnHistory();
     if (id === 'deposit')   loadDepHistory();
