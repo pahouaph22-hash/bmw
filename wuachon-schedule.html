@@ -275,7 +275,7 @@ nav{background:rgba(7,26,12,0.95);border-bottom:1px solid rgba(245,200,66,0.2);p
 <!-- TOAST -->
 <div id="toast" style="position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:#1a1a1a;color:#fff;font-family:'Kanit',sans-serif;font-size:13px;padding:12px 24px;border-radius:10px;z-index:999;box-shadow:0 8px 24px rgba(0,0,0,0.4);display:none;animation:fadeUp .3s ease;"></div>
 
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://unpkg.com/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
 <script>
 // ── Supabase Config ──
 const SUPABASE_URL = 'https://xzlpdeqlfczjkospfqqi.supabase.co';
@@ -328,15 +328,28 @@ async function loadBets(matchId) {
 }
 
 function subscribeBets(matchId) {
-  sb.channel('bets-' + matchId)
-    .on('postgres_changes', { event: '*', schema: 'public', table: 'bets',
-        filter: 'match_id=eq.' + matchId }, async () => {
+  // ยกเลิก channel เก่าก่อน
+  sb.channel('bets-' + matchId).unsubscribe();
+
+  sb.channel('bets-realtime-' + matchId)
+    .on('postgres_changes', {
+      event: '*',
+      schema: 'public',
+      table: 'bets'
+    }, async (payload) => {
+      // กรองเฉพาะ match ที่กำลังดูอยู่
+      const row = payload.new || payload.old;
+      if (row && row.match_id !== matchId) return;
+
+      // โหลด bets ใหม่
       const bets = await loadBets(matchId);
       allBets[matchId] = bets;
       renderQueue(matchId);
       updatePoolTotals(matchId);
     })
-    .subscribe();
+    .subscribe(status => {
+      console.log('Bets realtime:', status);
+    });
 }
 
 // ── LIST ──
@@ -594,90 +607,6 @@ function updatePoolTotals(matchId) {
 }
 
 // ── BET FUNCTIONS ──
-window.dSelectSide = side => {
-  dSide = side;
-  document.getElementById('d-red-btn').classList.toggle('on', side === 'red');
-  document.getElementById('d-blue-btn').classList.toggle('on', side === 'blue');
-  dCalc();
-};
-
-window.dSetAmt = n => { document.getElementById('d-amount').value = n; dCalc(); };
-
-window.dSetOdds = (val, btn) => {
-  document.querySelectorAll('.d-odds-btn').forEach(b => b.classList.remove('on'));
-  btn.classList.add('on');
-  document.getElementById('d-odds').value = val;
-  dCalc();
-};
-
-window.dCalc = () => {
-  const amt  = parseFloat(document.getElementById('d-amount').value) || 0;
-  const odds = parseFloat(document.getElementById('d-odds').value)   || 1.5;
-  const exp  = document.getElementById('d-expect');
-  if (amt >= 100 && dSide) {
-    exp.classList.add('show');
-    document.getElementById('d-stake').textContent = amt.toLocaleString() + ' ฿';
-    document.getElementById('d-win').textContent   = (amt * odds).toLocaleString('th-TH',{maximumFractionDigits:0}) + ' ฿';
-  } else {
-    exp.classList.remove('show');
-  }
-};
-
-window.dPlaceBet = () => {
-  const m    = currentMatch;
-  const amt  = parseFloat(document.getElementById('d-amount').value) || 0;
-  const odds = parseFloat(document.getElementById('d-odds').value)   || 1.5;
-  if (!dSide)    { showToast('⚠️ กรุณาเลือกวัวที่ต้องการเดิมพันครับ'); return; }
-  if (amt < 100) { showToast('⚠️ จำนวนเงินขั้นต่ำ 100 บาทครับ'); return; }
-
-  const sideName = dSide === 'red' ? m.nameA : m.nameB;
-  const txn      = '7' + Array.from({length:8},()=>Math.floor(Math.random()*10)).join('');
-  const potential = (amt * odds).toLocaleString('th-TH',{maximumFractionDigits:0});
-
-  // หักยอด
-  document.getElementById('d-bal').textContent =
-
-  // เพิ่มใน queue
-  const newBet = { id:'q'+Date.now(), nick:'คุณ', side:dSide, sideName, odds, amount:amt };
-  renderQueue(m.id);
-  updatePoolTotals(m.id);
-
-  // แสดงสถานะ
-  const st = document.getElementById('d-status');
-  st.className = 'd-status show st-wait';
-  st.innerHTML = `⏳ รอจับคู่ · เลือก <strong>${sideName}</strong> · อัตรา 1:${odds} · ${amt.toLocaleString()} ฿<br><span style="font-size:11px;opacity:.8;">ยอดเงินถูกหักแล้ว · คาดว่าจะได้รับ <strong>${potential} ฿</strong> หากชนะ</span>`;
-
-  document.getElementById('d-amount').value = '';
-  document.getElementById('d-expect').classList.remove('show');
-  showToast('✅ วางเดิมพันแล้ว · TXN: ' + txn);
-};
-
-window.joinBet = (betId, opponentNick, opponentSide, amount, odds) => {
-  const m      = currentMatch;
-  const mySide = opponentSide === m.nameA ? m.nameB : m.nameA;
-  const txn    = '7' + Array.from({length:8},()=>Math.floor(Math.random()*10)).join('');
-  const pot    = (amount * odds).toLocaleString('th-TH',{maximumFractionDigits:0});
-
-  if (!confirm(`ยืนยันจับคู่?\n\nคุณเลือก: ${mySide}\nจำนวน: ${amount.toLocaleString()} ฿\nอัตรา: 1:${odds}\nหากชนะจะได้: ${pot} ฿`)) return;
-
-  // หักยอด
-  document.getElementById('d-bal').textContent =
-
-  // ลบออกจาก queue + fade
-  const idx = queueArr.findIndex(b => b.id === betId);
-  if (idx !== -1) queueArr.splice(idx, 1);
-  const qItem = document.getElementById('qi-' + betId);
-  if (qItem) {
-    qItem.style.opacity = '0'; qItem.style.transform = 'translateX(20px)';
-    setTimeout(() => { renderQueue(m.id); updatePoolTotals(m.id); }, 320);
-  }
-
-  // สถานะ matched
-  const st = document.getElementById('d-status');
-  st.className = 'd-status show st-match';
-  st.innerHTML = `✅ จับคู่กับ <strong>${opponentNick}</strong> สำเร็จ! · คุณเลือก <strong>${mySide}</strong> · ${amount.toLocaleString()} ฿<br><span style="font-size:11px;opacity:.8;">หากชนะจะได้รับ <strong>${pot} ฿</strong></span>`;
-  showToast(`✅ จับคู่กับ ${opponentNick} สำเร็จ! · TXN: ${txn}`);
-};
 
 function goHome() {
   document.getElementById('home-view').style.display   = 'block';
@@ -701,23 +630,6 @@ function showToast(msg) {
 }
 
 
-let currentFilter = 'all';
-
-window.filterMatches = (status, btn) => {
-  currentFilter = status;
-  document.querySelectorAll('.filter-tab').forEach(b => b.classList.remove('active'));
-  btn.classList.add('active');
-  renderMatches();
-};
-
-
-// ── LIST FILTER ──
-window.filterMatches = (status, btn) => {
-  currentFilter = status;
-  document.querySelectorAll('.filter-tab').forEach(b => b.classList.remove('active'));
-  btn.classList.add('active');
-  renderMatches();
-};
 
 // ── BET FUNCTIONS ──
 window.dSelectSide = side => {

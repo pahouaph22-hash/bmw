@@ -148,104 +148,124 @@ nav{background:rgba(7,26,12,0.95);border-bottom:1px solid rgba(245,200,66,0.2);p
 <!-- TOAST -->
 <div id="toast" style="position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:#1a1a1a;color:#fff;font-family:'Kanit',sans-serif;font-size:13px;padding:12px 24px;border-radius:10px;z-index:999;box-shadow:0 8px 24px rgba(0,0,0,0.4);display:none;"></div>
 
-<script type="module">
-import { initializeApp }       from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js';
-import { getFirestore, doc, collection, onSnapshot, addDoc, serverTimestamp } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js';
+<script src="https://unpkg.com/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+<script>
+const SUPA_URL = 'https://xzlpdeqlfczjkospfqqi.supabase.co';
+const SUPA_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inh6bHBkZXFsZmN6amtvc3BmcXFpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzk2NzgyMjAsImV4cCI6MjA5NTI1NDIyMH0.W0pDFJy3lFeO4ht9DpNzeDgVdGvSz94p0KWGfzc0Igw';
+const sb = supabase.createClient(SUPA_URL, SUPA_KEY);
 
-const app = initializeApp({
-  apiKey: "AIzaSyBJhOwy5uaNNWCBs5QGsAcCCK1zF7uHfiU",
-  authDomain: "wuachon-thai.firebaseapp.com",
-  projectId: "wuachon-thai",
-  storageBucket: "wuachon-thai.firebasestorage.app",
-  messagingSenderId: "826988624741",
-  appId: "1:826988624741:web:2cb1cfe6548764dbbcbf8c"
-});
-const db = getFirestore(app);
+const matchId    = new URLSearchParams(location.search).get('id');
+const currentUser = JSON.parse(sessionStorage.getItem('bw_user') || 'null');
+if (!matchId) location.href = 'wuachon-schedule.html';
 
-// อ่าน match ID จาก URL
-const matchId = new URLSearchParams(location.search).get('id');
-if (!matchId) { location.href = 'wuachon-schedule.html'; }
-
-// อ่าน user จาก sessionStorage
-const currentUser = JSON.parse(sessionStorage.getItem('wuachon_user') || 'null');
-
-let matchData = null;
+let matchData    = null;
 let selectedSide = null;
+let allBets      = [];
 
-// โหลดข้อมูล match
-onSnapshot(doc(db, 'matches', matchId), snap => {
-  if (!snap.exists()) { document.getElementById('page').innerHTML = '<div style="text-align:center;padding:60px;font-family:\'Kanit\',sans-serif;color:rgba(240,255,232,0.4);">ไม่พบรายการแข่งขันนี้</div>'; return; }
-  matchData = { id: snap.id, ...snap.data() };
+// ── โหลด match ──
+async function loadMatch() {
+  const { data, error } = await sb.from('matches').select('*').eq('id', matchId).maybeSingle();
+  if (error || !data) {
+    document.getElementById('page').innerHTML = '<div style="text-align:center;padding:60px;font-family:\'Kanit\',sans-serif;color:rgba(240,255,232,0.4);">ไม่พบรายการแข่งขันนี้</div>';
+    return;
+  }
+  matchData = data;
   renderPage();
-});
+  loadBets();
+}
+loadMatch();
 
-// โหลด bet queue real-time
-let betsUnsubscribe = null;
+// ── Real-time match update ──
+sb.channel('match-' + matchId)
+  .on('postgres_changes', { event:'UPDATE', schema:'public', table:'matches' }, payload => {
+    if (payload.new.id === matchId) { matchData = payload.new; renderPage(); }
+  })
+  .subscribe();
+
+// ── โหลด bets ──
+async function loadBets() {
+  const { data } = await sb.from('bets').select('*').eq('match_id', matchId).order('created_at', {ascending:false});
+  allBets = data || [];
+  renderQueue(allBets.filter(b => b.status === 'waiting'));
+  updatePools();
+}
+
+// ── Real-time bets ──
+sb.channel('bets-match-' + matchId)
+  .on('postgres_changes', { event:'*', schema:'public', table:'bets' }, payload => {
+    const row = payload.new || payload.old;
+    if (!row || row.match_id !== matchId) return;
+    loadBets();
+  })
+  .subscribe();
+
+function updatePools() {
+  const redTotal  = allBets.filter(b=>b.side==='red').reduce((s,b)=>s+Number(b.amount||0),0);
+  const blueTotal = allBets.filter(b=>b.side==='blue').reduce((s,b)=>s+Number(b.amount||0),0);
+  const rp = document.getElementById('red-pool');
+  const bp = document.getElementById('blue-pool');
+  if (rp) rp.textContent  = `ยอดเดิมพัน: ${redTotal.toLocaleString()} ฿`;
+  if (bp) bp.textContent  = `ยอดเดิมพัน: ${blueTotal.toLocaleString()} ฿`;
+}
 
 function renderPage() {
   const m = matchData;
+  if (!m) return;
   const isLive = m.status === 'live';
   const isDone = m.status === 'done';
   const prizeNum = Number(m.prize || 0);
+  const bal = currentUser?.balance || 0;
   const statusBadge = isLive
     ? `<span class="status-badge s-live"><span class="live-dot"></span>LIVE</span>`
     : isDone ? `<span class="status-badge s-done">✅ จบแล้ว</span>`
              : `<span class="status-badge s-upcoming">⏳ รอแข่ง</span>`;
 
-  const bal = currentUser?.balance || 0;
-
   document.getElementById('page').innerHTML = `
-    <!-- Info Bar -->
     <div class="match-info-bar">
       <div>
-        <div class="match-round">🏆 ${m.round || 'รายการแข่งขัน'}</div>
+        <div class="match-round">🏆 ${m.round||'รายการแข่งขัน'}</div>
         <div class="match-meta">
-          ${m.date ? `<span>📅 ${m.date}</span>` : ''}
-          ${m.time ? `<span>⏰ ${m.time}</span>` : ''}
-          ${m.location ? `<span>📍 ${m.location}</span>` : ''}
-          ${prizeNum ? `<span>💰 ${prizeNum.toLocaleString()} ฿</span>` : ''}
+          ${m.date?`<span>📅 ${m.date}</span>`:''}
+          ${m.time?`<span>⏰ ${m.time}</span>`:''}
+          ${m.location?`<span>📍 ${m.location}</span>`:''}
+          ${prizeNum?`<span>💰 ${prizeNum.toLocaleString()} ฿</span>`:''}
+          ${m.code?`<span style="font-family:'Kanit',sans-serif;font-weight:900;color:var(--gold);">#${m.code}</span>`:''}
         </div>
       </div>
       ${statusBadge}
     </div>
 
-    <!-- Arena -->
     <div class="arena">
       <div class="arena-body">
-        <!-- Red -->
         <div class="team">
-          <div class="team-photo red-photo">${m.photoA ? `<img src="${m.photoA}">` : '🐂'}</div>
+          <div class="team-photo red-photo">${m.photo_a?`<img src="${m.photo_a}">`:'🐂'}</div>
           <div class="team-label red-label">🔴 เจ้าบ้าน</div>
-          <div class="team-name${isDone && m.winner === m.nameA ? ' winner' : ''}">${m.nameA || '—'}${isDone && m.winner === m.nameA ? ' 🏆' : ''}</div>
-          <div class="team-owner">${m.ownerA || ''}</div>
-          <div class="team-tags">${m.weightA ? `<span class="tag">⚖️ ${m.weightA}</span>` : ''}</div>
+          <div class="team-name${isDone&&m.winner===m.name_a?' winner':''}">${m.name_a||'—'}${isDone&&m.winner===m.name_a?' 🏆':''}</div>
+          <div class="team-owner">${m.owner_a||''}</div>
+          <div class="team-tags">${m.weight_a?`<span class="tag">⚖️ ${m.weight_a}</span>`:''}</div>
           <div class="pool-info"><span class="pool-dot red-dot"></span><span id="red-pool">ยอดเดิมพัน: — ฿</span></div>
         </div>
-        <!-- VS -->
         <div class="vs-col">
           <div class="vs-circle">VS</div>
-          ${prizeNum ? `<div class="prize-box"><div class="prize-label">รางวัล</div><div class="prize-val">${prizeNum.toLocaleString()} ฿</div></div>` : ''}
+          ${prizeNum?`<div class="prize-box"><div class="prize-label">รางวัล</div><div class="prize-val">${prizeNum.toLocaleString()} ฿</div></div>`:''}
         </div>
-        <!-- Blue -->
         <div class="team">
-          <div class="team-photo blue-photo">${m.photoB ? `<img src="${m.photoB}">` : '🐃'}</div>
+          <div class="team-photo blue-photo">${m.photo_b?`<img src="${m.photo_b}">`:'🐃'}</div>
           <div class="team-label blue-label">🔵 ทีมเยือน</div>
-          <div class="team-name${isDone && m.winner === m.nameB ? ' winner' : ''}">${m.nameB || '—'}${isDone && m.winner === m.nameB ? ' 🏆' : ''}</div>
-          <div class="team-owner">${m.ownerB || ''}</div>
-          <div class="team-tags">${m.weightB ? `<span class="tag">⚖️ ${m.weightB}</span>` : ''}</div>
+          <div class="team-name${isDone&&m.winner===m.name_b?' winner':''}">${m.name_b||'—'}${isDone&&m.winner===m.name_b?' 🏆':''}</div>
+          <div class="team-owner">${m.owner_b||''}</div>
+          <div class="team-tags">${m.weight_b?`<span class="tag">⚖️ ${m.weight_b}</span>`:''}</div>
           <div class="pool-info"><span class="pool-dot blue-dot"></span><span id="blue-pool">ยอดเดิมพัน: — ฿</span></div>
         </div>
       </div>
 
       ${!isDone ? `
-      <!-- Bet Panel -->
       <div class="bet-panel">
         <div class="bet-section">① เลือกวัวที่ต้องการเดิมพัน</div>
         <div class="side-btns">
-          <div class="side-btn red-btn" id="red-btn" onclick="selectSide('red')">🔴 ${m.nameA || '—'}</div>
-          <div class="side-btn blue-btn" id="blue-btn" onclick="selectSide('blue')">🔵 ${m.nameB || '—'}</div>
+          <div class="side-btn red-btn" id="red-btn" onclick="selectSide('red')">🔴 ${m.name_a||'—'}</div>
+          <div class="side-btn blue-btn" id="blue-btn" onclick="selectSide('blue')">🔵 ${m.name_b||'—'}</div>
         </div>
-
         <div class="bet-section">② จำนวนเงินเดิมพัน</div>
         <div class="quick-btns">
           <button class="quick-btn" onclick="setAmount(100)">100</button>
@@ -258,7 +278,6 @@ function renderPage() {
           <span class="amount-currency">฿</span>
         </div>
         <div class="balance-hint">ยอดเงินคงเหลือ: <span id="balance-hint" style="color:var(--accent);">${bal.toLocaleString()} ฿</span></div>
-
         <div class="bet-section">③ กำหนดอัตราต่อรอง</div>
         <div class="odds-presets">
           <button class="odds-btn active" onclick="setOdds(1.5,this)">1 : 1.5</button>
@@ -271,21 +290,18 @@ function renderPage() {
           <span>กำหนดเอง 1 :</span>
           <input type="number" id="odds-input" class="odds-input" value="1.5" min="1.1" max="10" step="0.1" oninput="calcExpect()">
         </div>
-
         <div class="expect-row" id="expect-row">
           <div><div style="font-size:11px;color:rgba(240,255,232,0.4);margin-bottom:3px;">วางเดิมพัน</div><div class="expect-stake" id="expect-stake">0 ฿</div></div>
           <div class="expect-arrow">→</div>
           <div style="text-align:right;"><div style="font-size:11px;color:rgba(240,255,232,0.4);margin-bottom:3px;">หากชนะจะได้รับ</div><div class="expect-win" id="expect-win">0 ฿</div></div>
         </div>
-
         <button class="submit-btn" onclick="placeBet()">🎯 วางเดิมพันและรอจับคู่</button>
         <div class="status-box" id="status-box"></div>
       </div>` : `
-      <div style="padding:20px;text-align:center;font-family:'Kanit',sans-serif;color:${m.winner ? 'var(--gold)' : 'rgba(240,255,232,0.5)'}">
-        ${m.winner ? `🏆 ผู้ชนะ: <strong>${m.winner}</strong>` : 'การแข่งขันสิ้นสุดแล้ว'}
+      <div style="padding:20px;text-align:center;font-family:'Kanit',sans-serif;color:${m.winner?'var(--gold)':'rgba(240,255,232,0.5)'}">
+        ${m.winner?`🏆 ผู้ชนะ: <strong>${m.winner}</strong>`:'การแข่งขันสิ้นสุดแล้ว'}
       </div>`}
 
-      <!-- Queue Section -->
       <div class="queue-section">
         <div class="queue-title-row">
           <div class="queue-title">📋 รายการรอจับคู่</div>
@@ -296,19 +312,8 @@ function renderPage() {
       </div>
     </div>`;
 
-  // Subscribe bets real-time
-  if (betsUnsubscribe) betsUnsubscribe();
-  betsUnsubscribe = onSnapshot(collection(db, 'matches', matchId, 'bets'), snap => {
-    const bets = snap.docs.map(d => ({ id: d.id, ...d.data() })).filter(b => b.status === 'waiting');
-    renderQueue(bets);
-    // อัปเดต pool
-    const redTotal  = snap.docs.filter(d => d.data().side === 'red').reduce((s,d) => s + (d.data().amount||0), 0);
-    const blueTotal = snap.docs.filter(d => d.data().side === 'blue').reduce((s,d) => s + (d.data().amount||0), 0);
-    const rp = document.getElementById('red-pool');
-    const bp = document.getElementById('blue-pool');
-    if (rp) rp.textContent  = `ยอดเดิมพัน: ${redTotal.toLocaleString()} ฿`;
-    if (bp) bp.textContent  = `ยอดเดิมพัน: ${blueTotal.toLocaleString()} ฿`;
-  });
+  updatePools();
+  renderQueue(allBets.filter(b => b.status === 'waiting'));
 }
 
 function renderQueue(bets) {
@@ -316,127 +321,121 @@ function renderQueue(bets) {
   const count = document.getElementById('queue-count');
   if (!list) return;
   if (count) count.textContent = bets.length + ' รายการ';
-  if (bets.length === 0) { list.innerHTML = '<div class="queue-empty">ยังไม่มีรายการรอจับคู่</div>'; return; }
+  if (!bets.length) { list.innerHTML = '<div class="queue-empty">ยังไม่มีรายการรอจับคู่</div>'; return; }
   list.innerHTML = bets.map(b => `
-    <div class="queue-item ${b.side === 'red' ? 'red-q' : 'blue-q'}" id="qi-${b.id}">
-      <span class="pool-dot ${b.side === 'red' ? 'red-dot' : 'blue-dot'}"></span>
-      <span class="q-nick">${b.nick || '—'}</span>
-      <span class="q-side">${b.side === 'red' ? '🔴' : '🔵'} ${b.sideName || ''}</span>
+    <div class="queue-item ${b.side==='red'?'red-q':'blue-q'}" id="qi-${b.id}">
+      <span class="pool-dot ${b.side==='red'?'red-dot':'blue-dot'}"></span>
+      <span class="q-nick">${b.nick||'—'}</span>
+      <span class="q-side">${b.side==='red'?'🔴':'🔵'} ${b.side_name||''}</span>
       <span class="q-odds">1 : ${b.odds}</span>
-      <span class="q-amount">${(b.amount||0).toLocaleString()} ฿</span>
-      <button class="join-btn" onclick="joinBet('${b.id}','${b.nick}','${b.sideName}',${b.amount},${b.odds})">จับคู่</button>
+      <span class="q-amount">${Number(b.amount||0).toLocaleString()} ฿</span>
+      <button class="join-btn" onclick="joinBet('${b.id}','${b.nick}','${b.side_name}',${b.amount},${b.odds})">จับคู่</button>
     </div>`).join('');
 }
 
-// ── Functions ──
 window.selectSide = side => {
   selectedSide = side;
-  document.getElementById('red-btn')?.classList.toggle('active', side === 'red');
-  document.getElementById('blue-btn')?.classList.toggle('active', side === 'blue');
+  document.getElementById('red-btn')?.classList.toggle('active', side==='red');
+  document.getElementById('blue-btn')?.classList.toggle('active', side==='blue');
   calcExpect();
 };
-
-window.setAmount = n => { const el = document.getElementById('bet-amount'); if (el) { el.value = n; calcExpect(); } };
-
-window.setOdds = (val, btn) => {
-  document.querySelectorAll('.odds-btn').forEach(b => b.classList.remove('active'));
+window.setAmount = n => { const el=document.getElementById('bet-amount'); if(el){el.value=n;calcExpect();} };
+window.setOdds = (val,btn) => {
+  document.querySelectorAll('.odds-btn').forEach(b=>b.classList.remove('active'));
   btn.classList.add('active');
-  const el = document.getElementById('odds-input');
-  if (el) el.value = val;
+  const el=document.getElementById('odds-input'); if(el) el.value=val;
   calcExpect();
 };
-
 window.calcExpect = () => {
-  const amount = parseFloat(document.getElementById('bet-amount')?.value) || 0;
-  const odds   = parseFloat(document.getElementById('odds-input')?.value)  || 1.5;
+  const amount = parseFloat(document.getElementById('bet-amount')?.value)||0;
+  const odds   = parseFloat(document.getElementById('odds-input')?.value)||1.5;
   const row    = document.getElementById('expect-row');
-  if (amount >= 100 && selectedSide) {
+  if (amount>=100 && selectedSide) {
     row?.classList.add('show');
-    const stakeEl = document.getElementById('expect-stake');
-    const winEl   = document.getElementById('expect-win');
-    if (stakeEl) stakeEl.textContent = amount.toLocaleString() + ' ฿';
-    if (winEl)   winEl.textContent   = (amount * odds).toLocaleString('th-TH', {maximumFractionDigits:0}) + ' ฿';
-  } else {
-    row?.classList.remove('show');
-  }
+    const s=document.getElementById('expect-stake'); if(s) s.textContent=amount.toLocaleString()+' ฿';
+    const w=document.getElementById('expect-win');   if(w) w.textContent=(amount*odds).toLocaleString('th-TH',{maximumFractionDigits:0})+' ฿';
+  } else { row?.classList.remove('show'); }
 };
 
 window.placeBet = async () => {
   if (!currentUser) { alert('กรุณาสมัครสมาชิกและเข้าสู่ระบบก่อนวางเดิมพันครับ'); return; }
-  const amount = parseFloat(document.getElementById('bet-amount')?.value) || 0;
-  const odds   = parseFloat(document.getElementById('odds-input')?.value)  || 1.5;
-  const bal    = currentUser.balance || 0;
+  const amount = parseFloat(document.getElementById('bet-amount')?.value)||0;
+  const odds   = parseFloat(document.getElementById('odds-input')?.value)||1.5;
+  const bal    = currentUser.balance||0;
   if (!selectedSide) { alert('กรุณาเลือกวัวที่ต้องการเดิมพันก่อนครับ'); return; }
-  if (amount < 100)  { alert('จำนวนเงินขั้นต่ำ 100 บาทครับ'); return; }
-  if (amount > bal)  { alert(`ยอดเงินไม่เพียงพอครับ\nคงเหลือ: ${bal.toLocaleString()} บาท`); return; }
+  if (amount<100)    { alert('จำนวนเงินขั้นต่ำ 100 บาทครับ'); return; }
+  if (amount>bal)    { alert(`ยอดเงินไม่เพียงพอครับ\nคงเหลือ: ${bal.toLocaleString()} บาท`); return; }
 
   const m        = matchData;
-  const sideName = selectedSide === 'red' ? m.nameA : m.nameB;
-  const txn      = '7' + Array.from({length:8},()=>Math.floor(Math.random()*10)).join('');
+  const sideName = selectedSide==='red' ? m.name_a : m.name_b;
+  const txn      = '7'+Array.from({length:8},()=>Math.floor(Math.random()*10)).join('');
 
-  // หักยอดเงิน (update sessionStorage)
-  currentUser.balance = bal - amount;
-  sessionStorage.setItem('wuachon_user', JSON.stringify(currentUser));
-  document.getElementById('balance-hint').textContent = currentUser.balance.toLocaleString() + ' ฿';
+  // หักยอดเงิน
+  const newBal = bal - amount;
+  await sb.from('members').update({ balance: newBal }).eq('nick', currentUser.nick);
+  currentUser.balance = newBal;
+  sessionStorage.setItem('bw_user', JSON.stringify(currentUser));
+  const bh = document.getElementById('balance-hint'); if(bh) bh.textContent = newBal.toLocaleString()+' ฿';
 
-  // บันทึกลง Firestore → matches/{id}/bets
-  await addDoc(collection(db, 'matches', matchId, 'bets'), {
-    nick: currentUser.nick, side: selectedSide, sideName, amount, odds, txn,
-    status: 'waiting', createdAt: serverTimestamp()
+  // บันทึกลง Supabase bets
+  const { error } = await sb.from('bets').insert({
+    match_id: matchId, nick: currentUser.nick,
+    side: selectedSide, side_name: sideName,
+    amount, odds, txn, status: 'waiting'
   });
+  if (error) { alert('❌ '+error.message); return; }
 
-  // แสดงสถานะ
   const box = document.getElementById('status-box');
   if (box) {
     box.className = 'status-box show status-waiting';
     box.innerHTML = `⏳ รอจับคู่ · เลือก <strong>${sideName}</strong> · อัตรา 1:${odds} · ${amount.toLocaleString()} ฿<br><span style="font-size:11px;opacity:.7;">ยอดเงินถูกหักแล้ว · คาดว่าจะได้ ${(amount*odds).toLocaleString('th-TH',{maximumFractionDigits:0})} ฿ หากชนะ</span>`;
   }
-  document.getElementById('bet-amount').value = '';
+  document.getElementById('bet-amount').value='';
   document.getElementById('expect-row')?.classList.remove('show');
   showToast(`✅ วางเดิมพันแล้ว · TXN: ${txn}`);
 };
 
-window.joinBet = async (betDocId, opponentNick, opponentSide, amount, odds) => {
+window.joinBet = async (betId, opponentNick, opponentSide, amount, odds) => {
   if (!currentUser) { alert('กรุณาสมัครสมาชิกก่อนครับ'); return; }
-  const bal = currentUser.balance || 0;
-  if (amount > bal) { alert(`ยอดเงินไม่เพียงพอครับ\nคงเหลือ: ${bal.toLocaleString()} บาท`); return; }
+  const bal = currentUser.balance||0;
+  if (amount>bal) { alert(`ยอดเงินไม่เพียงพอครับ\nคงเหลือ: ${bal.toLocaleString()} บาท`); return; }
 
-  const m       = matchData;
-  const mySide  = opponentSide === m.nameA ? m.nameB : m.nameA;
-  const txn     = '7' + Array.from({length:8},()=>Math.floor(Math.random()*10)).join('');
-  const potential = (amount * odds).toLocaleString('th-TH',{maximumFractionDigits:0});
+  const m      = matchData;
+  const mySide = opponentSide===m.name_a ? 'blue' : 'red';
+  const mySideName = mySide==='red' ? m.name_a : m.name_b;
+  const txn    = '7'+Array.from({length:8},()=>Math.floor(Math.random()*10)).join('');
+  const pot    = (amount*odds).toLocaleString('th-TH',{maximumFractionDigits:0});
 
-  if (!confirm(`ยืนยันจับคู่?\n\nคุณเลือก: ${mySide}\nจำนวน: ${amount.toLocaleString()} ฿\nอัตรา: 1:${odds}\nหากชนะจะได้: ${potential} ฿`)) return;
+  if (!confirm(`ยืนยันจับคู่?\n\nคุณเลือก: ${mySideName}\nจำนวน: ${amount.toLocaleString()} ฿\nอัตรา: 1:${odds}\nหากชนะจะได้: ${pot} ฿`)) return;
 
   // หักยอด
-  currentUser.balance = bal - amount;
-  sessionStorage.setItem('wuachon_user', JSON.stringify(currentUser));
-  document.getElementById('balance-hint').textContent = currentUser.balance.toLocaleString() + ' ฿';
+  const newBal = bal - amount;
+  await sb.from('members').update({ balance: newBal }).eq('nick', currentUser.nick);
+  currentUser.balance = newBal;
+  sessionStorage.setItem('bw_user', JSON.stringify(currentUser));
+  const bh=document.getElementById('balance-hint'); if(bh) bh.textContent=newBal.toLocaleString()+' ฿';
 
-  // ลบรายการออกจาก queue (fade out)
-  const qItem = document.getElementById(`qi-${betDocId}`);
-  if (qItem) {
-    qItem.style.transition = 'all .3s ease';
-    qItem.style.opacity    = '0';
-    qItem.style.transform  = 'translateX(20px)';
-    setTimeout(() => qItem.remove(), 300);
-  }
+  // fade out
+  const qItem = document.getElementById(`qi-${betId}`);
+  if (qItem) { qItem.style.transition='all .3s'; qItem.style.opacity='0'; qItem.style.transform='translateX(20px)'; setTimeout(()=>qItem.remove(),300); }
 
-  // บันทึกการจับคู่ลง Firestore
-  await addDoc(collection(db, 'matches', matchId, 'bets'), {
-    nick: currentUser.nick, side: opponentSide === m.nameA ? 'blue' : 'red',
-    sideName: mySide, amount, odds, txn, status: 'matched',
-    matchedWith: opponentNick, createdAt: serverTimestamp()
+  // อัปเดต bet ที่จับคู่
+  await sb.from('bets').update({ status:'matched', matched_with: currentUser.nick }).eq('id', betId);
+
+  // บันทึก bet ของเรา
+  await sb.from('bets').insert({
+    match_id: matchId, nick: currentUser.nick,
+    side: mySide, side_name: mySideName,
+    amount, odds, txn, status:'matched', matched_with: opponentNick
   });
 
   showToast(`✅ จับคู่กับ ${opponentNick} สำเร็จ! · TXN: ${txn}`);
 };
 
 function showToast(msg) {
-  const t = document.getElementById('toast');
-  t.textContent = msg; t.style.display = 'block';
-  setTimeout(() => { t.style.display = 'none'; }, 3000);
+  const t=document.getElementById('toast');
+  t.textContent=msg; t.style.display='block';
+  setTimeout(()=>{t.style.display='none';},3000);
 }
-</script>
 </body>
 </html>

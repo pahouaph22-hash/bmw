@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>วัวชนไทย — ศึกวัวชนภาคใต้</title>
 <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@400;500;700;900&family=Sarabun:wght@400;500&display=swap" rel="stylesheet">
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://unpkg.com/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
 <style>
   *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
   :root {
@@ -2344,10 +2344,22 @@
   .account-balance-val{font-family:'Kanit',sans-serif;font-weight:900;font-size:32px;color:var(--accent);line-height:1.1;text-shadow:0 0 20px rgba(74,222,128,0.3);}
   .account-balance-unit{font-size:13px;color:rgba(240,255,232,0.4);margin-top:2px;}
   .account-tabs{display:flex;gap:5px;margin-bottom:20px;background:var(--dark2);border-radius:10px;padding:5px;}
-  .acc-tab{flex:1;font-family:'Kanit',sans-serif;font-weight:700;font-size:13px;padding:10px;border-radius:7px;border:none;background:transparent;color:rgba(240,255,232,0.5);cursor:pointer;transition:all .2s;text-align:center;}
+  .acc-tab{flex-shrink:0;font-family:'Kanit',sans-serif;font-weight:700;font-size:12px;padding:9px 14px;border-radius:7px;border:none;background:transparent;color:rgba(240,255,232,0.5);cursor:pointer;transition:all .2s;text-align:center;white-space:nowrap;}
   .acc-tab.active{background:var(--green);color:#fff;box-shadow:0 4px 12px rgba(27,107,47,0.3);}
-  .acc-tab:hover:not(.active){color:var(--cream);}
-  .acc-panel{display:none;}.acc-panel.active{display:block;}
+  .acc-tab:hover:not(.active){color:var(--cream);background:rgba(255,255,255,0.05);}
+  .acc-panel{display:none;}.acc-panel.active{display:block;animation:fadeUp .25s ease;}
+  /* Mobile scrollbar hide */
+  .account-tabs::-webkit-scrollbar{display:none;}
+  .account-tabs{-ms-overflow-style:none;scrollbar-width:none;}
+  /* Notification item */
+  .notif-item{display:flex;gap:10px;align-items:flex-start;padding:10px 12px;border-radius:8px;margin-bottom:6px;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.06);cursor:pointer;transition:background .15s;}
+  .notif-item:hover{background:rgba(255,255,255,0.08);}
+  .notif-item.unread{border-color:rgba(245,200,66,0.3);background:rgba(245,200,66,0.06);}
+  .notif-item-icon{font-size:20px;flex-shrink:0;margin-top:1px;}
+  .notif-item-body{flex:1;}
+  .notif-item-title{font-family:'Kanit',sans-serif;font-weight:700;font-size:13px;color:var(--cream);}
+  .notif-item-sub{font-size:11px;color:rgba(240,255,232,0.45);margin-top:2px;}
+  .notif-item-time{font-size:10px;color:rgba(240,255,232,0.25);margin-top:3px;}
   .acc-info-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px;}
   .acc-info-item{background:rgba(255,255,255,0.04);border:1px solid rgba(39,148,63,0.15);border-radius:10px;padding:14px 16px;}
   .acc-info-label{font-size:11px;color:rgba(240,255,232,0.4);font-family:'Kanit',sans-serif;letter-spacing:1px;margin-bottom:5px;}
@@ -3114,13 +3126,18 @@
   <div class="account-section">
     <button class="account-back" onclick="hideMyAccount()">← กลับหน้าแรก</button>
 
-    <!-- Profile Banner -->
-    <div class="account-banner">
+    <!-- Profile Banner (Mobile-first redesign) -->
+    <div class="account-banner" style="position:relative;overflow:hidden;">
+      <!-- Notification Bell -->
+      <button id="notif-bell" onclick="toggleNotifCenter()" style="position:absolute;top:14px;right:14px;background:none;border:none;cursor:pointer;font-size:20px;color:rgba(240,255,232,0.6);z-index:2;">
+        🔔<span id="notif-count" style="display:none;position:absolute;top:-4px;right:-4px;background:var(--red);color:#fff;font-family:'Kanit',sans-serif;font-size:9px;font-weight:900;padding:1px 5px;border-radius:999px;min-width:16px;text-align:center;">0</span>
+      </button>
+
       <div class="account-avatar" id="acc-avatar">ส</div>
       <div class="account-info">
-        <div class="account-nick" id="acc-nick">เสือดำ</div>
-        <div class="account-detail" id="acc-fullname">สมชาย ใจดี · 089-123-4567</div>
-        <div class="account-id" id="acc-id">WC-XXXXX</div>
+        <div class="account-nick" id="acc-nick">—</div>
+        <div class="account-detail" id="acc-fullname">—</div>
+        <div class="account-id" id="acc-id">—</div>
       </div>
       <div class="account-balance-box">
         <div class="account-balance-label">ยอดเงินคงเหลือ</div>
@@ -3130,14 +3147,108 @@
       </div>
     </div>
 
-    <!-- Tabs -->
-    <div class="account-tabs">
-      <button class="acc-tab active" onclick="switchAccTab('info',this)">👤 ข้อมูลบัญชี</button>
-      <button class="acc-tab" onclick="switchAccTab('deposit',this)">💰 เติมเงิน</button>
-      <button class="acc-tab" onclick="switchAccTab('withdraw',this)">🏧 ถอนเงิน</button>
-      <button class="acc-tab" onclick="switchAccTab('bet',this)">🏆 ประวัติเดิมพัน</button>
-      <button class="acc-tab" onclick="switchAccTab('txn',this)">📋 ธุรกรรม</button>
-      <button class="acc-tab" onclick="switchAccTab('support',this)">💬 ติดต่อเจ้าหน้าที่</button>
+    <!-- Notification Center (ซ่อนไว้) -->
+    <div id="notif-center" style="display:none;background:rgba(0,0,0,0.4);border:1px solid rgba(245,200,66,0.2);border-radius:14px;margin-bottom:16px;overflow:hidden;">
+      <div style="display:flex;align-items:center;justify-content:space-between;padding:12px 16px;border-bottom:1px solid rgba(255,255,255,0.06);">
+        <div style="font-family:'Kanit',sans-serif;font-weight:700;font-size:14px;color:var(--gold);">🔔 การแจ้งเตือน</div>
+        <div style="display:flex;gap:8px;">
+          <button onclick="clearNotifications()" style="font-family:'Kanit',sans-serif;font-size:11px;padding:4px 10px;border-radius:6px;border:1px solid rgba(255,255,255,0.1);background:transparent;color:rgba(240,255,232,0.4);cursor:pointer;">ล้างทั้งหมด</button>
+          <button onclick="toggleNotifCenter()" style="background:none;border:none;color:rgba(240,255,232,0.4);font-size:18px;cursor:pointer;line-height:1;">×</button>
+        </div>
+      </div>
+      <div id="notif-list" style="max-height:260px;overflow-y:auto;padding:8px;">
+        <div style="text-align:center;padding:20px;color:rgba(240,255,232,0.25);font-family:'Kanit',sans-serif;font-size:13px;">ยังไม่มีการแจ้งเตือนครับ</div>
+      </div>
+    </div>
+
+    <!-- Quick Stats Row (Dashboard mini) -->
+    <div id="acc-quick-stats" style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:14px;">
+      <div style="background:rgba(39,148,63,0.12);border:1px solid rgba(39,148,63,0.2);border-radius:10px;padding:12px;text-align:center;">
+        <div style="font-family:'Kanit',sans-serif;font-weight:900;font-size:18px;color:#4ade80;" id="qs-dep">0</div>
+        <div style="font-size:10px;color:rgba(240,255,232,0.4);font-family:'Kanit',sans-serif;margin-top:2px;">เติมเงินรวม</div>
+      </div>
+      <div style="background:rgba(248,113,113,0.1);border:1px solid rgba(248,113,113,0.2);border-radius:10px;padding:12px;text-align:center;">
+        <div style="font-family:'Kanit',sans-serif;font-weight:900;font-size:18px;color:#f87171;" id="qs-with">0</div>
+        <div style="font-size:10px;color:rgba(240,255,232,0.4);font-family:'Kanit',sans-serif;margin-top:2px;">ถอนเงินรวม</div>
+      </div>
+      <div style="background:rgba(245,200,66,0.08);border:1px solid rgba(245,200,66,0.2);border-radius:10px;padding:12px;text-align:center;">
+        <div style="font-family:'Kanit',sans-serif;font-weight:900;font-size:18px;color:var(--gold);" id="qs-bets">0</div>
+        <div style="font-size:10px;color:rgba(240,255,232,0.4);font-family:'Kanit',sans-serif;margin-top:2px;">การเดิมพัน</div>
+      </div>
+    </div>
+
+    <!-- Tabs (Mobile scroll) -->
+    <div class="account-tabs" style="overflow-x:auto;-webkit-overflow-scrolling:touch;white-space:nowrap;display:flex;gap:6px;padding-bottom:4px;margin-bottom:14px;">
+      <button class="acc-tab active" onclick="switchAccTab('dashboard',this)" style="flex-shrink:0;">📊 Dashboard</button>
+      <button class="acc-tab" onclick="switchAccTab('info',this)" style="flex-shrink:0;">👤 โปรไฟล์</button>
+      <button class="acc-tab" onclick="switchAccTab('deposit',this)" style="flex-shrink:0;">💰 เติมเงิน</button>
+      <button class="acc-tab" onclick="switchAccTab('withdraw',this)" style="flex-shrink:0;">🏧 ถอนเงิน</button>
+      <button class="acc-tab" onclick="switchAccTab('bet',this)" style="flex-shrink:0;">🎯 P2P</button>
+      <button class="acc-tab" onclick="switchAccTab('txn',this)" style="flex-shrink:0;">📋 ธุรกรรม</button>
+      <button class="acc-tab" onclick="switchAccTab('support',this)" style="flex-shrink:0;">💬 ติดต่อ</button>
+    </div>
+
+    <!-- DASHBOARD TAB -->
+    <div class="acc-panel active" id="acc-dashboard">
+      <!-- ยอดเงิน big display -->
+      <div style="background:linear-gradient(135deg,rgba(27,107,47,0.3),rgba(39,148,63,0.15));border:1px solid rgba(39,148,63,0.3);border-radius:16px;padding:20px;margin-bottom:14px;text-align:center;">
+        <div style="font-family:'Kanit',sans-serif;font-size:12px;color:rgba(240,255,232,0.5);margin-bottom:4px;">ยอดเงินคงเหลือ</div>
+        <div style="font-family:'Kanit',sans-serif;font-weight:900;font-size:36px;color:#4ade80;" id="dash-balance">0</div>
+        <div style="font-family:'Kanit',sans-serif;font-size:13px;color:rgba(240,255,232,0.4);">บาท</div>
+        <div style="display:flex;gap:10px;margin-top:14px;justify-content:center;">
+          <button onclick="switchAccTab('deposit',document.querySelector('.acc-tab:nth-child(3)'))" style="font-family:'Kanit',sans-serif;font-size:13px;font-weight:700;padding:10px 20px;border-radius:10px;border:none;background:var(--green);color:#fff;cursor:pointer;flex:1;max-width:140px;">💰 เติมเงิน</button>
+          <button onclick="switchAccTab('withdraw',document.querySelector('.acc-tab:nth-child(4)'))" style="font-family:'Kanit',sans-serif;font-size:13px;font-weight:700;padding:10px 20px;border-radius:10px;border:1px solid rgba(248,113,113,0.4);background:transparent;color:#f87171;cursor:pointer;flex:1;max-width:140px;">🏧 ถอนเงิน</button>
+        </div>
+      </div>
+
+      <!-- สถิติการเดิมพัน -->
+      <div style="font-family:'Kanit',sans-serif;font-weight:700;font-size:13px;color:rgba(240,255,232,0.6);margin-bottom:10px;">📊 สถิติการเดิมพัน</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px;">
+        <div style="background:rgba(74,222,128,0.08);border:1px solid rgba(74,222,128,0.2);border-radius:12px;padding:14px;text-align:center;">
+          <div style="font-size:24px;margin-bottom:4px;">🏆</div>
+          <div style="font-family:'Kanit',sans-serif;font-weight:900;font-size:22px;color:#4ade80;" id="dash-win">0</div>
+          <div style="font-size:11px;color:rgba(240,255,232,0.4);">ชนะ</div>
+        </div>
+        <div style="background:rgba(248,113,113,0.08);border:1px solid rgba(248,113,113,0.2);border-radius:12px;padding:14px;text-align:center;">
+          <div style="font-size:24px;margin-bottom:4px;">💔</div>
+          <div style="font-family:'Kanit',sans-serif;font-weight:900;font-size:22px;color:#f87171;" id="dash-lose">0</div>
+          <div style="font-size:11px;color:rgba(240,255,232,0.4);">แพ้</div>
+        </div>
+        <div style="background:rgba(245,200,66,0.08);border:1px solid rgba(245,200,66,0.15);border-radius:12px;padding:14px;text-align:center;">
+          <div style="font-size:24px;margin-bottom:4px;">🎯</div>
+          <div style="font-family:'Kanit',sans-serif;font-weight:900;font-size:22px;color:var(--gold);" id="dash-total-bets">0</div>
+          <div style="font-size:11px;color:rgba(240,255,232,0.4);">เดิมพันทั้งหมด</div>
+        </div>
+        <div style="background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);border-radius:12px;padding:14px;text-align:center;">
+          <div style="font-size:24px;margin-bottom:4px;">📈</div>
+          <div style="font-family:'Kanit',sans-serif;font-weight:900;font-size:18px;" id="dash-winrate" style="color:#fff;">—%</div>
+          <div style="font-size:11px;color:rgba(240,255,232,0.4);">อัตราชนะ</div>
+        </div>
+      </div>
+
+      <!-- กำไร/ขาดทุนสุทธิ -->
+      <div style="background:rgba(0,0,0,0.2);border:1px solid rgba(255,255,255,0.08);border-radius:12px;padding:14px;margin-bottom:14px;">
+        <div style="font-family:'Kanit',sans-serif;font-size:11px;color:rgba(240,255,232,0.4);margin-bottom:8px;">💵 สรุปการเงิน</div>
+        <div style="display:flex;justify-content:space-between;margin-bottom:6px;">
+          <span style="font-size:13px;color:rgba(240,255,232,0.6);">เติมเงินรวม</span>
+          <span style="font-family:'Kanit',sans-serif;font-weight:700;color:#4ade80;" id="dash-total-dep">0 ฿</span>
+        </div>
+        <div style="display:flex;justify-content:space-between;margin-bottom:6px;">
+          <span style="font-size:13px;color:rgba(240,255,232,0.6);">ถอนเงินรวม</span>
+          <span style="font-family:'Kanit',sans-serif;font-weight:700;color:#f87171;" id="dash-total-with">0 ฿</span>
+        </div>
+        <div style="height:1px;background:rgba(255,255,255,0.08);margin:8px 0;"></div>
+        <div style="display:flex;justify-content:space-between;">
+          <span style="font-size:13px;color:rgba(240,255,232,0.6);">กำไร/ขาดทุนจากเดิมพัน</span>
+          <span style="font-family:'Kanit',sans-serif;font-weight:900;font-size:15px;" id="dash-profit">0 ฿</span>
+        </div>
+      </div>
+
+      <!-- รายการล่าสุด -->
+      <div style="font-family:'Kanit',sans-serif;font-weight:700;font-size:13px;color:rgba(240,255,232,0.6);margin-bottom:10px;">🕐 รายการล่าสุด</div>
+      <div id="dash-recent-list">
+        <div style="text-align:center;padding:16px;color:rgba(240,255,232,0.25);font-size:13px;">กำลังโหลด...</div>
+      </div>
     </div>
 
     <!-- INFO TAB -->
@@ -3439,76 +3550,36 @@
     </div>
 
     <!-- BET HISTORY TAB -->
+    <!-- P2P BET HISTORY TAB -->
     <div class="acc-panel" id="acc-bet">
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;">
-        <div style="font-family:'Kanit',sans-serif;font-size:14px;color:rgba(240,255,232,0.6);">ผลการเดิมพันทั้งหมด</div>
-        <div style="display:flex;gap:8px;">
-          <span style="background:rgba(74,222,128,0.1);border-radius:6px;padding:4px 12px;font-family:'Kanit',sans-serif;font-size:12px;color:var(--accent);">ชนะ <strong id="bet-win-count">2</strong></span>
-          <span style="background:rgba(248,113,113,0.1);border-radius:6px;padding:4px 12px;font-family:'Kanit',sans-serif;font-size:12px;color:#f87171;">แพ้ <strong id="bet-lose-count">1</strong></span>
+        <div style="font-family:'Kanit',sans-serif;font-size:14px;font-weight:700;color:rgba(240,255,232,0.7);">🎯 ประวัติการเดิมพัน P2P</div>
+        <button onclick="loadBetHistory()" style="font-family:'Kanit',sans-serif;font-size:11px;padding:4px 12px;border-radius:6px;border:1px solid rgba(245,200,66,0.3);background:transparent;color:var(--gold);cursor:pointer;">🔄 รีเฟรช</button>
+      </div>
+
+      <!-- สรุปสถิติ -->
+      <div style="display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap;">
+        <div style="flex:1;min-width:80px;background:rgba(74,222,128,0.08);border:1px solid rgba(74,222,128,0.2);border-radius:10px;padding:10px;text-align:center;">
+          <div style="font-family:'Kanit',sans-serif;font-weight:900;font-size:20px;color:#4ade80;" id="bet-win-count">—</div>
+          <div style="font-size:11px;color:rgba(240,255,232,0.4);">ชนะ</div>
+        </div>
+        <div style="flex:1;min-width:80px;background:rgba(248,113,113,0.08);border:1px solid rgba(248,113,113,0.2);border-radius:10px;padding:10px;text-align:center;">
+          <div style="font-family:'Kanit',sans-serif;font-weight:900;font-size:20px;color:#f87171;" id="bet-lose-count">—</div>
+          <div style="font-size:11px;color:rgba(240,255,232,0.4);">แพ้</div>
+        </div>
+        <div style="flex:1;min-width:80px;background:rgba(245,200,66,0.08);border:1px solid rgba(245,200,66,0.15);border-radius:10px;padding:10px;text-align:center;">
+          <div style="font-family:'Kanit',sans-serif;font-weight:900;font-size:20px;color:var(--gold);" id="bet-pending-count">—</div>
+          <div style="font-size:11px;color:rgba(240,255,232,0.4);">รอผล</div>
+        </div>
+        <div style="flex:1;min-width:80px;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);border-radius:10px;padding:10px;text-align:center;">
+          <div style="font-family:'Kanit',sans-serif;font-weight:900;font-size:16px;" id="bet-profit-stat">—</div>
+          <div style="font-size:11px;color:rgba(240,255,232,0.4);">กำไรสุทธิ</div>
         </div>
       </div>
 
-      <div class="bet-card">
-        <div class="bet-card-inner">
-          <div class="bet-bull">
-            <div class="bet-bull-name my-pick">เจ้าพายุ ★</div>
-            <div style="font-size:11px;color:rgba(240,255,232,0.4);margin-top:3px;">เดิมพัน: <span style="color:var(--gold);font-family:'Kanit',sans-serif;font-weight:700;">500 ฿</span></div>
-          </div>
-          <div class="bet-center">
-            <div class="bet-vs">VS</div>
-            <div style="font-size:10px;color:rgba(240,255,232,0.3);margin-top:4px;">4 มิ.ย. 68</div>
-          </div>
-          <div class="bet-bull right">
-            <div class="bet-bull-name">ดำมหากาฬ</div>
-            <div style="font-size:11px;color:rgba(240,255,232,0.4);margin-top:3px;">รุ่นแชมเปียน</div>
-          </div>
-        </div>
-        <div class="bet-result-bar bet-result-win">
-          <div style="font-family:'Kanit',sans-serif;font-size:13px;color:var(--accent);">🏆 เจ้าพายุ ชนะ — <strong>คุณชนะ!</strong></div>
-          <div style="font-family:'Kanit',sans-serif;font-weight:900;font-size:16px;color:var(--gold);">+950 ฿</div>
-        </div>
-      </div>
-
-      <div class="bet-card">
-        <div class="bet-card-inner">
-          <div class="bet-bull">
-            <div class="bet-bull-name my-pick">แดงอรหันต์ ★</div>
-            <div style="font-size:11px;color:rgba(240,255,232,0.4);margin-top:3px;">เดิมพัน: <span style="color:var(--gold);font-family:'Kanit',sans-serif;font-weight:700;">300 ฿</span></div>
-          </div>
-          <div class="bet-center">
-            <div class="bet-vs">VS</div>
-            <div style="font-size:10px;color:rgba(240,255,232,0.3);margin-top:4px;">3 มิ.ย. 68</div>
-          </div>
-          <div class="bet-bull right">
-            <div class="bet-bull-name winner">ขาวมงคล 🏆</div>
-            <div style="font-size:11px;color:rgba(240,255,232,0.4);margin-top:3px;">รุ่นแชมเปียน</div>
-          </div>
-        </div>
-        <div class="bet-result-bar bet-result-lose">
-          <div style="font-family:'Kanit',sans-serif;font-size:13px;color:#f87171;">ขาวมงคล ชนะ — <strong>คุณแพ้</strong></div>
-          <div style="font-family:'Kanit',sans-serif;font-weight:900;font-size:16px;color:rgba(240,255,232,0.35);">-300 ฿</div>
-        </div>
-      </div>
-
-      <div class="bet-card">
-        <div class="bet-card-inner">
-          <div class="bet-bull">
-            <div class="bet-bull-name my-pick">เหลืองฟ้าผ่า ★</div>
-            <div style="font-size:11px;color:rgba(240,255,232,0.4);margin-top:3px;">เดิมพัน: <span style="color:var(--gold);font-family:'Kanit',sans-serif;font-weight:700;">1,000 ฿</span></div>
-          </div>
-          <div class="bet-center">
-            <div class="bet-vs">VS</div>
-            <div style="font-size:10px;color:rgba(240,255,232,0.3);margin-top:4px;">1 มิ.ย. 68</div>
-          </div>
-          <div class="bet-bull right">
-            <div class="bet-bull-name">น้ำตาลทอง</div>
-            <div style="font-size:11px;color:rgba(240,255,232,0.4);margin-top:3px;">รุ่นแชมเปียน</div>
-          </div>
-        </div>
-        <div class="bet-result-bar bet-result-win">
-          <div style="font-family:'Kanit',sans-serif;font-size:13px;color:var(--accent);">🏆 เหลืองฟ้าผ่า ชนะ — <strong>คุณชนะ!</strong></div>
-          <div style="font-family:'Kanit',sans-serif;font-weight:900;font-size:16px;color:var(--gold);">+1,900 ฿</div>
-        </div>
+      <!-- รายการเดิมพัน -->
+      <div id="bet-history-list">
+        <div style="text-align:center;padding:24px;color:rgba(240,255,232,0.25);font-family:'Kanit',sans-serif;">กำลังโหลด...</div>
       </div>
     </div>
 
@@ -3885,13 +3956,14 @@
         const d = payload.new;
         if (d.nick !== nick) return; // กรอง nick เอง
         if (d.status === 'approved') {
-          // ดึงยอดจริงจาก Supabase แทนการบวกเอง
           refreshBalance();
+          addNotification('💰', 'เติมเงินสำเร็จ!', `+${Number(d.amount).toLocaleString()} ฿ เข้าบัญชีแล้วครับ`, 'success');
           showFEToast(`✅ เติมเงิน +${Number(d.amount).toLocaleString()} ฿ สำเร็จแล้วครับ!`);
-          loadTxnHistory();
+          loadTxnHistory(); loadDepHistory();
         } else if (d.status === 'rejected') {
+          addNotification('❌', 'คำขอเติมเงินถูกปฏิเสธ', d.reason || 'กรุณาติดต่อ Admin ครับ', 'error');
           showFEToast(`❌ คำขอเติมเงินถูกปฏิเสธ: ${d.reason || ''}`);
-          loadTxnHistory();
+          loadTxnHistory(); loadDepHistory();
         }
       })
       .on('postgres_changes', {
@@ -3900,12 +3972,14 @@
         const w = payload.new;
         if (w.nick !== nick) return;
         if (w.status === 'approved') {
+          addNotification('🏧', 'โอนเงินสำเร็จ!', `-${Number(w.amount).toLocaleString()} ฿ โอนให้คุณแล้วครับ`, 'success');
           showFEToast(`✅ ถอนเงิน -${Number(w.amount).toLocaleString()} ฿ สำเร็จแล้วครับ!`);
-          loadTxnHistory();
+          loadTxnHistory(); loadWithHistory();
         } else if (w.status === 'rejected') {
-          refreshBalance(); // คืนเงิน
+          refreshBalance();
+          addNotification('❌', 'คำขอถอนเงินถูกปฏิเสธ', 'ยอดเงินคืนแล้วครับ', 'error');
           showFEToast(`❌ คำขอถอนเงินถูกปฏิเสธ คืนเงินให้แล้วครับ`);
-          loadTxnHistory();
+          loadTxnHistory(); loadWithHistory();
         }
       })
       .on('postgres_changes', {
@@ -3917,6 +3991,38 @@
         updateAccBalance(Number(m.balance || 0));
         currentUser.balance = Number(m.balance || 0);
         sessionStorage.setItem('bw_user', JSON.stringify(currentUser));
+      })
+      .subscribe();
+  }
+
+  // ── Real-time Match Results + Notification ──
+  function subscribeMatchResults() {
+    sb.channel('match-results-fe')
+      .on('postgres_changes', {
+        event: 'UPDATE', schema: 'public', table: 'matches'
+      }, payload => {
+        const m = payload.new;
+        if (m.status === 'done' && m.winner) {
+          // อัปเดต history
+          const idx = allHistoryMatches.findIndex(x => x.id === m.id);
+          if (idx !== -1) { allHistoryMatches[idx] = { ...allHistoryMatches[idx], ...m }; }
+          else { allHistoryMatches.unshift(m); }
+          renderHistory();
+          // Notification
+          addNotification('🏆', `ผลการแข่งขัน: ${m.round||''}`, `ผู้ชนะ: ${m.winner} · ${m.name_a} VS ${m.name_b}`, 'match');
+          // Banner ในหน้าผลแข่งขัน
+          const notif = document.getElementById('result-notif');
+          const title = document.getElementById('result-notif-title');
+          const sub   = document.getElementById('result-notif-sub');
+          if (notif && title && sub) {
+            title.textContent = `🏆 ผลการแข่งขัน: ${m.round||''}`;
+            sub.textContent   = `${m.name_a} VS ${m.name_b} · ผู้ชนะ: ${m.winner}`;
+            notif.style.display = 'block';
+          }
+          if (document.getElementById('page-history')?.style.display === 'none') {
+            showFEToast(`🏆 ผลการแข่งขัน: ${m.winner} ชนะ!`);
+          }
+        }
       })
       .subscribe();
   }
@@ -3988,6 +4094,216 @@
     document.getElementById('change-pass-toggle').style.display = 'block';
 
     showFEToast('✅ เปลี่ยนรหัสผ่านสำเร็จแล้วครับ!');
+  }
+
+  // ── DASHBOARD ──
+  async function loadDashboard() {
+    if (!currentUser) return;
+    const nick = currentUser.nick;
+
+    // โหลดข้อมูลพร้อมกัน
+    const [depRes, withRes, betRes] = await Promise.all([
+      sb.from('deposits').select('amount,status').eq('nick', nick),
+      sb.from('withdrawals').select('amount,status').eq('nick', nick),
+      sb.from('bets').select('*').eq('nick', nick).order('created_at',{ascending:false}),
+    ]);
+
+    const deps  = depRes.data  || [];
+    const withs = withRes.data || [];
+    const bets  = betRes.data  || [];
+
+    // ยอดเงิน
+    const bal = currentUser.balance || 0;
+    const dashBal = document.getElementById('dash-balance');
+    if (dashBal) dashBal.textContent = Number(bal).toLocaleString();
+
+    // สถิติเดิมพัน
+    const won     = bets.filter(b => b.status === 'won').length;
+    const lost    = bets.filter(b => b.status === 'lost').length;
+    const pending = bets.filter(b => ['waiting','matched'].includes(b.status)).length;
+    const winrate = (won + lost) > 0 ? Math.round(won/(won+lost)*100) : 0;
+
+    const el = (id) => document.getElementById(id);
+    if (el('dash-win'))        el('dash-win').textContent        = won;
+    if (el('dash-lose'))       el('dash-lose').textContent       = lost;
+    if (el('dash-total-bets')) el('dash-total-bets').textContent = bets.length;
+    if (el('dash-winrate'))    { el('dash-winrate').textContent = winrate + '%'; el('dash-winrate').style.color = winrate >= 50 ? '#4ade80' : '#f87171'; }
+
+    // สรุปการเงิน
+    const totalDep  = deps.filter(d=>d.status==='approved').reduce((s,d)=>s+Number(d.amount||0),0);
+    const totalWith = withs.filter(w=>w.status==='approved').reduce((s,w)=>s+Number(w.amount||0),0);
+    const betWon    = bets.filter(b=>b.status==='won').reduce((s,b)=>s+Number(b.amount||0),0);
+    const betLost   = bets.filter(b=>b.status==='lost').reduce((s,b)=>s+Number(b.amount||0),0);
+    const profit    = betWon - betLost;
+
+    if (el('dash-total-dep'))  el('dash-total-dep').textContent  = '+' + totalDep.toLocaleString()  + ' ฿';
+    if (el('dash-total-with')) el('dash-total-with').textContent = '-' + totalWith.toLocaleString() + ' ฿';
+    if (el('dash-profit')) {
+      el('dash-profit').textContent = (profit >= 0 ? '+' : '') + profit.toLocaleString() + ' ฿';
+      el('dash-profit').style.color = profit >= 0 ? '#4ade80' : '#f87171';
+    }
+
+    // Quick stats
+    if (el('qs-dep'))  el('qs-dep').textContent  = '+' + totalDep.toLocaleString();
+    if (el('qs-with')) el('qs-with').textContent = '-' + totalWith.toLocaleString();
+    if (el('qs-bets')) el('qs-bets').textContent = bets.length;
+
+    // รายการล่าสุด (รวม dep + with + bet 5 อันล่าสุด)
+    const recent = [
+      ...deps.slice(0,3).map(d => ({ type:'dep', ...d })),
+      ...withs.slice(0,3).map(w => ({ type:'with', ...w })),
+      ...bets.slice(0,3).map(b => ({ type:'bet', ...b })),
+    ].slice(0, 5);
+
+    const recentEl = el('dash-recent-list');
+    if (recentEl) {
+      if (!recent.length) {
+        recentEl.innerHTML = '<div style="text-align:center;padding:16px;color:rgba(240,255,232,0.25);font-size:12px;">ยังไม่มีรายการครับ</div>';
+      } else {
+        recentEl.innerHTML = recent.map(r => {
+          const icon  = r.type==='dep' ? '💰' : r.type==='with' ? '🏧' : '🎯';
+          const label = r.type==='dep' ? 'เติมเงิน' : r.type==='with' ? 'ถอนเงิน' : `เดิมพัน ${r.side_name||''}`;
+          const amt   = r.type==='dep' ? `+${Number(r.amount).toLocaleString()} ฿` : r.type==='with' ? `-${Number(r.amount).toLocaleString()} ฿` : `${Number(r.amount).toLocaleString()} ฿`;
+          const color = r.type==='dep' ? '#4ade80' : r.type==='with' ? '#f87171' : 'var(--gold)';
+          const stLabel = r.status==='approved'?'✅':r.status==='pending'?'⏳':r.status==='won'?'🏆':r.status==='lost'?'❌':'⏳';
+          return `<div style="display:flex;align-items:center;justify-content:space-between;padding:9px 12px;background:rgba(255,255,255,0.04);border-radius:8px;margin-bottom:6px;">
+            <div style="display:flex;align-items:center;gap:8px;">
+              <span style="font-size:18px;">${icon}</span>
+              <div><div style="font-family:'Kanit',sans-serif;font-size:13px;color:var(--cream);">${label}</div><div style="font-size:10px;color:rgba(240,255,232,0.3);">${stLabel} ${r.status||''}</div></div>
+            </div>
+            <div style="font-family:'Kanit',sans-serif;font-weight:700;font-size:14px;color:${color};">${amt}</div>
+          </div>`;
+        }).join('');
+      }
+    }
+  }
+
+  // ── BET HISTORY จาก Supabase ──
+  async function loadBetHistory() {
+    if (!currentUser) return;
+    const el = document.getElementById('bet-history-list');
+    if (el) el.innerHTML = '<div style="text-align:center;padding:20px;color:rgba(240,255,232,0.25);">กำลังโหลด...</div>';
+
+    const { data: bets } = await sb.from('bets').select('*,matches(round,date,name_a,name_b,winner)')
+      .eq('nick', currentUser.nick).order('created_at',{ascending:false}).limit(30);
+
+    const rows = bets || [];
+    const won     = rows.filter(b=>b.status==='won').length;
+    const lost    = rows.filter(b=>b.status==='lost').length;
+    const pend    = rows.filter(b=>['waiting','matched'].includes(b.status)).length;
+    const profit  = rows.filter(b=>b.status==='won').reduce((s,b)=>s+Number(b.amount||0),0)
+                  - rows.filter(b=>b.status==='lost').reduce((s,b)=>s+Number(b.amount||0),0);
+
+    const setEl = (id,v) => { const e=document.getElementById(id); if(e) e.textContent=v; };
+    setEl('bet-win-count', won);
+    setEl('bet-lose-count', lost);
+    setEl('bet-pending-count', pend);
+    const profEl = document.getElementById('bet-profit-stat');
+    if (profEl) { profEl.textContent = (profit>=0?'+':'')+profit.toLocaleString()+' ฿'; profEl.style.color = profit>=0?'#4ade80':'#f87171'; }
+
+    if (!el) return;
+    if (!rows.length) { el.innerHTML = '<div style="text-align:center;padding:24px;color:rgba(240,255,232,0.25);font-family:\'Kanit\',sans-serif;">ยังไม่มีประวัติการเดิมพันครับ</div>'; return; }
+
+    el.innerHTML = rows.map(b => {
+      const m        = b.matches || {};
+      const isWon    = b.status === 'won';
+      const isLost   = b.status === 'lost';
+      const isWaiting = ['waiting','matched'].includes(b.status);
+      const resultColor = isWon ? '#4ade80' : isLost ? '#f87171' : 'var(--gold)';
+      const resultLabel = isWon ? '🏆 ชนะ' : isLost ? '❌ แพ้' : '⏳ รอผล';
+      const myPick   = b.side_name || '—';
+      const oppPick  = myPick === m.name_a ? m.name_b : m.name_a;
+      const dateStr  = b.created_at ? new Date(b.created_at).toLocaleDateString('th-TH',{day:'numeric',month:'short'}) : '';
+      const payout   = isWon ? `+${(Number(b.amount)*Number(b.odds)).toLocaleString('th-TH',{maximumFractionDigits:0})} ฿` : isLost ? `-${Number(b.amount).toLocaleString()} ฿` : `${Number(b.amount).toLocaleString()} ฿`;
+
+      return `
+        <div class="bet-card" style="margin-bottom:10px;">
+          <div class="bet-card-inner">
+            <div class="bet-bull">
+              <div class="bet-bull-name my-pick">${myPick} ★</div>
+              <div style="font-size:11px;color:rgba(240,255,232,0.4);margin-top:3px;">เดิมพัน: <span style="color:var(--gold);font-family:'Kanit',sans-serif;font-weight:700;">${Number(b.amount).toLocaleString()} ฿</span></div>
+              <div style="font-size:10px;color:rgba(240,255,232,0.3);margin-top:2px;">อัตรา 1:${b.odds}</div>
+            </div>
+            <div class="bet-center">
+              <div class="bet-vs">VS</div>
+              <div style="font-size:10px;color:rgba(240,255,232,0.3);margin-top:4px;">${m.round||''}</div>
+              <div style="font-size:10px;color:rgba(240,255,232,0.2);">${dateStr}</div>
+            </div>
+            <div class="bet-bull right">
+              <div class="bet-bull-name ${!isWaiting && m.winner===oppPick?'winner':''}">${oppPick||'—'} ${!isWaiting&&m.winner===oppPick?'🏆':''}</div>
+              <div style="font-size:11px;color:rgba(240,255,232,0.4);margin-top:3px;">TXN: ${(b.txn||'').slice(-6)}</div>
+            </div>
+          </div>
+          <div class="bet-result-bar ${isWon?'bet-result-win':isLost?'bet-result-lose':''}" style="${isWaiting?'background:rgba(245,200,66,0.08);border-top:1px solid rgba(245,200,66,0.15);':''}">
+            <div style="font-family:'Kanit',sans-serif;font-size:13px;color:${resultColor};">${resultLabel} ${isWaiting?'— รอผลการแข่งขัน':isWon?'— คุณชนะ!':'— คุณแพ้'}</div>
+            <div style="font-family:'Kanit',sans-serif;font-weight:900;font-size:16px;color:${isWon?'var(--gold)':'rgba(240,255,232,0.4)'};">${payout}</div>
+          </div>
+        </div>`;
+    }).join('');
+  }
+
+  // ── NOTIFICATION CENTER ──
+  let notifications = [];
+
+  function toggleNotifCenter() {
+    const el = document.getElementById('notif-center');
+    if (!el) return;
+    const isOpen = el.style.display !== 'none';
+    el.style.display = isOpen ? 'none' : 'block';
+    if (!isOpen) markNotifsRead();
+  }
+
+  function markNotifsRead() {
+    notifications.forEach(n => n.unread = false);
+    updateNotifBadge();
+    renderNotifs();
+  }
+
+  function clearNotifications() {
+    notifications = [];
+    updateNotifBadge();
+    renderNotifs();
+  }
+
+  function addNotification(icon, title, sub, type='info') {
+    const n = { id: Date.now(), icon, title, sub, type, time: new Date(), unread: true };
+    notifications.unshift(n);
+    if (notifications.length > 20) notifications.pop();
+    updateNotifBadge();
+    renderNotifs();
+  }
+
+  function updateNotifBadge() {
+    const unread = notifications.filter(n=>n.unread).length;
+    const badge  = document.getElementById('notif-count');
+    const bell   = document.getElementById('notif-bell');
+    if (!badge) return;
+    if (unread > 0) {
+      badge.style.display = 'block';
+      badge.textContent   = unread > 9 ? '9+' : unread;
+    } else {
+      badge.style.display = 'none';
+    }
+  }
+
+  function renderNotifs() {
+    const el = document.getElementById('notif-list');
+    if (!el) return;
+    if (!notifications.length) {
+      el.innerHTML = '<div style="text-align:center;padding:20px;color:rgba(240,255,232,0.25);font-family:\'Kanit\',sans-serif;font-size:13px;">ยังไม่มีการแจ้งเตือนครับ</div>';
+      return;
+    }
+    el.innerHTML = notifications.map(n => {
+      const timeStr = n.time.toLocaleTimeString('th-TH',{hour:'2-digit',minute:'2-digit'});
+      return `<div class="notif-item ${n.unread?'unread':''}">
+        <div class="notif-item-icon">${n.icon}</div>
+        <div class="notif-item-body">
+          <div class="notif-item-title">${n.title}</div>
+          <div class="notif-item-sub">${n.sub||''}</div>
+          <div class="notif-item-time">${timeStr}</div>
+        </div>
+      </div>`;
+    }).join('');
   }
 
   // ── Supabase Config ──
@@ -4281,6 +4597,7 @@
     document.getElementById('acc-info-id').textContent       = currentUser.id || '—';
     document.getElementById('acc-info-addr').textContent     = `${currentUser.addr1||''} ${currentUser.addr2||''}`.trim() || '—';
     updateAccBalance(currentUser.balance || 0);
+    loadDashboard();
     loadTxnHistory();
     loadDepHistory();
     loadWithHistory();
@@ -4551,12 +4868,15 @@
   function switchAccTab(id, el) {
     document.querySelectorAll('.acc-panel').forEach(p => p.classList.remove('active'));
     document.querySelectorAll('.acc-tab').forEach(t => t.classList.remove('active'));
-    document.getElementById('acc-'+id).classList.add('active');
-    el.classList.add('active');
-    // โหลดประวัติเมื่อเข้าแต่ละแท็บ
-    if (id === 'txn')      loadTxnHistory();
-    if (id === 'deposit')  loadDepHistory();
-    if (id === 'withdraw') { loadWithdrawPanel(); loadWithHistory(); }
+    const panel = document.getElementById('acc-'+id);
+    if (panel) panel.classList.add('active');
+    if (el && el.classList) el.classList.add('active');
+    // โหลดข้อมูลตาม tab
+    if (id === 'dashboard') loadDashboard();
+    if (id === 'txn')       loadTxnHistory();
+    if (id === 'deposit')   loadDepHistory();
+    if (id === 'withdraw')  { loadWithdrawPanel(); loadWithHistory(); }
+    if (id === 'bet')       loadBetHistory();
   }
 
   // Deposit slip preview — ต้องรอ DOM โหลดก่อน
