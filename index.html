@@ -3934,7 +3934,7 @@
     document.getElementById('page-history').style.display = 'none';
     window.scrollTo(0, 0);
   }
-  function showHistory() {
+  window.showHistory = function showHistory() {
     document.getElementById('main-content').style.display = 'none';
     document.getElementById('page-schedule').style.display = 'none';
     document.getElementById('page-register').style.display = 'none';
@@ -3942,7 +3942,7 @@
     window.scrollTo(0, 0);
     loadHistory();
   }
-  function hideHistory() {
+  window.hideHistory = function hideHistory() {
     document.getElementById('page-history').style.display = 'none';
     document.getElementById('main-content').style.display = 'block';
     window.scrollTo(0, 0);
@@ -4057,7 +4057,7 @@
   }
 
   // ── เปลี่ยนรหัสผ่าน (ลูกค้าทำเอง) ──
-  async function submitChangePass() {
+  window.submitChangePass = async function submitChangePass() {
     const oldPass = document.getElementById('cp-old').value;
     const newPass = document.getElementById('cp-new').value;
     const newPass2 = document.getElementById('cp-new2').value;
@@ -4108,7 +4108,7 @@
   }
 
   // ── DASHBOARD ──
-  async function loadDashboard() {
+  window.loadDashboard = async function loadDashboard() {
     if (!currentUser) return;
     const nick = currentUser.nick;
 
@@ -4190,7 +4190,7 @@
   }
 
   // ── BET HISTORY จาก Supabase ──
-  async function loadBetHistory() {
+  window.loadBetHistory = async function loadBetHistory() {
     if (!currentUser) return;
     const el = document.getElementById('bet-history-list');
     if (el) el.innerHTML = '<div style="text-align:center;padding:20px;color:rgba(240,255,232,0.25);">กำลังโหลด...</div>';
@@ -4256,7 +4256,7 @@
   // ── NOTIFICATION CENTER ──
   let notifications = [];
 
-  function toggleNotifCenter() {
+  window.toggleNotifCenter = function toggleNotifCenter() {
     const el = document.getElementById('notif-center');
     if (!el) return;
     const isOpen = el.style.display !== 'none';
@@ -4270,7 +4270,7 @@
     renderNotifs();
   }
 
-  function clearNotifications() {
+  window.clearNotifications = function clearNotifications() {
     notifications = [];
     updateNotifBadge();
     renderNotifs();
@@ -4318,7 +4318,7 @@
   }
 
   // ── Auth Tab Switch ──
-  function switchAuthTab(tab) {
+  window.switchAuthTab = function switchAuthTab(tab) {
     const isReg = tab === 'register';
     document.getElementById('form-register').style.display = isReg ? 'block' : 'none';
     document.getElementById('form-login').style.display    = isReg ? 'none' : 'block';
@@ -4329,7 +4329,7 @@
   }
 
   // ── สมัครสมาชิก ──
-  async function submitRegister() {
+  window.submitRegister = async function submitRegister() {
     const fname     = document.getElementById('r-fname').value.trim();
     const lname     = document.getElementById('r-lname').value.trim();
     const nick      = document.getElementById('r-nick').value.trim();
@@ -4412,7 +4412,7 @@
   }
 
   // ── Login ──
-  async function submitLogin() {
+  window.submitLogin = async function submitLogin() {
     const loginInput = document.getElementById('l-phone').value.trim().replace(/-/g,'');
     const password   = document.getElementById('l-password').value;
     const errEl      = document.getElementById('login-error');
@@ -4488,7 +4488,7 @@
   }
 
   // ── Logout ──
-  function logout() {
+  window.logout = function logout() {
     currentUser = null;
     sessionStorage.removeItem('bw_user');
     const navAcc = document.getElementById('nav-myaccount');
@@ -4582,7 +4582,7 @@
     });
   }
 
-  async function goToMyAccount() {
+  window.goToMyAccount = async function goToMyAccount() {
     if (!currentUser) return;
 
     // ดึงข้อมูลล่าสุดจาก Supabase
@@ -4622,7 +4622,7 @@
     if (depBal) depBal.textContent = fmt + ' ฿';
   }
 
-  function setDepAmount(n) {
+  window.setDepAmount = function setDepAmount(n) {
     document.getElementById('dep-amount').value = n;
     updateDepAmount();
   }
@@ -4668,8 +4668,8 @@
     navigator.clipboard?.writeText(accno).then(() => alert('คัดลอกเลขบัญชีแล้วครับ: ' + accno));
   }
 
-  function setWithAmount(n) { document.getElementById('with-amount').value = n; }
-  function setWithAll() {
+  window.setWithAmount = function setWithAmount(n) { document.getElementById('with-amount').value = n; }
+  window.setWithAll = function setWithAll() {
     document.getElementById('with-amount').value = currentUser?.balance || 0;
   }
 
@@ -4682,14 +4682,14 @@
     window.scrollTo(0, 0);
   }
 
-  function hideMyAccount() {
+  window.hideMyAccount = function hideMyAccount() {
     document.getElementById('page-myaccount').style.display = 'none';
     document.getElementById('main-content').style.display   = 'block';
     window.scrollTo(0, 0);
   }
 
   // ── ประวัติเติมเงิน ──
-  async function loadDepHistory() {
+  window.loadDepHistory = async function loadDepHistory() {
     if (!currentUser) return;
     const el = document.getElementById('dep-history-list');
     if (!el) return;
@@ -4731,7 +4731,7 @@
   }
 
   // ── โหลดหน้าถอนเงิน (เช็คว่าผูกบัญชีหรือยัง) ──
-  async function loadWithdrawPanel() {
+  window.loadWithdrawPanel = async function loadWithdrawPanel() {
     if (!currentUser) return;
     // ดึงข้อมูลล่าสุด
     const { data } = await sb.from('members')
@@ -4758,7 +4758,7 @@
   }
 
   // ── ผูกบัญชีธนาคารครั้งแรก ──
-  async function bindBankAccount() {
+  window.bindBankAccount = async function bindBankAccount() {
     const bankName  = document.getElementById('bind-bank-name').value;
     const accNo     = document.getElementById('bind-bank-accno').value.trim().replace(/-/g,'');
     const accName   = document.getElementById('bind-bank-accname').value.trim();
@@ -4794,7 +4794,7 @@
   }
 
   // ── ถอนเงิน (ใช้บัญชีที่ผูกไว้) ──
-  async function submitWithdraw() {
+  window.submitWithdraw = async function submitWithdraw() {
     const amount  = parseInt(document.getElementById('with-amount').value);
     const balance = currentUser?.balance || 0;
 
@@ -4833,7 +4833,7 @@
     loadWithHistory();
   }
   // ── loadWithHistory ──
-  async function loadWithHistory() {
+  window.loadWithHistory = async function loadWithHistory() {
     if (!currentUser) return;
     const el = document.getElementById('with-history-list');
     if (!el) return;
@@ -4871,7 +4871,7 @@
   }
 
 
-  function switchAccTab(id, el) {
+  window.switchAccTab = function switchAccTab(id, el) {
     document.querySelectorAll('.acc-panel').forEach(p => p.classList.remove('active'));
     document.querySelectorAll('.acc-tab').forEach(t => t.classList.remove('active'));
     const panel = document.getElementById('acc-'+id);
@@ -4914,7 +4914,7 @@
     return String(prefix) + Array.from({length:8}, ()=>Math.floor(Math.random()*10)).join('');
   }
 
-  async function submitDeposit() {
+  window.submitDeposit = async function submitDeposit() {
     const amount  = parseInt(document.getElementById('dep-amount').value);
     const bank    = document.getElementById('dep-bank-from').value;
     const hasSlip = document.getElementById('dep-slip-preview').style.display !== 'none';
@@ -5327,32 +5327,32 @@
     window.scrollTo(0, 0);
   }
 
-  function showRegister() {
+  window.showRegister = function showRegister() {
     document.getElementById('main-content').style.display = 'none';
     document.getElementById('page-schedule').style.display = 'none';
     document.getElementById('page-register').style.display = 'block';
     window.scrollTo(0, 0);
   }
-  function hideRegister() {
+  window.hideRegister = function hideRegister() {
     document.getElementById('page-register').style.display = 'none';
     document.getElementById('main-content').style.display = 'block';
     document.getElementById('reg-form').style.display = 'block';
     document.getElementById('reg-success').style.display = 'none';
     window.scrollTo(0, 0);
   }
-  function showSchedule() {
+  window.showSchedule = function showSchedule() {
     document.getElementById('main-content').style.display = 'none';
     document.getElementById('page-register').style.display = 'none';
     document.getElementById('page-schedule').style.display = 'block';
     window.scrollTo(0, 0);
   }
-  function hideSchedule() {
+  window.hideSchedule = function hideSchedule() {
     document.getElementById('main-content').style.display = 'block';
     document.getElementById('page-schedule').style.display = 'none';
     window.scrollTo(0, 0);
   }
 
-  function openModal(d) {
+  window.openModal = function openModal(d) {
     document.getElementById('m-round').textContent = d.round;
     document.getElementById('m-bull-a').textContent = d.bullA;
     document.getElementById('m-owner-a').textContent = 'เจ้าของ: ' + d.ownerA;
@@ -5373,7 +5373,7 @@
     }
     document.getElementById('modal').classList.add('open');
   }
-  function closeModal(e) {
+  window.closeModal = function closeModal(e) {
     if (e.target === document.getElementById('modal'))
       document.getElementById('modal').classList.remove('open');
   }
