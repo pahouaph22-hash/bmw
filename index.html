@@ -6,6 +6,32 @@
 <title>วัวชนไทย — ศึกวัวชนภาคใต้</title>
 <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@400;500;700;900&family=Sarabun:wght@400;500&display=swap" rel="stylesheet">
 <script src="https://unpkg.com/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+<script>
+// ── Global stubs: ทำให้ onclick ทำงานได้ก่อน main script โหลด ──
+// เมื่อ main script โหลดแล้ว window.xxx จะถูก override ด้วย function จริง
+var _pending = {};
+['showRegister','hideRegister','showSchedule','hideSchedule',
+ 'showHistory','hideHistory','showMyAccount','hideMyAccount',
+ 'goToMyAccount','logout','openModal','closeModal',
+ 'switchAuthTab','submitRegister','submitLogin',
+ 'switchAccTab','setDepAmount','setWithAmount','setWithAll',
+ 'submitDeposit','submitWithdraw','bindBankAccount',
+ 'submitChangePass','toggleNotifCenter','clearNotifications',
+ 'loadDepHistory','loadWithHistory','loadBetHistory',
+ 'loadDashboard','loadWithdrawPanel','clearHistFilter',
+ 'setRating','submitSupport','renderHistory','loadHistory',
+ 'openMatchDetail','closeMatchDetail','setOdds','setBetAmount',
+ 'toggleFAQ'
+].forEach(function(fn) {
+  window[fn] = function() {
+    var args = arguments;
+    // รอ 100ms แล้วลองอีกครั้ง (main script น่าจะโหลดแล้ว)
+    setTimeout(function() {
+      if (window['_real_' + fn]) window['_real_' + fn].apply(null, args);
+    }, 100);
+  };
+});
+</script>
 <style>
   *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
   :root {
@@ -3935,7 +3961,7 @@
     document.getElementById('page-history').style.display = 'none';
     window.scrollTo(0, 0);
   }
-  window.showHistory = function showHistory() {
+  window.showHistory = window._real_showHistory = function showHistory() {
     document.getElementById('main-content').style.display = 'none';
     document.getElementById('page-schedule').style.display = 'none';
     document.getElementById('page-register').style.display = 'none';
@@ -3946,13 +3972,13 @@
 
   let allHistoryMatches = [];
 
-  window.loadHistory = async function loadHistory() {
+  window.loadHistory = window._real_loadHistory = async function loadHistory() {
     const { data } = await sb.from('matches').select('*').eq('status','done').order('created_at',{ascending:false});
     allHistoryMatches = data || [];
     renderHistory();
   }
 
-  window.renderHistory = function renderHistory() {
+  window.renderHistory = window._real_renderHistory = function renderHistory() {
     const q    = document.getElementById('hist-search')?.value.toLowerCase() || '';
     const from = document.getElementById('hist-date-from')?.value || '';
     const to   = document.getElementById('hist-date-to')?.value || '';
@@ -4072,7 +4098,7 @@
     });
   }
 
-  function openHistoryDetail(m) {
+  window.openHistoryDetail = window._real_openHistoryDetail = function openHistoryDetail(m) {
     const isWinA = m.winner === m.name_a;
     const isWinB = m.winner === m.name_b;
     const ov = document.createElement('div');
@@ -4107,7 +4133,7 @@
     </div>`;
     document.body.appendChild(ov);
   }
-  window.hideHistory = function hideHistory() {
+  window.hideHistory = window._real_hideHistory = function hideHistory() {
     document.getElementById('page-history').style.display = 'none';
     document.getElementById('main-content').style.display = 'block';
     window.scrollTo(0, 0);
@@ -4222,7 +4248,7 @@
   }
 
   // ── เปลี่ยนรหัสผ่าน (ลูกค้าทำเอง) ──
-  window.submitChangePass = async function submitChangePass() {
+  window.submitChangePass = window._real_submitChangePass = async function submitChangePass() {
     const oldPass = document.getElementById('cp-old').value;
     const newPass = document.getElementById('cp-new').value;
     const newPass2 = document.getElementById('cp-new2').value;
@@ -4265,7 +4291,7 @@
     showFEToast('✅ เปลี่ยนรหัสผ่านสำเร็จแล้วครับ!');
   }
 
-  window.clearHistFilter = function clearHistFilter() {
+  window.clearHistFilter = window._real_clearHistFilter = function clearHistFilter() {
     ['hist-search','hist-date-from','hist-date-to'].forEach(id => {
       const el = document.getElementById(id); if (el) el.value = '';
     });
@@ -4273,7 +4299,7 @@
   }
 
   // ── DASHBOARD ──
-  window.loadDashboard = async function loadDashboard() {
+  window.loadDashboard = window._real_loadDashboard = async function loadDashboard() {
     if (!currentUser) return;
     const nick = currentUser.nick;
 
@@ -4355,7 +4381,7 @@
   }
 
   // ── BET HISTORY จาก Supabase ──
-  window.loadBetHistory = async function loadBetHistory() {
+  window.loadBetHistory = window._real_loadBetHistory = async function loadBetHistory() {
     if (!currentUser) return;
     const el = document.getElementById('bet-history-list');
     if (el) el.innerHTML = '<div style="text-align:center;padding:20px;color:rgba(240,255,232,0.25);">กำลังโหลด...</div>';
@@ -4421,7 +4447,7 @@
   // ── NOTIFICATION CENTER ──
   let notifications = [];
 
-  window.toggleNotifCenter = function toggleNotifCenter() {
+  window.toggleNotifCenter = window._real_toggleNotifCenter = function toggleNotifCenter() {
     const el = document.getElementById('notif-center');
     if (!el) return;
     const isOpen = el.style.display !== 'none';
@@ -4435,7 +4461,7 @@
     renderNotifs();
   }
 
-  window.clearNotifications = function clearNotifications() {
+  window.clearNotifications = window._real_clearNotifications = function clearNotifications() {
     notifications = [];
     updateNotifBadge();
     renderNotifs();
@@ -4483,7 +4509,7 @@
   }
 
   // ── Auth Tab Switch ──
-  window.switchAuthTab = function switchAuthTab(tab) {
+  window.switchAuthTab = window._real_switchAuthTab = function switchAuthTab(tab) {
     const isReg = tab === 'register';
     document.getElementById('form-register').style.display = isReg ? 'block' : 'none';
     document.getElementById('form-login').style.display    = isReg ? 'none' : 'block';
@@ -4494,7 +4520,7 @@
   }
 
   // ── สมัครสมาชิก ──
-  window.submitRegister = async function submitRegister() {
+  window.submitRegister = window._real_submitRegister = async function submitRegister() {
     const fname     = document.getElementById('r-fname').value.trim();
     const lname     = document.getElementById('r-lname').value.trim();
     const nick      = document.getElementById('r-nick').value.trim();
@@ -4577,7 +4603,7 @@
   }
 
   // ── Login ──
-  window.submitLogin = async function submitLogin() {
+  window.submitLogin = window._real_submitLogin = async function submitLogin() {
     const loginInput = document.getElementById('l-phone').value.trim().replace(/-/g,'');
     const password   = document.getElementById('l-password').value;
     const errEl      = document.getElementById('login-error');
@@ -4653,7 +4679,7 @@
   }
 
   // ── Logout ──
-  window.logout = function logout() {
+  window.logout = window._real_logout = function logout() {
     currentUser = null;
     sessionStorage.removeItem('bw_user');
     const navAcc = document.getElementById('nav-myaccount');
@@ -4747,7 +4773,7 @@
     });
   }
 
-  window.goToMyAccount = async function goToMyAccount() {
+  window.goToMyAccount = window._real_goToMyAccount = async function goToMyAccount() {
     if (!currentUser) return;
 
     // ดึงข้อมูลล่าสุดจาก Supabase
@@ -4787,7 +4813,7 @@
     if (depBal) depBal.textContent = fmt + ' ฿';
   }
 
-  window.setDepAmount = function setDepAmount(n) {
+  window.setDepAmount = window._real_setDepAmount = function setDepAmount(n) {
     document.getElementById('dep-amount').value = n;
     updateDepAmount();
   }
@@ -4833,12 +4859,12 @@
     navigator.clipboard?.writeText(accno).then(() => alert('คัดลอกเลขบัญชีแล้วครับ: ' + accno));
   }
 
-  window.setWithAmount = function setWithAmount(n) { document.getElementById('with-amount').value = n; }
-  window.setWithAll = function setWithAll() {
+  window.setWithAmount = window._real_setWithAmount = function setWithAmount(n) { document.getElementById('with-amount').value = n; }
+  window.setWithAll = window._real_setWithAll = function setWithAll() {
     document.getElementById('with-amount').value = currentUser?.balance || 0;
   }
 
-  window.showMyAccount = function showMyAccount() {
+  window.showMyAccount = window._real_showMyAccount = function showMyAccount() {
     document.getElementById('main-content').style.display  = 'none';
     document.getElementById('page-schedule').style.display  = 'none';
     document.getElementById('page-register').style.display  = 'none';
@@ -4847,14 +4873,14 @@
     window.scrollTo(0, 0);
   }
 
-  window.hideMyAccount = function hideMyAccount() {
+  window.hideMyAccount = window._real_hideMyAccount = function hideMyAccount() {
     document.getElementById('page-myaccount').style.display = 'none';
     document.getElementById('main-content').style.display   = 'block';
     window.scrollTo(0, 0);
   }
 
   // ── ประวัติเติมเงิน ──
-  window.loadDepHistory = async function loadDepHistory() {
+  window.loadDepHistory = window._real_loadDepHistory = async function loadDepHistory() {
     if (!currentUser) return;
     const el = document.getElementById('dep-history-list');
     if (!el) return;
@@ -4896,7 +4922,7 @@
   }
 
   // ── โหลดหน้าถอนเงิน (เช็คว่าผูกบัญชีหรือยัง) ──
-  window.loadWithdrawPanel = async function loadWithdrawPanel() {
+  window.loadWithdrawPanel = window._real_loadWithdrawPanel = async function loadWithdrawPanel() {
     if (!currentUser) return;
     // ดึงข้อมูลล่าสุด
     const { data } = await sb.from('members')
@@ -4923,7 +4949,7 @@
   }
 
   // ── ผูกบัญชีธนาคารครั้งแรก ──
-  window.bindBankAccount = async function bindBankAccount() {
+  window.bindBankAccount = window._real_bindBankAccount = async function bindBankAccount() {
     const bankName  = document.getElementById('bind-bank-name').value;
     const accNo     = document.getElementById('bind-bank-accno').value.trim().replace(/-/g,'');
     const accName   = document.getElementById('bind-bank-accname').value.trim();
@@ -4959,7 +4985,7 @@
   }
 
   // ── ถอนเงิน (ใช้บัญชีที่ผูกไว้) ──
-  window.submitWithdraw = async function submitWithdraw() {
+  window.submitWithdraw = window._real_submitWithdraw = async function submitWithdraw() {
     const amount  = parseInt(document.getElementById('with-amount').value);
     const balance = currentUser?.balance || 0;
 
@@ -4998,7 +5024,7 @@
     loadWithHistory();
   }
   // ── loadWithHistory ──
-  window.loadWithHistory = async function loadWithHistory() {
+  window.loadWithHistory = window._real_loadWithHistory = async function loadWithHistory() {
     if (!currentUser) return;
     const el = document.getElementById('with-history-list');
     if (!el) return;
@@ -5036,7 +5062,7 @@
   }
 
 
-  window.switchAccTab = function switchAccTab(id, el) {
+  window.switchAccTab = window._real_switchAccTab = function switchAccTab(id, el) {
     document.querySelectorAll('.acc-panel').forEach(p => p.classList.remove('active'));
     document.querySelectorAll('.acc-tab').forEach(t => t.classList.remove('active'));
     const panel = document.getElementById('acc-'+id);
@@ -5079,7 +5105,7 @@
     return String(prefix) + Array.from({length:8}, ()=>Math.floor(Math.random()*10)).join('');
   }
 
-  window.submitDeposit = async function submitDeposit() {
+  window.submitDeposit = window._real_submitDeposit = async function submitDeposit() {
     const amount  = parseInt(document.getElementById('dep-amount').value);
     const bank    = document.getElementById('dep-bank-from').value;
     const hasSlip = document.getElementById('dep-slip-preview').style.display !== 'none';
@@ -5156,7 +5182,7 @@
     if (ratingWrap) ratingWrap.style.display = currentSupportType === 'feedback' ? 'block' : 'none';
   }
 
-  window.setRating = function setRating(n) {
+  window.setRating = window._real_setRating = function setRating(n) {
     currentRating = n;
     const stars = document.querySelectorAll('.star-btn');
     stars.forEach((s, i) => s.classList.toggle('active', i < n));
@@ -5171,7 +5197,7 @@
     if (nameEl) nameEl.textContent = file ? `📎 ${file.name}` : '';
   }
 
-  window.submitSupport = async function submitSupport() {
+  window.submitSupport = window._real_submitSupport = async function submitSupport() {
     const subject = document.getElementById('support-subject').value.trim();
     const msg     = document.getElementById('support-msg').value.trim();
     if (!subject) { alert('กรุณาใส่หัวข้อเรื่องที่ต้องการแจ้งครับ'); return; }
@@ -5492,32 +5518,32 @@
     window.scrollTo(0, 0);
   }
 
-  window.showRegister = function showRegister() {
+  window.showRegister = window._real_showRegister = function showRegister() {
     document.getElementById('main-content').style.display = 'none';
     document.getElementById('page-schedule').style.display = 'none';
     document.getElementById('page-register').style.display = 'block';
     window.scrollTo(0, 0);
   }
-  window.hideRegister = function hideRegister() {
+  window.hideRegister = window._real_hideRegister = function hideRegister() {
     document.getElementById('page-register').style.display = 'none';
     document.getElementById('main-content').style.display = 'block';
     document.getElementById('reg-form').style.display = 'block';
     document.getElementById('reg-success').style.display = 'none';
     window.scrollTo(0, 0);
   }
-  window.showSchedule = function showSchedule() {
+  window.showSchedule = window._real_showSchedule = function showSchedule() {
     document.getElementById('main-content').style.display = 'none';
     document.getElementById('page-register').style.display = 'none';
     document.getElementById('page-schedule').style.display = 'block';
     window.scrollTo(0, 0);
   }
-  window.hideSchedule = function hideSchedule() {
+  window.hideSchedule = window._real_hideSchedule = function hideSchedule() {
     document.getElementById('main-content').style.display = 'block';
     document.getElementById('page-schedule').style.display = 'none';
     window.scrollTo(0, 0);
   }
 
-  window.openModal = function openModal(d) {
+  window.openModal = window._real_openModal = function openModal(d) {
     document.getElementById('m-round').textContent = d.round;
     document.getElementById('m-bull-a').textContent = d.bullA;
     document.getElementById('m-owner-a').textContent = 'เจ้าของ: ' + d.ownerA;
@@ -5538,7 +5564,7 @@
     }
     document.getElementById('modal').classList.add('open');
   }
-  window.closeModal = function closeModal(e) {
+  window.closeModal = window._real_closeModal = function closeModal(e) {
     if (e.target === document.getElementById('modal'))
       document.getElementById('modal').classList.remove('open');
   }
