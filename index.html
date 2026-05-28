@@ -3896,12 +3896,27 @@ fns.forEach(function(fn){
     }
     loadHomeMatches();
 
-    // Real-time matches (หน้าแรก)
-    sb.channel('home-matches')
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'matches' }, () => {
-        loadHomeMatches();
-      })
-      .subscribe();
+    // Real-time matches (หน้าแรก) — subscribe พร้อม retry
+    function subscribeHomeMatches() {
+      const ch = sb.channel('home-matches-' + Date.now())
+        .on('postgres_changes', {
+          event: '*', schema: 'public', table: 'matches'
+        }, payload => {
+          loadHomeMatches();
+        })
+        .subscribe((status) => {
+          if (status === 'SUBSCRIBED') {
+            console.log('✅ Real-time matches connected');
+          } else if (status === 'CHANNEL_ERROR' || status === 'TIMED_OUT') {
+            console.warn('⚠️ Real-time retry...', status);
+            setTimeout(subscribeHomeMatches, 3000);
+          }
+        });
+    }
+    subscribeHomeMatches();
+
+    // Polling fallback — reload ทุก 30 วินาที กรณี realtime ขาด
+    setInterval(loadHomeMatches, 30000);
 
     // ── News Ticker ──
     async function loadNewsTicker() {
@@ -4977,25 +4992,32 @@ fns.forEach(function(fn){
     el.innerHTML = data.map(w => {
       const isApproved = w.status === 'approved';
       const isRejected = w.status === 'rejected';
+      const isPending  = !isApproved && !isRejected;
       const dateStr    = new Date(w.created_at).toLocaleString('th-TH',{dateStyle:'short',timeStyle:'short'});
       const approvedStr = w.approved_at ? new Date(w.approved_at).toLocaleString('th-TH',{dateStyle:'short',timeStyle:'short'}) : null;
+
+      // ── Status Badge ──
       let statusHtml = isApproved
-        ? `<span style="font-family:Kanit,sans-serif;font-size:11px;font-weight:700;padding:4px 12px;border-radius:999px;background:rgba(74,222,128,0.15);color:#4ade80;">✅ โอนสำเร็จ</span>`
+        ? `<span style="font-family:Kanit,sans-serif;font-size:12px;font-weight:700;padding:5px 14px;border-radius:999px;background:rgba(74,222,128,0.15);color:#4ade80;border:1px solid rgba(74,222,128,0.3);">✅ สำเร็จ</span>`
         : isRejected
-          ? `<span style="font-family:Kanit,sans-serif;font-size:11px;font-weight:700;padding:4px 12px;border-radius:999px;background:rgba(248,113,113,0.15);color:#f87171;">❌ ปฏิเสธ</span>`
-          : `<span style="font-family:Kanit,sans-serif;font-size:11px;font-weight:700;padding:4px 12px;border-radius:999px;background:rgba(245,200,66,0.12);color:#F5C842;">⏳ รอดำเนินการ</span>`;
+          ? `<span style="font-family:Kanit,sans-serif;font-size:12px;font-weight:700;padding:5px 14px;border-radius:999px;background:rgba(248,113,113,0.15);color:#f87171;border:1px solid rgba(248,113,113,0.3);">❌ ปฏิเสธ</span>`
+          : `<span style="font-family:Kanit,sans-serif;font-size:12px;font-weight:700;padding:5px 14px;border-radius:999px;background:rgba(245,200,66,0.12);color:#F5C842;border:1px solid rgba(245,200,66,0.25);">⏳ รอการดำเนินการ</span>`;
+
+      const borderColor = isApproved ? 'rgba(74,222,128,0.25)' : isRejected ? 'rgba(248,113,113,0.25)' : 'rgba(245,200,66,0.2)';
+
       return `
-        <div style="background:rgba(255,255,255,0.04);border:1px solid ${isApproved?'rgba(74,222,128,0.2)':isRejected?'rgba(248,113,113,0.2)':'rgba(245,200,66,0.2)'};border-radius:10px;padding:14px;margin-bottom:10px;">
-          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">
-            <div style="font-family:Kanit,sans-serif;font-weight:900;font-size:18px;color:#f87171;">−${Number(w.amount).toLocaleString()} ฿</div>
+        <div style="background:rgba(255,255,255,0.04);border:1px solid ${borderColor};border-radius:12px;padding:14px;margin-bottom:10px;">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
+            <div style="font-family:Kanit,sans-serif;font-weight:900;font-size:20px;color:#f87171;">−${Number(w.amount).toLocaleString()} ฿</div>
             ${statusHtml}
           </div>
-          <div style="display:flex;flex-direction:column;gap:4px;">
-            <div style="font-size:12px;color:rgba(240,255,232,0.5);">🏦 ${w.bank||'—'} · 💳 ${w.acc_no||'—'}</div>
-            <div style="font-size:11px;color:rgba(240,255,232,0.35);">ชื่อบัญชี: ${w.acc_name||'—'}</div>
-            <div style="font-size:11px;color:rgba(240,255,232,0.3);">TXN: ${w.txn||'—'} · 🕐 ${dateStr}</div>
-            ${isApproved&&approvedStr?`<div style="font-size:11px;color:#4ade80;">✅ โอนเมื่อ: ${approvedStr} · โดย ${w.approved_by||'Admin'}</div>`:''}
-            ${isRejected&&w.reason?`<div style="font-size:11px;color:#f87171;">❌ เหตุผล: ${w.reason}</div>`:''}
+          <div style="display:flex;flex-direction:column;gap:5px;">
+            <div style="font-size:12px;color:rgba(240,255,232,0.5);">🏦 ${w.bank||'—'} &nbsp;·&nbsp; 💳 ${w.acc_no||'—'}</div>
+            <div style="font-size:11px;color:rgba(240,255,232,0.4);">ชื่อบัญชี: ${w.acc_name||'—'}</div>
+            <div style="font-size:11px;color:rgba(240,255,232,0.3);">TXN: ${w.txn||'—'} &nbsp;·&nbsp; 🕐 ${dateStr}</div>
+            ${isPending ? `<div style="font-size:11px;color:#F5C842;margin-top:2px;">⏳ Admin กำลังดำเนินการโอนเงินให้ครับ</div>` : ''}
+            ${isApproved && approvedStr ? `<div style="font-size:11px;color:#4ade80;margin-top:2px;">✅ โอนสำเร็จเมื่อ: ${approvedStr} &nbsp;·&nbsp; โดย ${w.approved_by||'Admin'}</div>` : ''}
+            ${isRejected && w.reason ? `<div style="font-size:11px;color:#f87171;margin-top:2px;">❌ เหตุผล: ${w.reason}</div>` : ''}
           </div>
         </div>`;
     }).join('');
