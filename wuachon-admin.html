@@ -304,8 +304,11 @@ tr:hover td{background:#fafafa;}
 
       <!-- WITHDRAWALS -->
       <div class="panel" id="panel-withdrawals">
+        <!-- คำขอรอดำเนินการ -->
         <div class="card">
-          <div class="card-title">🏧 คำขอถอนเงิน</div>
+          <div class="card-title">🏧 คำขอถอนเงิน (รอดำเนินการ)
+            <span style="font-size:12px;color:#aaa;font-weight:400;" id="with-pending-count"></span>
+          </div>
           <div class="date-filter">
             <label>📅 ตั้งแต่</label>
             <input type="date" class="date-input" id="with-date-from" onchange="filterWithdrawals()">
@@ -317,8 +320,21 @@ tr:hover td{background:#fafafa;}
           </div>
           <div style="overflow-x:auto;">
             <table>
-              <thead><tr><th>Nick</th><th>จำนวน</th><th>ธนาคาร</th><th>เลขบัญชี</th><th>สถานะ</th><th>เวลา</th><th>จัดการ</th></tr></thead>
-              <tbody id="with-tbody"><tr><td colspan="7" style="text-align:center;padding:24px;color:#aaa;">กำลังโหลด...</td></tr></tbody>
+              <thead><tr><th>Nick</th><th>จำนวน</th><th>ธนาคาร</th><th>เลขบัญชี / ชื่อ</th><th>เวลา</th><th>จัดการ</th></tr></thead>
+              <tbody id="with-tbody"><tr><td colspan="6" style="text-align:center;padding:24px;color:#aaa;">กำลังโหลด...</td></tr></tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- ถอนเงินสำเร็จ -->
+        <div class="card">
+          <div class="card-title" style="color:var(--green);">✅ ถอนเงินสำเร็จ
+            <span style="font-size:12px;color:#aaa;font-weight:400;" id="with-done-count"></span>
+          </div>
+          <div style="overflow-x:auto;">
+            <table>
+              <thead><tr><th>Nick</th><th>จำนวน</th><th>ธนาคาร</th><th>เลขบัญชี</th><th>สลิป</th><th>โอนเมื่อ</th></tr></thead>
+              <tbody id="with-done-tbody"><tr><td colspan="6" style="text-align:center;padding:24px;color:#aaa;">กำลังโหลด...</td></tr></tbody>
             </table>
           </div>
         </div>
@@ -953,46 +969,134 @@ async function loadWithdrawals() {
 }
 
 function filterWithdrawals() {
-  const rows = allWithdrawals.filter(w => inDateRange(w, 'with', 'created_at'));
+  const filtered = allWithdrawals.filter(w => inDateRange(w, 'with', 'created_at'));
   updateDateTag('with');
-  renderWithdrawals(rows);
+  const pending  = filtered.filter(w => w.status === 'pending');
+  const approved = allWithdrawals.filter(w => w.status === 'approved');
+  const pdEl = document.getElementById('with-pending-count');
+  const dnEl = document.getElementById('with-done-count');
+  if (pdEl) pdEl.textContent = `(${pending.length} รายการ)`;
+  if (dnEl) dnEl.textContent = `(${approved.length} รายการ)`;
+  renderWithdrawalsPending(pending);
+  renderWithdrawalsDone(approved);
 }
 
-function renderWithdrawals(rows) {
+function renderWithdrawalsPending(rows) {
   const tb = document.getElementById('with-tbody');
-  if (!rows.length) { tb.innerHTML = '<tr><td colspan="7" style="text-align:center;padding:20px;color:#aaa;">ไม่มีรายการ</td></tr>'; return; }
+  if (!rows.length) {
+    tb.innerHTML = '<tr><td colspan="6" style="text-align:center;padding:24px;color:#aaa;">ไม่มีรายการรอดำเนินการ</td></tr>';
+    return;
+  }
   tb.innerHTML = rows.map(w => `<tr id="with-row-${w.id}">
     <td><strong style="cursor:pointer;color:var(--green);text-decoration:underline;" onclick="openMember('${w.nick}')">${w.nick}</strong></td>
     <td style="font-family:'Kanit',sans-serif;font-weight:700;color:var(--red);">${Number(w.amount).toLocaleString()} ฿</td>
     <td>${w.bank||'—'}</td>
-    <td style="font-size:12px;">${w.acc_no||'—'}<br><span style="color:#aaa;font-size:11px;">${w.acc_name||''}</span></td>
-    <td><span class="badge badge-${w.status}">${w.status==='pending'?'⏳ รอ':w.status==='approved'?'✅ โอนแล้ว':'❌ ปฏิเสธ'}</span></td>
+    <td style="font-size:12px;">${w.acc_no||w.bank_acc_no||'—'}<br><span style="color:#aaa;font-size:11px;">${w.acc_name||w.bank_acc_name||''}</span></td>
     <td style="font-size:12px;color:#aaa;">${fmtDate(w.created_at)}</td>
     <td style="display:flex;gap:4px;flex-wrap:wrap;">
-      ${w.status==='pending'?`
-        <button class="btn btn-green" onclick="approveWithdrawal('${w.id}','${w.nick}',${w.amount})">โอนแล้ว</button>
-        <button class="btn btn-red" onclick="rejectWithdrawal('${w.id}','${w.nick}',${w.amount})">ปฏิเสธ</button>
-      `:'—'}
+      <button class="btn btn-green" onclick="openSlipModal('${w.id}','${w.nick}',${w.amount})">📎 แนบสลิปยืนยัน</button>
+      <button class="btn btn-red" onclick="rejectWithdrawal('${w.id}','${w.nick}',${w.amount})">ปฏิเสธ</button>
     </td>
   </tr>`).join('');
 }
 
-async function approveWithdrawal(id, nick, amount) {
-  if (!confirm(`ยืนยันว่าโอนเงิน ${Number(amount).toLocaleString()} ฿ ให้ ${nick} แล้วใช่ไหมครับ?`)) return;
-  await sb.from('withdrawals').update({ status:'approved', approved_at: new Date().toISOString(), approved_by:'Admin' }).eq('id',id);
-  showToast(`✅ ยืนยันการโอนเงินให้ ${nick} แล้วครับ`);
-  loadWithdrawals(); loadOverview();
+function renderWithdrawalsDone(rows) {
+  const tb = document.getElementById('with-done-tbody');
+  if (!tb) return;
+  if (!rows.length) {
+    tb.innerHTML = '<tr><td colspan="6" style="text-align:center;padding:24px;color:#aaa;">ยังไม่มีรายการถอนเงินสำเร็จ</td></tr>';
+    return;
+  }
+  tb.innerHTML = rows.map(w => `<tr>
+    <td><strong style="cursor:pointer;color:var(--green);text-decoration:underline;" onclick="openMember('${w.nick}')">${w.nick}</strong></td>
+    <td style="font-family:'Kanit',sans-serif;font-weight:700;color:var(--green);">-${Number(w.amount).toLocaleString()} ฿</td>
+    <td>${w.bank||'—'}</td>
+    <td style="font-size:12px;">${w.acc_no||w.bank_acc_no||'—'}<br><span style="color:#aaa;font-size:11px;">${w.acc_name||w.bank_acc_name||''}</span></td>
+    <td style="text-align:center;">
+      ${w.slip_url
+        ? `<a href="${w.slip_url}" target="_blank" style="color:var(--green);font-size:12px;font-weight:700;text-decoration:none;">🧾 ดูสลิป</a>`
+        : '<span style="color:#ccc;font-size:12px;">—</span>'}
+    </td>
+    <td style="font-size:12px;color:#aaa;">${fmtDate(w.approved_at||w.created_at)}</td>
+  </tr>`).join('');
+}
+
+function openSlipModal(wid, nick, amount) {
+  document.getElementById('slip-wid').value   = wid;
+  document.getElementById('slip-nick').value  = nick;
+  document.getElementById('slip-amount').value = amount;
+  document.getElementById('slip-preview').src = '';
+  document.getElementById('slip-preview').style.display = 'none';
+  document.getElementById('slip-preview-wrap').style.display = 'none';
+  document.getElementById('slip-file').value  = '';
+  document.getElementById('slip-modal-amount').textContent = `${Number(amount).toLocaleString()} ฿ → ${nick}`;
+  document.getElementById('slip-err').style.display = 'none';
+  document.getElementById('slip-modal').style.display = 'flex';
+}
+
+function closeSlipModal() {
+  document.getElementById('slip-modal').style.display = 'none';
+}
+
+function previewSlip(input) {
+  const file = input.files[0];
+  if (!file) return;
+  if (!file.type.startsWith('image/')) {
+    document.getElementById('slip-err').textContent = '⚠️ รองรับเฉพาะไฟล์รูปภาพ (JPG, PNG) ครับ';
+    document.getElementById('slip-err').style.display = 'block';
+    input.value = ''; return;
+  }
+  document.getElementById('slip-err').style.display = 'none';
+  const reader = new FileReader();
+  reader.onload = e => {
+    const img = document.getElementById('slip-preview');
+    img.src = e.target.result; img.style.display = 'block';
+    document.getElementById('slip-preview-wrap').style.display = 'block';
+  };
+  reader.readAsDataURL(file);
+}
+
+async function confirmSlipUpload() {
+  const wid    = document.getElementById('slip-wid').value;
+  const nick   = document.getElementById('slip-nick').value;
+  const amount = parseFloat(document.getElementById('slip-amount').value);
+  const file   = document.getElementById('slip-file').files[0];
+  const errEl  = document.getElementById('slip-err');
+  if (!file) { errEl.textContent = '⚠️ กรุณาแนบสลิปการโอนเงินก่อนยืนยันครับ'; errEl.style.display = 'block'; return; }
+  const btn = document.getElementById('slip-confirm-btn');
+  btn.disabled = true; btn.textContent = '⏳ กำลังอัปโหลด...';
+  try {
+    const ext = file.name.split('.').pop();
+    const fileName = `slip-${wid}-${Date.now()}.${ext}`;
+    let slip_url = '';
+    const { error: uploadErr } = await sb.storage.from('slips').upload(fileName, file, { cacheControl: '3600', upsert: false });
+    if (!uploadErr) {
+      const { data: urlData } = sb.storage.from('slips').getPublicUrl(fileName);
+      slip_url = urlData?.publicUrl || '';
+    }
+    const row = document.getElementById('with-row-' + wid);
+    if (row) { row.style.transition = 'opacity .4s,transform .4s'; row.style.opacity = '0'; row.style.transform = 'translateX(30px)'; }
+    await sb.from('withdrawals').update({ status: 'approved', slip_url, approved_at: new Date().toISOString(), approved_by: 'Admin' }).eq('id', wid);
+    closeSlipModal();
+    showToast(`✅ โอนเงิน ${Number(amount).toLocaleString()} ฿ ให้ ${nick} สำเร็จ! บันทึกสลิปแล้วครับ`);
+    setTimeout(() => { loadWithdrawals(); loadOverview(); loadMembers(); }, 450);
+  } catch(e) {
+    errEl.textContent = '❌ เกิดข้อผิดพลาด: ' + e.message; errEl.style.display = 'block';
+  } finally {
+    btn.disabled = false; btn.textContent = '✅ อัปโหลดสลิป / ยืนยันการโอน';
+  }
 }
 
 async function rejectWithdrawal(id, nick, amount) {
-  if (!confirm(`ปฏิเสธและคืนเงิน ${Number(amount).toLocaleString()} ฿ ให้ ${nick} ใช่ไหมครับ?`)) return;
-  const reason = prompt('เหตุผลที่ปฏิเสธ:') || '';
-  // คืนเงิน
+  const reason = prompt(`เหตุผลที่ปฏิเสธการถอนเงินของ "${nick}" (${Number(amount).toLocaleString()} ฿):`);
+  if (reason === null) return;
+  const row = document.getElementById('with-row-' + id);
+  if (row) { row.style.transition = 'opacity .4s,transform .4s'; row.style.opacity = '0'; row.style.transform = 'translateX(30px)'; }
   const {data:mem} = await sb.from('members').select('balance').eq('nick',nick).maybeSingle();
   if (mem) await sb.from('members').update({ balance: (mem.balance||0)+Number(amount) }).eq('nick',nick);
-  await sb.from('withdrawals').update({ status:'rejected', reason }).eq('id',id);
-  showToast(`✅ ปฏิเสธและคืนเงิน ${Number(amount).toLocaleString()} ฿ ให้ ${nick} แล้วครับ`);
-  loadWithdrawals(); loadOverview(); loadMembers();
+  await sb.from('withdrawals').update({ status:'rejected', reason: reason||'' }).eq('id',id);
+  showToast(`❌ ปฏิเสธ + คืนเงิน ${Number(amount).toLocaleString()} ฿ ให้ ${nick} แล้วครับ`);
+  setTimeout(() => { loadWithdrawals(); loadOverview(); loadMembers(); }, 450);
 }
 
 // ===== BETS =====
@@ -1442,5 +1546,52 @@ async function saveMemberEdit(nick, id) {
 #mdt-info .fg input[readonly]{background:#f5f5f5;cursor:not-allowed;}
 .me-section-title{font-family:'Kanit',sans-serif;font-size:12px;font-weight:700;color:#555;letter-spacing:.5px;margin-bottom:8px;padding:6px 10px;background:#f0faf4;border-left:3px solid var(--green);border-radius:0 6px 6px 0;}
 </style>
+<!-- SLIP UPLOAD MODAL -->
+<div id="slip-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:900;align-items:center;justify-content:center;padding:16px;" onclick="if(event.target===this)closeSlipModal()">
+  <div style="background:#fff;border-radius:14px;width:100%;max-width:440px;overflow:hidden;box-shadow:0 24px 60px rgba(0,0,0,.4);">
+    <!-- Header -->
+    <div style="background:var(--green);color:#fff;padding:16px 20px;display:flex;align-items:center;justify-content:space-between;">
+      <div>
+        <div style="font-family:'Kanit',sans-serif;font-weight:900;font-size:16px;">📎 แนบสลิปยืนยันการโอนเงิน</div>
+        <div style="font-size:13px;opacity:.85;margin-top:2px;" id="slip-modal-amount">—</div>
+      </div>
+      <button onclick="closeSlipModal()" style="background:rgba(255,255,255,.2);border:none;color:#fff;width:28px;height:28px;border-radius:50%;font-size:16px;cursor:pointer;">✕</button>
+    </div>
+    <!-- Body -->
+    <div style="padding:20px;">
+      <input type="hidden" id="slip-wid">
+      <input type="hidden" id="slip-nick">
+      <input type="hidden" id="slip-amount">
+
+      <!-- Upload area -->
+      <div id="slip-upload-area" style="border:2px dashed #d0e8d8;border-radius:10px;padding:24px;text-align:center;cursor:pointer;background:#f9fdf9;transition:border-color .2s;margin-bottom:14px;"
+        onclick="document.getElementById('slip-file').click()"
+        ondragover="event.preventDefault();this.style.borderColor='var(--green)'"
+        ondragleave="this.style.borderColor='#d0e8d8'"
+        ondrop="event.preventDefault();this.style.borderColor='#d0e8d8';document.getElementById('slip-file').files=event.dataTransfer.files;previewSlip(document.getElementById('slip-file'))">
+        <div style="font-size:36px;margin-bottom:8px;">🧾</div>
+        <div style="font-family:'Kanit',sans-serif;font-weight:700;font-size:14px;color:#555;">คลิกหรือลากไฟล์สลิปมาวางที่นี่</div>
+        <div style="font-size:12px;color:#aaa;margin-top:4px;">รองรับ JPG, PNG (ขนาดไม่เกิน 5MB)</div>
+        <input type="file" id="slip-file" accept="image/*" style="display:none" onchange="previewSlip(this)">
+      </div>
+
+      <!-- Preview -->
+      <div id="slip-preview-wrap" style="display:none;margin-bottom:14px;text-align:center;">
+        <img id="slip-preview" style="max-width:100%;max-height:200px;border-radius:8px;border:1px solid #e0e0e0;object-fit:contain;">
+        <div style="margin-top:6px;">
+          <button onclick="document.getElementById('slip-file').click()" style="font-family:'Kanit',sans-serif;font-size:12px;padding:4px 12px;border:1px solid #ddd;border-radius:6px;background:#fff;cursor:pointer;">🔄 เปลี่ยนรูป</button>
+        </div>
+      </div>
+
+      <!-- Error -->
+      <div id="slip-err" style="display:none;background:#fff5f5;border:1px solid #fecaca;border-radius:8px;padding:10px 12px;font-family:'Kanit',sans-serif;font-size:13px;color:#dc2626;margin-bottom:12px;"></div>
+
+      <!-- Buttons -->
+      <button id="slip-confirm-btn" onclick="confirmSlipUpload()" style="width:100%;background:var(--green);color:#fff;font-family:'Kanit',sans-serif;font-weight:900;font-size:14px;padding:13px;border-radius:9px;border:none;cursor:pointer;margin-bottom:8px;transition:background .2s;">✅ อัปโหลดสลิป / ยืนยันการโอน</button>
+      <button onclick="closeSlipModal()" style="width:100%;background:#f5f5f5;color:#888;font-family:'Kanit',sans-serif;font-weight:700;font-size:13px;padding:10px;border-radius:9px;border:1px solid #e0e0e0;cursor:pointer;">ยกเลิก</button>
+    </div>
+  </div>
+</div>
+
 </body>
 </html>
