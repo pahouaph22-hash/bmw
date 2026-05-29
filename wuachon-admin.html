@@ -411,10 +411,30 @@ tr:hover td{background:#fafafa;}
 
       <!-- SETTINGS -->
       <div class="panel" id="panel-settings">
+        <!-- ค่าบริการ P2P -->
+        <div class="card" style="border-left:4px solid var(--gold);">
+          <div class="card-title">💹 ค่าบริการการเดิมพัน P2P</div>
+          <div class="form-row">
+            <div class="fg">
+              <label>อัตราค่าบริการ (%)</label>
+              <div style="display:flex;align-items:center;gap:8px;">
+                <input id="sf-fee-rate" type="number" min="0" max="50" step="0.5" placeholder="7" style="flex:1;">
+                <span style="font-family:'Kanit',sans-serif;font-weight:700;font-size:16px;color:var(--gold);">%</span>
+              </div>
+              <div style="font-size:11px;color:#aaa;margin-top:4px;">หักจาก pool รวมก่อนจ่ายผู้ชนะ (ค่าเริ่มต้น 7%)</div>
+            </div>
+            <div class="fg">
+              <label>ตัวอย่างการคำนวณ</label>
+              <div id="fee-preview" style="background:#f9f9f9;border:1px solid #e5e5e0;border-radius:8px;padding:12px;font-size:12px;color:#555;min-height:56px;">
+                กรอก % เพื่อดูตัวอย่าง
+              </div>
+            </div>
+          </div>
+          <button class="save-btn" onclick="saveSettings('fee')">💾 บันทึกค่าบริการ</button>
+        </div>
         <div class="card">
           <div class="card-title">🏦 บัญชีรับเงิน</div>
           <div class="form-row">
-            <div class="fg"><label>ธนาคาร</label><input id="sf-bank" placeholder="เช่น กสิกรไทย (KBank)"></div>
             <div class="fg"><label>เลขบัญชี</label><input id="sf-accno" placeholder="XXX-X-XXXXX-X"></div>
           </div>
           <div class="form-row">
@@ -858,77 +878,61 @@ function renderVerdictDone(rows) {
 }
 
 async function doVerdict(matchId, winner, winnerName) {
-  if (!confirm(`ยืนยัน: "${winnerName}" ชนะ ใช่ไหมครับ?\n\nระบบจะ:\n• รวมเงินเดิมพันทั้งหมด\n• หัก 7% ค่าบริการ\n• โอนเงินที่เหลือให้ผู้ชนะทุกคนตามสัดส่วน`)) return;
-  // อัปเดตผลแมช
+  const FEE_RATE   = await loadFeeRate();
+  const feePercent = (FEE_RATE * 100).toFixed(1);
+  if (!confirm(`ยืนยัน: "${winnerName}" ชนะ ใช่ไหมครับ?\n\nระบบจะ:\n• รวมเงินเดิมพันทั้งหมด\n• หัก ${feePercent}% ค่าบริการ\n• โอนเงินที่เหลือให้ผู้ชนะทุกคนตามสัดส่วน`)) return;
   await sb.from('matches').update({ winner, status: 'done' }).eq('id', matchId);
-  // จ่ายเงินพร้อมหัก 7%
-  const result = await payoutBets(matchId, winner);
-  showToast(`✅ ${winnerName} ชนะ! รวม ${result.totalPool.toLocaleString()} ฿ หัก 7% = ${result.fee.toLocaleString()} ฿ จ่ายผู้ชนะ ${result.totalPaid.toLocaleString()} ฿`);
+  const result = await payoutBets(matchId, winner, FEE_RATE);
+  showToast(`✅ ${winnerName} ชนะ! รวม ${result.totalPool.toLocaleString()} ฿ หัก ${feePercent}% = ${result.fee.toLocaleString()} ฿ จ่ายผู้ชนะ ${result.totalPaid.toLocaleString()} ฿`);
   loadVerdict(); loadMatches(); loadBets(); loadOverview(); loadMembers();
 }
 
-async function payoutBets(matchId, winner) {
-  // ดึงการเดิมพันทั้งหมดของแมชนี้ที่จับคู่แล้ว
+async function loadFeeRate() {
+  try {
+    const {data} = await sb.from('settings').select('value').eq('key','feeRate').maybeSingle();
+    const rate = data?.value?.rate;
+    if (typeof rate === 'number' && rate >= 0 && rate <= 50) return rate / 100;
+  } catch(_) {}
+  return 0.07;
+}
+
+async function payoutBets(matchId, winner, FEE_RATE = 0.07) {
   const { data: bets } = await sb.from('bets').select('*').eq('match_id', matchId).in('status', ['matched', 'waiting']);
   if (!bets?.length) return { totalPool: 0, fee: 0, totalPaid: 0 };
-
-  // แยกฝั่งชนะและแพ้
   const winnerBets = bets.filter(b => b.side === winner);
   const loserBets  = bets.filter(b => b.side !== winner);
-
-  // คำนวณ pool รวม = เงินฝั่งชนะ + เงินฝั่งแพ้
   const winnerPool = winnerBets.reduce((s, b) => s + Number(b.amount), 0);
   const loserPool  = loserBets.reduce((s, b) => s + Number(b.amount), 0);
   const totalPool  = winnerPool + loserPool;
-
-  // หัก 7% ค่าบริการจาก pool รวม
-  const FEE_RATE  = 0.07;
-  const fee       = Math.floor(totalPool * FEE_RATE);
-  const netPool   = totalPool - fee; // เงินที่จ่ายให้ผู้ชนะทั้งหมด
-
-  let totalPaid = 0;
-
-  // อัปเดตสถานะการเดิมพันทั้งหมด
+  const fee        = Math.floor(totalPool * FEE_RATE);
+  let totalPaid    = 0;
   for (const bet of bets) {
-    const won = bet.side === winner;
-    await sb.from('bets').update({ status: won ? 'won' : 'lost' }).eq('id', bet.id);
+    await sb.from('bets').update({ status: bet.side === winner ? 'won' : 'lost' }).eq('id', bet.id);
   }
-
-  // จ่ายเงินให้ผู้ชนะแต่ละคน ตามสัดส่วนที่วางเดิมพัน
   if (winnerPool > 0 && winnerBets.length > 0) {
-    // ใช้ Map สะสมเงินต่อ nick เผื่อคนเดียวมีหลาย bet
     const payMap = new Map();
-
     for (const bet of winnerBets) {
-      // สัดส่วน = เงินของ bet นี้ / winnerPool ทั้งหมด
       const ratio    = Number(bet.amount) / winnerPool;
-      // ได้รับ = คืนเงินต้น + กำไรจาก loserPool ตามสัดส่วน (หลังหัก fee)
       const returned = Math.floor(Number(bet.amount) + (loserPool * (1 - FEE_RATE) * ratio));
-      const prev = payMap.get(bet.nick) || 0;
-      payMap.set(bet.nick, prev + returned);
+      payMap.set(bet.nick, (payMap.get(bet.nick) || 0) + returned);
     }
-
-    // อัปเดตยอดเงินในบัญชีผู้ชนะ
     for (const [nick, amount] of payMap.entries()) {
       const { data: mem } = await sb.from('members').select('balance').eq('nick', nick).maybeSingle();
       if (mem) {
-        const newBalance = (mem.balance || 0) + amount;
-        await sb.from('members').update({ balance: newBalance }).eq('nick', nick);
+        await sb.from('members').update({ balance: (mem.balance || 0) + amount }).eq('nick', nick);
         totalPaid += amount;
-        console.log(`✅ จ่าย ${nick}: +${amount.toLocaleString()} ฿ (ยอดใหม่: ${newBalance.toLocaleString()} ฿)`);
       }
     }
   }
-
-  // บันทึก fee ลง Supabase (optional: เก็บเป็น revenue)
-  await sb.from('deposits').insert({
-    nick: 'SYSTEM',
-    amount: fee,
-    bank: 'ค่าบริการ 7%',
-    txn: 'FEE-' + matchId.slice(0,8) + '-' + Date.now(),
-    status: 'approved',
-  }).then(() => {}).catch(() => {}); // ไม่ error ถ้า insert ไม่ได้
-
+  const feePercent = (FEE_RATE * 100).toFixed(1);
+  try {
+    await sb.from('deposits').insert({
+      nick: 'SYSTEM', amount: fee,
+      bank: 'ค่าบริการ ' + feePercent + '% (match: ' + matchId.slice(0,8) + ')',
+      txn: 'FEE-' + matchId.slice(0,8) + '-' + Date.now(),
+      status: 'approved',
+    });
+  } catch(_) {}
   return { totalPool, fee, totalPaid };
 }
 
@@ -1371,13 +1375,36 @@ async function loadSettings() {
   if (!data) return;
   const bank    = data.find(s=>s.key==='bankAccount')?.value || {};
   const contact = data.find(s=>s.key==='contact')?.value || {};
+  const feeData = data.find(s=>s.key==='feeRate')?.value;
+
   if (bank.bankName) document.getElementById('sf-bank').value    = bank.bankName;
   if (bank.accNo)    document.getElementById('sf-accno').value   = bank.accNo;
   if (bank.accName)  document.getElementById('sf-accname').value = bank.accName;
-  if (contact.phone1)     document.getElementById('sf-phone').value = contact.phone1;
-  if (contact.lineId)     document.getElementById('sf-line').value  = contact.lineId;
-  if (contact.fbName)     document.getElementById('sf-fb').value    = contact.fbName;
-  if (contact.hoursTime)  document.getElementById('sf-hours').value = contact.hoursTime;
+  if (contact.phone1)    document.getElementById('sf-phone').value = contact.phone1;
+  if (contact.lineId)    document.getElementById('sf-line').value  = contact.lineId;
+  if (contact.fbName)    document.getElementById('sf-fb').value    = contact.fbName;
+  if (contact.hoursTime) document.getElementById('sf-hours').value = contact.hoursTime;
+
+  // โหลดค่า fee rate
+  const feeEl = document.getElementById('sf-fee-rate');
+  if (feeEl) {
+    const rate = feeData?.rate ?? 7;
+    feeEl.value = rate;
+    updateFeePreview(rate);
+    feeEl.addEventListener('input', () => updateFeePreview(parseFloat(feeEl.value)||0));
+  }
+}
+
+function updateFeePreview(rate) {
+  const el = document.getElementById('fee-preview');
+  if (!el) return;
+  const pool = 10000;
+  const fee  = Math.floor(pool * rate / 100);
+  const net  = pool - fee;
+  el.innerHTML = `
+    <div style="color:#555;">ตัวอย่าง pool รวม <b>10,000 ฿</b></div>
+    <div style="color:#f87171;margin-top:3px;">หัก ${rate}% = <b>${fee.toLocaleString()} ฿</b></div>
+    <div style="color:var(--green);margin-top:3px;">จ่ายผู้ชนะ = <b>${net.toLocaleString()} ฿</b></div>`;
 }
 
 async function saveSettings(type) {
@@ -1385,6 +1412,17 @@ async function saveSettings(type) {
   if (type === 'bank') {
     key = 'bankAccount';
     value = { bankName: document.getElementById('sf-bank').value, accNo: document.getElementById('sf-accno').value, accName: document.getElementById('sf-accname').value };
+  } else if (type === 'fee') {
+    const rate = parseFloat(document.getElementById('sf-fee-rate')?.value);
+    if (isNaN(rate) || rate < 0 || rate > 50) {
+      showToast('⚠️ กรุณากรอก % ระหว่าง 0–50 ครับ', 'error'); return;
+    }
+    key = 'feeRate';
+    value = { rate };
+    await sb.from('settings').upsert({ key, value }, { onConflict:'key' });
+    showToast(`✅ บันทึกค่าบริการ ${rate}% แล้วครับ!`);
+    updateFeePreview(rate);
+    return;
   } else {
     key = 'contact';
     value = { phone1: document.getElementById('sf-phone').value, lineId: document.getElementById('sf-line').value, fbName: document.getElementById('sf-fb').value, hoursTime: document.getElementById('sf-hours').value };
