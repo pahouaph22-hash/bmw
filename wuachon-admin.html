@@ -1062,28 +1062,93 @@ async function confirmSlipUpload() {
   const amount = parseFloat(document.getElementById('slip-amount').value);
   const file   = document.getElementById('slip-file').files[0];
   const errEl  = document.getElementById('slip-err');
-  if (!file) { errEl.textContent = '⚠️ กรุณาแนบสลิปการโอนเงินก่อนยืนยันครับ'; errEl.style.display = 'block'; return; }
+
+  if (!file) {
+    errEl.textContent = '⚠️ กรุณาแนบสลิปการโอนเงินก่อนยืนยันครับ';
+    errEl.style.display = 'block';
+    return;
+  }
+
   const btn = document.getElementById('slip-confirm-btn');
-  btn.disabled = true; btn.textContent = '⏳ กำลังอัปโหลด...';
+  btn.disabled = true;
+  btn.textContent = '⏳ กำลังดำเนินการ...';
+  errEl.style.display = 'none';
+
   try {
-    const ext = file.name.split('.').pop();
-    const fileName = `slip-${wid}-${Date.now()}.${ext}`;
+    // ---- พยายาม upload สลิปไป Storage (ถ้า bucket มี) ----
     let slip_url = '';
-    const { error: uploadErr } = await sb.storage.from('slips').upload(fileName, file, { cacheControl: '3600', upsert: false });
-    if (!uploadErr) {
-      const { data: urlData } = sb.storage.from('slips').getPublicUrl(fileName);
-      slip_url = urlData?.publicUrl || '';
+    try {
+      const ext = file.name.split('.').pop() || 'jpg';
+      const fileName = `slip-${wid}-${Date.now()}.${ext}`;
+      const { error: uploadErr } = await sb.storage
+        .from('slips')
+        .upload(fileName, file, { cacheControl: '3600', upsert: true });
+      if (!uploadErr) {
+        const { data: urlData } = sb.storage.from('slips').getPublicUrl(fileName);
+        slip_url = urlData?.publicUrl || '';
+      }
+      // ถ้า upload ล้มเหลว (bucket ไม่มี ฯลฯ) ก็ไม่เป็นไร ดำเนินการต่อ
+    } catch(_) {}
+
+    // ---- อัปเดต DB (อัปเดตเฉพาะ field ที่มีแน่นอน) ----
+    const updatePayload = {
+      status: 'approved',
+      approved_at:  new Date().toISOString(),
+      approved_by:  'Admin',
+    };
+    // เพิ่ม slip_url ก็ต่อเมื่อ upload สำเร็จ
+    if (slip_url) updatePayload.slip_url = slip_url;
+
+    const { error: dbErr } = await sb
+      .from('withdrawals')
+      .update(updatePayload)
+      .eq('id', wid);
+
+    if (dbErr) {
+      errEl.textContent = '❌ บันทึกไม่สำเร็จ: ' + dbErr.message;
+      errEl.style.display = 'block';
+      btn.disabled = false;
+      btn.textContent = '✅ อัปโหลดสลิป / ยืนยันการโอน';
+      return;
     }
+
+    // ---- อัปเดต allWithdrawals ใน memory ทันที (ไม่ต้องรอ reload) ----
+    const idx = allWithdrawals.findIndex(w => w.id === wid);
+    if (idx !== -1) {
+      allWithdrawals[idx] = {
+        ...allWithdrawals[idx],
+        status: 'approved',
+        slip_url,
+        approved_at: updatePayload.approved_at,
+        approved_by: 'Admin',
+      };
+    }
+
+    // ---- fade row แล้ว re-render ทันที ----
     const row = document.getElementById('with-row-' + wid);
-    if (row) { row.style.transition = 'opacity .4s,transform .4s'; row.style.opacity = '0'; row.style.transform = 'translateX(30px)'; }
-    await sb.from('withdrawals').update({ status: 'approved', slip_url, approved_at: new Date().toISOString(), approved_by: 'Admin' }).eq('id', wid);
+    if (row) {
+      row.style.transition = 'opacity .35s, transform .35s';
+      row.style.opacity = '0';
+      row.style.transform = 'translateX(40px)';
+    }
+
     closeSlipModal();
-    showToast(`✅ โอนเงิน ${Number(amount).toLocaleString()} ฿ ให้ ${nick} สำเร็จ! บันทึกสลิปแล้วครับ`);
-    setTimeout(() => { loadWithdrawals(); loadOverview(); loadMembers(); }, 450);
+    showToast(`✅ โอนเงิน ${Number(amount).toLocaleString()} ฿ ให้ ${nick} สำเร็จ!`);
+
+    // re-render จาก memory ก่อน แล้วค่อย reload จาก DB
+    setTimeout(() => {
+      filterWithdrawals();          // render จาก allWithdrawals ที่ update แล้ว
+      loadWithdrawals();            // sync กับ DB จริง
+      loadOverview();
+      loadMembers();
+    }, 400);
+
   } catch(e) {
-    errEl.textContent = '❌ เกิดข้อผิดพลาด: ' + e.message; errEl.style.display = 'block';
+    errEl.textContent = '❌ เกิดข้อผิดพลาด: ' + (e.message || e);
+    errEl.style.display = 'block';
   } finally {
-    btn.disabled = false; btn.textContent = '✅ อัปโหลดสลิป / ยืนยันการโอน';
+    btn.disabled = false;
+    btn.textContent = '✅ อัปโหลดสลิป / ยืนยันการโอน';
   }
 }
 
