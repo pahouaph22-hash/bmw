@@ -36,6 +36,41 @@ nav{
 .user-chip .nick{font-family:'Kanit',sans-serif;font-size:13px;color:var(--gold);}
 .user-chip .balance{font-family:'Kanit',sans-serif;font-size:13px;color:#7ddc8e;}
 .btn-logout{background:transparent;color:rgba(255,248,236,.4);font-size:12px;padding:4px 10px;border:1px solid rgba(255,255,255,.1);border-radius:5px;cursor:pointer;font-family:'Kanit',sans-serif;}
+.btn-myacc{background:rgba(245,168,0,.12);color:var(--gold);font-family:'Kanit',sans-serif;font-size:13px;font-weight:700;padding:6px 14px;border:1px solid rgba(245,168,0,.3);border-radius:7px;cursor:pointer;transition:all .2s;}
+.btn-myacc:hover{background:rgba(245,168,0,.22);}
+
+/* ACCOUNT MODAL */
+.acc-modal{position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:600;display:none;align-items:flex-start;justify-content:center;padding:16px;overflow-y:auto;}
+.acc-modal.open{display:flex;}
+.acc-box{background:#152018;border:1px solid var(--border);border-radius:16px;width:100%;max-width:500px;margin:auto;overflow:hidden;}
+.acc-head{background:linear-gradient(135deg,rgba(27,107,47,.4),rgba(13,26,15,.8));padding:20px 20px 16px;border-bottom:1px solid var(--border);}
+.acc-head-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;}
+.acc-head-nick{font-family:'Kanit',sans-serif;font-weight:900;font-size:18px;color:var(--cream);}
+.acc-head-bal{font-family:'Kanit',sans-serif;font-weight:900;font-size:22px;color:#4ade80;}
+.acc-head-ballabel{font-size:11px;color:rgba(255,248,236,.4);margin-top:2px;}
+.acc-close{background:none;border:none;color:rgba(255,248,236,.4);font-size:22px;cursor:pointer;line-height:1;}
+.acc-tabs-row{display:flex;gap:6px;overflow-x:auto;padding-bottom:2px;}
+.acc-tab{font-family:'Kanit',sans-serif;font-size:12px;font-weight:700;padding:6px 14px;border-radius:20px;border:1px solid rgba(255,255,255,.1);background:transparent;color:rgba(255,248,236,.5);cursor:pointer;white-space:nowrap;flex-shrink:0;transition:all .2s;}
+.acc-tab.active{background:var(--gold);color:var(--dark);border-color:var(--gold);}
+.acc-panel{display:none;padding:18px 20px;}
+.acc-panel.active{display:block;}
+.acc-field{margin-bottom:12px;}
+.acc-field label{display:block;font-family:'Kanit',sans-serif;font-size:11px;color:rgba(255,248,236,.4);margin-bottom:4px;}
+.acc-field input{width:100%;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);border-radius:7px;padding:9px 12px;color:var(--cream);font-family:'Sarabun',sans-serif;font-size:14px;outline:none;}
+.acc-field input:focus{border-color:var(--gold);}
+.acc-btn{width:100%;font-family:'Kanit',sans-serif;font-weight:700;font-size:14px;padding:11px;border-radius:8px;border:none;cursor:pointer;margin-top:4px;}
+.acc-btn-green{background:var(--green2);color:#fff;}
+.acc-btn-red{background:rgba(200,16,46,.8);color:#fff;}
+.txn-row{display:flex;justify-content:space-between;align-items:center;padding:9px 0;border-bottom:1px solid rgba(255,255,255,.05);font-size:13px;}
+.txn-row:last-child{border-bottom:none;}
+.txn-plus{color:#4ade80;font-family:'Kanit',sans-serif;font-weight:700;}
+.txn-minus{color:#f87171;font-family:'Kanit',sans-serif;font-weight:700;}
+.txn-label{color:rgba(255,248,236,.6);}
+.txn-date{font-size:11px;color:rgba(255,248,236,.35);}
+.stat-row{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px;}
+.stat-box{background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.07);border-radius:10px;padding:12px;text-align:center;}
+.stat-box .val{font-family:'Kanit',sans-serif;font-weight:900;font-size:20px;}
+.stat-box .lbl{font-size:11px;color:rgba(255,248,236,.4);margin-top:2px;}
 
 /* ===== TICKER ===== */
 .ticker{background:rgba(200,16,46,.12);border-bottom:1px solid rgba(200,16,46,.25);padding:7px 0;overflow:hidden;}
@@ -274,6 +309,89 @@ nav{
   </div>
 </div>
 
+<!-- ACCOUNT MODAL -->
+<div class="acc-modal" id="acc-modal">
+  <div class="acc-box">
+    <div class="acc-head">
+      <div class="acc-head-top">
+        <div>
+          <div class="acc-head-nick" id="am-nick">—</div>
+          <div style="font-size:12px;color:rgba(255,248,236,.4);margin-top:2px;" id="am-info">—</div>
+        </div>
+        <div style="text-align:right;">
+          <div class="acc-head-bal" id="am-bal">0</div>
+          <div class="acc-head-ballabel">บาทคงเหลือ</div>
+        </div>
+        <button class="acc-close" onclick="closeAccount()">✕</button>
+      </div>
+      <div class="acc-tabs-row">
+        <button class="acc-tab active" onclick="switchTab('dashboard',this)">📊 ภาพรวม</button>
+        <button class="acc-tab" onclick="switchTab('deposit',this)">💰 เติมเงิน</button>
+        <button class="acc-tab" onclick="switchTab('withdraw',this)">🏧 ถอนเงิน</button>
+        <button class="acc-tab" onclick="switchTab('txn',this)">📋 ธุรกรรม</button>
+        <button class="acc-tab" onclick="switchTab('bets',this)">🎯 เดิมพัน</button>
+        <button class="acc-tab" onclick="switchTab('profile',this)">👤 โปรไฟล์</button>
+      </div>
+    </div>
+
+    <!-- DASHBOARD -->
+    <div class="acc-panel active" id="ap-dashboard">
+      <div class="stat-row">
+        <div class="stat-box"><div class="val" style="color:#4ade80;" id="am-total-dep">—</div><div class="lbl">เติมเงินรวม (฿)</div></div>
+        <div class="stat-box"><div class="val" style="color:#f87171;" id="am-total-with">—</div><div class="lbl">ถอนเงินรวม (฿)</div></div>
+        <div class="stat-box"><div class="val" style="color:var(--gold);" id="am-bet-count">—</div><div class="lbl">การเดิมพัน</div></div>
+        <div class="stat-box"><div class="val" style="color:#a78bfa;" id="am-win-count">—</div><div class="lbl">ชนะ</div></div>
+      </div>
+      <div style="text-align:center;margin-top:8px;display:flex;gap:10px;">
+        <button class="acc-btn acc-btn-green" style="flex:1;" onclick="switchTab('deposit',document.querySelectorAll('.acc-tab')[1])">💰 เติมเงิน</button>
+        <button class="acc-btn acc-btn-red" style="flex:1;" onclick="switchTab('withdraw',document.querySelectorAll('.acc-tab')[2])">🏧 ถอนเงิน</button>
+      </div>
+    </div>
+
+    <!-- DEPOSIT -->
+    <div class="acc-panel" id="ap-deposit">
+      <div class="acc-field"><label>จำนวนเงินที่ต้องการเติม (฿)</label><input type="number" id="dep-amount" placeholder="เช่น 500" min="100"></div>
+      <div style="background:rgba(27,107,47,.1);border:1px solid rgba(27,107,47,.25);border-radius:8px;padding:12px;margin-bottom:12px;font-size:13px;color:rgba(255,248,236,.6);">
+        📌 โอนเงินมาที่บัญชีของเรา แล้วแจ้งสลิปกับ Admin ทาง Line: <b style="color:var(--gold);">@wuachon</b>
+      </div>
+      <button class="acc-btn acc-btn-green" onclick="submitDeposit()">ส่งคำขอเติมเงิน</button>
+      <div style="margin-top:16px;font-family:'Kanit',sans-serif;font-size:13px;font-weight:700;color:rgba(255,248,236,.5);margin-bottom:8px;">ประวัติการเติมเงิน</div>
+      <div id="dep-list"><div style="text-align:center;padding:20px;color:rgba(255,248,236,.3);font-size:13px;">กำลังโหลด...</div></div>
+    </div>
+
+    <!-- WITHDRAW -->
+    <div class="acc-panel" id="ap-withdraw">
+      <div class="acc-field"><label>จำนวนเงินที่ต้องการถอน (฿)</label><input type="number" id="with-amount" placeholder="เช่น 200" min="50"></div>
+      <div class="acc-field"><label>ชื่อบัญชีธนาคาร</label><input id="with-bank-name" placeholder="ชื่อ-นามสกุล ตามบัญชี"></div>
+      <div class="acc-field"><label>เลขบัญชีธนาคาร</label><input id="with-bank-no" placeholder="XXX-X-XXXXX-X"></div>
+      <div class="acc-field"><label>ธนาคาร</label><input id="with-bank" placeholder="เช่น กสิกรไทย, SCB, กรุงไทย"></div>
+      <button class="acc-btn acc-btn-red" onclick="submitWithdraw()">ส่งคำขอถอนเงิน</button>
+      <div style="margin-top:16px;font-family:'Kanit',sans-serif;font-size:13px;font-weight:700;color:rgba(255,248,236,.5);margin-bottom:8px;">ประวัติการถอนเงิน</div>
+      <div id="with-list"><div style="text-align:center;padding:20px;color:rgba(255,248,236,.3);font-size:13px;">กำลังโหลด...</div></div>
+    </div>
+
+    <!-- TRANSACTIONS -->
+    <div class="acc-panel" id="ap-txn">
+      <div id="txn-list"><div style="text-align:center;padding:20px;color:rgba(255,248,236,.3);font-size:13px;">กำลังโหลด...</div></div>
+    </div>
+
+    <!-- BETS -->
+    <div class="acc-panel" id="ap-bets">
+      <div id="bets-history-list"><div style="text-align:center;padding:20px;color:rgba(255,248,236,.3);font-size:13px;">กำลังโหลด...</div></div>
+    </div>
+
+    <!-- PROFILE -->
+    <div class="acc-panel" id="ap-profile">
+      <div class="acc-field"><label>ชื่อผู้ใช้ (Nick)</label><input id="prof-nick" readonly style="opacity:.5;"></div>
+      <div class="acc-field"><label>ชื่อจริง</label><input id="prof-fname" placeholder="ชื่อ"></div>
+      <div class="acc-field"><label>นามสกุล</label><input id="prof-lname" placeholder="นามสกุล"></div>
+      <div class="acc-field"><label>เบอร์โทรศัพท์</label><input id="prof-phone" placeholder="08x-xxx-xxxx"></div>
+      <div class="acc-field"><label>รหัสผ่านใหม่ (เว้นว่างถ้าไม่เปลี่ยน)</label><input type="password" id="prof-pass" placeholder="รหัสผ่านใหม่"></div>
+      <button class="acc-btn acc-btn-green" onclick="saveProfile()">💾 บันทึกข้อมูล</button>
+    </div>
+  </div>
+</div>
+
 <div class="toast" id="toast"></div>
 
 <script>
@@ -498,8 +616,7 @@ function renderNav() {
   if (currentUser) {
     el.innerHTML = `
       <div class="user-chip">
-        <span class="nick">👤 ${currentUser.nick}</span>
-        <span class="balance">฿ ${Number(currentUser.balance||0).toLocaleString('th-TH')}</span>
+        <button class="btn-myacc" onclick="openAccount()">👤 ${currentUser.nick} · ฿ ${Number(currentUser.balance||0).toLocaleString('th-TH')}</button>
         <button class="btn-logout" onclick="doLogout()">ออก</button>
       </div>`;
   } else {
@@ -517,7 +634,161 @@ document.querySelectorAll('.overlay').forEach(el => {
   el.addEventListener('click', e => { if (e.target === el) el.classList.remove('open'); });
 });
 
-// ===== TOAST =====
+// ===== ACCOUNT MODAL =====
+function openAccount() {
+  if (!currentUser) { openModal('login'); return; }
+  document.getElementById('acc-modal').classList.add('open');
+  document.getElementById('am-nick').textContent = '👤 ' + currentUser.nick;
+  document.getElementById('am-info').textContent = (currentUser.fname || '') + ' ' + (currentUser.lname || '') + (currentUser.phone ? ' · ' + currentUser.phone : '');
+  document.getElementById('am-bal').textContent = '฿ ' + Number(currentUser.balance || 0).toLocaleString('th-TH');
+  document.getElementById('prof-nick').value = currentUser.nick || '';
+  document.getElementById('prof-fname').value = currentUser.fname || '';
+  document.getElementById('prof-lname').value = currentUser.lname || '';
+  document.getElementById('prof-phone').value = currentUser.phone || '';
+  loadDashboard();
+}
+
+function closeAccount() {
+  document.getElementById('acc-modal').classList.remove('open');
+}
+
+document.getElementById('acc-modal').addEventListener('click', e => {
+  if (e.target === document.getElementById('acc-modal')) closeAccount();
+});
+
+function switchTab(id, btn) {
+  document.querySelectorAll('.acc-panel').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.acc-tab').forEach(t => t.classList.remove('active'));
+  document.getElementById('ap-' + id)?.classList.add('active');
+  btn?.classList.add('active');
+  if (id === 'deposit') loadDepList();
+  if (id === 'withdraw') loadWithList();
+  if (id === 'txn') loadTxnList();
+  if (id === 'bets') loadBetsList();
+}
+
+async function loadDashboard() {
+  if (!currentUser) return;
+  const nick = currentUser.nick;
+  const [depRes, withRes, betRes] = await Promise.all([
+    sb.from('deposits').select('amount').eq('nick', nick).eq('status', 'approved'),
+    sb.from('withdrawals').select('amount').eq('nick', nick).eq('status', 'approved'),
+    sb.from('bets').select('status').eq('nick', nick),
+  ]);
+  const totalDep = (depRes.data || []).reduce((s, r) => s + Number(r.amount || 0), 0);
+  const totalWith = (withRes.data || []).reduce((s, r) => s + Number(r.amount || 0), 0);
+  const bets = betRes.data || [];
+  const wins = bets.filter(b => b.status === 'won').length;
+  document.getElementById('am-total-dep').textContent = totalDep.toLocaleString('th-TH');
+  document.getElementById('am-total-with').textContent = totalWith.toLocaleString('th-TH');
+  document.getElementById('am-bet-count').textContent = bets.length;
+  document.getElementById('am-win-count').textContent = wins;
+}
+
+async function loadDepList() {
+  const { data } = await sb.from('deposits').select('*').eq('nick', currentUser?.nick).order('created_at', { ascending: false }).limit(20);
+  const el = document.getElementById('dep-list');
+  if (!data?.length) { el.innerHTML = '<div style="text-align:center;padding:20px;color:rgba(255,248,236,.3);font-size:13px;">ยังไม่มีรายการ</div>'; return; }
+  el.innerHTML = data.map(r => `
+    <div class="txn-row">
+      <div><div class="txn-label">เติมเงิน ${Number(r.amount).toLocaleString('th-TH')} ฿</div><div class="txn-date">${new Date(r.created_at).toLocaleString('th-TH')}</div></div>
+      <div class="${r.status === 'approved' ? 'txn-plus' : r.status === 'rejected' ? 'txn-minus' : ''}" style="font-family:'Kanit',sans-serif;font-size:12px;">${r.status === 'approved' ? '✅ อนุมัติ' : r.status === 'rejected' ? '❌ ปฏิเสธ' : '⏳ รอ'}</div>
+    </div>`).join('');
+}
+
+async function loadWithList() {
+  const { data } = await sb.from('withdrawals').select('*').eq('nick', currentUser?.nick).order('created_at', { ascending: false }).limit(20);
+  const el = document.getElementById('with-list');
+  if (!data?.length) { el.innerHTML = '<div style="text-align:center;padding:20px;color:rgba(255,248,236,.3);font-size:13px;">ยังไม่มีรายการ</div>'; return; }
+  el.innerHTML = data.map(r => `
+    <div class="txn-row">
+      <div><div class="txn-label">ถอนเงิน ${Number(r.amount).toLocaleString('th-TH')} ฿</div><div class="txn-date">${new Date(r.created_at).toLocaleString('th-TH')}</div></div>
+      <div class="${r.status === 'approved' ? 'txn-plus' : r.status === 'rejected' ? 'txn-minus' : ''}" style="font-family:'Kanit',sans-serif;font-size:12px;">${r.status === 'approved' ? '✅ อนุมัติ' : r.status === 'rejected' ? '❌ ปฏิเสธ' : '⏳ รอ'}</div>
+    </div>`).join('');
+}
+
+async function loadTxnList() {
+  const nick = currentUser?.nick;
+  const [depRes, withRes] = await Promise.all([
+    sb.from('deposits').select('*').eq('nick', nick).order('created_at', { ascending: false }).limit(10),
+    sb.from('withdrawals').select('*').eq('nick', nick).order('created_at', { ascending: false }).limit(10),
+  ]);
+  const all = [
+    ...(depRes.data || []).map(r => ({ ...r, type: 'deposit' })),
+    ...(withRes.data || []).map(r => ({ ...r, type: 'withdraw' })),
+  ].sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+  const el = document.getElementById('txn-list');
+  if (!all.length) { el.innerHTML = '<div style="text-align:center;padding:20px;color:rgba(255,248,236,.3);font-size:13px;">ยังไม่มีรายการ</div>'; return; }
+  el.innerHTML = all.map(r => `
+    <div class="txn-row">
+      <div><div class="txn-label">${r.type === 'deposit' ? '💰 เติมเงิน' : '🏧 ถอนเงิน'} ${Number(r.amount).toLocaleString('th-TH')} ฿</div><div class="txn-date">${new Date(r.created_at).toLocaleString('th-TH')}</div></div>
+      <div class="${r.status === 'approved' ? (r.type === 'deposit' ? 'txn-plus' : 'txn-minus') : ''}" style="font-size:12px;font-family:'Kanit',sans-serif;">${r.status === 'approved' ? '✅' : r.status === 'rejected' ? '❌' : '⏳'}</div>
+    </div>`).join('');
+}
+
+async function loadBetsList() {
+  const { data } = await sb.from('bets').select('*, matches(round,name_a,name_b)').eq('nick', currentUser?.nick).order('created_at', { ascending: false }).limit(20);
+  const el = document.getElementById('bets-history-list');
+  if (!data?.length) { el.innerHTML = '<div style="text-align:center;padding:20px;color:rgba(255,248,236,.3);font-size:13px;">ยังไม่มีประวัติการเดิมพัน</div>'; return; }
+  el.innerHTML = data.map(b => {
+    const sideName = b.side === 'red' ? (b.matches?.name_a || 'เจ้าบ้าน') : (b.matches?.name_b || 'ทีมเยือน');
+    const sColor = b.side === 'red' ? '#ff9090' : '#90b4ff';
+    const stLabel = b.status === 'won' ? '🏆 ชนะ' : b.status === 'lost' ? '❌ แพ้' : b.status === 'matched' ? '🟢 จับคู่แล้ว' : '⏳ รอ';
+    return `<div class="txn-row">
+      <div>
+        <div style="font-size:13px;color:rgba(255,248,236,.7);">${b.matches?.round || '—'} · <span style="color:${sColor};">${sideName}</span></div>
+        <div class="txn-date">${new Date(b.created_at).toLocaleString('th-TH')}</div>
+      </div>
+      <div style="text-align:right;">
+        <div class="txn-label">${Number(b.amount).toLocaleString('th-TH')} ฿ × ${b.odds}</div>
+        <div style="font-size:12px;">${stLabel}</div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+async function submitDeposit() {
+  const amount = parseFloat(document.getElementById('dep-amount')?.value);
+  if (!amount || amount < 100) { showToast('จำนวนขั้นต่ำ 100 บาทครับ'); return; }
+  const txn = 'DEP-' + Date.now();
+  const { error } = await sb.from('deposits').insert({ nick: currentUser.nick, amount, txn, status: 'pending' });
+  if (error) { showToast('เกิดข้อผิดพลาด: ' + error.message); return; }
+  document.getElementById('dep-amount').value = '';
+  showToast('✅ ส่งคำขอเติมเงินแล้ว รอ Admin อนุมัติครับ');
+  loadDepList();
+}
+
+async function submitWithdraw() {
+  const amount = parseFloat(document.getElementById('with-amount')?.value);
+  const bankName = document.getElementById('with-bank-name')?.value.trim();
+  const bankNo = document.getElementById('with-bank-no')?.value.trim();
+  const bank = document.getElementById('with-bank')?.value.trim();
+  if (!amount || amount < 50) { showToast('จำนวนขั้นต่ำ 50 บาทครับ'); return; }
+  if (!bankName || !bankNo || !bank) { showToast('กรุณากรอกข้อมูลธนาคารให้ครบครับ'); return; }
+  if ((currentUser.balance || 0) < amount) { showToast('ยอดเงินไม่เพียงพอครับ'); return; }
+  const txn = 'WITH-' + Date.now();
+  const { error } = await sb.from('withdrawals').insert({ nick: currentUser.nick, amount, bank_name: bankName, bank_no: bankNo, bank, txn, status: 'pending' });
+  if (error) { showToast('เกิดข้อผิดพลาด: ' + error.message); return; }
+  showToast('✅ ส่งคำขอถอนเงินแล้ว รอ Admin อนุมัติครับ');
+  loadWithList();
+}
+
+async function saveProfile() {
+  const fname = document.getElementById('prof-fname')?.value.trim();
+  const lname = document.getElementById('prof-lname')?.value.trim();
+  const phone = document.getElementById('prof-phone')?.value.trim();
+  const pass = document.getElementById('prof-pass')?.value;
+  const updates = { fname, lname, phone };
+  if (pass && pass.length >= 6) updates.password = pass;
+  else if (pass && pass.length > 0) { showToast('รหัสผ่านอย่างน้อย 6 ตัวอักษรครับ'); return; }
+  const { error } = await sb.from('members').update(updates).eq('nick', currentUser.nick);
+  if (error) { showToast('เกิดข้อผิดพลาด'); return; }
+  currentUser = { ...currentUser, ...updates };
+  sessionStorage.setItem('bw_user', JSON.stringify(currentUser));
+  renderNav();
+  document.getElementById('am-info').textContent = fname + ' ' + lname + (phone ? ' · ' + phone : '');
+  showToast('✅ บันทึกข้อมูลสำเร็จ');
+}
 function showToast(msg, dur = 3000) {
   const t = document.getElementById('toast');
   t.textContent = msg; t.classList.add('show');
