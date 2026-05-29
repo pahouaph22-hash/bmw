@@ -352,11 +352,32 @@ function renderMatches(matches) {
   c.innerHTML = matches.map(m => cardHTML(m)).join('');
 }
 
+// แปลง status → 'upcoming' | 'live' | 'done'
+function normalizeStatus(raw) {
+  const s = (raw || '').toLowerCase().trim();
+  if (s === 'live' || s === 'กำลังแข่ง') return 'live';
+  if (s === 'done' || s === 'จบแล้ว' || s === 'finish' || s === 'finished') return 'done';
+  return 'upcoming';
+}
+
+// แปลงวันที่ให้อ่านง่าย เช่น 20.2.2020 → 20 ก.พ. 2020
+function formatDate(d) {
+  if (!d) return '';
+  const m1 = d.match(/^(\d{1,2})[.\/](\d{1,2})[.\/](\d{2,4})$/);
+  if (m1) {
+    const [, dd, mm, yy] = m1;
+    const year = yy.length === 2 ? '25' + yy : yy;
+    const months = ['','ม.ค.','ก.พ.','มี.ค.','เม.ย.','พ.ค.','มิ.ย.','ก.ค.','ส.ค.','ก.ย.','ต.ค.','พ.ย.','ธ.ค.'];
+    return `${parseInt(dd)} ${months[parseInt(mm)] || mm} ${year}`;
+  }
+  return d;
+}
+
 function cardHTML(m) {
-  const s = (m.status || 'upcoming').toLowerCase();
-  const isUpcoming = s === 'upcoming' || s === 'รอแข่ง' || !s;
-  const isLive = s === 'live' || s === 'กำลังแข่ง';
-  const isDone = s === 'done' || s === 'จบแล้ว';
+  const status = normalizeStatus(m.status);
+  const isUpcoming = status === 'upcoming';
+  const isLive = status === 'live';
+  const isDone = status === 'done';
 
   const sLabel = isLive ? '🔴 กำลังแข่ง' : isDone ? '✅ จบแล้ว' : '⏳ รอแข่ง';
   const sCls = isLive ? 's-live' : isDone ? 's-done' : 's-upcoming';
@@ -374,7 +395,7 @@ function cardHTML(m) {
         <span class="mc-round">${m.round || 'รุ่นทั่วไป'}</span>${code}
       </div>
       <div class="mc-meta">
-        ${m.date ? `<span>📅 <b>${m.date}</b></span>` : ''}
+        ${m.date ? `<span>📅 <b>${formatDate(m.date)}</b></span>` : ''}
         ${m.time ? `<span>🕐 <b>${m.time}</b></span>` : ''}
         ${m.location ? `<span>📍 <b>${m.location}</b></span>` : ''}
         <span class="mc-status ${sCls}">${sLabel}</span>

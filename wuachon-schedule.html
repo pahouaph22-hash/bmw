@@ -315,16 +315,42 @@ function renderMatches() {
   container.innerHTML = filtered.map(m => renderCard(m)).join('');
 }
 
+// แปลง status ไม่ว่าจะเป็นไทยหรืออังกฤษ → 'upcoming' | 'live' | 'done'
+function normalizeStatus(raw) {
+  const s = (raw || '').toLowerCase().trim();
+  if (s === 'live' || s === 'กำลังแข่ง' || s === 'live') return 'live';
+  if (s === 'done' || s === 'จบแล้ว' || s === 'finish' || s === 'finished') return 'done';
+  return 'upcoming'; // default: upcoming, รอแข่ง, '', null
+}
+
+// แปลง date string ให้อ่านง่าย
+function formatDate(d) {
+  if (!d) return '';
+  // รองรับ dd.mm.yyyy, dd/mm/yyyy, yyyy-mm-dd
+  const m1 = d.match(/^(\d{1,2})[.\/](\d{1,2})[.\/](\d{2,4})$/);
+  if (m1) {
+    const [, dd, mm, yy] = m1;
+    const year = yy.length === 2 ? '25' + yy : yy;
+    const months = ['','ม.ค.','ก.พ.','มี.ค.','เม.ย.','พ.ค.','มิ.ย.','ก.ค.','ส.ค.','ก.ย.','ต.ค.','พ.ย.','ธ.ค.'];
+    return `${parseInt(dd)} ${months[parseInt(mm)] || mm} ${year}`;
+  }
+  return d; // คืนค่าเดิมถ้าไม่ตรง pattern
+}
+
 function renderCard(m) {
-  const status = (m.status || 'upcoming').toLowerCase();
+  const status = normalizeStatus(m.status);
+  const isUpcoming = status === 'upcoming';
+  const isLive = status === 'live';
+  const isDone = status === 'done';
+
   let statusLabel = '⏳ รอแข่ง';
   let statusClass = 'status-upcoming';
-  if (status === 'live' || status === 'กำลังแข่ง') { statusLabel = '🔴 กำลังแข่ง'; statusClass = 'status-live'; }
-  if (status === 'done' || status === 'จบแล้ว') { statusLabel = '✅ จบแล้ว'; statusClass = 'status-done'; }
+  if (isLive) { statusLabel = '🔴 กำลังแข่ง'; statusClass = 'status-live'; }
+  if (isDone) { statusLabel = '✅ จบแล้ว'; statusClass = 'status-done'; }
 
   const prize = m.prize ? Number(m.prize).toLocaleString('th-TH') + ' ฿' : '—';
   const betsCount = m.bets?.[0]?.count ?? 0;
-  const canBet = (status === 'upcoming') && currentUser;
+  const canBet = isUpcoming; // เปิดให้กดเสมอ ถ้ายังรอแข่ง (login check ทีหลังใน match page)
 
   const winnerRow = (status === 'done' && m.winner)
     ? `<div class="winner-row">🏆 ผู้ชนะ: <b>${m.winner === 'red' ? (m.name_a || 'เจ้าบ้าน') : (m.name_b || 'ทีมเยือน')}</b></div>`
@@ -343,7 +369,7 @@ function renderCard(m) {
         ${codeTag}
       </div>
       <div class="card-meta">
-        ${m.date ? `<span>📅 <b>${m.date}</b></span>` : ''}
+        ${m.date ? `<span>📅 <b>${formatDate(m.date)}</b></span>` : ''}
         ${m.time ? `<span>🕐 <b>${m.time}</b></span>` : ''}
         ${m.location ? `<span>📍 <b>${m.location}</b></span>` : ''}
         <span class="status-badge ${statusClass}">${statusLabel}</span>
@@ -374,9 +400,8 @@ function renderCard(m) {
     <div class="card-footer">
       <span class="bets-count">📋 รายการเดิมพัน: <b>${betsCount}</b></span>
       <button class="btn-bet" 
-        onclick="goToBet('${m.id}')"
-        ${!canBet ? 'disabled' : ''}>
-        ${status === 'done' ? 'ดูผล' : status === 'live' ? '🔴 กำลังแข่ง' : currentUser ? 'เข้าดูและวางเดิมพัน →' : 'Login เพื่อเดิมพัน'}
+        onclick="goToBet('${m.id}')">
+        ${isDone ? '📊 ดูผล' : isLive ? '🔴 เข้าชมสด' : '🎯 เข้าดูและวางเดิมพัน →'}
       </button>
     </div>
   </div>`;
