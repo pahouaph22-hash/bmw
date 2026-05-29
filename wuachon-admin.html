@@ -95,6 +95,14 @@ tr:hover td{background:#fafafa;}
 .search-input{flex:1;min-width:180px;padding:8px 12px;border:1px solid #e0e0e0;border-radius:8px;font-family:'Sarabun',sans-serif;font-size:13px;outline:none;}
 .search-input:focus{border-color:var(--green);}
 .filter-select{padding:8px 12px;border:1px solid #e0e0e0;border-radius:8px;font-family:'Kanit',sans-serif;font-size:13px;outline:none;background:#fff;}
+.date-filter{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:12px;padding:10px 14px;background:#f9f9f9;border:1px solid #e5e5e0;border-radius:8px;}
+.date-filter label{font-family:'Kanit',sans-serif;font-size:12px;font-weight:700;color:#777;white-space:nowrap;}
+.date-input{padding:7px 10px;border:1px solid #e0e0e0;border-radius:7px;font-family:'Sarabun',sans-serif;font-size:13px;outline:none;color:#333;cursor:pointer;}
+.date-input:focus{border-color:var(--green);}
+.btn-date-today{font-family:'Kanit',sans-serif;font-size:12px;font-weight:700;padding:7px 12px;border-radius:7px;border:1px solid var(--green);background:#f0faf4;color:var(--green);cursor:pointer;}
+.btn-date-clear{font-family:'Kanit',sans-serif;font-size:12px;font-weight:700;padding:7px 12px;border-radius:7px;border:1px solid #ddd;background:#fff;color:#888;cursor:pointer;}
+.btn-date-clear:hover{border-color:var(--red);color:var(--red);}
+.date-tag{font-family:'Kanit',sans-serif;font-size:12px;color:var(--green);font-weight:700;padding:4px 10px;background:#f0faf4;border-radius:20px;border:1px solid rgba(27,107,47,.2);}
 
 /* MATCH CODE */
 .match-code{display:inline-block;background:var(--green);color:#fff;font-family:'Kanit',sans-serif;font-weight:900;font-size:11px;padding:2px 8px;border-radius:4px;letter-spacing:2px;}
@@ -173,6 +181,15 @@ tr:hover td{background:#fafafa;}
           <div class="card-title">👥 รายชื่อสมาชิก
             <span style="font-size:12px;color:#aaa;font-weight:400;" id="members-count"></span>
           </div>
+          <div class="date-filter">
+            <label>📅 สมัครตั้งแต่</label>
+            <input type="date" class="date-input" id="mem-date-from" onchange="filterMembers()">
+            <label>ถึง</label>
+            <input type="date" class="date-input" id="mem-date-to" onchange="filterMembers()">
+            <button class="btn-date-today" onclick="setDateToday('mem')">วันนี้</button>
+            <button class="btn-date-clear" onclick="clearDate('mem')">✕ ล้าง</button>
+            <span class="date-tag" id="mem-date-tag" style="display:none;"></span>
+          </div>
           <div class="search-bar">
             <input class="search-input" id="mem-search" placeholder="ค้นหาชื่อ Nick / เบอร์..." oninput="filterMembers()">
           </div>
@@ -230,6 +247,15 @@ tr:hover td{background:#fafafa;}
               </select>
             </div>
           </div>
+          <div class="date-filter">
+            <label>📅 วันที่แข่ง</label>
+            <input type="date" class="date-input" id="match-date-from" onchange="filterMatches_()">
+            <label>ถึง</label>
+            <input type="date" class="date-input" id="match-date-to" onchange="filterMatches_()">
+            <button class="btn-date-today" onclick="setDateToday('match')">วันนี้</button>
+            <button class="btn-date-clear" onclick="clearDate('match')">✕ ล้าง</button>
+            <span class="date-tag" id="match-date-tag" style="display:none;"></span>
+          </div>
           <div style="overflow-x:auto;" id="matches-list"><div style="text-align:center;padding:24px;color:#aaa;">กำลังโหลด...</div></div>
         </div>
       </div>
@@ -258,6 +284,15 @@ tr:hover td{background:#fafafa;}
               </select>
             </div>
           </div>
+          <div class="date-filter">
+            <label>📅 ตั้งแต่</label>
+            <input type="date" class="date-input" id="dep-date-from" onchange="filterDeposits()">
+            <label>ถึง</label>
+            <input type="date" class="date-input" id="dep-date-to" onchange="filterDeposits()">
+            <button class="btn-date-today" onclick="setDateToday('dep')">วันนี้</button>
+            <button class="btn-date-clear" onclick="clearDate('dep')">✕ ล้าง</button>
+            <span class="date-tag" id="dep-date-tag" style="display:none;"></span>
+          </div>
           <div style="overflow-x:auto;">
             <table>
               <thead><tr><th>Nick</th><th>จำนวน</th><th>ธนาคาร</th><th>TXN</th><th>สถานะ</th><th>เวลา</th><th>จัดการ</th></tr></thead>
@@ -271,6 +306,15 @@ tr:hover td{background:#fafafa;}
       <div class="panel" id="panel-withdrawals">
         <div class="card">
           <div class="card-title">🏧 คำขอถอนเงิน</div>
+          <div class="date-filter">
+            <label>📅 ตั้งแต่</label>
+            <input type="date" class="date-input" id="with-date-from" onchange="filterWithdrawals()">
+            <label>ถึง</label>
+            <input type="date" class="date-input" id="with-date-to" onchange="filterWithdrawals()">
+            <button class="btn-date-today" onclick="setDateToday('with')">วันนี้</button>
+            <button class="btn-date-clear" onclick="clearDate('with')">✕ ล้าง</button>
+            <span class="date-tag" id="with-date-tag" style="display:none;"></span>
+          </div>
           <div style="overflow-x:auto;">
             <table>
               <thead><tr><th>Nick</th><th>จำนวน</th><th>ธนาคาร</th><th>เลขบัญชี</th><th>สถานะ</th><th>เวลา</th><th>จัดการ</th></tr></thead>
@@ -285,6 +329,15 @@ tr:hover td{background:#fafafa;}
         <div class="card">
           <div class="card-title">🎯 รายการเดิมพัน P2P
             <span style="font-size:12px;color:#aaa;font-weight:400;" id="bets-count"></span>
+          </div>
+          <div class="date-filter">
+            <label>📅 ตั้งแต่</label>
+            <input type="date" class="date-input" id="bet-date-from" onchange="filterBets()">
+            <label>ถึง</label>
+            <input type="date" class="date-input" id="bet-date-to" onchange="filterBets()">
+            <button class="btn-date-today" onclick="setDateToday('bet')">วันนี้</button>
+            <button class="btn-date-clear" onclick="clearDate('bet')">✕ ล้าง</button>
+            <span class="date-tag" id="bet-date-tag" style="display:none;"></span>
           </div>
           <div class="search-bar">
             <input class="search-input" id="bet-search" placeholder="ค้นหา Nick / รหัส..." oninput="filterBets()">
@@ -437,6 +490,90 @@ function fmtDate(iso) {
 }
 
 // ===== LOAD ALL =====
+// ===== DATE FILTER UTILITIES =====
+function todayStr() {
+  return new Date().toISOString().slice(0,10);
+}
+
+function setDateToday(prefix) {
+  const today = todayStr();
+  const from = document.getElementById(`${prefix}-date-from`);
+  const to   = document.getElementById(`${prefix}-date-to`);
+  if (from) from.value = today;
+  if (to)   to.value   = today;
+  updateDateTag(prefix);
+  // เรียก filter ที่ถูกต้อง
+  const filterFns = { mem: filterMembers, match: filterMatches_, dep: filterDeposits, with: filterWithdrawals, bet: filterBets };
+  if (filterFns[prefix]) filterFns[prefix]();
+}
+
+function clearDate(prefix) {
+  const from = document.getElementById(`${prefix}-date-from`);
+  const to   = document.getElementById(`${prefix}-date-to`);
+  if (from) from.value = '';
+  if (to)   to.value   = '';
+  updateDateTag(prefix);
+  const filterFns = { mem: filterMembers, match: filterMatches_, dep: filterDeposits, with: filterWithdrawals, bet: filterBets };
+  if (filterFns[prefix]) filterFns[prefix]();
+}
+
+function updateDateTag(prefix) {
+  const tag  = document.getElementById(`${prefix}-date-tag`);
+  if (!tag) return;
+  const from = document.getElementById(`${prefix}-date-from`)?.value;
+  const to   = document.getElementById(`${prefix}-date-to`)?.value;
+  if (from || to) {
+    tag.style.display = 'inline';
+    if (from === to && from) tag.textContent = `📅 ${fmtDateShort(from)}`;
+    else tag.textContent = `📅 ${from ? fmtDateShort(from) : '...'} → ${to ? fmtDateShort(to) : '...'}`;
+  } else {
+    tag.style.display = 'none';
+  }
+}
+
+function fmtDateShort(isoDate) {
+  if (!isoDate) return '';
+  const [y,m,d] = isoDate.split('-');
+  const months = ['','ม.ค.','ก.พ.','มี.ค.','เม.ย.','พ.ค.','มิ.ย.','ก.ค.','ส.ค.','ก.ย.','ต.ค.','พ.ย.','ธ.ค.'];
+  return `${parseInt(d)} ${months[parseInt(m)]} ${y}`;
+}
+
+// กรองตาม date range: field = 'created_at' หรือ 'date'
+function inDateRange(row, prefix, field = 'created_at') {
+  const from = document.getElementById(`${prefix}-date-from`)?.value;
+  const to   = document.getElementById(`${prefix}-date-to`)?.value;
+  if (!from && !to) return true;
+  // แปลง field เป็น date string YYYY-MM-DD
+  let rowDate = '';
+  if (field === 'created_at') {
+    rowDate = row[field] ? row[field].slice(0,10) : '';
+  } else {
+    // field = 'date' — อาจเป็น dd.mm.yyyy หรือ yyyy-mm-dd
+    const raw = row[field] || '';
+    const m = raw.match(/^(\d{1,2})[./](\d{1,2})[./](\d{4})$/);
+    if (m) rowDate = `${m[3]}-${m[2].padStart(2,'0')}-${m[1].padStart(2,'0')}`;
+    else rowDate = raw.slice(0,10);
+  }
+  if (from && rowDate < from) return false;
+  if (to   && rowDate > to  ) return false;
+  return true;
+}
+
+// ===== AUTO REFRESH ทุกวัน =====
+function scheduleAutoRefresh() {
+  const now  = new Date();
+  const next = new Date(now);
+  next.setHours(0,1,0,0); // เที่ยงคืน + 1 นาที
+  if (next <= now) next.setDate(next.getDate() + 1);
+  const ms = next - now;
+  console.log(`Auto-refresh ครั้งถัดไปใน ${Math.round(ms/60000)} นาที`);
+  setTimeout(() => {
+    loadAll();
+    showToast(`🔄 อัปเดตข้อมูลแล้ว (${new Date().toLocaleDateString('th-TH')})`);
+    scheduleAutoRefresh(); // ตั้งรอบถัดไป
+  }, ms);
+}
+
 function loadAll() {
   loadOverview();
   loadMembers();
@@ -448,6 +585,7 @@ function loadAll() {
   loadNews();
   loadSettings();
   subscribeNotifications();
+  scheduleAutoRefresh();
 }
 
 // ===== OVERVIEW =====
@@ -498,7 +636,12 @@ async function loadMembers() {
 
 function filterMembers() {
   const q = document.getElementById('mem-search')?.value.toLowerCase() || '';
-  const rows = allMembers.filter(m => !q || m.nick?.toLowerCase().includes(q) || m.fname?.toLowerCase().includes(q) || m.phone?.includes(q));
+  let rows = allMembers.filter(m => {
+    const matchQ = !q || m.nick?.toLowerCase().includes(q) || m.fname?.toLowerCase().includes(q) || m.phone?.includes(q);
+    return matchQ && inDateRange(m, 'mem', 'created_at');
+  });
+  updateDateTag('mem');
+  document.getElementById('members-count').textContent = `(${rows.length} คน)`;
   const tb = document.getElementById('members-tbody');
   if (!rows.length) { tb.innerHTML = '<tr><td colspan="6" style="text-align:center;padding:20px;color:#aaa;">ไม่พบข้อมูล</td></tr>'; return; }
   tb.innerHTML = rows.map(m => `
@@ -529,11 +672,13 @@ async function loadMatches() {
 }
 
 function filterMatches_() {
-  const q = (document.getElementById('match-search')?.value || '').toLowerCase();
+  const q  = (document.getElementById('match-search')?.value || '').toLowerCase();
   const sf = document.getElementById('match-status-filter')?.value || '';
   let rows = allMatches;
-  if (q) rows = rows.filter(m => m.round?.toLowerCase().includes(q) || m.name_a?.toLowerCase().includes(q) || m.name_b?.toLowerCase().includes(q) || m.code?.includes(q));
+  if (q)  rows = rows.filter(m => m.round?.toLowerCase().includes(q) || m.name_a?.toLowerCase().includes(q) || m.name_b?.toLowerCase().includes(q) || m.code?.includes(q));
   if (sf) rows = rows.filter(m => (m.status||'upcoming') === sf);
+  rows = rows.filter(m => inDateRange(m, 'match', 'date'));
+  updateDateTag('match');
   const el = document.getElementById('matches-list');
   if (!rows.length) { el.innerHTML = '<div style="text-align:center;padding:24px;color:#aaa;">ไม่พบรายการ</div>'; return; }
   el.innerHTML = `<table><thead><tr><th>รหัส</th><th>รุ่น/วันที่</th><th>🔴 เจ้าบ้าน</th><th>🔵 ทีมเยือน</th><th>รางวัล</th><th>สถานะ</th><th>ตัดสิน</th><th>จัดการ</th></tr></thead><tbody>` +
@@ -743,7 +888,8 @@ async function loadDeposits() {
 function filterDeposits() {
   // default แสดงแค่ pending ถ้าไม่ได้เลือก filter
   const sf = document.getElementById('dep-filter')?.value || 'pending';
-  const rows = allDeposits.filter(d => d.status === sf);
+  const rows = allDeposits.filter(d => d.status === sf && inDateRange(d, 'dep', 'created_at'));
+  updateDateTag('dep');
   const tb = document.getElementById('dep-tbody');
   if (!rows.length) {
     const labels = { pending:'รอดำเนินการ', approved:'อนุมัติแล้ว', rejected:'ถูกปฏิเสธ' };
@@ -802,7 +948,13 @@ async function rejectDeposit(id, nick) {
 async function loadWithdrawals() {
   const {data} = await sb.from('withdrawals').select('*').order('created_at',{ascending:false});
   allWithdrawals = data || [];
-  renderWithdrawals(allWithdrawals);
+  filterWithdrawals();
+}
+
+function filterWithdrawals() {
+  const rows = allWithdrawals.filter(w => inDateRange(w, 'with', 'created_at'));
+  updateDateTag('with');
+  renderWithdrawals(rows);
 }
 
 function renderWithdrawals(rows) {
@@ -852,7 +1004,12 @@ async function loadBets() {
 
 function filterBets() {
   const q = (document.getElementById('bet-search')?.value||'').toLowerCase();
-  const rows = q ? allBets.filter(b => b.nick?.toLowerCase().includes(q) || b.matches?.code?.includes(q)) : allBets;
+  let rows = allBets.filter(b => {
+    const matchQ = !q || b.nick?.toLowerCase().includes(q) || b.matches?.code?.includes(q);
+    return matchQ && inDateRange(b, 'bet', 'created_at');
+  });
+  updateDateTag('bet');
+  document.getElementById('bets-count').textContent = `(${rows.length} รายการ)`;
   const tb = document.getElementById('bets-tbody');
   if (!rows.length) { tb.innerHTML = '<tr><td colspan="7" style="text-align:center;padding:20px;color:#aaa;">ไม่มีรายการ</td></tr>'; return; }
   tb.innerHTML = rows.map(b => `<tr>
