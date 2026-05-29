@@ -646,12 +646,13 @@ function filterMembers() {
   if (!rows.length) { tb.innerHTML = '<tr><td colspan="6" style="text-align:center;padding:20px;color:#aaa;">ไม่พบข้อมูล</td></tr>'; return; }
   tb.innerHTML = rows.map(m => `
     <tr>
-      <td><strong>${m.nick||'—'}</strong></td>
+      <td><strong style="cursor:pointer;color:var(--green);text-decoration:underline;" onclick="openMember('${m.nick}')">${m.nick||'—'}</strong></td>
       <td>${m.fname||''} ${m.lname||''}</td>
       <td>${m.phone||'—'}</td>
       <td style="font-family:'Kanit',sans-serif;font-weight:700;color:var(--green);">${Number(m.balance||0).toLocaleString()} ฿</td>
       <td style="font-size:12px;color:#aaa;">${fmtDate(m.created_at)}</td>
-      <td>
+      <td style="display:flex;gap:4px;">
+        <button class="btn btn-gold" onclick="openMember('${m.nick}')">👁 ดูข้อมูล</button>
         <button class="btn btn-red" onclick="deleteMember('${m.id}','${m.nick}')">ลบ</button>
       </td>
     </tr>`).join('');
@@ -897,7 +898,7 @@ function filterDeposits() {
     return;
   }
   tb.innerHTML = rows.map(d => `<tr id="dep-row-${d.id}">
-    <td><strong>${d.nick}</strong></td>
+    <td><strong style="cursor:pointer;color:var(--green);text-decoration:underline;" onclick="openMember('${d.nick}')">${d.nick}</strong></td>
     <td style="font-family:'Kanit',sans-serif;font-weight:700;color:var(--green);">${Number(d.amount).toLocaleString()} ฿</td>
     <td>${d.bank||'—'}</td>
     <td style="font-size:11px;color:#aaa;">${d.txn||'—'}</td>
@@ -961,7 +962,7 @@ function renderWithdrawals(rows) {
   const tb = document.getElementById('with-tbody');
   if (!rows.length) { tb.innerHTML = '<tr><td colspan="7" style="text-align:center;padding:20px;color:#aaa;">ไม่มีรายการ</td></tr>'; return; }
   tb.innerHTML = rows.map(w => `<tr id="with-row-${w.id}">
-    <td><strong>${w.nick}</strong></td>
+    <td><strong style="cursor:pointer;color:var(--green);text-decoration:underline;" onclick="openMember('${w.nick}')">${w.nick}</strong></td>
     <td style="font-family:'Kanit',sans-serif;font-weight:700;color:var(--red);">${Number(w.amount).toLocaleString()} ฿</td>
     <td>${w.bank||'—'}</td>
     <td style="font-size:12px;">${w.acc_no||'—'}<br><span style="color:#aaa;font-size:11px;">${w.acc_name||''}</span></td>
@@ -1013,7 +1014,7 @@ function filterBets() {
   const tb = document.getElementById('bets-tbody');
   if (!rows.length) { tb.innerHTML = '<tr><td colspan="7" style="text-align:center;padding:20px;color:#aaa;">ไม่มีรายการ</td></tr>'; return; }
   tb.innerHTML = rows.map(b => `<tr>
-    <td><strong>${b.nick}</strong></td>
+    <td><strong style="cursor:pointer;color:var(--green);text-decoration:underline;" onclick="openMember('${b.nick}')">${b.nick}</strong></td>
     <td>${b.side==='red'?'🔴':'🔵'} ${b.side_name||'—'}<br><span style="font-size:11px;color:#aaa;">${b.matches?.round||''} ${b.matches?.code?'#'+b.matches.code:''}</span></td>
     <td>×${b.odds}</td>
     <td style="font-family:'Kanit',sans-serif;font-weight:700;">${Number(b.amount).toLocaleString()} ฿</td>
@@ -1116,6 +1117,200 @@ function subscribeNotifications() {
       if (dot) dot.style.background = status==='SUBSCRIBED' ? '#639922' : '#C8102E';
     });
 }
+
+// ===== MEMBER DETAIL MODAL =====
+async function openMember(nick) {
+  if (!nick) return;
+  // แสดง modal ก่อน แล้วค่อยโหลด
+  document.getElementById('md-overlay').style.display = 'flex';
+  document.getElementById('md-loading').style.display = 'block';
+  document.getElementById('md-content').style.display = 'none';
+
+  // โหลดข้อมูลทั้งหมดพร้อมกัน
+  const [memRes, depRes, withRes, betRes] = await Promise.all([
+    sb.from('members').select('*').eq('nick', nick).maybeSingle(),
+    sb.from('deposits').select('*').eq('nick', nick).order('created_at',{ascending:false}).limit(30),
+    sb.from('withdrawals').select('*').eq('nick', nick).order('created_at',{ascending:false}).limit(30),
+    sb.from('bets').select('*, matches(round,name_a,name_b,code)').eq('nick', nick).order('created_at',{ascending:false}).limit(30),
+  ]);
+
+  const m   = memRes.data;
+  const deps = depRes.data  || [];
+  const withs = withRes.data || [];
+  const bets  = betRes.data  || [];
+
+  if (!m) { document.getElementById('md-overlay').style.display='none'; showToast('ไม่พบข้อมูลสมาชิก','error'); return; }
+
+  // ข้อมูลสรุป
+  const totalDep  = deps.filter(d=>d.status==='approved').reduce((s,d)=>s+Number(d.amount),0);
+  const totalWith = withs.filter(w=>w.status==='approved').reduce((s,w)=>s+Number(w.amount),0);
+  const wonBets   = bets.filter(b=>b.status==='won').length;
+  const lostBets  = bets.filter(b=>b.status==='lost').length;
+  const totalBetAmt = bets.reduce((s,b)=>s+Number(b.amount),0);
+  const winRate   = bets.length ? ((wonBets/bets.length)*100).toFixed(0) : 0;
+
+  document.getElementById('md-loading').style.display = 'none';
+  document.getElementById('md-content').style.display = 'block';
+
+  document.getElementById('md-content').innerHTML = `
+    <!-- HEADER -->
+    <div style="display:flex;align-items:center;gap:14px;padding:20px 22px;background:linear-gradient(135deg,#1B6B2F,#27943F);color:#fff;position:relative;">
+      <div style="width:52px;height:52px;border-radius:50%;background:rgba(255,255,255,.2);display:flex;align-items:center;justify-content:center;font-family:'Kanit',sans-serif;font-weight:900;font-size:22px;flex-shrink:0;">${(m.nick||'?')[0].toUpperCase()}</div>
+      <div style="flex:1;min-width:0;">
+        <div style="font-family:'Kanit',sans-serif;font-weight:900;font-size:18px;">${m.nick}</div>
+        <div style="font-size:12px;opacity:.8;">${m.fname||''} ${m.lname||''} · ${m.phone||'—'}</div>
+        <div style="font-size:11px;opacity:.6;margin-top:2px;">สมัคร ${fmtDate(m.created_at)}</div>
+      </div>
+      <div style="text-align:right;flex-shrink:0;">
+        <div style="font-family:'Kanit',sans-serif;font-weight:900;font-size:22px;">${Number(m.balance||0).toLocaleString()} ฿</div>
+        <div style="font-size:11px;opacity:.7;">ยอดคงเหลือ</div>
+      </div>
+      <button onclick="closeMember()" style="position:absolute;top:12px;right:14px;background:rgba(255,255,255,.2);border:none;color:#fff;font-size:18px;width:28px;height:28px;border-radius:50%;cursor:pointer;display:flex;align-items:center;justify-content:center;">✕</button>
+    </div>
+
+    <!-- STATS -->
+    <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:1px;background:#e5e5e0;">
+      <div style="background:#fff;padding:14px;text-align:center;">
+        <div style="font-family:'Kanit',sans-serif;font-weight:900;font-size:18px;color:#1B6B2F;">+${totalDep.toLocaleString()}</div>
+        <div style="font-size:11px;color:#aaa;">เติมเงินรวม (฿)</div>
+      </div>
+      <div style="background:#fff;padding:14px;text-align:center;">
+        <div style="font-family:'Kanit',sans-serif;font-weight:900;font-size:18px;color:#C8102E;">-${totalWith.toLocaleString()}</div>
+        <div style="font-size:11px;color:#aaa;">ถอนเงินรวม (฿)</div>
+      </div>
+      <div style="background:#fff;padding:14px;text-align:center;">
+        <div style="font-family:'Kanit',sans-serif;font-weight:900;font-size:18px;color:#1a1a1a;">${bets.length}</div>
+        <div style="font-size:11px;color:#aaa;">เดิมพันทั้งหมด</div>
+      </div>
+      <div style="background:#fff;padding:14px;text-align:center;">
+        <div style="font-family:'Kanit',sans-serif;font-weight:900;font-size:18px;color:#F5A800;">${winRate}%</div>
+        <div style="font-size:11px;color:#aaa;">อัตราชนะ</div>
+      </div>
+    </div>
+
+    <!-- TABS -->
+    <div style="display:flex;border-bottom:2px solid #e5e5e0;background:#fff;">
+      <button class="md-tab active" onclick="switchMdTab('dep',this)">💰 เติมเงิน (${deps.length})</button>
+      <button class="md-tab" onclick="switchMdTab('with',this)">🏧 ถอนเงิน (${withs.length})</button>
+      <button class="md-tab" onclick="switchMdTab('bet',this)">🎯 เดิมพัน (${bets.length})</button>
+      <button class="md-tab" onclick="switchMdTab('info',this)">👤 ข้อมูล</button>
+    </div>
+
+    <!-- TAB CONTENT -->
+    <div style="overflow-y:auto;flex:1;max-height:340px;">
+      <!-- DEP TAB -->
+      <div id="mdt-dep" class="md-panel" style="display:block;">
+        ${deps.length ? `<table style="width:100%;border-collapse:collapse;">
+          <thead><tr style="background:#fafafa;">
+            <th style="padding:8px 12px;text-align:left;font-family:'Kanit',sans-serif;font-size:11px;color:#999;border-bottom:1px solid #eee;">จำนวน</th>
+            <th style="padding:8px 12px;text-align:left;font-family:'Kanit',sans-serif;font-size:11px;color:#999;border-bottom:1px solid #eee;">ธนาคาร</th>
+            <th style="padding:8px 12px;text-align:left;font-family:'Kanit',sans-serif;font-size:11px;color:#999;border-bottom:1px solid #eee;">สถานะ</th>
+            <th style="padding:8px 12px;text-align:left;font-family:'Kanit',sans-serif;font-size:11px;color:#999;border-bottom:1px solid #eee;">เวลา</th>
+          </tr></thead>
+          <tbody>${deps.map(d=>`<tr style="border-bottom:1px solid #f5f5f5;">
+            <td style="padding:9px 12px;font-family:'Kanit',sans-serif;font-weight:700;color:#1B6B2F;">+${Number(d.amount).toLocaleString()} ฿</td>
+            <td style="padding:9px 12px;font-size:12px;">${d.bank||'—'}</td>
+            <td style="padding:9px 12px;"><span class="badge badge-${d.status}">${d.status==='approved'?'✅ อนุมัติ':d.status==='rejected'?'❌ ปฏิเสธ':'⏳ รอ'}</span>${d.reason?`<div style="font-size:10px;color:#f87171;">${d.reason}</div>`:''}</td>
+            <td style="padding:9px 12px;font-size:11px;color:#aaa;">${fmtDate(d.created_at)}</td>
+          </tr>`).join('')}</tbody>
+        </table>` : '<div style="text-align:center;padding:30px;color:#aaa;">ยังไม่มีรายการเติมเงิน</div>'}
+      </div>
+      <!-- WITH TAB -->
+      <div id="mdt-with" class="md-panel" style="display:none;">
+        ${withs.length ? `<table style="width:100%;border-collapse:collapse;">
+          <thead><tr style="background:#fafafa;">
+            <th style="padding:8px 12px;text-align:left;font-family:'Kanit',sans-serif;font-size:11px;color:#999;border-bottom:1px solid #eee;">จำนวน</th>
+            <th style="padding:8px 12px;text-align:left;font-family:'Kanit',sans-serif;font-size:11px;color:#999;border-bottom:1px solid #eee;">ธนาคาร / บัญชี</th>
+            <th style="padding:8px 12px;text-align:left;font-family:'Kanit',sans-serif;font-size:11px;color:#999;border-bottom:1px solid #eee;">สถานะ</th>
+            <th style="padding:8px 12px;text-align:left;font-family:'Kanit',sans-serif;font-size:11px;color:#999;border-bottom:1px solid #eee;">เวลา</th>
+          </tr></thead>
+          <tbody>${withs.map(w=>`<tr style="border-bottom:1px solid #f5f5f5;">
+            <td style="padding:9px 12px;font-family:'Kanit',sans-serif;font-weight:700;color:#C8102E;">-${Number(w.amount).toLocaleString()} ฿</td>
+            <td style="padding:9px 12px;font-size:12px;">${w.bank||'—'}<br><span style="color:#aaa;font-size:11px;">${w.acc_no||''} ${w.acc_name?'· '+w.acc_name:''}</span></td>
+            <td style="padding:9px 12px;"><span class="badge badge-${w.status}">${w.status==='approved'?'✅ โอนแล้ว':w.status==='rejected'?'❌ ปฏิเสธ':'⏳ รอ'}</span>${w.reason?`<div style="font-size:10px;color:#f87171;">${w.reason}</div>`:''}</td>
+            <td style="padding:9px 12px;font-size:11px;color:#aaa;">${fmtDate(w.created_at)}</td>
+          </tr>`).join('')}</tbody>
+        </table>` : '<div style="text-align:center;padding:30px;color:#aaa;">ยังไม่มีรายการถอนเงิน</div>'}
+      </div>
+      <!-- BET TAB -->
+      <div id="mdt-bet" class="md-panel" style="display:none;">
+        ${bets.length ? `
+        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;padding:12px;background:#fafafa;border-bottom:1px solid #eee;">
+          <div style="text-align:center;"><div style="font-family:'Kanit',sans-serif;font-weight:900;font-size:16px;color:#1B6B2F;">${wonBets}</div><div style="font-size:11px;color:#aaa;">ชนะ</div></div>
+          <div style="text-align:center;"><div style="font-family:'Kanit',sans-serif;font-weight:900;font-size:16px;color:#C8102E;">${lostBets}</div><div style="font-size:11px;color:#aaa;">แพ้</div></div>
+          <div style="text-align:center;"><div style="font-family:'Kanit',sans-serif;font-weight:900;font-size:16px;">${totalBetAmt.toLocaleString()}</div><div style="font-size:11px;color:#aaa;">วางรวม (฿)</div></div>
+        </div>
+        <table style="width:100%;border-collapse:collapse;">
+          <thead><tr style="background:#fafafa;">
+            <th style="padding:8px 12px;text-align:left;font-family:'Kanit',sans-serif;font-size:11px;color:#999;border-bottom:1px solid #eee;">แมช</th>
+            <th style="padding:8px 12px;text-align:left;font-family:'Kanit',sans-serif;font-size:11px;color:#999;border-bottom:1px solid #eee;">ฝั่ง</th>
+            <th style="padding:8px 12px;text-align:left;font-family:'Kanit',sans-serif;font-size:11px;color:#999;border-bottom:1px solid #eee;">จำนวน × Odds</th>
+            <th style="padding:8px 12px;text-align:left;font-family:'Kanit',sans-serif;font-size:11px;color:#999;border-bottom:1px solid #eee;">ผล</th>
+            <th style="padding:8px 12px;text-align:left;font-family:'Kanit',sans-serif;font-size:11px;color:#999;border-bottom:1px solid #eee;">เวลา</th>
+          </tr></thead>
+          <tbody>${bets.map(b=>`<tr style="border-bottom:1px solid #f5f5f5;">
+            <td style="padding:9px 12px;font-size:12px;">${b.matches?.round||'—'}<br><span style="color:#aaa;font-size:10px;">${b.matches?.code?'#'+b.matches.code:''}</span></td>
+            <td style="padding:9px 12px;">${b.side==='red'?'🔴':'🔵'} <span style="font-size:12px;">${b.side_name||b.side}</span></td>
+            <td style="padding:9px 12px;font-family:'Kanit',sans-serif;font-weight:700;font-size:12px;">${Number(b.amount).toLocaleString()} ฿ × ${b.odds}</td>
+            <td style="padding:9px 12px;"><span class="badge badge-${b.status==='won'?'approved':b.status==='lost'?'rejected':b.status==='matched'?'approved':'pending'}">${b.status==='won'?'🏆 ชนะ':b.status==='lost'?'❌ แพ้':b.status==='matched'?'✅ จับคู่':'⏳ รอ'}</span></td>
+            <td style="padding:9px 12px;font-size:11px;color:#aaa;">${fmtDate(b.created_at)}</td>
+          </tr>`).join('')}</tbody>
+        </table>` : '<div style="text-align:center;padding:30px;color:#aaa;">ยังไม่มีประวัติเดิมพัน</div>'}
+      </div>
+      <!-- INFO TAB -->
+      <div id="mdt-info" class="md-panel" style="display:none;padding:18px 20px;">
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+          ${[['Nick',m.nick],['ชื่อ',m.fname],['นามสกุล',m.lname],['เบอร์โทร',m.phone],['ยอดเงิน',Number(m.balance||0).toLocaleString()+' ฿'],['ID',m.id],['สมัครเมื่อ',fmtDate(m.created_at)],['แก้ไขล่าสุด',fmtDate(m.updated_at)]].map(([k,v])=>`
+          <div style="background:#f9f9f9;border-radius:8px;padding:10px 12px;">
+            <div style="font-family:'Kanit',sans-serif;font-size:10px;font-weight:700;color:#bbb;letter-spacing:.5px;margin-bottom:3px;">${k}</div>
+            <div style="font-size:13px;font-weight:500;word-break:break-all;">${v||'—'}</div>
+          </div>`).join('')}
+        </div>
+        <div style="margin-top:14px;display:flex;gap:8px;">
+          <button class="btn btn-primary" style="flex:1;" onclick="editMemberBalance('${m.nick}',${m.balance||0})">💰 แก้ไขยอดเงิน</button>
+          <button class="btn btn-red" style="flex:1;" onclick="if(confirm('ลบสมาชิก ${m.nick}?')){deleteMember('${m.id}','${m.nick}');closeMember();}">🗑️ ลบสมาชิก</button>
+        </div>
+      </div>
+    </div>`;
+}
+
+function closeMember() {
+  document.getElementById('md-overlay').style.display = 'none';
+}
+
+function switchMdTab(id, btn) {
+  document.querySelectorAll('.md-panel').forEach(p => p.style.display = 'none');
+  document.querySelectorAll('.md-tab').forEach(t => t.classList.remove('active'));
+  const panel = document.getElementById('mdt-' + id);
+  if (panel) panel.style.display = 'block';
+  btn?.classList.add('active');
+}
+
+async function editMemberBalance(nick, currentBal) {
+  const input = prompt(`แก้ไขยอดเงินของ "${nick}"\nยอดปัจจุบัน: ${Number(currentBal).toLocaleString()} ฿\n\nกรอกยอดใหม่:`, currentBal);
+  if (input === null || input === '') return;
+  const newBal = parseFloat(input);
+  if (isNaN(newBal) || newBal < 0) { showToast('⚠️ จำนวนไม่ถูกต้องครับ','error'); return; }
+  await sb.from('members').update({ balance: newBal }).eq('nick', nick);
+  showToast(`✅ อัปเดตยอดเงิน ${nick} เป็น ${newBal.toLocaleString()} ฿ แล้วครับ`);
+  closeMember();
+  loadMembers(); loadOverview();
+}
 </script>
+
+<!-- MEMBER DETAIL MODAL -->
+<div id="md-overlay" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:800;align-items:center;justify-content:center;padding:16px;" onclick="if(event.target===this)closeMember()">
+  <div style="background:#fff;border-radius:14px;width:100%;max-width:680px;max-height:90vh;display:flex;flex-direction:column;overflow:hidden;box-shadow:0 24px 60px rgba(0,0,0,.4);">
+    <div id="md-loading" style="padding:40px;text-align:center;color:#aaa;font-family:'Kanit',sans-serif;">กำลังโหลดข้อมูล...</div>
+    <div id="md-content" style="display:none;flex-direction:column;overflow:hidden;flex:1;display:flex;flex-direction:column;"></div>
+  </div>
+</div>
+
+<style>
+.md-tab{font-family:'Kanit',sans-serif;font-size:13px;font-weight:600;padding:10px 16px;border:none;background:transparent;cursor:pointer;color:#888;border-bottom:2px solid transparent;transition:all .15s;white-space:nowrap;}
+.md-tab:hover{color:#333;background:#f5f5f5;}
+.md-tab.active{color:var(--green);border-bottom-color:var(--green);background:#f0faf4;}
+.md-panel{display:none;}
+</style>
 </body>
 </html>
