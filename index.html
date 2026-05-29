@@ -983,6 +983,26 @@ const SUPA_URL = 'https://xzlpdeqlfczjkospfqqi.supabase.co';
 const SUPA_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inh6bHBkZXFsZmN6amtvc3BmcXFpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzk2NzgyMjAsImV4cCI6MjA5NTI1NDIyMH0.W0pDFJy3lFeO4ht9DpNzeDgVdGvSz94p0KWGfzc0Igw';
 const sb = supabase.createClient(SUPA_URL, SUPA_KEY);
 
+// ===== TOAST (ต้องนิยามก่อนทุก function) =====
+function showToast(msg, dur = 3500) {
+  // สร้าง toast แบบ dynamic เพื่อหลีกเลี่ยง null element
+  let t = document.getElementById('toast');
+  if (!t) {
+    t = document.createElement('div');
+    t.id = 'toast';
+    t.style.cssText = 'position:fixed;bottom:24px;right:24px;background:#1e3a1e;border:1px solid #27943F;color:#fff;font-family:Kanit,sans-serif;font-size:14px;padding:12px 20px;border-radius:10px;z-index:9999;opacity:0;transform:translateY(10px);transition:all .3s;pointer-events:none;max-width:300px;';
+    document.body.appendChild(t);
+  }
+  t.textContent = msg;
+  t.style.opacity = '1';
+  t.style.transform = 'translateY(0)';
+  clearTimeout(t._timer);
+  t._timer = setTimeout(() => {
+    t.style.opacity = '0';
+    t.style.transform = 'translateY(10px)';
+  }, dur);
+}
+
 let currentUser = null;
 
 // ===== INIT =====
@@ -2064,13 +2084,16 @@ document.querySelectorAll('.overlay').forEach(el => {
   }
 
   window.showMyAccount = window._real_showMyAccount = function showMyAccount() {
-    // ซ่อนทุก page (null-safe)
-    ['main-content','page-schedule','page-register','page-history'].forEach(id => {
-      const el = document.getElementById(id);
-      if (el) el.style.display = 'none';
+    // defer เพื่อให้ DOM render ก่อน (แก้ Cannot read style of null)
+    requestAnimationFrame(() => {
+      ['main-content','page-schedule','page-register','page-history'].forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.style.display = 'none';
+      });
+      const ma = document.getElementById('page-myaccount');
+      if (ma) ma.style.display = 'block';
+      window.scrollTo(0, 0);
     });
-    document.getElementById('page-myaccount').style.display = 'block';
-    window.scrollTo(0, 0);
   }
 
   window.hideMyAccount = window._real_hideMyAccount = function hideMyAccount() {
