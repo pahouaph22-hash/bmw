@@ -1261,7 +1261,7 @@ async function openMember(nick) {
       <div id="mdt-info" class="md-panel" style="display:none;padding:18px 20px;overflow-y:auto;">
 
         <!-- ข้อมูลส่วนตัว -->
-        <div style="font-family:'Kanit',sans-serif;font-size:12px;font-weight:700;color:#888;letter-spacing:.5px;margin-bottom:8px;">📝 แก้ไขข้อมูลส่วนตัว</div>
+        <div class="me-section-title">📝 ข้อมูลส่วนตัว</div>
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px;">
           <div class="fg">
             <label>Nick (เปลี่ยนไม่ได้)</label>
@@ -1279,14 +1279,19 @@ async function openMember(nick) {
             <label>นามสกุล</label>
             <input id="me-lname" value="${m.lname||''}" placeholder="นามสกุล">
           </div>
+          <div class="fg" style="grid-column:1/-1;">
+            <label>🪪 เลขบัตรประจำตัวประชาชน (13 หลัก)</label>
+            <input id="me-idcard" value="${m.id_card||''}" placeholder="X-XXXX-XXXXX-XX-X" maxlength="17"
+              oninput="this.value=this.value.replace(/[^0-9]/g,'').replace(/^(\d{1})(\d{4})(\d{5})(\d{2})(\d{1})$/,'$1-$2-$3-$4-$5')">
+          </div>
         </div>
 
         <!-- รหัสผ่าน -->
-        <div style="font-family:'Kanit',sans-serif;font-size:12px;font-weight:700;color:#888;letter-spacing:.5px;margin-bottom:8px;">🔑 เปลี่ยนรหัสผ่าน</div>
+        <div class="me-section-title">🔑 เปลี่ยนรหัสผ่าน</div>
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px;">
           <div class="fg">
             <label>รหัสผ่านใหม่</label>
-            <input id="me-pass" type="password" placeholder="กรอกรหัสผ่านใหม่ (เว้นว่างถ้าไม่เปลี่ยน)">
+            <input id="me-pass" type="password" placeholder="เว้นว่างถ้าไม่เปลี่ยน">
           </div>
           <div class="fg">
             <label>ยืนยันรหัสผ่าน</label>
@@ -1294,16 +1299,40 @@ async function openMember(nick) {
           </div>
         </div>
 
+        <!-- บัญชีธนาคาร (สำหรับถอนเงิน) -->
+        <div class="me-section-title">🏦 บัญชีธนาคารสำหรับถอนเงิน</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px;">
+          <div class="fg">
+            <label>ธนาคาร</label>
+            <select id="me-bank" style="width:100%;padding:9px 11px;border:1px solid #e0e0e0;border-radius:7px;font-family:'Sarabun',sans-serif;font-size:13px;outline:none;background:#fff;">
+              <option value="">-- เลือกธนาคาร --</option>
+              ${['กสิกรไทย (KBank)','ไทยพาณิชย์ (SCB)','กรุงเทพ (BBL)','กรุงไทย (KTB)','กรุงศรีอยุธยา (BAY)','ทหารไทยธนชาต (TTB)','ออมสิน','ธ.ก.ส.','UOB','CIMB Thai','LH Bank','Citibank','ICBC Thai'].map(b=>`<option value="${b}" ${(m.bank_name||'')=== b?'selected':''}>${b}</option>`).join('')}
+            </select>
+          </div>
+          <div class="fg">
+            <label>ชื่อบัญชี (ตรงตามสมุดบัญชี)</label>
+            <input id="me-bank-accname" value="${m.bank_acc_name||''}" placeholder="ชื่อ-นามสกุล ในบัญชี">
+          </div>
+          <div class="fg">
+            <label>เลขบัญชีธนาคาร</label>
+            <input id="me-bank-accno" value="${m.bank_acc_no||''}" placeholder="XXX-X-XXXXX-X">
+          </div>
+          <div class="fg">
+            <label>สาขา (ถ้ามี)</label>
+            <input id="me-bank-branch" value="${m.bank_branch||''}" placeholder="เช่น สาขาเซ็นทรัล">
+          </div>
+        </div>
+
         <!-- ยอดเงิน -->
-        <div style="font-family:'Kanit',sans-serif;font-size:12px;font-weight:700;color:#888;letter-spacing:.5px;margin-bottom:8px;">💰 แก้ไขยอดเงิน</div>
+        <div class="me-section-title">💰 แก้ไขยอดเงิน</div>
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:16px;">
           <div class="fg">
             <label>ยอดเงินคงเหลือ (฿)</label>
             <input id="me-balance" type="number" value="${m.balance||0}" min="0">
           </div>
           <div class="fg">
-            <label>หมายเหตุการแก้ไขยอด</label>
-            <input id="me-balance-note" placeholder="เช่น แก้ไขโดย Admin">
+            <label>หมายเหตุ (บันทึกใน log)</label>
+            <input id="me-balance-note" placeholder="เช่น ปรับยอดโดย Admin">
           </div>
         </div>
 
@@ -1313,7 +1342,7 @@ async function openMember(nick) {
           <button class="btn btn-red" style="flex:1;padding:11px;" onclick="if(confirm('ลบสมาชิก ${m.nick} ใช่ไหมครับ?')){deleteMember('${m.id}','${m.nick}');closeMember();}">🗑️ ลบสมาชิก</button>
         </div>
 
-        <!-- ข้อมูล metadata -->
+        <!-- metadata -->
         <div style="background:#f9f9f9;border-radius:8px;padding:12px;font-size:12px;color:#aaa;display:grid;grid-template-columns:1fr 1fr;gap:6px;">
           <div>🆔 ID: <span style="word-break:break-all;color:#bbb;">${m.id||'—'}</span></div>
           <div>📅 สมัครเมื่อ: <span style="color:#bbb;">${fmtDate(m.created_at)}</span></div>
@@ -1336,38 +1365,50 @@ function switchMdTab(id, btn) {
 }
 
 async function saveMemberEdit(nick, id) {
-  const fname   = document.getElementById('me-fname')?.value.trim();
-  const lname   = document.getElementById('me-lname')?.value.trim();
-  const phone   = document.getElementById('me-phone')?.value.trim();
-  const pass    = document.getElementById('me-pass')?.value;
-  const pass2   = document.getElementById('me-pass2')?.value;
-  const balance = parseFloat(document.getElementById('me-balance')?.value);
+  const fname        = document.getElementById('me-fname')?.value.trim();
+  const lname        = document.getElementById('me-lname')?.value.trim();
+  const phone        = document.getElementById('me-phone')?.value.trim();
+  const id_card      = document.getElementById('me-idcard')?.value.replace(/[^0-9]/g,'').trim();
+  const pass         = document.getElementById('me-pass')?.value;
+  const pass2        = document.getElementById('me-pass2')?.value;
+  const balance      = parseFloat(document.getElementById('me-balance')?.value);
+  const bank_name    = document.getElementById('me-bank')?.value.trim();
+  const bank_acc_name= document.getElementById('me-bank-accname')?.value.trim();
+  const bank_acc_no  = document.getElementById('me-bank-accno')?.value.trim();
+  const bank_branch  = document.getElementById('me-bank-branch')?.value.trim();
 
-  // ตรวจสอบรหัสผ่าน
+  // Validation
   if (pass && pass.length < 6) {
     showToast('⚠️ รหัสผ่านต้องมีอย่างน้อย 6 ตัวอักษรครับ','error'); return;
   }
   if (pass && pass !== pass2) {
     showToast('⚠️ รหัสผ่านไม่ตรงกันครับ','error'); return;
   }
+  if (id_card && id_card.length !== 13) {
+    showToast('⚠️ เลขบัตรประชาชนต้องมี 13 หลักครับ','error'); return;
+  }
   if (isNaN(balance) || balance < 0) {
     showToast('⚠️ ยอดเงินไม่ถูกต้องครับ','error'); return;
   }
 
-  // สร้าง object สำหรับ update
+  // สร้าง object update
   const updates = {
     fname, lname, phone, balance,
+    id_card: id_card || null,
+    bank_name:     bank_name     || null,
+    bank_acc_name: bank_acc_name || null,
+    bank_acc_no:   bank_acc_no   || null,
+    bank_branch:   bank_branch   || null,
     updated_at: new Date().toISOString(),
   };
   if (pass) updates.password = pass;
 
   const { error } = await sb.from('members').update(updates).eq('nick', nick);
-
   if (error) {
     showToast('❌ เกิดข้อผิดพลาด: ' + error.message, 'error'); return;
   }
 
-  // บันทึก log การแก้ไขยอดเงิน (ถ้ามี)
+  // บันทึก log ถ้ามี note
   const note = document.getElementById('me-balance-note')?.value.trim();
   if (note) {
     await sb.from('deposits').insert({
@@ -1396,9 +1437,10 @@ async function saveMemberEdit(nick, id) {
 .md-tab.active{color:var(--green);border-bottom-color:var(--green);background:#f0faf4;}
 .md-panel{display:none;}
 #mdt-info .fg label{display:block;font-family:'Kanit',sans-serif;font-size:11px;font-weight:700;color:#999;margin-bottom:4px;letter-spacing:.3px;}
-#mdt-info .fg input{width:100%;padding:9px 11px;border:1px solid #e0e0e0;border-radius:7px;font-family:'Sarabun',sans-serif;font-size:13px;outline:none;transition:border-color .2s;}
-#mdt-info .fg input:focus{border-color:var(--green);}
+#mdt-info .fg input,#mdt-info .fg select{width:100%;padding:9px 11px;border:1px solid #e0e0e0;border-radius:7px;font-family:'Sarabun',sans-serif;font-size:13px;outline:none;transition:border-color .2s;background:#fff;}
+#mdt-info .fg input:focus,#mdt-info .fg select:focus{border-color:var(--green);}
 #mdt-info .fg input[readonly]{background:#f5f5f5;cursor:not-allowed;}
+.me-section-title{font-family:'Kanit',sans-serif;font-size:12px;font-weight:700;color:#555;letter-spacing:.5px;margin-bottom:8px;padding:6px 10px;background:#f0faf4;border-left:3px solid var(--green);border-radius:0 6px 6px 0;}
 </style>
 </body>
 </html>
