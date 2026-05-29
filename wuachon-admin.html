@@ -1675,21 +1675,26 @@ async function saveMemberEdit(nick, id) {
   }
 
   // สร้าง object update
-  const updates = {
-    fname, lname, phone, balance,
-    id_card: id_card || null,
-    bank_name:     bank_name     || null,
-    bank_acc_name: bank_acc_name || null,
-    bank_acc_no:   bank_acc_no   || null,
-    bank_branch:   bank_branch   || null,
-    updated_at: new Date().toISOString(),
-  };
+  // STEP 1: update fields พื้นฐานที่มีใน members table แน่นอน
+  const updates = { fname, lname, phone, balance };
   if (pass) updates.password = pass;
 
   const { error } = await sb.from('members').update(updates).eq('nick', nick);
   if (error) {
     showToast('❌ เกิดข้อผิดพลาด: ' + error.message, 'error'); return;
   }
+
+  // STEP 2: update extra fields แยก try-catch (ถ้า column ไม่มีก็ไม่ error)
+  const extraUpdates = {
+    id_card:       id_card       || null,
+    bank_name:     bank_name     || null,
+    bank_acc_name: bank_acc_name || null,
+    bank_acc_no:   bank_acc_no   || null,
+    bank_branch:   bank_branch   || null,
+  };
+  try {
+    await sb.from('members').update(extraUpdates).eq('nick', nick);
+  } catch(_) {}
 
   // บันทึก log ถ้ามี note
   const note = document.getElementById('me-balance-note')?.value.trim();
