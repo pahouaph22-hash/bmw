@@ -1197,6 +1197,31 @@ window.addEventListener('DOMContentLoaded', async () => {
   await Promise.all([loadMatches(), loadStats()]);
   subscribeRealtime();
   setInterval(loadMatches, 30000);
+
+  // ===== ตรวจ ?ref= ใน URL แล้วกรอกรหัสให้อัตโนมัติ =====
+  const urlParams = new URLSearchParams(location.search);
+  const refCode   = urlParams.get('ref');
+  if (refCode && !currentUser) {
+    // รอ DOM พร้อมก่อน
+    requestAnimationFrame(() => {
+      const refInput = document.getElementById('reg-ref-code');
+      if (refInput) refInput.value = refCode.toUpperCase();
+      // เปิด modal สมัครสมาชิกอัตโนมัติ
+      openModal('register');
+      // แสดง notice ว่าถูกแนะนำมา
+      setTimeout(() => {
+        const errEl = document.getElementById('reg-error');
+        if (errEl) {
+          errEl.textContent = `✅ คุณถูกแนะนำด้วยรหัส ${refCode.toUpperCase()} — สมัครได้เลยครับ!`;
+          errEl.style.display = 'block';
+          errEl.style.background = 'rgba(27,107,47,.15)';
+          errEl.style.color = '#4ade80';
+          errEl.style.borderRadius = '6px';
+          errEl.style.padding = '8px 12px';
+        }
+      }, 300);
+    });
+  }
 });
 
 // ===== LOAD MATCHES =====
