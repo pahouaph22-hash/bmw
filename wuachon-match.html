@@ -57,6 +57,32 @@ nav{display:flex;align-items:center;justify-content:space-between;padding:13px 2
 .panel-head{padding:14px 18px;border-bottom:1px solid var(--border);font-family:'Kanit',sans-serif;font-weight:700;font-size:15px;display:flex;align-items:center;gap:8px;}
 .panel-body{padding:18px;}
 
+/* ===== LIVE PLAYER ===== */
+.live-player-wrap{
+  background:#000;border-radius:12px;overflow:hidden;
+  position:relative;margin-bottom:16px;
+  box-shadow:0 0 0 2px rgba(200,16,46,.5),0 8px 32px rgba(0,0,0,.5);
+  animation:playerGlow 2s ease-in-out infinite;
+}
+@keyframes playerGlow{
+  0%,100%{box-shadow:0 0 0 2px rgba(200,16,46,.4),0 8px 32px rgba(0,0,0,.5);}
+  50%{box-shadow:0 0 0 3px rgba(200,16,46,.8),0 8px 40px rgba(200,16,46,.2);}
+}
+.live-player-wrap iframe{width:100%;aspect-ratio:16/9;border:none;display:block;}
+.live-badge{
+  position:absolute;top:10px;left:10px;z-index:10;
+  background:var(--red);color:#fff;
+  font-family:'Kanit',sans-serif;font-weight:900;font-size:12px;
+  padding:3px 10px;border-radius:20px;letter-spacing:.5px;
+}
+.live-badge::before{content:'● ';animation:liveDot 1.2s ease-in-out infinite;}
+@keyframes liveDot{0%,100%{opacity:1;}50%{opacity:.2;}}
+.no-stream-notice{
+  background:rgba(200,16,46,.06);border:1px dashed rgba(200,16,46,.2);
+  border-radius:10px;padding:16px;text-align:center;margin-bottom:16px;
+}
+.no-stream-notice p{font-size:13px;color:rgba(255,248,236,.45);margin-top:4px;}
+
 /* SIDE SELECT */
 .side-btns{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:16px;}
 .side-btn{
@@ -250,6 +276,36 @@ function formatDate(d) {
 }
 
 // ===== RENDER PAGE =====
+// ===== STREAM EMBED =====
+function buildStreamEmbed(url) {
+  if (!url) return '';
+  let embedUrl = '';
+  try {
+    const u = new URL(url);
+    // YouTube: youtube.com/watch?v=ID หรือ youtu.be/ID
+    const ytMatch = url.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/)([a-zA-Z0-9_-]{11})/);
+    if (ytMatch) {
+      embedUrl = `https://www.youtube.com/embed/${ytMatch[1]}?autoplay=1&mute=0&rel=0`;
+    }
+    // YouTube Live (/live/)
+    const ytLive = url.match(/youtube\.com\/live\/([a-zA-Z0-9_-]{11})/);
+    if (ytLive) {
+      embedUrl = `https://www.youtube.com/embed/${ytLive[1]}?autoplay=1&mute=0&rel=0`;
+    }
+    // Facebook: fb.gg/v/ID หรือ facebook.com/*/videos/ID
+    if (!embedUrl && (url.includes('facebook.com') || url.includes('fb.gg') || url.includes('fb.watch'))) {
+      const encodedUrl = encodeURIComponent(url);
+      embedUrl = `https://www.facebook.com/plugins/video.php?href=${encodedUrl}&show_text=false&autoplay=true`;
+    }
+  } catch(_) {}
+  if (!embedUrl) return '';
+  return `
+  <div class="live-player-wrap">
+    <span class="live-badge">LIVE</span>
+    <iframe src="${embedUrl}" allow="autoplay; fullscreen; picture-in-picture" allowfullscreen></iframe>
+  </div>`;
+}
+
 function renderPage() {
   const m = matchData;
   const status = normalizeStatus(m.status);
@@ -268,13 +324,24 @@ function renderPage() {
     </div>` : '';
 
   // แสดง bet panel ตาม status
+  const streamEmbed = buildStreamEmbed(m.stream_url);
   let betPanelHTML = '';
   if (isDone) {
-    // จบแล้ว ไม่แสดง panel เลย
     betPanelHTML = '';
   } else if (isLive) {
-    // ไลฟ์สด — แสดง lock notice ห้ามเดิมพันใหม่
+    // ไลฟ์สด — แสดง player + lock notice
     betPanelHTML = `
+  <div class="panel">
+    <div class="panel-head">🔴 ถ่ายทอดสด</div>
+    <div class="panel-body" style="padding:12px;">
+      ${streamEmbed || `
+        <div class="no-stream-notice">
+          <div style="font-size:28px;">📡</div>
+          <p>กำลังเตรียมสัญญาณถ่ายทอดสด...</p>
+          <p style="font-size:11px;margin-top:4px;">Admin กำลังตั้งค่า Stream URL ครับ</p>
+        </div>`}
+    </div>
+  </div>
   <div class="panel">
     <div class="panel-head">🎯 วางเดิมพัน P2P</div>
     <div class="panel-body">
@@ -286,7 +353,7 @@ function renderPage() {
     </div>
   </div>`;
   } else {
-    // upcoming — เปิดรับเดิมพัน
+    // upcoming — เปิดรับเดิมพัน (ถ้ามี stream URL ให้แสดง preview ด้วย)
     betPanelHTML = `
   <div class="panel">
     <div class="panel-head">🎯 วางเดิมพัน P2P</div>

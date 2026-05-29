@@ -232,6 +232,13 @@ tr:hover td{background:#fafafa;}
           <div class="form-row">
             <div class="fg"><label>รางวัล (บาท)</label><input id="m-prize" type="number" placeholder="500000"></div>
           </div>
+          <div class="form-row full">
+            <div class="fg">
+              <label>🔴 Live Stream URL (YouTube / Facebook)</label>
+              <input id="m-stream-url" placeholder="https://youtube.com/watch?v=xxxx หรือ https://fb.gg/v/xxxx">
+              <div style="font-size:11px;color:#aaa;margin-top:3px;">วางได้เมื่อเริ่มไลฟ์สด — Admin สามารถแก้ไขทีหลังได้ครับ</div>
+            </div>
+          </div>
           <button class="save-btn" onclick="addMatch()">➕ เพิ่มคู่แข่งขัน</button>
         </div>
 
@@ -719,9 +726,12 @@ function filterMatches_() {
   updateDateTag('match');
   const el = document.getElementById('matches-list');
   if (!rows.length) { el.innerHTML = '<div style="text-align:center;padding:24px;color:#aaa;">ไม่พบรายการ</div>'; return; }
-  el.innerHTML = `<table><thead><tr><th>รหัส</th><th>รุ่น/วันที่</th><th>🔴 เจ้าบ้าน</th><th>🔵 ทีมเยือน</th><th>รางวัล</th><th>สถานะ</th><th>ตัดสิน</th><th>จัดการ</th></tr></thead><tbody>` +
+  el.innerHTML = `<table><thead><tr><th>รหัส</th><th>รุ่น/วันที่</th><th>🔴 เจ้าบ้าน</th><th>🔵 ทีมเยือน</th><th>รางวัล</th><th>สถานะ</th><th>🔴 Live</th><th>ตัดสิน</th><th>จัดการ</th></tr></thead><tbody>` +
     rows.map(m => {
       const s = m.status||'upcoming';
+      const streamBadge = m.stream_url
+        ? `<span style="background:#fee2e2;color:#c8102e;font-family:'Kanit',sans-serif;font-size:10px;font-weight:700;padding:2px 7px;border-radius:10px;">✓ มี URL</span>`
+        : `<span style="background:#f5f5f2;color:#aaa;font-family:'Kanit',sans-serif;font-size:10px;padding:2px 7px;border-radius:10px;">ยังไม่มี</span>`;
       return `<tr>
         <td>${m.code?`<span class="match-code">${m.code}</span>`:'—'}</td>
         <td><strong>${m.round||'—'}</strong><br><span style="font-size:11px;color:#aaa;">${m.date||''} ${m.time||''}</span></td>
@@ -734,6 +744,10 @@ function filterMatches_() {
             <option value="live" ${s==='live'?'selected':''}>🔴 กำลังแข่ง</option>
             <option value="done" ${s==='done'?'selected':''}>✅ จบแล้ว</option>
           </select>
+        </td>
+        <td>
+          ${streamBadge}
+          <button class="btn btn-gold" style="margin-top:4px;font-size:11px;" onclick="editStreamUrl('${m.id}','${(m.stream_url||'').replace(/'/g,'')}')">✏️ URL</button>
         </td>
         <td>${m.winner?`<span class="badge badge-approved">🏆 ${m.winner==='red'?(m.name_a||'เจ้าบ้าน'):(m.name_b||'ทีมเยือน')}</span>`:'—'}</td>
         <td style="display:flex;gap:4px;flex-wrap:wrap;">
@@ -748,8 +762,8 @@ async function addMatch() {
   const name_a  = document.getElementById('m-name-a').value.trim();
   const name_b  = document.getElementById('m-name-b').value.trim();
   if (!round || !name_a || !name_b) { showToast('⚠️ กรุณากรอกรุ่น และชื่อวัวทั้งสองฝั่งครับ','error'); return; }
-  // สร้างรหัส 4 หลัก
   const code = String(Math.floor(1000 + Math.random() * 9000));
+  const stream_url = document.getElementById('m-stream-url')?.value.trim() || null;
   const {error} = await sb.from('matches').insert({
     round, name_a, name_b,
     owner_a: document.getElementById('m-owner-a').value.trim(),
@@ -760,11 +774,11 @@ async function addMatch() {
     time: document.getElementById('m-time').value.trim(),
     location: document.getElementById('m-location').value.trim(),
     prize: parseFloat(document.getElementById('m-prize').value) || 0,
-    status: 'upcoming', code,
+    status: 'upcoming', code, stream_url,
   });
   if (error) { showToast('❌ เกิดข้อผิดพลาด: '+error.message,'error'); return; }
   showToast(`✅ เพิ่มคู่แข่งขัน ${name_a} vs ${name_b} แล้วครับ! รหัส: ${code}`);
-  ['m-round','m-name-a','m-name-b','m-owner-a','m-owner-b','m-weight-a','m-weight-b','m-date','m-time','m-location','m-prize'].forEach(id => { const el = document.getElementById(id); if(el) el.value=''; });
+  ['m-round','m-name-a','m-name-b','m-owner-a','m-owner-b','m-weight-a','m-weight-b','m-date','m-time','m-location','m-prize','m-stream-url'].forEach(id => { const el = document.getElementById(id); if(el) el.value=''; });
   loadMatches(); loadOverview();
 }
 
@@ -772,6 +786,15 @@ async function updateMatchStatus(id, status) {
   await sb.from('matches').update({ status }).eq('id', id);
   showToast('✅ อัปเดตสถานะแล้วครับ');
   loadMatches(); loadVerdict();
+}
+
+async function editStreamUrl(matchId, currentUrl) {
+  const url = prompt('🔴 ใส่ Stream URL (YouTube / Facebook Live)\nตัวอย่าง: https://youtube.com/watch?v=xxxxx\nหรือเว้นว่างเพื่อลบออก:', currentUrl || '');
+  if (url === null) return; // กด Cancel
+  const {error} = await sb.from('matches').update({ stream_url: url.trim() || null }).eq('id', matchId);
+  if (error) { showToast('❌ บันทึกไม่สำเร็จ: ' + error.message, 'error'); return; }
+  showToast(url.trim() ? '✅ บันทึก Stream URL แล้วครับ' : '✅ ลบ Stream URL แล้วครับ');
+  loadMatches();
 }
 
 async function deleteMatch(id) {
