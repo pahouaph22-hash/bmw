@@ -308,7 +308,7 @@ nav{
 <!-- MATCHES SECTION -->
 <div class="section">
   <div class="section-head">
-    <h2>รายการ<span class="red">แข่งขัน</span></h2>
+    <h2>ผล<span class="red">การแข่งขัน</span></h2>
     <div class="section-divider"></div>
   </div>
   <div id="matches-container">
@@ -1024,7 +1024,8 @@ async function loadMatches() {
     const { data, error } = await sb
       .from('matches')
       .select('*')
-      .order('date', { ascending: true })
+      .eq('status', 'done')
+      .order('date', { ascending: false })
       .limit(20);
 
     if (error) {
@@ -1032,7 +1033,7 @@ async function loadMatches() {
       showEmpty('ไม่สามารถโหลดข้อมูลได้');
       return;
     }
-    console.log('loadMatches:', data?.length, 'matches');
+    console.log('loadMatches:', data?.length, 'matches done');
     renderMatches(data || []);
   } catch(e) {
     console.error('loadMatches exception:', e);
@@ -1097,20 +1098,15 @@ function formatDate(d) {
 }
 
 function cardHTML(m) {
-  const status = normalizeStatus(m.status);
-  const isUpcoming = status === 'upcoming';
-  const isLive = status === 'live';
-  const isDone = status === 'done';
-
-  const sLabel = isLive ? '🔴 กำลังแข่ง' : isDone ? '✅ จบแล้ว' : '⏳ รอแข่ง';
-  const sCls = isLive ? 's-live' : isDone ? 's-done' : 's-upcoming';
   const prize = m.prize ? Number(m.prize).toLocaleString('th-TH') + ' ฿' : '—';
-
   const code = m.code ? `<span style="background:var(--green);color:#fff;font-family:'Kanit',sans-serif;font-size:11px;font-weight:700;padding:2px 8px;border-radius:4px;margin-left:8px;">รหัส ${m.code}</span>` : '';
-
-  const btnLabel = isDone ? '📊 ดูผล' : isLive ? '🔴 เข้าชมสด' : '🎯 วางเดิมพัน';
-  const btnDis = isDone ? 'disabled' : '';
-
+  const winnerSide = m.winner;
+  const winnerName = winnerSide === 'red' ? (m.name_a || 'เจ้าบ้าน') : winnerSide === 'blue' ? (m.name_b || 'ทีมเยือน') : null;
+  const winnerBanner = winnerName ? `
+    <div style="background:linear-gradient(135deg,rgba(27,107,47,.25),rgba(245,168,0,.1));border-top:1px solid rgba(245,168,0,.2);padding:10px 18px;display:flex;align-items:center;justify-content:center;gap:10px;">
+      <span style="font-size:18px;">🏆</span>
+      <span style="font-family:'Kanit',sans-serif;font-weight:900;font-size:14px;color:var(--gold);">${winnerName} ชนะ!</span>
+    </div>` : '';
   return `
   <div class="match-card" onclick="goMatch('${m.id}')">
     <div class="mc-header">
@@ -1121,14 +1117,14 @@ function cardHTML(m) {
         ${m.date ? `<span>📅 <b>${formatDate(m.date)}</b></span>` : ''}
         ${m.time ? `<span>🕐 <b>${m.time}</b></span>` : ''}
         ${m.location ? `<span>📍 <b>${m.location}</b></span>` : ''}
-        <span class="mc-status ${sCls}">${sLabel}</span>
+        <span class="mc-status s-done">✅ จบแล้ว</span>
       </div>
     </div>
     <div class="mc-body">
       <div class="vs-grid">
         <div class="bull">
-          <div class="bull-ico bull-red">🐂</div>
-          <div class="bull-name" style="color:#ff9090;">${m.name_a || 'เจ้าบ้าน'}</div>
+          <div class="bull-ico bull-red" style="${"winnerSide==='red'?'border-color:var(--gold);box-shadow:0 0 12px rgba(245,168,0,.3);':winnerSide==='blue'?'opacity:.4;':''}">🐂</div>
+          <div class="bull-name" style="color:${"winnerSide==='red'?'var(--gold)':winnerSide==='blue'?'rgba(255,144,144,.35)':'#ff9090'};">${m.name_a || 'เจ้าบ้าน'}${winnerSide==='red'?' 🏆':''}</div>
           ${m.owner_a ? `<div class="bull-owner">${m.owner_a}</div>` : ''}
           ${m.weight_a ? `<div class="bull-wt">⚖️ ${m.weight_a} กก.</div>` : ''}
         </div>
@@ -1137,16 +1133,17 @@ function cardHTML(m) {
           <div class="prize">🏆 ${prize}</div>
         </div>
         <div class="bull">
-          <div class="bull-ico bull-blue">🐂</div>
-          <div class="bull-name" style="color:#90b4ff;">${m.name_b || 'ทีมเยือน'}</div>
+          <div class="bull-ico bull-blue" style="${"winnerSide==='blue'?'border-color:var(--gold);box-shadow:0 0 12px rgba(245,168,0,.3);':winnerSide==='red'?'opacity:.4;':''}">🐂</div>
+          <div class="bull-name" style="color:${"winnerSide==='blue'?'var(--gold)':winnerSide==='red'?'rgba(144,180,255,.35)':'#90b4ff'};">${m.name_b || 'ทีมเยือน'}${winnerSide==='blue'?' 🏆':''}</div>
           ${m.owner_b ? `<div class="bull-owner">${m.owner_b}</div>` : ''}
           ${m.weight_b ? `<div class="bull-wt">⚖️ ${m.weight_b} กก.</div>` : ''}
         </div>
       </div>
     </div>
+    ${winnerBanner}
     <div class="mc-footer">
-      <span class="mc-bets">สถานะ: <b>${sLabel}</b></span>
-      <button class="btn-view" ${btnDis} onclick="event.stopPropagation();goMatch('${m.id}')">${btnLabel}</button>
+      <span class="mc-bets">${winnerName ? `ผู้ชนะ: <b style="color:var(--gold);">${winnerName}</b>` : 'รอประกาศผล'}</span>
+      <button class="btn-view" onclick="event.stopPropagation();goMatch('${m.id}')">📊 ดูผล</button>
     </div>
   </div>`;
 }

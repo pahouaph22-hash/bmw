@@ -186,7 +186,6 @@ nav{
     <button class="filter-btn active" data-filter="all" onclick="filterMatches('all',this)">ทั้งหมด</button>
     <button class="filter-btn" data-filter="upcoming" onclick="filterMatches('upcoming',this)">⏳ รอแข่ง</button>
     <button class="filter-btn" data-filter="live" onclick="filterMatches('live',this)">🔴 กำลังแข่ง</button>
-    <button class="filter-btn" data-filter="done" onclick="filterMatches('done',this)">✅ จบแล้ว</button>
   </div>
 
   <div id="matches-container">
@@ -240,6 +239,7 @@ window.addEventListener('DOMContentLoaded', async () => {
 // ===== LOAD MATCHES =====
 async function loadMatches() {
   try {
+    // ดึงเฉพาะ upcoming และ live เท่านั้น
     const { data, error } = await sb
       .from('matches')
       .select('*, bets(count)')
@@ -248,18 +248,25 @@ async function loadMatches() {
 
     if (error) {
       console.error('loadMatches error:', error.message);
-      // ลอง query แบบง่ายถ้า error
       const { data: data2, error: e2 } = await sb
         .from('matches')
         .select('*')
         .order('created_at', { ascending: false });
       if (e2) { showEmpty('ไม่สามารถโหลดข้อมูลได้'); return; }
-      allMatches = data2 || [];
+      // กรองเอาเฉพาะที่ยังไม่จบ
+      allMatches = (data2 || []).filter(m => {
+        const s = normalizeStatus(m.status);
+        return s === 'upcoming' || s === 'live';
+      });
     } else {
-      allMatches = data || [];
+      // กรองเอาเฉพาะ upcoming + live
+      allMatches = (data || []).filter(m => {
+        const s = normalizeStatus(m.status);
+        return s === 'upcoming' || s === 'live';
+      });
     }
 
-    console.log('loadMatches:', allMatches.length, 'matches');
+    console.log('loadMatches:', allMatches.length, 'matches (upcoming+live)');
     renderMatches();
   } catch(e) {
     console.error('loadMatches exception:', e);
@@ -273,7 +280,32 @@ function subscribeRealtime() {
     .on('postgres_changes', {
       event: '*', schema: 'public', table: 'matches'
     }, (payload) => {
-      console.log('Realtime event:', payload.eventType);
+      console.log('Realtime event:', payload.eventType, payload.new?.status);
+
+      // ถ้า match เปลี่ยนเป็น done → animate ออกทันทีแล้วโหลดใหม่
+      if (payload.eventType === 'UPDATE' && payload.new) {
+        const newStatus = normalizeStatus(payload.new.status);
+        if (newStatus === 'done') {
+          const cardEl = document.querySelector(`[data-match-id="${payload.new.id}"]`);
+          if (cardEl) {
+            cardEl.style.transition = 'opacity .5s, transform .5s, max-height .5s';
+            cardEl.style.opacity = '0';
+            cardEl.style.transform = 'translateX(60px)';
+            cardEl.style.maxHeight = cardEl.offsetHeight + 'px';
+            setTimeout(() => {
+              cardEl.style.maxHeight = '0';
+              cardEl.style.marginBottom = '0';
+              cardEl.style.padding = '0';
+            }, 300);
+            setTimeout(() => {
+              // อัปเดต allMatches แล้ว re-render
+              allMatches = allMatches.filter(m => m.id !== payload.new.id);
+              renderMatches();
+            }, 600);
+            return;
+          }
+        }
+      }
       loadMatches();
     })
     .subscribe((status) => {
@@ -295,20 +327,21 @@ function filterMatches(filter, btn) {
 // ===== RENDER =====
 function renderMatches() {
   const container = document.getElementById('matches-container');
-  
-  let filtered = allMatches;
-  if (currentFilter !== 'all') {
-    filtered = allMatches.filter(m => {
-      const s = (m.status || 'upcoming').toLowerCase();
-      if (currentFilter === 'upcoming') return s === 'upcoming' || s === 'รอแข่ง' || s === '';
-      if (currentFilter === 'live') return s === 'live' || s === 'กำลังแข่ง';
-      if (currentFilter === 'done') return s === 'done' || s === 'จบแล้ว';
-      return true;
-    });
+
+  // กรอง done ออกเสมอ (แสดงเฉพาะ upcoming + live)
+  let filtered = allMatches.filter(m => {
+    const s = normalizeStatus(m.status);
+    return s === 'upcoming' || s === 'live';
+  });
+
+  if (currentFilter === 'upcoming') {
+    filtered = filtered.filter(m => normalizeStatus(m.status) === 'upcoming');
+  } else if (currentFilter === 'live') {
+    filtered = filtered.filter(m => normalizeStatus(m.status) === 'live');
   }
 
   if (filtered.length === 0) {
-    showEmpty('ไม่มีรายการแข่งขัน');
+    showEmpty('ไม่มีรายการแข่งขันที่กำลังจะมาถึง');
     return;
   }
 
@@ -362,7 +395,7 @@ function renderCard(m) {
     : '';
 
   return `
-  <div class="match-card">
+  <div class="match-card" data-match-id="${m.id}">
     <div class="card-header">
       <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
         <span class="card-round">${m.round || 'รุ่นทั่วไป'}</span>

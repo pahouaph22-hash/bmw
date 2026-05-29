@@ -161,7 +161,18 @@ const SUPA_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsI
 const sb = supabase.createClient(SUPA_URL, SUPA_KEY);
 
 const matchId = new URLSearchParams(location.search).get('id');
-if (!matchId) location.href = 'wuachon-schedule.html';
+if (!matchId) {
+  // ถ้าไม่มี id ให้แสดง error แทน redirect (กันกรณีเปิด local)
+  document.addEventListener('DOMContentLoaded', () => {
+    document.getElementById('page-content').innerHTML = `
+      <div style="text-align:center;padding:80px 20px;font-family:'Kanit',sans-serif;color:rgba(255,248,236,.5);">
+        <div style="font-size:48px;margin-bottom:16px;">⚠️</div>
+        <div style="font-size:18px;margin-bottom:8px;">ไม่พบรหัสการแข่งขัน</div>
+        <div style="font-size:13px;margin-bottom:20px;color:rgba(255,248,236,.3);">กรุณาเข้าผ่านหน้าตารางแข่งขันครับ</div>
+        <a href="wuachon-schedule.html" style="background:var(--green2);color:#fff;font-family:'Kanit',sans-serif;font-weight:700;padding:10px 24px;border-radius:8px;text-decoration:none;">กลับหน้าตาราง</a>
+      </div>`;
+  });
+}
 
 let matchData = null;
 let allBets = [];
@@ -170,6 +181,7 @@ let currentUser = null;
 
 // ===== INIT =====
 window.addEventListener('DOMContentLoaded', async () => {
+  if (!matchId) return; // แสดง error message แทน (handle ด้านบนแล้ว)
   try {
     const raw = sessionStorage.getItem('bw_user');
     if (raw) { currentUser = JSON.parse(raw); }
@@ -255,7 +267,27 @@ function renderPage() {
       <div class="winner-name">${m.winner === 'red' ? (m.name_a || 'เจ้าบ้าน') : (m.name_b || 'ทีมเยือน')} ชนะ!</div>
     </div>` : '';
 
-  const betPanelHTML = isDone ? '' : `
+  // แสดง bet panel ตาม status
+  let betPanelHTML = '';
+  if (isDone) {
+    // จบแล้ว ไม่แสดง panel เลย
+    betPanelHTML = '';
+  } else if (isLive) {
+    // ไลฟ์สด — แสดง lock notice ห้ามเดิมพันใหม่
+    betPanelHTML = `
+  <div class="panel">
+    <div class="panel-head">🎯 วางเดิมพัน P2P</div>
+    <div class="panel-body">
+      <div style="background:rgba(200,16,46,.08);border:1px solid rgba(200,16,46,.25);border-radius:10px;padding:20px;text-align:center;">
+        <div style="font-size:32px;margin-bottom:8px;">🔴</div>
+        <div style="font-family:'Kanit',sans-serif;font-weight:900;font-size:15px;color:#ff7c7c;margin-bottom:4px;">กำลังแข่งขันอยู่</div>
+        <div style="font-size:13px;color:rgba(255,248,236,.45);">ปิดรับเดิมพันแล้ว — รอผลการแข่งขัน</div>
+      </div>
+    </div>
+  </div>`;
+  } else {
+    // upcoming — เปิดรับเดิมพัน
+    betPanelHTML = `
   <div class="panel">
     <div class="panel-head">🎯 วางเดิมพัน P2P</div>
     <div class="panel-body" id="bet-form-area">
@@ -265,6 +297,7 @@ function renderPage() {
         </div>`}
     </div>
   </div>`;
+  }
 
   document.getElementById('page-content').innerHTML = `
   <!-- MATCH HERO -->
@@ -368,6 +401,16 @@ function updatePreview() {
 // ===== PLACE BET =====
 async function placeBet() {
   if (!currentUser) { showToast('กรุณาเข้าสู่ระบบก่อนครับ'); return; }
+
+  // ตรวจสอบ status ปัจจุบัน
+  const currentStatus = normalizeStatus(matchData?.status);
+  if (currentStatus === 'live') {
+    showToast('🔴 ปิดรับเดิมพันแล้ว — การแข่งขันเริ่มขึ้นแล้วครับ'); return;
+  }
+  if (currentStatus === 'done') {
+    showToast('✅ การแข่งขันจบแล้วครับ'); return;
+  }
+
   if (!selectedSide) { showToast('กรุณาเลือกฝั่งก่อนครับ'); return; }
   const amount = parseFloat(document.getElementById('bet-amount')?.value);
   const odds = parseFloat(document.getElementById('bet-odds')?.value) || 1.9;
@@ -414,6 +457,16 @@ async function placeBet() {
 // ===== JOIN BET =====
 async function joinBet(betId, oppNick, oppSide, oppAmount, oppOdds) {
   if (!currentUser) { showToast('กรุณาเข้าสู่ระบบก่อนครับ'); return; }
+
+  // ตรวจสอบ status ปัจจุบัน
+  const currentStatus = normalizeStatus(matchData?.status);
+  if (currentStatus === 'live') {
+    showToast('🔴 ปิดรับเดิมพันแล้ว — การแข่งขันเริ่มขึ้นแล้วครับ'); return;
+  }
+  if (currentStatus === 'done') {
+    showToast('✅ การแข่งขันจบแล้วครับ'); return;
+  }
+
   if (currentUser.nick === oppNick) { showToast('ไม่สามารถรับคู่ของตัวเองได้ครับ'); return; }
 
   const mySide = oppSide === 'red' ? 'blue' : 'red';
@@ -455,7 +508,10 @@ function renderBetsList() {
     const sideClass = b.side === 'red' ? 'bet-side-r' : 'bet-side-b';
     const statusClass = b.status === 'matched' ? 'bs-matched' : b.status === 'won' ? 'bs-matched' : b.status === 'lost' ? '' : 'bs-waiting';
     const statusLabel = b.status === 'matched' ? '🟢 จับคู่แล้ว' : b.status === 'won' ? '🏆 ชนะ' : b.status === 'lost' ? '❌ แพ้' : '⏳ รอคู่';
-    const canJoin = b.status === 'waiting' && currentUser && currentUser.nick !== b.nick;
+    const canJoin = b.status === 'waiting'
+      && currentUser
+      && currentUser.nick !== b.nick
+      && normalizeStatus(matchData?.status) === 'upcoming'; // รับได้เฉพาะตอน upcoming
     const myAmount = (b.amount / b.odds).toFixed(0);
 
     return `
