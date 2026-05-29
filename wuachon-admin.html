@@ -8,778 +8,346 @@
 <script src="https://unpkg.com/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
 <style>
 *,*::before,*::after{margin:0;padding:0;box-sizing:border-box;}
-:root{--red:#C8102E;--gold:#F5A800;--dark:#1A0A00;--green:#1B6B2F;--green2:#27943F;}
-body{font-family:'Sarabun',sans-serif;background:#f4f4f0;color:#1a1a1a;min-height:100vh;display:flex;flex-direction:column;}
-.topbar{background:var(--dark);border-bottom:2px solid var(--gold);padding:12px 24px;display:flex;align-items:center;justify-content:space-between;flex-shrink:0;}
+:root{--red:#C8102E;--gold:#F5A800;--dark:#1A0A00;--green:#1B6B2F;--green2:#27943F;--cream:#FFF8EC;}
+body{font-family:'Sarabun',sans-serif;background:#f4f4f0;color:#1a1a1a;min-height:100vh;}
+
+/* LOGIN */
+#login-page{display:flex;align-items:center;justify-content:center;min-height:100vh;background:#1A0A00;}
+.login-box{background:#fff;border-radius:16px;padding:36px;width:340px;text-align:center;box-shadow:0 20px 60px rgba(0,0,0,.5);}
+.login-logo{font-family:'Kanit',sans-serif;font-weight:900;font-size:26px;color:#1A0A00;margin-bottom:4px;}
+.login-logo span{color:var(--red);}
+.login-sub{font-size:12px;color:#999;margin-bottom:24px;font-family:'Kanit',sans-serif;}
+.fg{margin-bottom:12px;text-align:left;}
+.fg label{display:block;font-family:'Kanit',sans-serif;font-size:11px;font-weight:700;color:#999;margin-bottom:5px;letter-spacing:.5px;}
+.fg input,.fg select,.fg textarea{width:100%;padding:10px 12px;border:1px solid #e0e0e0;border-radius:8px;font-family:'Sarabun',sans-serif;font-size:14px;outline:none;transition:border-color .2s;}
+.fg input:focus,.fg select:focus{border-color:var(--green);}
+.btn-login{width:100%;background:var(--green);color:#fff;font-family:'Kanit',sans-serif;font-weight:900;font-size:14px;padding:12px;border-radius:10px;border:none;cursor:pointer;margin-top:4px;transition:background .2s;}
+.btn-login:hover{background:var(--green2);}
+#login-err{display:none;font-size:12px;color:var(--red);font-family:'Kanit',sans-serif;padding:8px;background:#fff5f5;border-radius:6px;margin-bottom:8px;}
+
+/* LAYOUT */
+#dashboard{display:none;flex-direction:column;min-height:100vh;}
+.topbar{background:var(--dark);border-bottom:2px solid var(--gold);padding:12px 24px;display:flex;align-items:center;justify-content:space-between;flex-shrink:0;position:sticky;top:0;z-index:100;}
 .topbar-logo{font-family:'Kanit',sans-serif;font-weight:900;font-size:18px;color:var(--gold);}
 .topbar-logo em{color:var(--red);font-style:normal;}
-.topbar-right{display:flex;align-items:center;gap:14px;}
-.sdot{width:8px;height:8px;border-radius:50%;background:#639922;display:inline-block;}
-.stext{color:rgba(255,248,236,.7);font-size:12px;font-family:'Kanit',sans-serif;}
-.logout-btn{background:rgba(255,255,255,.08);color:rgba(255,248,236,.7);font-family:'Kanit',sans-serif;font-size:12px;padding:5px 12px;border:1px solid rgba(255,255,255,.15);border-radius:6px;cursor:pointer;transition:all .15s;}
-.logout-btn:hover{background:rgba(200,16,46,0.3);color:#fff;}
-.topnav{background:#fff;border-bottom:1px solid #e5e5e0;padding:0 12px;display:flex;align-items:center;gap:0;flex-shrink:0;overflow-x:auto;}
-.sb-item{display:flex;align-items:center;gap:4px;padding:12px 10px;font-family:'Kanit',sans-serif;font-size:12px;font-weight:600;color:#666;cursor:pointer;border-bottom:3px solid transparent;transition:all .15s;white-space:nowrap;}
-.sb-item:hover{color:#1a1a1a;background:#faf9f5;}
-.sb-item.active{color:var(--green);border-bottom-color:var(--green);}
-.sb-divider{width:1px;height:20px;background:#e5e5e0;margin:0 2px;align-self:center;flex-shrink:0;}
-.layout{flex:1;overflow:hidden;}
-.main{padding:22px;overflow-y:auto;max-height:calc(100vh - 110px);}
-.panel{display:none;}.panel.active{display:block;}
-.stat-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:20px;}
-.stat-card{background:#fff;border:1px solid #e5e5e0;border-radius:12px;padding:14px 16px;}
-.stat-label{font-size:11px;color:#999;font-family:'Kanit',sans-serif;margin-bottom:6px;letter-spacing:.5px;}
-.stat-val{font-family:'Kanit',sans-serif;font-weight:900;font-size:26px;color:#1a1a1a;}
-.stat-val.red{color:var(--red);}.stat-val.green{color:var(--green);}.stat-val.gold{color:#B8860B;}
-.card{background:#fff;border:1px solid #e5e5e0;border-radius:12px;padding:18px;margin-bottom:16px;}
-.card-title{font-family:'Kanit',sans-serif;font-weight:700;font-size:14px;color:#1a1a1a;margin-bottom:13px;display:flex;align-items:center;justify-content:space-between;gap:8px;}
-.form-row{display:grid;grid-template-columns:1fr 1fr;gap:11px;margin-bottom:11px;}
-.form-row.full{grid-template-columns:1fr;}.form-row.three{grid-template-columns:1fr 1fr 1fr;}
-.fg{display:flex;flex-direction:column;gap:5px;}
-.fg label{font-size:11px;font-weight:700;color:#888;font-family:'Kanit',sans-serif;letter-spacing:.5px;}
-.fg input,.fg select,.fg textarea{font-family:'Sarabun',sans-serif;font-size:13px;padding:9px 12px;border:1px solid #ddd;border-radius:8px;background:#fafaf8;transition:border-color .15s;}
-.fg input:focus,.fg select:focus,.fg textarea:focus{outline:none;border-color:var(--green);}
-.fg textarea{resize:vertical;min-height:80px;}
-.btn-save{font-family:'Kanit',sans-serif;font-weight:700;font-size:13px;padding:10px 20px;border-radius:8px;border:none;background:var(--green);color:#fff;cursor:pointer;transition:all .15s;}
-.btn-save:hover{background:var(--green2);}
-.btn-red{background:var(--red);}.btn-gold{background:var(--gold);color:#1a1a1a;}
-table{width:100%;border-collapse:collapse;font-size:13px;}
-th{background:#f8f8f5;font-family:'Kanit',sans-serif;font-size:11px;font-weight:700;color:#888;padding:10px 12px;text-align:left;letter-spacing:.5px;border-bottom:1px solid #e5e5e0;}
-td{padding:11px 12px;border-bottom:1px solid #f0f0eb;vertical-align:middle;}
-tr:hover td{background:#fafaf8;}
-.badge{display:inline-block;font-family:'Kanit',sans-serif;font-size:10px;font-weight:700;padding:3px 9px;border-radius:999px;letter-spacing:.5px;}
-.badge-pending{background:#FAEEDA;color:#7A4F00;}
-.badge-approved{background:#EAF3DE;color:#27500A;}
-.badge-rejected{background:#FCEBEB;color:#791F1F;}
-.badge-live{background:#FCEBEB;color:#C8102E;animation:pulse .8s infinite;}
-.badge-upcoming{background:#FAEEDA;color:#7A4F00;}
-.badge-done{background:#EAF3DE;color:#27500A;}
-@keyframes pulse{0%,100%{opacity:1;}50%{opacity:.5;}}
-.search-bar{display:flex;gap:8px;margin-bottom:14px;}
-.search-bar input{flex:1;font-family:'Sarabun',sans-serif;font-size:13px;padding:9px 14px;border:1px solid #ddd;border-radius:8px;background:#fff;}
-.search-bar input:focus{outline:none;border-color:var(--green);}
-.action-btn{font-family:'Kanit',sans-serif;font-size:11px;font-weight:700;padding:5px 12px;border-radius:6px;border:none;cursor:pointer;transition:all .15s;}
-.action-btn.green{background:#EAF3DE;color:var(--green);}
-.action-btn.green:hover{background:var(--green);color:#fff;}
-.action-btn.red{background:#FCEBEB;color:var(--red);}
-.action-btn.red:hover{background:var(--red);color:#fff;}
-.action-btn.gold{background:#FAEEDA;color:#7A4F00;}
-.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:1000;display:none;align-items:center;justify-content:center;}
-.modal-overlay.open{display:flex;}
-.modal-box{background:#fff;border-radius:14px;padding:24px;width:90%;max-width:480px;max-height:90vh;overflow-y:auto;}
-.modal-title{font-family:'Kanit',sans-serif;font-weight:900;font-size:16px;margin-bottom:16px;}
-.toast{position:fixed;bottom:20px;right:20px;background:#1a1a1a;color:#fff;font-family:'Kanit',sans-serif;font-size:13px;padding:12px 20px;border-radius:10px;z-index:9999;display:none;animation:slideIn .3s ease;}
+.topbar-right{display:flex;align-items:center;gap:12px;}
+.notif-btn{background:none;border:none;color:rgba(255,248,236,.6);font-size:18px;cursor:pointer;position:relative;}
+#notif-badge{display:none;position:absolute;top:-4px;right:-4px;background:var(--red);color:#fff;font-family:'Kanit',sans-serif;font-size:9px;font-weight:900;padding:1px 5px;border-radius:999px;min-width:16px;text-align:center;}
+.logout-btn{background:rgba(255,255,255,.08);color:rgba(255,248,236,.6);font-family:'Kanit',sans-serif;font-size:12px;padding:6px 14px;border:1px solid rgba(255,255,255,.15);border-radius:6px;cursor:pointer;}
+.main-layout{display:flex;flex-direction:column;flex:1;overflow:hidden;}
+.navbar{background:#fff;border-bottom:2px solid #e5e5e0;padding:0 20px;display:flex;align-items:center;gap:2px;overflow-x:auto;flex-shrink:0;-webkit-overflow-scrolling:touch;}
+.navbar::-webkit-scrollbar{display:none;}
+.sb-section{font-family:'Kanit',sans-serif;font-size:10px;font-weight:700;color:#ccc;letter-spacing:1px;padding:0 10px;white-space:nowrap;align-self:center;}
+.sb-item{display:flex;align-items:center;gap:6px;padding:14px 14px;font-family:'Kanit',sans-serif;font-size:13px;font-weight:500;color:#666;cursor:pointer;transition:all .15s;border-bottom:3px solid transparent;white-space:nowrap;flex-shrink:0;}
+.sb-item:hover{color:#333;background:#f9f9f9;}
+.sb-item.active{color:var(--green);border-bottom-color:var(--green);font-weight:700;background:#f0faf4;}
+.content-area{flex:1;overflow-y:auto;padding:24px;}
+.panel{display:none;}
+.panel.active{display:block;}
+
+/* CARDS */
+.stat-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:20px;}
+.stat-card{background:#fff;border-radius:12px;padding:18px;border:1px solid #e5e5e0;}
+.stat-card .val{font-family:'Kanit',sans-serif;font-weight:900;font-size:28px;color:#1a1a1a;}
+.stat-card .lbl{font-size:12px;color:#aaa;margin-top:4px;}
+.stat-card .ico{font-size:24px;margin-bottom:8px;}
+.card{background:#fff;border-radius:12px;padding:20px;border:1px solid #e5e5e0;margin-bottom:16px;}
+.card-title{font-family:'Kanit',sans-serif;font-weight:700;font-size:15px;margin-bottom:14px;display:flex;align-items:center;justify-content:space-between;}
+
+/* TABLE */
+table{width:100%;border-collapse:collapse;}
+th{font-family:'Kanit',sans-serif;font-size:12px;font-weight:700;color:#888;text-align:left;padding:8px 12px;background:#fafafa;border-bottom:1px solid #eee;}
+td{padding:10px 12px;border-bottom:1px solid #f0f0f0;font-size:13px;vertical-align:middle;}
+tr:hover td{background:#fafafa;}
+
+/* BADGES */
+.badge{font-family:'Kanit',sans-serif;font-size:11px;font-weight:700;padding:3px 10px;border-radius:20px;}
+.badge-pending{background:#fef3cd;color:#856404;}
+.badge-approved{background:#d1fae5;color:#065f46;}
+.badge-rejected{background:#fee2e2;color:#991b1b;}
+.badge-upcoming{background:#fef3cd;color:#856404;}
+.badge-live{background:#fee2e2;color:#991b1b;}
+.badge-done{background:#d1fae5;color:#065f46;}
+
+/* BUTTONS */
+.btn{font-family:'Kanit',sans-serif;font-size:12px;font-weight:700;padding:6px 14px;border-radius:7px;border:none;cursor:pointer;transition:all .15s;}
+.btn-green{background:#d1fae5;color:var(--green);}
+.btn-green:hover{background:var(--green);color:#fff;}
+.btn-red{background:#fee2e2;color:var(--red);}
+.btn-red:hover{background:var(--red);color:#fff;}
+.btn-gold{background:#fef3cd;color:#856404;}
+.btn-gold:hover{background:var(--gold);color:#fff;}
+.btn-primary{background:var(--green);color:#fff;}
+.btn-primary:hover{background:var(--green2);}
+
+/* FORM */
+.form-row{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px;}
+.form-row.three{grid-template-columns:1fr 1fr 1fr;}
+.form-row.full{grid-template-columns:1fr;}
+.save-btn{background:var(--green);color:#fff;font-family:'Kanit',sans-serif;font-weight:700;font-size:13px;padding:10px 24px;border-radius:8px;border:none;cursor:pointer;}
+
+/* TOAST */
+.toast{position:fixed;bottom:20px;right:20px;font-family:'Kanit',sans-serif;font-size:13px;padding:12px 20px;border-radius:10px;z-index:9999;display:none;animation:slideIn .3s ease;}
 @keyframes slideIn{from{transform:translateX(100%);opacity:0;}to{transform:translateX(0);opacity:1;}}
-.vd-card{background:#fff;border:1px solid #e5e5e0;border-radius:16px;overflow:hidden;transition:box-shadow .2s;}
-.vd-card:hover{box-shadow:0 6px 24px rgba(0,0,0,.08);}
-.vd-card-header{background:linear-gradient(135deg,#1A0A00,#2d1200);padding:14px 18px;display:flex;align-items:center;justify-content:space-between;}
-.vd-card-round{font-family:'Kanit',sans-serif;font-weight:900;font-size:14px;color:#F5C842;}
-.vd-card-meta{font-size:11px;color:rgba(255,248,236,.5);font-family:'Kanit',sans-serif;}
-.vd-card-code{font-family:'Kanit',sans-serif;font-size:11px;font-weight:900;letter-spacing:2px;color:rgba(245,200,66,.6);}
-.vd-bulls{display:grid;grid-template-columns:1fr 60px 1fr;align-items:center;padding:20px 18px;}
-.vd-bull{display:flex;flex-direction:column;align-items:center;gap:8px;}
-.vd-bull-icon{font-size:52px;line-height:1;}
-.vd-bull-name{font-family:'Kanit',sans-serif;font-weight:900;font-size:15px;color:#1a1a1a;text-align:center;}
-.vd-bull-owner{font-size:11px;color:#aaa;text-align:center;}
-.vd-bull-weight{font-family:'Kanit',sans-serif;font-size:11px;font-weight:700;color:var(--green);background:#EAF3DE;padding:2px 8px;border-radius:4px;}
-.vd-vs{font-family:'Kanit',sans-serif;font-weight:900;font-size:18px;color:#ccc;text-align:center;}
-.vd-actions{display:grid;grid-template-columns:1fr 1fr;border-top:1px solid #f0f0eb;}
-.vd-btn{font-family:'Kanit',sans-serif;font-weight:900;font-size:14px;padding:16px;border:none;cursor:pointer;transition:all .15s;display:flex;align-items:center;justify-content:center;gap:8px;}
-.vd-btn-a{background:#FEF2F2;color:var(--red);}
-.vd-btn-a:hover{background:var(--red);color:#fff;}
-.vd-btn-b{background:#EFF6FF;color:#1877F2;border-left:1px solid #f0f0eb;}
-.vd-btn-b:hover{background:#1877F2;color:#fff;}
-.vd-done-card{background:#f8fff8;border:1px solid #c8eac8;border-radius:10px;padding:14px 16px;display:flex;align-items:center;justify-content:space-between;gap:12px;}
-.mptab{font-family:'Kanit',sans-serif;font-size:13px;font-weight:700;padding:9px 16px;border:none;background:none;cursor:pointer;color:#aaa;border-bottom:2px solid transparent;margin-bottom:-2px;transition:all .15s;}
-.mptab:hover{color:#1a1a1a;}
-.mptab.active{color:var(--green);border-bottom-color:var(--green);}
-.date-filter{display:flex;align-items:center;gap:8px;flex-wrap:wrap;padding:10px 14px;background:#f8f8f5;border:1px solid #e5e5e0;border-radius:10px;margin-bottom:14px;}
-.date-filter label{font-family:'Kanit',sans-serif;font-size:11px;font-weight:700;color:#888;letter-spacing:.5px;white-space:nowrap;}
-.date-filter input[type="date"]{font-family:'Sarabun',sans-serif;font-size:12px;padding:6px 10px;border:1px solid #ddd;border-radius:7px;background:#fff;color:#1a1a1a;cursor:pointer;}
-.date-filter input[type="date"]:focus{outline:none;border-color:var(--green);}
-.date-filter-btn{font-family:'Kanit',sans-serif;font-size:12px;font-weight:700;padding:6px 14px;border-radius:7px;border:none;cursor:pointer;transition:all .15s;}
-.date-filter-btn.apply{background:var(--green);color:#fff;}
-.date-filter-btn.apply:hover{background:var(--green2);}
-.date-filter-btn.clear{background:#f0f0eb;color:#666;}
-.date-filter-btn.clear:hover{background:#e5e5e0;}
-.date-filter-sep{color:#ccc;font-size:14px;}
-.loading-row td{text-align:center;padding:32px;color:#aaa;font-family:'Kanit',sans-serif;}
-.two-col{display:grid;grid-template-columns:1fr 1fr;gap:16px;}
-.notif-dot{width:8px;height:8px;border-radius:50%;background:var(--red);display:inline-block;margin-left:4px;animation:pulse .8s infinite;}
+
+/* SEARCH */
+.search-bar{display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap;}
+.search-input{flex:1;min-width:180px;padding:8px 12px;border:1px solid #e0e0e0;border-radius:8px;font-family:'Sarabun',sans-serif;font-size:13px;outline:none;}
+.search-input:focus{border-color:var(--green);}
+.filter-select{padding:8px 12px;border:1px solid #e0e0e0;border-radius:8px;font-family:'Kanit',sans-serif;font-size:13px;outline:none;background:#fff;}
+
+/* MATCH CODE */
+.match-code{display:inline-block;background:var(--green);color:#fff;font-family:'Kanit',sans-serif;font-weight:900;font-size:11px;padding:2px 8px;border-radius:4px;letter-spacing:2px;}
+
+/* STATUS SELECT */
+.status-select{font-family:'Kanit',sans-serif;font-size:12px;padding:4px 8px;border:1px solid #ddd;border-radius:6px;outline:none;cursor:pointer;}
+
+@media(max-width:768px){
+  .stat-grid{grid-template-columns:1fr 1fr;}
+  .form-row,.form-row.three{grid-template-columns:1fr;}
+  .sb-section{display:none;}
+  .sb-item{padding:12px 10px;font-size:12px;}
+}
 </style>
 </head>
 <body>
 
-<!-- LOGIN PAGE -->
-<div id="login-page" style="display:flex;align-items:center;justify-content:center;min-height:100vh;background:#1A0A00;">
-  <div style="background:#fff;border-radius:16px;padding:36px;width:340px;text-align:center;">
-    <div style="font-family:'Kanit',sans-serif;font-weight:900;font-size:24px;color:#1A0A00;margin-bottom:4px;">วัวชน<span style="color:var(--red);">ไทย</span></div>
-    <div style="font-size:12px;color:#999;margin-bottom:24px;font-family:'Kanit',sans-serif;">Admin Dashboard</div>
-    <div style="display:flex;flex-direction:column;gap:10px;text-align:left;">
-      <div class="fg"><label>USERNAME</label><input type="text" id="admin-user" value="admin"></div>
-      <div class="fg"><label>PASSWORD</label><input type="password" id="admin-pass" value="wuachon2568" onkeydown="if(event.key==='Enter')adminLogin()"></div>
-      <div id="login-err" style="display:none;font-size:12px;color:var(--red);font-family:'Kanit',sans-serif;"></div>
-      <button onclick="adminLogin()" style="font-family:'Kanit',sans-serif;font-weight:900;font-size:14px;padding:12px;border-radius:10px;border:none;background:var(--green);color:#fff;cursor:pointer;margin-top:4px;">เข้าสู่ระบบ</button>
-    </div>
+<!-- LOGIN -->
+<div id="login-page">
+  <div class="login-box">
+    <div class="login-logo">วัวชน<span>ไทย</span></div>
+    <div class="login-sub">Admin Dashboard</div>
+    <div id="login-err">❌ Username หรือรหัสผ่านไม่ถูกต้องครับ</div>
+    <div class="fg"><label>USERNAME</label><input type="text" id="admin-user" value="admin" placeholder="admin"></div>
+    <div class="fg"><label>PASSWORD</label><input type="password" id="admin-pass" placeholder="รหัสผ่าน" onkeydown="if(event.key==='Enter')adminLogin()"></div>
+    <button class="btn-login" onclick="adminLogin()">เข้าสู่ระบบ</button>
+    <div style="font-size:11px;color:#ccc;margin-top:12px;">default: admin / wuachon2568</div>
   </div>
 </div>
 
 <!-- DASHBOARD -->
-<div id="dashboard" style="display:none;flex-direction:column;min-height:100vh;">
-
-<!-- TOPBAR -->
-<div class="topbar">
-  <div class="topbar-logo">วัวชน<em>ไทย</em> <small>Admin Dashboard</small></div>
-  <div class="topbar-right">
-    <span class="sdot"></span><span class="stext" id="admin-name">Admin</span>
-    <span id="notif-badge" style="display:none;background:var(--red);color:#fff;font-family:'Kanit',sans-serif;font-size:11px;font-weight:700;padding:3px 8px;border-radius:999px;cursor:pointer;" onclick="switchPanel('deposit')">🔔 <span id="notif-num">0</span></span>
-    <button class="logout-btn" onclick="adminLogout()">ออกจากระบบ</button>
-  </div>
-</div>
-
-<!-- TOPNAV -->
-<div class="topnav">
-  <div class="sb-item active" onclick="switchPanel('overview')" data-panel="overview">📊 ภาพรวม</div>
-  <div class="sb-item" onclick="switchPanel('members')" data-panel="members">👥 สมาชิก</div>
-  <div class="sb-item" onclick="switchPanel('matches')" data-panel="matches">🏆 คู่แข่งขัน</div>
-  <div class="sb-item" onclick="switchPanel('verdict')" data-panel="verdict">⚖️ แพ้ชนะ <span id="verdict-badge" style="display:none;background:var(--red);color:#fff;font-size:10px;font-weight:700;padding:1px 6px;border-radius:999px;margin-left:2px;">0</span></div>
-  <div class="sb-divider"></div>
-  <div class="sb-item" onclick="switchPanel('deposit')" data-panel="deposit">💰 เติมเงิน</div>
-  <div class="sb-item" onclick="switchPanel('withdraw')" data-panel="withdraw">🏧 ถอนเงิน</div>
-  <div class="sb-item" onclick="switchPanel('bets')" data-panel="bets">🎯 เดิมพัน</div>
-  <div class="sb-divider"></div>
-  <div class="sb-item" onclick="switchPanel('news')" data-panel="news">📰 ข่าวสาร</div>
-  <div class="sb-item" onclick="switchPanel('settings')" data-panel="settings">⚙️ ตั้งค่า</div>
-</div>
-
-<div class="layout">
-<div class="main">
-
-<!-- OVERVIEW -->
-<div id="panel-overview" class="panel active">
-  <div class="stat-grid">
-    <div class="stat-card"><div class="stat-label">สมาชิกทั้งหมด</div><div class="stat-val" id="ov-members">—</div></div>
-    <div class="stat-card"><div class="stat-label">คู่แข่งขัน</div><div class="stat-val gold" id="ov-matches">—</div></div>
-    <div class="stat-card"><div class="stat-label">รอเติมเงิน</div><div class="stat-val red" id="ov-deposits">—</div></div>
-    <div class="stat-card"><div class="stat-label">รอถอนเงิน</div><div class="stat-val red" id="ov-withdrawals">—</div></div>
-  </div>
-  <div class="two-col">
-    <div class="card">
-      <div class="card-title">💰 เติมเงินล่าสุด</div>
-      <div id="ov-dep-list"><div style="text-align:center;padding:20px;color:#aaa;font-family:'Kanit',sans-serif;">กำลังโหลด...</div></div>
-    </div>
-    <div class="card">
-      <div class="card-title">🏧 ถอนเงินล่าสุด</div>
-      <div id="ov-with-list"><div style="text-align:center;padding:20px;color:#aaa;font-family:'Kanit',sans-serif;">กำลังโหลด...</div></div>
-    </div>
-  </div>
-</div>
-
-<!-- MEMBERS -->
-<div id="panel-members" class="panel">
-  <div class="card">
-    <div class="card-title">👥 รายชื่อสมาชิก <span id="members-count" style="font-size:12px;color:#aaa;font-weight:400;"></span></div>
-    <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px;">
-      <input id="member-search" placeholder="ค้นหาชื่อบัญชี / เบอร์โทร..." oninput="filterMembers()" style="font-family:'Sarabun',sans-serif;font-size:13px;padding:9px 14px;border:1px solid #ddd;border-radius:8px;background:#fff;flex:1;min-width:200px;">
-    </div>
-    <div class="date-filter">
-      <label>📅 สมัครตั้งแต่</label>
-      <input type="date" id="member-date-from" onchange="filterMembers()">
-      <span class="date-filter-sep">—</span>
-      <label>ถึง</label>
-      <input type="date" id="member-date-to" onchange="filterMembers()">
-      <button class="date-filter-btn apply" onclick="filterMembers()">🔍 ค้นหา</button>
-      <button class="date-filter-btn clear" onclick="clearDateFilter('member')">✕ ล้าง</button>
-      <span id="member-filter-result" style="font-size:12px;color:#aaa;font-family:'Kanit',sans-serif;"></span>
-    </div>
-    <div style="overflow-x:auto;">
-      <table>
-        <thead><tr><th>#</th><th>ชื่อบัญชี</th><th>ชื่อ-สกุล</th><th>เบอร์โทร</th><th>ยอดเงิน</th><th>สมัครเมื่อ</th><th>จัดการ</th></tr></thead>
-        <tbody id="members-tbody"><tr class="loading-row"><td colspan="7">กำลังโหลด...</td></tr></tbody>
-      </table>
-    </div>
-  </div>
-</div>
-
-<!-- MATCHES -->
-<div id="panel-matches" class="panel">
-  <!-- ฟอร์มเพิ่มคู่แข่งขัน -->
-  <div class="card">
-    <div class="card-title">➕ เพิ่มคู่แข่งขันใหม่</div>
-    <div class="form-row">
-      <div class="fg"><label>รุ่น / ชื่อรายการ</label><input id="m-round" placeholder="เช่น รุ่นแชมเปียน"></div>
-      <div class="fg"><label>วันที่แข่ง</label><input id="m-date" placeholder="เช่น 28 พ.ค. 68"></div>
-    </div>
-    <div class="form-row">
-      <div class="fg"><label>เวลา</label><input id="m-time" placeholder="เช่น 13:30 น."></div>
-      <div class="fg"><label>สถานที่</label><input id="m-loc" placeholder="เช่น สนามหลัก นครศรีธรรมราช"></div>
-    </div>
-    <div class="form-row three">
-      <div class="fg"><label>รางวัล (บาท)</label><input id="m-prize" type="number" placeholder="500000"></div>
-      <div class="fg"><label>สถานะ</label>
-        <select id="m-status">
-          <option value="upcoming">⏳ รอแข่ง</option>
-          <option value="live">🔴 LIVE</option>
-          <option value="done">✅ จบแล้ว</option>
-        </select>
-      </div>
-      <div class="fg"><label>ตัดสินแพ้ชนะ (ถ้าจบแล้ว)</label>
-        <select id="m-winner-preset">
-          <option value="">— ยังไม่ตัดสิน —</option>
-        </select>
-      </div>
-    </div>
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:11px;">
-      <div style="border:1px solid #e5e5e0;border-radius:10px;padding:14px;">
-        <div style="font-family:'Kanit',sans-serif;font-size:12px;font-weight:700;color:var(--red);margin-bottom:10px;">🔴 เจ้าบ้าน</div>
-        <div class="fg" style="margin-bottom:8px;"><label>ชื่อวัว</label><input id="m-name-a" placeholder="ชื่อวัวเจ้าบ้าน" oninput="updateWinnerOptions()"></div>
-        <div class="fg" style="margin-bottom:8px;"><label>เจ้าของ</label><input id="m-owner-a" placeholder="ชื่อเจ้าของ"></div>
-        <div class="fg"><label>น้ำหนัก</label><input id="m-weight-a" placeholder="เช่น 520 กก."></div>
-      </div>
-      <div style="border:1px solid #e5e5e0;border-radius:10px;padding:14px;">
-        <div style="font-family:'Kanit',sans-serif;font-size:12px;font-weight:700;color:#1877F2;margin-bottom:10px;">🔵 ทีมเยือน</div>
-        <div class="fg" style="margin-bottom:8px;"><label>ชื่อวัว</label><input id="m-name-b" placeholder="ชื่อวัวทีมเยือน" oninput="updateWinnerOptions()"></div>
-        <div class="fg" style="margin-bottom:8px;"><label>เจ้าของ</label><input id="m-owner-b" placeholder="ชื่อเจ้าของ"></div>
-        <div class="fg"><label>น้ำหนัก</label><input id="m-weight-b" placeholder="เช่น 510 กก."></div>
-      </div>
-    </div>
-    <button class="btn-save" onclick="addMatch()">➕ เพิ่มคู่แข่งขัน</button>
-  </div>
-
-  <!-- ตารางคู่แข่งขัน -->
-  <div class="card">
-    <div class="card-title">
-      🏆 รายการคู่แข่งขันทั้งหมด
-      <div style="display:flex;gap:8px;align-items:center;">
-        <input id="match-search" placeholder="ค้นหา..." oninput="filterMatches_()" style="font-family:'Sarabun',sans-serif;font-size:12px;padding:6px 12px;border:1px solid #ddd;border-radius:7px;width:160px;">
-        <select id="match-status-filter" onchange="filterMatches_()" style="font-family:'Kanit',sans-serif;font-size:12px;padding:6px 10px;border:1px solid #ddd;border-radius:7px;">
-          <option value="all">ทั้งหมด</option>
-          <option value="upcoming">⏳ รอแข่ง</option>
-          <option value="live">🔴 LIVE</option>
-          <option value="done">✅ จบแล้ว</option>
-        </select>
-      </div>
-    </div>
-    <div class="date-filter" style="margin-bottom:12px;">
-      <label>📅 วันที่แข่ง</label>
-      <input type="date" id="match-date-from" onchange="filterMatches_()">
-      <span class="date-filter-sep">—</span>
-      <input type="date" id="match-date-to" onchange="filterMatches_()">
-      <button class="date-filter-btn apply" onclick="filterMatches_()">🔍 ค้นหา</button>
-      <button class="date-filter-btn clear" onclick="clearMatchFilter()">✕ ล้าง</button>
-      <span id="match-filter-result" style="font-size:12px;color:#aaa;font-family:'Kanit',sans-serif;"></span>
-    </div>
-    <div style="overflow-x:auto;">
-      <table>
-        <thead>
-          <tr>
-            <th>รุ่น / วันที่</th>
-            <th>🔴 เจ้าบ้าน</th>
-            <th>🔵 ทีมเยือน</th>
-            <th>สถานที่</th>
-            <th>รางวัล</th>
-            <th>สถานะ</th>
-            <th>⚖️ ตัดสินแพ้ชนะ</th>
-            <th>จัดการ</th>
-          </tr>
-        </thead>
-        <tbody id="matches-tbody"><tr class="loading-row"><td colspan="8">กำลังโหลด...</td></tr></tbody>
-      </table>
-    </div>
-  </div>
-</div>
-
-<!-- VERDICT -->
-<div id="panel-verdict" class="panel">
-
-  <!-- สถิติ -->
-  <div class="stat-grid" style="grid-template-columns:repeat(3,1fr);margin-bottom:20px;">
-    <div class="stat-card">
-      <div class="stat-label">รอตัดสิน</div>
-      <div class="stat-val red" id="vd-waiting-count">0</div>
-    </div>
-    <div class="stat-card">
-      <div class="stat-label">ตัดสินแล้ว</div>
-      <div class="stat-val green" id="vd-done-count">0</div>
-    </div>
-    <div class="stat-card">
-      <div class="stat-label">ทั้งหมด</div>
-      <div class="stat-val gold" id="vd-total-count">0</div>
+<div id="dashboard">
+  <div class="topbar">
+    <div class="topbar-logo">🐂 <em>วัวชน</em>ไทย <small style="font-size:11px;font-weight:400;color:rgba(255,248,236,.35);margin-left:6px;">Admin</small></div>
+    <div class="topbar-right">
+      <span id="realtime-dot" style="width:8px;height:8px;border-radius:50%;background:#639922;display:inline-block;" title="Realtime connected"></span>
+      <button class="notif-btn" onclick="switchPanel('deposits')">🔔<span id="notif-badge" id="notif-num">0</span></button>
+      <button class="logout-btn" onclick="adminLogout()">ออกจากระบบ</button>
     </div>
   </div>
 
-  <!-- รอตัดสิน -->
-  <div id="vd-pending-section">
-    <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px;">
-      <div style="width:10px;height:10px;border-radius:50%;background:var(--red);animation:pulse .8s infinite;flex-shrink:0;"></div>
-      <h3 style="font-family:'Kanit',sans-serif;font-weight:900;font-size:16px;color:#1a1a1a;">รายการที่แข่งจบแล้ว รอตัดสินผล</h3>
+  <div class="main-layout">
+    <div class="navbar">
+      <div class="sb-item active" data-panel="overview" onclick="switchPanel('overview')">📊 ภาพรวม</div>
+      <div class="sb-item" data-panel="members" onclick="switchPanel('members')">👥 สมาชิก</div>
+      <div class="sb-item" data-panel="matches" onclick="switchPanel('matches')">🏆 คู่แข่งขัน</div>
+      <div class="sb-item" data-panel="verdict" onclick="switchPanel('verdict')">⚖️ ตัดสินผล</div>
+      <div class="sb-section">|</div>
+      <div class="sb-item" data-panel="deposits" onclick="switchPanel('deposits')">💰 เติมเงิน</div>
+      <div class="sb-item" data-panel="withdrawals" onclick="switchPanel('withdrawals')">🏧 ถอนเงิน</div>
+      <div class="sb-item" data-panel="bets" onclick="switchPanel('bets')">🎯 P2P</div>
+      <div class="sb-section">|</div>
+      <div class="sb-item" data-panel="news" onclick="switchPanel('news')">📰 ข่าวสาร</div>
+      <div class="sb-item" data-panel="settings" onclick="switchPanel('settings')">⚙️ ตั้งค่า</div>
     </div>
-    <div id="vd-pending-list" style="display:flex;flex-direction:column;gap:16px;">
-      <div style="text-align:center;padding:40px;color:#aaa;font-family:'Kanit',sans-serif;">กำลังโหลด...</div>
-    </div>
-  </div>
 
-  <!-- ตัดสินแล้ว -->
-  <div style="margin-top:32px;">
-    <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px;">
-      <span style="color:var(--green);font-size:18px;">✅</span>
-      <h3 style="font-family:'Kanit',sans-serif;font-weight:900;font-size:16px;color:#1a1a1a;">ตัดสินแล้ว</h3>
-    </div>
-    <div id="vd-done-list" style="display:flex;flex-direction:column;gap:10px;">
-      <div style="text-align:center;padding:20px;color:#aaa;font-family:'Kanit',sans-serif;">กำลังโหลด...</div>
-    </div>
-  </div>
-</div>
+    <div class="content-area">
 
-<!-- NEWS -->
-<div id="panel-news" class="panel">
-  <div class="two-col">
-    <div class="card">
-      <div class="card-title">📝 เขียนข่าวใหม่</div>
-      <div class="form-row full"><div class="fg"><label>หัวข่าว</label><input id="n-title" placeholder="หัวข่าวที่น่าสนใจ"></div></div>
-      <div class="form-row full"><div class="fg"><label>เนื้อหา</label><textarea id="n-body" placeholder="รายละเอียดข่าว..." style="min-height:120px;"></textarea></div></div>
-      <div class="form-row">
-        <div class="fg"><label>หมวดหมู่</label>
-          <select id="n-cat">
-            <option value="general">📢 ทั่วไป</option>
-            <option value="match">🏆 การแข่งขัน</option>
-            <option value="event">🎉 กิจกรรม</option>
-            <option value="promo">💰 โปรโมชั่น</option>
-          </select>
+      <!-- OVERVIEW -->
+      <div class="panel active" id="panel-overview">
+        <div class="stat-grid">
+          <div class="stat-card"><div class="ico">👥</div><div class="val" id="ov-members">—</div><div class="lbl">สมาชิกทั้งหมด</div></div>
+          <div class="stat-card"><div class="ico">🏆</div><div class="val" id="ov-matches">—</div><div class="lbl">คู่แข่งขัน</div></div>
+          <div class="stat-card"><div class="ico">💰</div><div class="val" id="ov-dep" style="color:var(--red);">—</div><div class="lbl">รอเติมเงิน</div></div>
+          <div class="stat-card"><div class="ico">🏧</div><div class="val" id="ov-with" style="color:var(--red);">—</div><div class="lbl">รอถอนเงิน</div></div>
         </div>
-        <div class="fg"><label>สถานะ</label>
-          <select id="n-status">
-            <option value="published">✅ เผยแพร่</option>
-            <option value="draft">📝 แบบร่าง</option>
-          </select>
+        <div class="card">
+          <div class="card-title">🕐 รายการล่าสุด</div>
+          <div id="ov-recent"><div style="text-align:center;padding:20px;color:#aaa;">กำลังโหลด...</div></div>
         </div>
       </div>
-      <button class="btn-save" onclick="addNews()">📢 โพสต์ข่าวสาร</button>
-    </div>
-    <div class="card">
-      <div class="card-title">รายการข่าวทั้งหมด</div>
-      <div id="news-list" style="display:flex;flex-direction:column;gap:8px;max-height:480px;overflow-y:auto;"></div>
-    </div>
-  </div>
-</div>
 
-<!-- DEPOSIT -->
-<div id="panel-deposit" class="panel">
-  <div class="stat-grid" style="grid-template-columns:repeat(3,1fr);">
-    <div class="stat-card"><div class="stat-label">รอตรวจสอบ</div><div class="stat-val red" id="dep-pending-count">0</div></div>
-    <div class="stat-card"><div class="stat-label">อนุมัติแล้ว</div><div class="stat-val green" id="dep-approved-count">0</div></div>
-    <div class="stat-card"><div class="stat-label">ยอดเติมรวม</div><div class="stat-val gold" id="dep-total">0 ฿</div></div>
-  </div>
-
-  <!-- Tab: รอตรวจสอบ -->
-  <div class="card" style="margin-bottom:16px;">
-    <div class="card-title" style="background:#fff5f5;margin:-18px -18px 14px;padding:14px 18px;border-radius:12px 12px 0 0;border-bottom:2px solid #FCEBEB;">
-      <div style="display:flex;align-items:center;gap:8px;">
-        <span style="width:10px;height:10px;border-radius:50%;background:var(--red);display:inline-block;animation:pulse .8s infinite;"></span>
-        ⏳ รอการตรวจสอบ
-        <span id="dep-pending-badge" style="background:var(--red);color:#fff;font-family:'Kanit',sans-serif;font-size:11px;font-weight:700;padding:2px 8px;border-radius:999px;">0</span>
-      </div>
-      <input id="dep-search-pending" placeholder="ค้นหา..." style="font-family:'Sarabun',sans-serif;font-size:12px;padding:6px 12px;border:1px solid #ddd;border-radius:7px;width:160px;" oninput="filterDep()">
-    </div>
-    <div class="date-filter" style="margin:0 0 12px;">
-      <label>📅 ตั้งแต่</label>
-      <input type="date" id="dep-pending-from" onchange="filterDep()">
-      <span class="date-filter-sep">—</span>
-      <input type="date" id="dep-pending-to" onchange="filterDep()">
-      <button class="date-filter-btn apply" onclick="filterDep()">🔍 ค้นหา</button>
-      <button class="date-filter-btn clear" onclick="clearDateFilter('dep-pending')">✕ ล้าง</button>
-      <span id="dep-pending-result" style="font-size:12px;color:#aaa;font-family:'Kanit',sans-serif;"></span>
-    </div>
-    </div>
-    <div style="overflow-x:auto;">
-      <table>
-        <thead><tr><th>ชื่อบัญชี</th><th>ชื่อ-นามสกุล</th><th>เบอร์โทร</th><th>จำนวน</th><th>ธนาคาร</th><th>TXN</th><th>เวลา</th><th>จัดการ</th></tr></thead>
-        <tbody id="dep-pending-tbody"><tr class="loading-row"><td colspan="8">กำลังโหลด...</td></tr></tbody>
-      </table>
-    </div>
-  </div>
-
-  <!-- Tab: อนุมัติแล้ว -->
-  <div class="card">
-    <div class="card-title" style="background:#f0faf0;margin:-18px -18px 14px;padding:14px 18px;border-radius:12px 12px 0 0;border-bottom:2px solid #c8eac8;">
-      <div style="display:flex;align-items:center;gap:8px;">
-        <span style="color:var(--green);">✅</span>
-        อนุมัติแล้ว / สำเร็จ
-        <span id="dep-approved-badge" style="background:var(--green);color:#fff;font-family:'Kanit',sans-serif;font-size:11px;font-weight:700;padding:2px 8px;border-radius:999px;">0</span>
-      </div>
-      <input id="dep-search-approved" placeholder="ค้นหา..." style="font-family:'Sarabun',sans-serif;font-size:12px;padding:6px 12px;border:1px solid #ddd;border-radius:7px;width:160px;" oninput="filterDep()">
-    </div>
-    <div class="date-filter" style="margin:0 0 12px;">
-      <label>📅 ตั้งแต่</label>
-      <input type="date" id="dep-approved-from" onchange="filterDep()">
-      <span class="date-filter-sep">—</span>
-      <input type="date" id="dep-approved-to" onchange="filterDep()">
-      <button class="date-filter-btn apply" onclick="filterDep()">🔍 ค้นหา</button>
-      <button class="date-filter-btn clear" onclick="clearDateFilter('dep-approved')">✕ ล้าง</button>
-      <span id="dep-approved-result" style="font-size:12px;color:#aaa;font-family:'Kanit',sans-serif;"></span>
-    </div>
-    </div>
-    <div style="overflow-x:auto;">
-      <table>
-        <thead><tr><th>ชื่อบัญชี</th><th>ชื่อ-นามสกุล</th><th>เบอร์โทร</th><th>จำนวน</th><th>ธนาคาร</th><th>TXN</th><th>เวลา</th><th>ผู้อนุมัติ</th><th>เวลาอนุมัติ</th><th>สถานะ</th></tr></thead>
-        <tbody id="dep-approved-tbody"><tr class="loading-row"><td colspan="10">กำลังโหลด...</td></tr></tbody>
-      </table>
-    </div>
-  </div>
-</div>
-
-<!-- WITHDRAW -->
-<div id="panel-withdraw" class="panel">
-  <div class="stat-grid" style="grid-template-columns:repeat(3,1fr);">
-    <div class="stat-card"><div class="stat-label">รอดำเนินการ</div><div class="stat-val red" id="with-pending-count">0</div></div>
-    <div class="stat-card"><div class="stat-label">โอนแล้ว</div><div class="stat-val green" id="with-done-count">0</div></div>
-    <div class="stat-card"><div class="stat-label">ยอดถอนรวม</div><div class="stat-val gold" id="with-total">0 ฿</div></div>
-  </div>
-
-  <!-- Tab: รอดำเนินการ -->
-  <div class="card" style="margin-bottom:16px;">
-    <div class="card-title" style="background:#fff5f5;margin:-18px -18px 14px;padding:14px 18px;border-radius:12px 12px 0 0;border-bottom:2px solid #FCEBEB;">
-      <div style="display:flex;align-items:center;gap:8px;">
-        <span style="width:10px;height:10px;border-radius:50%;background:var(--red);display:inline-block;animation:pulse .8s infinite;"></span>
-        ⏳ รอดำเนินการ
-        <span id="with-pending-badge" style="background:var(--red);color:#fff;font-family:'Kanit',sans-serif;font-size:11px;font-weight:700;padding:2px 8px;border-radius:999px;">0</span>
-      </div>
-      <input id="with-search-pending" placeholder="ค้นหา..." style="font-family:'Sarabun',sans-serif;font-size:12px;padding:6px 12px;border:1px solid #ddd;border-radius:7px;width:160px;" oninput="filterWith()">
-    </div>
-    <div class="date-filter" style="margin:0 0 12px;">
-      <label>📅 ตั้งแต่</label>
-      <input type="date" id="with-pending-from" onchange="filterWith()">
-      <span class="date-filter-sep">—</span>
-      <input type="date" id="with-pending-to" onchange="filterWith()">
-      <button class="date-filter-btn apply" onclick="filterWith()">🔍 ค้นหา</button>
-      <button class="date-filter-btn clear" onclick="clearDateFilter('with-pending')">✕ ล้าง</button>
-      <span id="with-pending-result" style="font-size:12px;color:#aaa;font-family:'Kanit',sans-serif;"></span>
-    </div>
-    <div style="overflow-x:auto;">
-      <table>
-        <thead><tr><th>ชื่อบัญชี</th><th>จำนวน</th><th>ธนาคารปลายทาง</th><th>เลขบัญชี</th><th>ชื่อบัญชี</th><th>TXN</th><th>เวลา</th><th>จัดการ</th></tr></thead>
-        <tbody id="with-pending-tbody"><tr class="loading-row"><td colspan="8">กำลังโหลด...</td></tr></tbody>
-      </table>
-    </div>
-  </div>
-
-  <!-- Tab: โอนแล้ว -->
-  <div class="card">
-    <div class="card-title" style="background:#f0faf0;margin:-18px -18px 14px;padding:14px 18px;border-radius:12px 12px 0 0;border-bottom:2px solid #c8eac8;">
-      <div style="display:flex;align-items:center;gap:8px;">
-        <span style="color:var(--green);">✅</span>
-        โอนแล้ว / สำเร็จ
-        <span id="with-approved-badge" style="background:var(--green);color:#fff;font-family:'Kanit',sans-serif;font-size:11px;font-weight:700;padding:2px 8px;border-radius:999px;">0</span>
-      </div>
-      <input id="with-search-approved" placeholder="ค้นหา..." style="font-family:'Sarabun',sans-serif;font-size:12px;padding:6px 12px;border:1px solid #ddd;border-radius:7px;width:160px;" oninput="filterWith()">
-    </div>
-    <div class="date-filter" style="margin:0 0 12px;">
-      <label>📅 ตั้งแต่</label>
-      <input type="date" id="with-approved-from" onchange="filterWith()">
-      <span class="date-filter-sep">—</span>
-      <input type="date" id="with-approved-to" onchange="filterWith()">
-      <button class="date-filter-btn apply" onclick="filterWith()">🔍 ค้นหา</button>
-      <button class="date-filter-btn clear" onclick="clearDateFilter('with-approved')">✕ ล้าง</button>
-      <span id="with-approved-result" style="font-size:12px;color:#aaa;font-family:'Kanit',sans-serif;"></span>
-    </div>
-    <div style="overflow-x:auto;">
-      <table>
-        <thead><tr><th>ชื่อบัญชี</th><th>จำนวน</th><th>ธนาคาร</th><th>เลขบัญชี</th><th>TXN</th><th>เวลา</th><th>ผู้อนุมัติ</th><th>เวลาอนุมัติ</th><th>สถานะ</th></tr></thead>
-        <tbody id="with-approved-tbody"><tr class="loading-row"><td colspan="9">กำลังโหลด...</td></tr></tbody>
-      </table>
-    </div>
-  </div>
-</div>
-
-<!-- BETS -->
-<div id="panel-bets" class="panel">
-  <div class="stat-grid" style="grid-template-columns:repeat(3,1fr);">
-    <div class="stat-card"><div class="stat-label">เดิมพันทั้งหมด</div><div class="stat-val" id="bet-total-count">0</div></div>
-    <div class="stat-card"><div class="stat-label">รอจับคู่</div><div class="stat-val gold" id="bet-waiting-count">0</div></div>
-    <div class="stat-card"><div class="stat-label">จับคู่แล้ว/ผลแล้ว</div><div class="stat-val green" id="bet-matched-count">0</div></div>
-  </div>
-  <div class="card">
-    <div class="card-title" style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;">
-      <span>🎯 รายการเดิมพันทั้งหมด</span>
-      <div style="display:flex;align-items:center;gap:6px;">
-        <span id="bet-realtime-dot" style="width:8px;height:8px;border-radius:50%;background:var(--green);display:inline-block;animation:pulse .8s infinite;"></span>
-        <span style="font-size:11px;color:var(--green);font-family:'Kanit',sans-serif;font-weight:700;">Real-time</span>
-      </div>
-    </div>
-    <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px;">
-      <input id="bet-search" placeholder="ค้นหาชื่อบัญชี / TXN..." oninput="filterBets()" style="font-family:'Sarabun',sans-serif;font-size:12px;padding:6px 12px;border:1px solid #ddd;border-radius:7px;flex:1;min-width:150px;">
-      <input id="bet-code-search" placeholder="🔍 รหัส 4 หลัก เช่น 1234" oninput="filterBets()" style="font-family:'Kanit',sans-serif;font-size:13px;font-weight:700;padding:6px 12px;border:2px solid #F5C842;border-radius:7px;width:170px;letter-spacing:3px;color:#B8860B;">
-      <select id="bet-status-filter" onchange="filterBets()" style="font-family:'Kanit',sans-serif;font-size:12px;padding:6px 10px;border:1px solid #ddd;border-radius:7px;">
-        <option value="all">ทั้งหมด</option>
-        <option value="waiting">⏳ รอจับคู่</option>
-        <option value="matched">🤝 จับคู่แล้ว</option>
-        <option value="won">🏆 ชนะ</option>
-        <option value="lost">❌ แพ้</option>
-      </select>
-    </div>
-    <div class="date-filter" style="margin-bottom:12px;">
-      <label>📅 ตั้งแต่</label>
-      <input type="date" id="bet-date-from" onchange="filterBets()">
-      <span class="date-filter-sep">—</span>
-      <input type="date" id="bet-date-to" onchange="filterBets()">
-      <button class="date-filter-btn apply" onclick="filterBets()">🔍 ค้นหา</button>
-      <button class="date-filter-btn clear" onclick="clearDateFilter('bet')">✕ ล้าง</button>
-      <span id="bet-filter-result" style="font-size:12px;color:#aaa;font-family:'Kanit',sans-serif;"></span>
-    </div>
-    <div style="overflow-x:auto;">
-      <table>
-        <thead><tr><th>ชื่อบัญชี</th><th>รหัสแมช</th><th>วัวที่เลือก</th><th>อัตรา</th><th>จำนวน</th><th>TXN</th><th>สถานะ</th><th>จับคู่กับ</th><th>เวลา</th></tr></thead>
-        <tbody id="bets-tbody"><tr class="loading-row"><td colspan="9">กำลังโหลด...</td></tr></tbody>
-      </table>
-    </div>
-  </div>
-</div>
-
-
-<!-- SETTINGS -->
-<div id="panel-settings" class="panel">
-  <div class="two-col">
-    <!-- บัญชีรับเงิน -->
-    <div class="card">
-      <div class="card-title">🏦 บัญชีรับเงิน</div>
-      <div class="fg" style="margin-bottom:10px;"><label>ธนาคาร</label>
-        <select id="sf-bank">
-          <option>กสิกรไทย (KBank)</option><option>ไทยพาณิชย์ (SCB)</option>
-          <option>กรุงเทพ (BBL)</option><option>กรุงไทย (KTB)</option>
-        </select>
-      </div>
-      <div class="fg" style="margin-bottom:10px;"><label>เลขบัญชี</label><input id="sf-accno" placeholder="xxx-x-xxxxx-x"></div>
-      <div class="fg" style="margin-bottom:14px;"><label>ชื่อบัญชี</label><input id="sf-accname" placeholder="ชื่อบัญชีรับเงิน"></div>
-      <button class="btn-save" onclick="saveBankSettings()">💾 บันทึก</button>
-    </div>
-    <!-- ช่องทางติดต่อ -->
-    <div class="card">
-      <div class="card-title">📞 ช่องทางติดต่อ</div>
-      <div class="fg" style="margin-bottom:10px;"><label>เบอร์โทร</label><input id="sf-phone" placeholder="08x-xxx-xxxx"></div>
-      <div class="fg" style="margin-bottom:10px;"><label>Line ID</label><input id="sf-line" placeholder="@wuachon"></div>
-      <div class="fg" style="margin-bottom:10px;"><label>Facebook</label><input id="sf-fb" placeholder="ชื่อ Page"></div>
-      <div class="fg" style="margin-bottom:14px;"><label>เวลาทำการ</label><input id="sf-hours" placeholder="ทุกวัน 08:00-22:00 น."></div>
-      <button class="btn-save" onclick="saveContactSettings()">💾 บันทึก</button>
-    </div>
-  </div>
-  <!-- Admin Password -->
-  <div class="card">
-    <div class="card-title">🔒 เปลี่ยนรหัสผ่าน Admin</div>
-    <div class="form-row">
-      <div class="fg"><label>รหัสผ่านใหม่</label><input type="password" id="new-pass" placeholder="อย่างน้อย 6 ตัวอักษร"></div>
-      <div class="fg"><label>ยืนยันรหัสผ่าน</label><input type="password" id="new-pass2" placeholder="พิมพ์อีกครั้ง"></div>
-    </div>
-    <button class="btn-save" onclick="changeAdminPass()">🔒 เปลี่ยนรหัสผ่าน</button>
-  </div>
-</div>
-
-<!-- MODAL: ดูข้อมูลสมาชิก -->
-<div class="modal-overlay" id="member-profile-modal">
-  <div class="modal-box" style="max-width:620px;">
-    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;">
-      <div class="modal-title" style="margin:0;">👤 ข้อมูลสมาชิก</div>
-      <button onclick="document.getElementById('member-profile-modal').classList.remove('open')" style="background:none;border:none;font-size:20px;cursor:pointer;color:#aaa;">×</button>
-    </div>
-
-    <!-- Avatar + ข้อมูลหลัก -->
-    <div style="display:flex;align-items:center;gap:16px;background:#f8f8f5;border-radius:12px;padding:16px;margin-bottom:16px;">
-      <div id="mp-avatar" style="width:60px;height:60px;border-radius:50%;background:var(--green);display:flex;align-items:center;justify-content:center;font-family:'Kanit',sans-serif;font-weight:900;font-size:24px;color:#fff;flex-shrink:0;">?</div>
-      <div style="flex:1;">
-        <div style="font-family:'Kanit',sans-serif;font-weight:900;font-size:18px;" id="mp-nick">—</div>
-        <div style="font-size:12px;color:#999;margin-top:2px;" id="mp-fullname">—</div>
-        <div style="font-size:11px;color:#bbb;margin-top:2px;font-family:'Kanit',sans-serif;" id="mp-id">ID: —</div>
-      </div>
-      <div style="text-align:right;">
-        <div style="font-size:11px;color:#aaa;font-family:'Kanit',sans-serif;">ยอดเงินคงเหลือ</div>
-        <div style="font-family:'Kanit',sans-serif;font-weight:900;font-size:22px;color:var(--green);" id="mp-balance">0 ฿</div>
-      </div>
-    </div>
-
-    <!-- แท็บ -->
-    <div style="display:flex;border-bottom:2px solid #f0f0eb;margin-bottom:14px;gap:2px;flex-wrap:wrap;">
-      <button id="mptab-info"     onclick="switchMpTab('info')"     class="mptab active">📋 ข้อมูล</button>
-      <button id="mptab-deposits" onclick="switchMpTab('deposits')" class="mptab">💰 เติมเงิน</button>
-      <button id="mptab-withs"    onclick="switchMpTab('withs')"    class="mptab">🏧 ถอนเงิน</button>
-      <button id="mptab-bets"     onclick="switchMpTab('bets')"     class="mptab">🎯 เดิมพัน</button>
-      <button id="mptab-edit"     onclick="switchMpTab('edit')"     class="mptab">✏️ แก้ไข</button>
-    </div>
-
-    <!-- แผง: ข้อมูล -->
-    <div id="mppanel-info">
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
-        <div style="background:#fafaf8;border-radius:8px;padding:12px;">
-          <div style="font-size:10px;color:#aaa;font-family:'Kanit',sans-serif;letter-spacing:.5px;margin-bottom:4px;">ชื่อ-นามสกุล</div>
-          <div style="font-size:14px;font-weight:600;" id="mp-info-fullname">—</div>
-        </div>
-        <div style="background:#fafaf8;border-radius:8px;padding:12px;">
-          <div style="font-size:10px;color:#aaa;font-family:'Kanit',sans-serif;letter-spacing:.5px;margin-bottom:4px;">ชื่อบัญชี</div>
-          <div style="font-size:14px;font-weight:600;" id="mp-info-nick">—</div>
-        </div>
-        <div style="background:#fafaf8;border-radius:8px;padding:12px;">
-          <div style="font-size:10px;color:#aaa;font-family:'Kanit',sans-serif;letter-spacing:.5px;margin-bottom:4px;">เบอร์โทรศัพท์</div>
-          <div style="font-size:14px;font-weight:600;" id="mp-info-phone">—</div>
-        </div>
-        <div style="background:#fafaf8;border-radius:8px;padding:12px;">
-          <div style="font-size:10px;color:#aaa;font-family:'Kanit',sans-serif;letter-spacing:.5px;margin-bottom:4px;">สมัครเมื่อ</div>
-          <div style="font-size:13px;" id="mp-info-created">—</div>
-        </div>
-        <div style="background:#fafaf8;border-radius:8px;padding:12px;grid-column:1/-1;">
-          <div style="font-size:10px;color:#aaa;font-family:'Kanit',sans-serif;letter-spacing:.5px;margin-bottom:4px;">ที่อยู่</div>
-          <div style="font-size:13px;" id="mp-info-addr">—</div>
-        </div>
-        <div style="background:#EAF3DE;border-radius:8px;padding:12px;">
-          <div style="font-size:10px;color:#aaa;font-family:'Kanit',sans-serif;letter-spacing:.5px;margin-bottom:4px;">เติมเงินรวม</div>
-          <div style="font-size:16px;font-weight:700;color:var(--green);" id="mp-info-dep-total">0 ฿</div>
-        </div>
-        <div style="background:#FCEBEB;border-radius:8px;padding:12px;">
-          <div style="font-size:10px;color:#aaa;font-family:'Kanit',sans-serif;letter-spacing:.5px;margin-bottom:4px;">ถอนเงินรวม</div>
-          <div style="font-size:16px;font-weight:700;color:var(--red);" id="mp-info-with-total">0 ฿</div>
+      <!-- MEMBERS -->
+      <div class="panel" id="panel-members">
+        <div class="card">
+          <div class="card-title">👥 รายชื่อสมาชิก
+            <span style="font-size:12px;color:#aaa;font-weight:400;" id="members-count"></span>
+          </div>
+          <div class="search-bar">
+            <input class="search-input" id="mem-search" placeholder="ค้นหาชื่อ Nick / เบอร์..." oninput="filterMembers()">
+          </div>
+          <div style="overflow-x:auto;">
+            <table>
+              <thead><tr>
+                <th>Nick</th><th>ชื่อ-นามสกุล</th><th>เบอร์</th>
+                <th>ยอดเงิน</th><th>สมัครเมื่อ</th><th>จัดการ</th>
+              </tr></thead>
+              <tbody id="members-tbody"><tr class="loading-row"><td colspan="6" style="text-align:center;padding:24px;color:#aaa;">กำลังโหลด...</td></tr></tbody>
+            </table>
+          </div>
         </div>
       </div>
-      <div style="margin-top:12px;display:flex;gap:8px;">
-        <button class="btn-save btn-gold" onclick="switchMpTab('edit')" style="flex:1;">✏️ แก้ไขข้อมูล</button>
-      </div>
-    </div>
 
-    <!-- แผง: deposits -->
-
-    <div id="mppanel-deposits" style="display:none;">
-      <div style="overflow-x:auto;max-height:340px;overflow-y:auto;">
-        <table>
-          <thead><tr><th>จำนวน</th><th>ธนาคาร</th><th>TXN</th><th>เวลา</th><th>สถานะ</th><th>ผู้อนุมัติ</th></tr></thead>
-          <tbody id="mp-dep-tbody"><tr class="loading-row"><td colspan="6">กำลังโหลด...</td></tr></tbody>
-        </table>
-      </div>
-    </div>
-
-    <!-- แผง: ถอนเงิน -->
-    <div id="mppanel-withs" style="display:none;">
-      <div style="overflow-x:auto;max-height:340px;overflow-y:auto;">
-        <table>
-          <thead><tr><th>จำนวน</th><th>ธนาคาร</th><th>เลขบัญชี</th><th>ชื่อบัญชี</th><th>TXN</th><th>เวลา</th><th>สถานะ</th></tr></thead>
-          <tbody id="mp-with-tbody"><tr class="loading-row"><td colspan="7">กำลังโหลด...</td></tr></tbody>
-        </table>
-      </div>
-    </div>
-
-    <!-- แผง: เดิมพัน -->
-    <div id="mppanel-bets" style="display:none;">
-      <div style="overflow-x:auto;max-height:340px;overflow-y:auto;">
-        <table>
-          <thead><tr><th>วัวที่เลือก</th><th>อัตรา</th><th>จำนวน</th><th>TXN</th><th>สถานะ</th><th>จับคู่กับ</th><th>เวลา</th></tr></thead>
-          <tbody id="mp-bet-tbody"><tr class="loading-row"><td colspan="7">กำลังโหลด...</td></tr></tbody>
-        </table>
-      </div>
-    </div>
-
-    <!-- แผง: แก้ไข -->
-    <div id="mppanel-edit" style="display:none;">
-      <!-- Sub-tabs แก้ไข -->
-      <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:14px;">
-        <button id="etab-info"  onclick="switchEditTab('info')"  class="mptab active" style="font-size:12px;padding:7px 14px;">👤 ข้อมูลส่วนตัว</button>
-        <button id="etab-phone" onclick="switchEditTab('phone')" class="mptab" style="font-size:12px;padding:7px 14px;">📱 เปลี่ยนเบอร์</button>
-        <button id="etab-pass"  onclick="switchEditTab('pass')"  class="mptab" style="font-size:12px;padding:7px 14px;">🔒 รหัสผ่าน</button>
-        <button id="etab-bank"  onclick="switchEditTab('bank')"  class="mptab" style="font-size:12px;padding:7px 14px;">🏦 บัญชีธนาคาร</button>
-        <button id="etab-bal"   onclick="switchEditTab('bal')"   class="mptab" style="font-size:12px;padding:7px 14px;">💰 ปรับยอดเงิน</button>
-      </div>
-
-      <!-- ข้อมูลส่วนตัว -->
-      <div id="epanel-info">
-        <div class="form-row">
-          <div class="fg"><label>ชื่อจริง</label><input id="e-fname" placeholder="ชื่อจริง"></div>
-          <div class="fg"><label>นามสกุล</label><input id="e-lname" placeholder="นามสกุล"></div>
+      <!-- MATCHES -->
+      <div class="panel" id="panel-matches">
+        <div class="card">
+          <div class="card-title">➕ เพิ่มคู่แข่งขัน</div>
+          <div class="form-row">
+            <div class="fg"><label>รุ่น</label><input id="m-round" placeholder="เช่น รุ่นแชมเปียน"></div>
+            <div class="fg"><label>สถานที่</label><input id="m-location" placeholder="สนาม..."></div>
+          </div>
+          <div class="form-row">
+            <div class="fg"><label>วันที่</label><input id="m-date" placeholder="เช่น 28.5.2568"></div>
+            <div class="fg"><label>เวลา</label><input id="m-time" placeholder="เช่น 13:30"></div>
+          </div>
+          <div class="form-row">
+            <div class="fg"><label>🔴 ชื่อวัวเจ้าบ้าน</label><input id="m-name-a" placeholder="ชื่อวัว A"></div>
+            <div class="fg"><label>เจ้าของ A</label><input id="m-owner-a" placeholder="ชื่อเจ้าของ"></div>
+          </div>
+          <div class="form-row">
+            <div class="fg"><label>น้ำหนัก A (กก.)</label><input id="m-weight-a" type="number" placeholder="520"></div>
+            <div class="fg"><label>🔵 ชื่อวัวทีมเยือน</label><input id="m-name-b" placeholder="ชื่อวัว B"></div>
+          </div>
+          <div class="form-row">
+            <div class="fg"><label>เจ้าของ B</label><input id="m-owner-b" placeholder="ชื่อเจ้าของ"></div>
+            <div class="fg"><label>น้ำหนัก B (กก.)</label><input id="m-weight-b" type="number" placeholder="510"></div>
+          </div>
+          <div class="form-row">
+            <div class="fg"><label>รางวัล (บาท)</label><input id="m-prize" type="number" placeholder="500000"></div>
+          </div>
+          <button class="save-btn" onclick="addMatch()">➕ เพิ่มคู่แข่งขัน</button>
         </div>
-        <div class="fg" style="margin-bottom:8px;"><label>ชื่อบัญชี (Nick)</label><input id="e-nick" placeholder="ชื่อบัญชี" readonly style="background:#f5f5f0;color:#999;cursor:not-allowed;"></div>
-        <div class="fg" style="margin-bottom:8px;"><label>ที่อยู่บรรทัด 1</label><input id="e-addr1" placeholder="บ้านเลขที่ / หมู่ / ซอย"></div>
-        <div class="fg" style="margin-bottom:14px;"><label>ที่อยู่บรรทัด 2</label><input id="e-addr2" placeholder="ตำบล / อำเภอ / จังหวัด"></div>
-        <button class="btn-save" onclick="saveEditInfo()">💾 บันทึกข้อมูล</button>
-      </div>
 
-      <!-- เปลี่ยนเบอร์โทร -->
-      <div id="epanel-phone" style="display:none;">
-        <div style="background:#FFF8E1;border:1px solid #FFD54F;border-radius:8px;padding:10px 14px;margin-bottom:12px;font-size:12px;color:#795548;">⚠️ เบอร์โทรใช้เป็น Username Login หากเปลี่ยนแล้ว ลูกค้าต้องใช้เบอร์ใหม่ในการ Login</div>
-        <div class="fg" style="margin-bottom:8px;"><label>เบอร์โทรปัจจุบัน</label><input id="e-phone-old" readonly style="background:#f5f5f0;color:#999;cursor:not-allowed;"></div>
-        <div class="fg" style="margin-bottom:14px;"><label>เบอร์โทรใหม่</label><input id="e-phone-new" type="tel" placeholder="0xx-xxx-xxxx" maxlength="10"></div>
-        <button class="btn-save" onclick="saveEditPhone()">📱 เปลี่ยนเบอร์โทร</button>
-      </div>
-
-      <!-- เปลี่ยนรหัสผ่าน -->
-      <div id="epanel-pass" style="display:none;">
-        <div style="background:#E8F5E9;border:1px solid #A5D6A7;border-radius:8px;padding:10px 14px;margin-bottom:12px;font-size:12px;color:#2E7D32;">✅ Admin สามารถตั้งรหัสผ่านใหม่ให้ลูกค้าได้โดยตรง ไม่ต้องรู้รหัสเดิม</div>
-        <div class="fg" style="margin-bottom:8px;"><label>รหัสผ่านใหม่</label><input type="password" id="e-pass-new" placeholder="อย่างน้อย 6 ตัวอักษร"></div>
-        <div class="fg" style="margin-bottom:14px;"><label>ยืนยันรหัสผ่านใหม่</label><input type="password" id="e-pass-new2" placeholder="พิมพ์อีกครั้ง"></div>
-        <button class="btn-save" onclick="saveEditPass()">🔒 เปลี่ยนรหัสผ่าน</button>
-      </div>
-
-      <!-- บัญชีธนาคาร (Admin แก้ไขได้) -->
-      <div id="epanel-bank" style="display:none;">
-        <div style="background:#E8F5E9;border:1px solid #A5D6A7;border-radius:8px;padding:10px 14px;margin-bottom:12px;font-size:12px;color:#2E7D32;">
-          🔒 เฉพาะ Admin เท่านั้นที่สามารถแก้ไขบัญชีธนาคารของลูกค้าได้ครับ
+        <div class="card">
+          <div class="card-title">🏆 รายการแข่งขันทั้งหมด
+            <div class="search-bar" style="margin:0;">
+              <input class="search-input" id="match-search" placeholder="ค้นหา..." oninput="filterMatches_()">
+              <select class="filter-select" id="match-status-filter" onchange="filterMatches_()">
+                <option value="">ทุกสถานะ</option>
+                <option value="upcoming">รอแข่ง</option>
+                <option value="live">กำลังแข่ง</option>
+                <option value="done">จบแล้ว</option>
+              </select>
+            </div>
+          </div>
+          <div style="overflow-x:auto;" id="matches-list"><div style="text-align:center;padding:24px;color:#aaa;">กำลังโหลด...</div></div>
         </div>
-        <div style="background:#f8f8f5;border-radius:8px;padding:10px 14px;margin-bottom:12px;font-size:12px;color:#666;font-family:'Kanit',sans-serif;">
-          บัญชีปัจจุบัน: <strong id="e-bank-current">—</strong>
-        </div>
-        <div class="fg" style="margin-bottom:8px;"><label>ธนาคาร</label>
-          <select id="e-bank-name">
-            <option value="">— เลือกธนาคาร —</option>
-            <option>กสิกรไทย (KBank)</option><option>ไทยพาณิชย์ (SCB)</option>
-            <option>กรุงเทพ (BBL)</option><option>กรุงศรีอยุธยา (BAY)</option>
-            <option>กรุงไทย (KTB)</option><option>ทหารไทยธนชาต (TTB)</option>
-            <option>PromptPay / พร้อมเพย์</option><option>อื่นๆ</option>
-          </select>
-        </div>
-        <div class="fg" style="margin-bottom:8px;"><label>เลขบัญชี</label><input id="e-bank-accno" placeholder="xxx-x-xxxxx-x"></div>
-        <div class="fg" style="margin-bottom:14px;"><label>ชื่อเจ้าของบัญชี</label><input id="e-bank-accname" placeholder="ชื่อตรงกับสมุดบัญชี"></div>
-        <button class="btn-save" onclick="saveEditBank()">🏦 บันทึกบัญชีธนาคาร</button>
       </div>
 
-      <!-- ปรับยอดเงิน -->
-      <div id="epanel-bal" style="display:none;">
-        <div style="background:#FFF3E0;border:1px solid #FFCC80;border-radius:8px;padding:10px 14px;margin-bottom:12px;font-size:12px;color:#E65100;">⚠️ การปรับยอดเงินโดยตรงจะบันทึกทันที กรุณาตรวจสอบให้ถูกต้องก่อนบันทึก</div>
-        <div class="fg" style="margin-bottom:8px;"><label>ยอดเงินปัจจุบัน (฿)</label><input id="e-bal-old" readonly style="background:#f5f5f0;color:#999;cursor:not-allowed;font-family:'Kanit',sans-serif;font-weight:700;"></div>
-        <div class="fg" style="margin-bottom:8px;"><label>ยอดเงินใหม่ (฿)</label><input type="number" id="e-bal-new" placeholder="0" min="0"></div>
-        <div class="fg" style="margin-bottom:14px;"><label>หมายเหตุ (สาเหตุที่ปรับ)</label><input id="e-bal-note" placeholder="เช่น แก้ไขความผิดพลาด, โบนัส ฯลฯ"></div>
-        <button class="btn-save" onclick="saveEditBal()">💰 ปรับยอดเงิน</button>
+      <!-- VERDICT -->
+      <div class="panel" id="panel-verdict">
+        <div class="card">
+          <div class="card-title">⚖️ รอตัดสินผล</div>
+          <div id="verdict-pending"><div style="text-align:center;padding:24px;color:#aaa;">กำลังโหลด...</div></div>
+        </div>
+        <div class="card">
+          <div class="card-title">✅ ตัดสินแล้ว</div>
+          <div id="verdict-done"><div style="text-align:center;padding:24px;color:#aaa;">กำลังโหลด...</div></div>
+        </div>
       </div>
-    </div>
 
-  </div>
-</div>
+      <!-- DEPOSITS -->
+      <div class="panel" id="panel-deposits">
+        <div class="card">
+          <div class="card-title">💰 คำขอเติมเงิน
+            <div style="display:flex;gap:8px;">
+              <select class="filter-select" id="dep-filter" onchange="filterDeposits()">
+                <option value="">ทุกสถานะ</option>
+                <option value="pending">รอดำเนินการ</option>
+                <option value="approved">อนุมัติแล้ว</option>
+                <option value="rejected">ปฏิเสธ</option>
+              </select>
+            </div>
+          </div>
+          <div style="overflow-x:auto;">
+            <table>
+              <thead><tr><th>Nick</th><th>จำนวน</th><th>ธนาคาร</th><th>TXN</th><th>สถานะ</th><th>เวลา</th><th>จัดการ</th></tr></thead>
+              <tbody id="dep-tbody"><tr><td colspan="7" style="text-align:center;padding:24px;color:#aaa;">กำลังโหลด...</td></tr></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
 
-<!-- MODAL: ตัดสินผล -->
-<div class="modal-overlay" id="verdict-modal">
-  <div class="modal-box">
-    <div class="modal-title">⚖️ ตัดสินผลการแข่งขัน</div>
-    <div style="font-size:13px;color:#666;margin-bottom:16px;" id="verdict-match-name"></div>
-    <div class="fg" style="margin-bottom:16px;">
-      <label>ผู้ชนะ</label>
-      <select id="verdict-winner" style="font-family:'Kanit',sans-serif;font-size:14px;padding:10px 12px;border:1px solid #ddd;border-radius:8px;"></select>
-    </div>
-    <div style="display:flex;gap:10px;">
-      <button class="btn-save" onclick="confirmVerdict()">✅ ยืนยันผล</button>
-      <button onclick="document.getElementById('verdict-modal').classList.remove('open')" style="font-family:'Kanit',sans-serif;font-size:13px;padding:10px 16px;border-radius:8px;border:1px solid #ddd;background:#fff;cursor:pointer;">ยกเลิก</button>
-    </div>
-  </div>
-</div>
+      <!-- WITHDRAWALS -->
+      <div class="panel" id="panel-withdrawals">
+        <div class="card">
+          <div class="card-title">🏧 คำขอถอนเงิน</div>
+          <div style="overflow-x:auto;">
+            <table>
+              <thead><tr><th>Nick</th><th>จำนวน</th><th>ธนาคาร</th><th>เลขบัญชี</th><th>สถานะ</th><th>เวลา</th><th>จัดการ</th></tr></thead>
+              <tbody id="with-tbody"><tr><td colspan="7" style="text-align:center;padding:24px;color:#aaa;">กำลังโหลด...</td></tr></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
 
-<!-- MODAL: ปฏิเสธ -->
-<div class="modal-overlay" id="reject-modal">
-  <div class="modal-box">
-    <div class="modal-title">❌ ปฏิเสธรายการ</div>
-    <div style="font-size:13px;color:#666;margin-bottom:12px;" id="reject-info"></div>
-    <div style="display:flex;gap:7px;flex-wrap:wrap;margin-bottom:10px;">
-      <button onclick="setRejectReason(this,'ยอดโอนไม่ตรง')" style="font-family:'Kanit',sans-serif;font-size:12px;padding:6px 12px;border-radius:7px;border:1px solid #ddd;background:#fff;cursor:pointer;">ยอดโอนไม่ตรง</button>
-      <button onclick="setRejectReason(this,'สลิปปลอม')" style="font-family:'Kanit',sans-serif;font-size:12px;padding:6px 12px;border-radius:7px;border:1px solid #ddd;background:#fff;cursor:pointer;">สลิปปลอม</button>
-      <button onclick="setRejectReason(this,'ไม่พบการโอน')" style="font-family:'Kanit',sans-serif;font-size:12px;padding:6px 12px;border-radius:7px;border:1px solid #ddd;background:#fff;cursor:pointer;">ไม่พบการโอน</button>
-      <button onclick="setRejectReason(this,'ข้อมูลไม่ถูกต้อง')" style="font-family:'Kanit',sans-serif;font-size:12px;padding:6px 12px;border-radius:7px;border:1px solid #ddd;background:#fff;cursor:pointer;">ข้อมูลไม่ถูกต้อง</button>
-    </div>
-    <div class="fg" style="margin-bottom:14px;">
-      <label>เหตุผล</label>
-      <input id="reject-reason" placeholder="ระบุเหตุผล...">
-    </div>
-    <div style="display:flex;gap:10px;">
-      <button class="btn-save btn-red" onclick="confirmReject()">❌ ยืนยันปฏิเสธ</button>
-      <button onclick="document.getElementById('reject-modal').classList.remove('open')" style="font-family:'Kanit',sans-serif;font-size:13px;padding:10px 16px;border-radius:8px;border:1px solid #ddd;background:#fff;cursor:pointer;">ยกเลิก</button>
+      <!-- BETS -->
+      <div class="panel" id="panel-bets">
+        <div class="card">
+          <div class="card-title">🎯 รายการเดิมพัน P2P
+            <span style="font-size:12px;color:#aaa;font-weight:400;" id="bets-count"></span>
+          </div>
+          <div class="search-bar">
+            <input class="search-input" id="bet-search" placeholder="ค้นหา Nick / รหัส..." oninput="filterBets()">
+          </div>
+          <div style="overflow-x:auto;">
+            <table>
+              <thead><tr><th>Nick</th><th>ฝั่ง</th><th>Odds</th><th>จำนวน</th><th>สถานะ</th><th>คู่กับ</th><th>เวลา</th></tr></thead>
+              <tbody id="bets-tbody"><tr><td colspan="7" style="text-align:center;padding:24px;color:#aaa;">กำลังโหลด...</td></tr></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- NEWS -->
+      <div class="panel" id="panel-news">
+        <div class="card">
+          <div class="card-title">✏️ เพิ่มข่าวสาร</div>
+          <div class="fg"><label>หัวข้อข่าว</label><input id="news-title" placeholder="หัวข้อ..."></div>
+          <div class="fg"><label>เนื้อหา</label><textarea id="news-body" rows="3" style="width:100%;padding:10px;border:1px solid #e0e0e0;border-radius:8px;font-family:'Sarabun',sans-serif;font-size:14px;resize:vertical;"></textarea></div>
+          <button class="save-btn" onclick="addNews()">📰 โพสต์ข่าว</button>
+        </div>
+        <div class="card">
+          <div class="card-title">📋 ข่าวสารทั้งหมด</div>
+          <div id="news-list"><div style="text-align:center;padding:24px;color:#aaa;">กำลังโหลด...</div></div>
+        </div>
+      </div>
+
+      <!-- SETTINGS -->
+      <div class="panel" id="panel-settings">
+        <div class="card">
+          <div class="card-title">🏦 บัญชีรับเงิน</div>
+          <div class="form-row">
+            <div class="fg"><label>ธนาคาร</label><input id="sf-bank" placeholder="เช่น กสิกรไทย (KBank)"></div>
+            <div class="fg"><label>เลขบัญชี</label><input id="sf-accno" placeholder="XXX-X-XXXXX-X"></div>
+          </div>
+          <div class="form-row">
+            <div class="fg"><label>ชื่อบัญชี</label><input id="sf-accname" placeholder="ชื่อเจ้าของบัญชี"></div>
+          </div>
+          <button class="save-btn" onclick="saveSettings('bank')">💾 บันทึกบัญชี</button>
+        </div>
+        <div class="card">
+          <div class="card-title">📞 ข้อมูลติดต่อ</div>
+          <div class="form-row">
+            <div class="fg"><label>เบอร์โทรศัพท์</label><input id="sf-phone" placeholder="08x-xxx-xxxx"></div>
+            <div class="fg"><label>Line OA</label><input id="sf-line" placeholder="@wuachon"></div>
+          </div>
+          <div class="form-row">
+            <div class="fg"><label>Facebook Page URL</label><input id="sf-fb" placeholder="https://facebook.com/..."></div>
+            <div class="fg"><label>เวลาทำการ</label><input id="sf-hours" placeholder="08:00 – 22:00 น."></div>
+          </div>
+          <button class="save-btn" onclick="saveSettings('contact')">💾 บันทึกข้อมูลติดต่อ</button>
+        </div>
+        <div class="card">
+          <div class="card-title">🔑 เปลี่ยนรหัสผ่าน Admin</div>
+          <div class="form-row">
+            <div class="fg"><label>รหัสผ่านใหม่</label><input type="password" id="new-pass" placeholder="อย่างน้อย 6 ตัวอักษร"></div>
+            <div class="fg"><label>ยืนยันรหัสผ่าน</label><input type="password" id="new-pass2" placeholder="ยืนยันรหัสผ่านใหม่"></div>
+          </div>
+          <button class="save-btn" onclick="changeAdminPass()">🔑 เปลี่ยนรหัสผ่าน</button>
+        </div>
+      </div>
+
     </div>
   </div>
 </div>
@@ -787,1490 +355,594 @@ tr:hover td{background:#fafaf8;}
 <div class="toast" id="toast"></div>
 
 <script>
-// ── Supabase ──
+// ===== SUPABASE =====
 const SUPA_URL = 'https://xzlpdeqlfczjkospfqqi.supabase.co';
 const SUPA_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inh6bHBkZXFsZmN6amtvc3BmcXFpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzk2NzgyMjAsImV4cCI6MjA5NTI1NDIyMH0.W0pDFJy3lFeO4ht9DpNzeDgVdGvSz94p0KWGfzc0Igw';
 const sb = supabase.createClient(SUPA_URL, SUPA_KEY);
 
-// ── Admin Auth ──
-const ADMIN_CREDENTIALS = { username: 'admin', password: 'wuachon2568' };
+// ===== ADMIN AUTH — ไม่ใช้ localStorage เลย =====
+// รหัสผ่านเก็บใน Supabase table 'settings' key='admin_password'
+// fallback เป็น 'wuachon2568' ถ้าไม่มี
+let ADMIN_PASS = 'wuachon2568';
 let currentPanel = 'overview';
+let allMembers = [], allMatches = [], allDeposits = [], allWithdrawals = [], allBets = [];
+let notifCount = 0;
 
-function adminLogin() {
+// โหลดรหัสผ่าน Admin จาก Supabase
+async function loadAdminPass() {
+  const { data } = await sb.from('settings').select('value').eq('key','admin_password').maybeSingle();
+  if (data?.value) ADMIN_PASS = data.value;
+}
+
+async function adminLogin() {
   const user = document.getElementById('admin-user').value.trim();
   const pass = document.getElementById('admin-pass').value.trim();
   const err  = document.getElementById('login-err');
-  if (user === ADMIN_CREDENTIALS.username && pass === ADMIN_CREDENTIALS.password) {
+  err.style.display = 'none';
+  if (!user || !pass) { err.style.display = 'block'; err.textContent = '❌ กรุณากรอก Username และรหัสผ่านครับ'; return; }
+  // โหลดรหัสผ่านล่าสุดจาก Supabase ก่อน
+  await loadAdminPass();
+  if (user === 'admin' && pass === ADMIN_PASS) {
     document.getElementById('login-page').style.display = 'none';
     document.getElementById('dashboard').style.display  = 'flex';
     loadAll();
   } else {
     err.style.display = 'block';
-    err.textContent   = '❌ Username หรือรหัสผ่านไม่ถูกต้องครับ';
+    err.textContent = '❌ Username หรือรหัสผ่านไม่ถูกต้องครับ';
   }
 }
-document.getElementById('admin-pass').addEventListener('keydown', e => { if(e.key==='Enter') adminLogin(); });
 
 function adminLogout() {
   document.getElementById('dashboard').style.display = 'none';
   document.getElementById('login-page').style.display = 'flex';
+  document.getElementById('admin-pass').value = '';
 }
 
-function changeAdminPass() {
+async function changeAdminPass() {
   const p1 = document.getElementById('new-pass').value;
   const p2 = document.getElementById('new-pass2').value;
   if (!p1 || p1.length < 6) { showToast('⚠️ รหัสผ่านต้องมีอย่างน้อย 6 ตัวอักษรครับ','error'); return; }
   if (p1 !== p2) { showToast('⚠️ รหัสผ่านไม่ตรงกันครับ','error'); return; }
+  // บันทึกใน Supabase
+  await sb.from('settings').upsert({ key:'admin_password', value: p1 }, { onConflict: 'key' });
   ADMIN_PASS = p1;
-  localStorage.setItem('admin_pass', p1);
+  document.getElementById('new-pass').value = '';
+  document.getElementById('new-pass2').value = '';
   showToast('✅ เปลี่ยนรหัสผ่านเรียบร้อยแล้วครับ');
 }
 
-// ── Panel Switch ──
+// ===== PANEL SWITCH =====
 function switchPanel(name) {
   document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
   document.querySelectorAll('.sb-item').forEach(i => i.classList.remove('active'));
-  document.getElementById('panel-'+name).classList.add('active');
+  document.getElementById('panel-'+name)?.classList.add('active');
   document.querySelector(`[data-panel="${name}"]`)?.classList.add('active');
   currentPanel = name;
 }
 
-// ── Toast ──
+// ===== TOAST =====
 function showToast(msg, type='success') {
   const t = document.getElementById('toast');
   t.textContent = msg;
   t.style.background = type === 'error' ? 'var(--red)' : '#1a6b2f';
+  t.style.color = '#fff';
   t.style.display = 'block';
   clearTimeout(t._t);
-  t._t = setTimeout(() => { t.style.display = 'none'; }, 3000);
+  t._t = setTimeout(() => { t.style.display = 'none'; }, 3500);
 }
 
-// ── Format Date ──
+// ===== FORMAT DATE =====
 function fmtDate(iso) {
   if (!iso) return '—';
-  const d = new Date(iso);
-  return `${d.getDate()}/${d.getMonth()+1}/${d.getFullYear()+543} ${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`;
+  return new Date(iso).toLocaleString('th-TH',{dateStyle:'short',timeStyle:'short'});
 }
 
-// ── Load All ──
+// ===== LOAD ALL =====
 function loadAll() {
   loadOverview();
   loadMembers();
   loadMatches();
   loadVerdict();
-  loadNews();
   loadDeposits();
   loadWithdrawals();
   loadBets();
+  loadNews();
   loadSettings();
   subscribeNotifications();
-  subscribeVerdictUpdates();
-  subscribeBetsRealtime();
-  subscribeMatchesRealtime();
 }
 
-// ── OVERVIEW ──
+// ===== OVERVIEW =====
 async function loadOverview() {
   const [m, mm, d, w] = await Promise.all([
-    sb.from('members').select('id', {count:'exact',head:true}),
-    sb.from('matches').select('id', {count:'exact',head:true}),
-    sb.from('deposits').select('id', {count:'exact',head:true}).eq('status','pending'),
-    sb.from('withdrawals').select('id', {count:'exact',head:true}).eq('status','pending'),
+    sb.from('members').select('*',{count:'exact',head:true}),
+    sb.from('matches').select('*',{count:'exact',head:true}),
+    sb.from('deposits').select('*',{count:'exact',head:true}).eq('status','pending'),
+    sb.from('withdrawals').select('*',{count:'exact',head:true}).eq('status','pending'),
   ]);
   document.getElementById('ov-members').textContent = m.count ?? '—';
   document.getElementById('ov-matches').textContent = mm.count ?? '—';
-  document.getElementById('ov-deposits').textContent = d.count ?? '0';
-  document.getElementById('ov-withdrawals').textContent = w.count ?? '0';
+  document.getElementById('ov-dep').textContent = d.count ?? '—';
+  document.getElementById('ov-with').textContent = w.count ?? '—';
 
+  // รายการล่าสุด
   const [deps, withs] = await Promise.all([
     sb.from('deposits').select('*').order('created_at',{ascending:false}).limit(5),
     sb.from('withdrawals').select('*').order('created_at',{ascending:false}).limit(5),
   ]);
-  renderOvList('ov-dep-list', deps.data, 'dep');
-  renderOvList('ov-with-list', withs.data, 'with');
-}
-
-function renderOvList(id, rows, type) {
-  const el = document.getElementById(id);
-  if (!rows?.length) { el.innerHTML = '<div style="text-align:center;padding:16px;color:#aaa;font-family:\'Kanit\',sans-serif;">ยังไม่มีรายการ</div>'; return; }
-  el.innerHTML = rows.map(r => `
-    <div style="display:flex;align-items:center;justify-content:space-between;padding:8px 0;border-bottom:1px solid #f5f5f0;">
-      <div><div style="font-family:'Kanit',sans-serif;font-weight:600;font-size:13px;">${r.nick}</div><div style="font-size:11px;color:#aaa;">${fmtDate(r.created_at)}</div></div>
-      <div style="text-align:right;">
-        <div style="font-family:'Kanit',sans-serif;font-weight:700;font-size:14px;color:${type==='dep'?'var(--green)':'var(--red)'};">${type==='dep'?'+':'−'}${Number(r.amount).toLocaleString()} ฿</div>
-        <span class="badge badge-${r.status==='pending'?'pending':r.status==='approved'?'approved':'rejected'}">${r.status==='pending'?'รอ':r.status==='approved'?'อนุมัติ':'ปฏิเสธ'}</span>
+  const all = [
+    ...(deps.data||[]).map(r=>({...r,type:'dep'})),
+    ...(withs.data||[]).map(r=>({...r,type:'with'})),
+  ].sort((a,b)=>new Date(b.created_at)-new Date(a.created_at)).slice(0,8);
+  const el = document.getElementById('ov-recent');
+  if (!all.length) { el.innerHTML = '<div style="text-align:center;padding:20px;color:#aaa;">ยังไม่มีรายการ</div>'; return; }
+  el.innerHTML = all.map(r => `
+    <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 0;border-bottom:1px solid #f0f0f0;">
+      <div>
+        <span style="font-family:'Kanit',sans-serif;font-weight:700;">${r.nick}</span>
+        <span style="font-size:12px;color:#aaa;margin-left:8px;">${r.type==='dep'?'💰 เติมเงิน':'🏧 ถอนเงิน'}</span>
+      </div>
+      <div style="display:flex;align-items:center;gap:10px;">
+        <span style="font-family:'Kanit',sans-serif;font-weight:700;color:${r.type==='dep'?'var(--green)':'var(--red)'};">${r.type==='dep'?'+':'-'}${Number(r.amount).toLocaleString()} ฿</span>
+        <span class="badge badge-${r.status}">${r.status==='pending'?'⏳ รอ':r.status==='approved'?'✅ อนุมัติ':'❌ ปฏิเสธ'}</span>
+        <span style="font-size:11px;color:#aaa;">${fmtDate(r.created_at)}</span>
       </div>
     </div>`).join('');
 }
 
-// ── MEMBERS ──
-let allMembers = [];
+// ===== MEMBERS =====
 async function loadMembers() {
-  const { data } = await sb.from('members').select('*').order('created_at',{ascending:false});
+  const {data} = await sb.from('members').select('*').order('created_at',{ascending:false});
   allMembers = data || [];
   document.getElementById('members-count').textContent = `(${allMembers.length} คน)`;
-  renderMembers(allMembers);
+  filterMembers();
 }
 
-function renderMembers(rows) {
+function filterMembers() {
+  const q = document.getElementById('mem-search')?.value.toLowerCase() || '';
+  const rows = allMembers.filter(m => !q || m.nick?.toLowerCase().includes(q) || m.fname?.toLowerCase().includes(q) || m.phone?.includes(q));
   const tb = document.getElementById('members-tbody');
-  if (!rows.length) { tb.innerHTML = '<tr class="loading-row"><td colspan="7">ไม่มีข้อมูลสมาชิก</td></tr>'; return; }
-  tb.innerHTML = rows.map((m,i) => `
+  if (!rows.length) { tb.innerHTML = '<tr><td colspan="6" style="text-align:center;padding:20px;color:#aaa;">ไม่พบข้อมูล</td></tr>'; return; }
+  tb.innerHTML = rows.map(m => `
     <tr>
-      <td style="color:#aaa;font-size:12px;">${i+1}</td>
-      <td><strong>${m.nick}</strong></td>
-      <td>${m.fname} ${m.lname}</td>
-      <td>${m.phone}</td>
-      <td><strong style="color:var(--green);">${Number(m.balance||0).toLocaleString()} ฿</strong></td>
+      <td><strong>${m.nick||'—'}</strong></td>
+      <td>${m.fname||''} ${m.lname||''}</td>
+      <td>${m.phone||'—'}</td>
+      <td style="font-family:'Kanit',sans-serif;font-weight:700;color:var(--green);">${Number(m.balance||0).toLocaleString()} ฿</td>
       <td style="font-size:12px;color:#aaa;">${fmtDate(m.created_at)}</td>
-      <td style="display:flex;gap:5px;">
-        <button class="action-btn" style="background:#EEF2FF;color:#4F46E5;" onclick="openMemberProfile('${m.id}')">🔍 ดูข้อมูล</button>
-        <button class="action-btn gold" onclick="openEditMember('${m.id}')">✏️ แก้ไข</button>
-        <button class="action-btn red" onclick="deleteMember('${m.id}','${m.nick}')">ลบ</button>
+      <td>
+        <button class="btn btn-red" onclick="deleteMember('${m.id}','${m.nick}')">ลบ</button>
       </td>
     </tr>`).join('');
 }
 
-// ── Date filter helper ──
-function inDateRange(dateStr, fromId, toId) {
-  const from = document.getElementById(fromId)?.value;
-  const to   = document.getElementById(toId)?.value;
-  if (!from && !to) return true;
-  const d = new Date(dateStr);
-  if (from && d < new Date(from)) return false;
-  if (to   && d > new Date(to + 'T23:59:59')) return false;
-  return true;
-}
-
-function clearDateFilter(prefix) {
-  const map = {
-    'member':       ['member-date-from','member-date-to'],
-    'dep-pending':  ['dep-pending-from','dep-pending-to'],
-    'dep-approved': ['dep-approved-from','dep-approved-to'],
-    'with-pending': ['with-pending-from','with-pending-to'],
-    'with-approved':['with-approved-from','with-approved-to'],
-    'bet':          ['bet-date-from','bet-date-to'],
-  };
-  (map[prefix]||[]).forEach(id => { const el=document.getElementById(id); if(el) el.value=''; });
-  if (prefix==='member') filterMembers();
-  else if (prefix.startsWith('dep')) filterDep();
-  else if (prefix.startsWith('with')) filterWith();
-  else if (prefix==='bet') filterBets();
-}
-
-function filterMembers() {
-  const q    = document.getElementById('member-search')?.value.toLowerCase() || '';
-  const from = document.getElementById('member-date-from')?.value;
-  const to   = document.getElementById('member-date-to')?.value;
-  const rows = allMembers.filter(m => {
-    const matchQ = !q || m.nick?.toLowerCase().includes(q) || m.phone?.includes(q) || m.fname?.toLowerCase().includes(q);
-    const matchD = inDateRange(m.created_at, 'member-date-from', 'member-date-to');
-    return matchQ && matchD;
-  });
-  const res = document.getElementById('member-filter-result');
-  if (res) res.textContent = (from||to) ? `พบ ${rows.length} คน` : '';
-  renderMembers(rows);
-}
-
-// ── MEMBER PROFILE ──
-let profileMemberId = null;
-
-async function openMemberProfile(memberId) {  const m = allMembers.find(x => x.id === memberId);
-  if (!m) return;
-  profileMemberId = memberId;
-
-  // ข้อมูลหัว
-  document.getElementById('mp-avatar').textContent   = (m.nick||'?').charAt(0).toUpperCase();
-  document.getElementById('mp-nick').textContent     = m.nick || '—';
-  document.getElementById('mp-fullname').textContent = `${m.fname||''} ${m.lname||''}`.trim() || '—';
-  document.getElementById('mp-id').textContent       = `ID: ${m.id}`;
-  document.getElementById('mp-balance').textContent  = Number(m.balance||0).toLocaleString() + ' ฿';
-
-  // ข้อมูลแผง info
-  document.getElementById('mp-info-fullname').textContent = `${m.fname||''} ${m.lname||''}`.trim() || '—';
-  document.getElementById('mp-info-nick').textContent     = m.nick || '—';
-  document.getElementById('mp-info-phone').textContent    = m.phone || '—';
-  document.getElementById('mp-info-created').textContent  = fmtDate(m.created_at);
-  document.getElementById('mp-info-addr').textContent     = [m.addr1, m.addr2].filter(Boolean).join(' ') || '—';
-
-  // โหลด deposits/withdrawals/bets พร้อมกัน
-  const [deps, withs, bets] = await Promise.all([
-    sb.from('deposits').select('*').eq('nick', m.nick).order('created_at',{ascending:false}),
-    sb.from('withdrawals').select('*').eq('nick', m.nick).order('created_at',{ascending:false}),
-    sb.from('bets').select('*').eq('nick', m.nick).order('created_at',{ascending:false}),
-  ]);
-
-  // สรุปยอด
-  const depTotal  = (deps.data||[]).filter(d=>d.status==='approved').reduce((s,d)=>s+Number(d.amount||0),0);
-  const withTotal = (withs.data||[]).filter(w=>w.status==='approved').reduce((s,w)=>s+Number(w.amount||0),0);
-  document.getElementById('mp-info-dep-total').textContent  = depTotal.toLocaleString()  + ' ฿';
-  document.getElementById('mp-info-with-total').textContent = withTotal.toLocaleString() + ' ฿';
-
-  // ตาราง deposits
-  const dt = document.getElementById('mp-dep-tbody');
-  if (!deps.data?.length) { dt.innerHTML = '<tr class="loading-row"><td colspan="6">ยังไม่มีรายการ</td></tr>'; }
-  else { dt.innerHTML = (deps.data||[]).map(d=>`
-    <tr>
-      <td><strong style="color:var(--green);">+${Number(d.amount).toLocaleString()} ฿</strong></td>
-      <td style="font-size:12px;">${d.bank||'—'}</td>
-      <td style="font-family:'Kanit',sans-serif;font-size:11px;color:#aaa;">${d.txn||'—'}</td>
-      <td style="font-size:12px;color:#aaa;">${fmtDate(d.created_at)}</td>
-      <td><span class="badge badge-${d.status==='approved'?'approved':d.status==='rejected'?'rejected':'pending'}">${d.status==='approved'?'✅ สำเร็จ':d.status==='rejected'?'❌ ปฏิเสธ':'⏳ รอ'}</span></td>
-      <td style="font-size:12px;color:var(--green);">${d.approved_by||'—'}</td>
-    </tr>`).join(''); }
-
-  // ตาราง withdrawals
-  const wt = document.getElementById('mp-with-tbody');
-  if (!withs.data?.length) { wt.innerHTML = '<tr class="loading-row"><td colspan="7">ยังไม่มีรายการ</td></tr>'; }
-  else { wt.innerHTML = (withs.data||[]).map(w=>`
-    <tr>
-      <td><strong style="color:var(--red);">−${Number(w.amount).toLocaleString()} ฿</strong></td>
-      <td style="font-size:12px;">${w.bank||'—'}</td>
-      <td style="font-size:12px;">${w.acc_no||'—'}</td>
-      <td style="font-size:12px;">${w.acc_name||'—'}</td>
-      <td style="font-family:'Kanit',sans-serif;font-size:11px;color:#aaa;">${w.txn||'—'}</td>
-      <td style="font-size:12px;color:#aaa;">${fmtDate(w.created_at)}</td>
-      <td><span class="badge badge-${w.status==='approved'?'approved':w.status==='rejected'?'rejected':'pending'}">${w.status==='approved'?'✅ โอนแล้ว':w.status==='rejected'?'❌ ปฏิเสธ':'⏳ รอ'}</span></td>
-    </tr>`).join(''); }
-
-  // ตาราง bets
-  const bt = document.getElementById('mp-bet-tbody');
-  if (!bets.data?.length) { bt.innerHTML = '<tr class="loading-row"><td colspan="7">ยังไม่มีรายการ</td></tr>'; }
-  else { bt.innerHTML = (bets.data||[]).map(b=>`
-    <tr>
-      <td>${b.side==='red'?'🔴':'🔵'} ${b.side_name||'—'}</td>
-      <td style="font-family:'Kanit',sans-serif;font-size:12px;color:#B8860B;">1 : ${b.odds}</td>
-      <td><strong>${Number(b.amount).toLocaleString()} ฿</strong></td>
-      <td style="font-family:'Kanit',sans-serif;font-size:11px;color:#aaa;">${b.txn||'—'}</td>
-      <td><span class="badge badge-${b.status==='matched'?'approved':b.status==='waiting'?'pending':'rejected'}">${b.status==='matched'?'✅ จับคู่':b.status==='waiting'?'⏳ รอ':'—'}</span></td>
-      <td style="font-size:12px;">${b.matched_with||'—'}</td>
-      <td style="font-size:12px;color:#aaa;">${fmtDate(b.created_at)}</td>
-    </tr>`).join(''); }
-
-  switchMpTab('info');
-  fillEditForm(m);
-  document.getElementById('member-profile-modal').classList.add('open');
-}
-
-function switchMpTab(tab) {
-  ['info','deposits','withs','bets','edit'].forEach(t => {
-    document.getElementById(`mppanel-${t}`).style.display = t === tab ? 'block' : 'none';
-    const btn = document.getElementById(`mptab-${t}`);
-    if (btn) btn.classList.toggle('active', t === tab);
-  });
-  // ถ้าเข้า edit tab ให้ reset sub-tab
-  if (tab === 'edit') switchEditTab('info');
-}
-
-function openEditMemberFromProfile() {
-  switchMpTab('edit');
-}
-
-document.getElementById('member-profile-modal').addEventListener('click', e => {
-  if (e.target === document.getElementById('member-profile-modal'))
-    e.target.classList.remove('open');
-});
-
-// ── EDIT MEMBER ──
-let editMemberId = null;
-
-function openEditMember(memberId) {
-  // เปิด profile modal แล้วไปแท็บ edit โดยตรง
-  openMemberProfile(memberId).then(() => switchMpTab('edit'));
-}
-
-function fillEditForm(m) {
-  editMemberId = m.id;
-  document.getElementById('e-fname').value     = m.fname || '';
-  document.getElementById('e-lname').value     = m.lname || '';
-  document.getElementById('e-nick').value      = m.nick  || '';
-  document.getElementById('e-addr1').value     = m.addr1 || '';
-  document.getElementById('e-addr2').value     = m.addr2 || '';
-  document.getElementById('e-phone-old').value = m.phone || '';
-  document.getElementById('e-phone-new').value = '';
-  document.getElementById('e-pass-new').value  = '';
-  document.getElementById('e-pass-new2').value = '';
-  document.getElementById('e-bal-old').value   = Number(m.balance||0).toLocaleString() + ' ฿';
-  document.getElementById('e-bal-new').value   = m.balance || 0;
-  document.getElementById('e-bal-note').value  = '';
-  // bank account
-  const bankCurrent = document.getElementById('e-bank-current');
-  if (bankCurrent) bankCurrent.textContent = m.bank_accno ? `${m.bank_name||'—'} · ${m.bank_accno} · ${m.bank_accname||'—'}` : 'ยังไม่ได้ผูกบัญชี';
-  if (document.getElementById('e-bank-name'))    document.getElementById('e-bank-name').value    = m.bank_name    || '';
-  if (document.getElementById('e-bank-accno'))   document.getElementById('e-bank-accno').value   = m.bank_accno   || '';
-  if (document.getElementById('e-bank-accname')) document.getElementById('e-bank-accname').value = m.bank_accname || '';
-}
-
-function switchEditTab(tab) {
-  ['info','phone','pass','bank','bal'].forEach(t => {
-    const panel = document.getElementById(`epanel-${t}`);
-    const btn   = document.getElementById(`etab-${t}`);
-    if (panel) panel.style.display = t === tab ? 'block' : 'none';
-    if (btn)   btn.classList.toggle('active', t === tab);
-  });
-}
-
-async function saveEditBank() {
-  const bankName  = document.getElementById('e-bank-name').value;
-  const accNo     = document.getElementById('e-bank-accno').value.trim().replace(/-/g,'');
-  const accName   = document.getElementById('e-bank-accname').value.trim();
-
-  if (!bankName)  { showToast('⚠️ กรุณาเลือกธนาคารครับ','error'); return; }
-  if (!accNo)     { showToast('⚠️ กรุณากรอกเลขบัญชีครับ','error'); return; }
-  if (!accName)   { showToast('⚠️ กรุณากรอกชื่อเจ้าของบัญชีครับ','error'); return; }
-
-  // เช็คซ้ำ
-  const { data: exist } = await sb.from('members').select('nick')
-    .eq('bank_accno', accNo).neq('id', editMemberId).maybeSingle();
-  if (exist) { showToast(`⚠️ เลขบัญชีนี้ถูกผูกกับ "${exist.nick}" แล้วครับ`,'error'); return; }
-
-  const { error } = await sb.from('members').update({
-    bank_name: bankName, bank_accno: accNo, bank_accname: accName
-  }).eq('id', editMemberId);
-
-  if (error) { showToast('❌ ' + error.message,'error'); return; }
-
-  // อัปเดต allMembers
-  const idx = allMembers.findIndex(x => x.id === editMemberId);
-  if (idx !== -1) allMembers[idx] = { ...allMembers[idx], bank_name:bankName, bank_accno:accNo, bank_accname:accName };
-
-  // อัปเดต display
-  document.getElementById('e-bank-current').textContent = `${bankName} · ${accNo} · ${accName}`;
-
-  showToast(`✅ บันทึกบัญชีธนาคารให้ลูกค้าแล้วครับ`);
-  loadMembers();
-}
-
-async function saveEditInfo() {
-  const fname = document.getElementById('e-fname').value.trim();
-  const lname = document.getElementById('e-lname').value.trim();
-  const addr1 = document.getElementById('e-addr1').value.trim();
-  const addr2 = document.getElementById('e-addr2').value.trim();
-  if (!fname || !lname) { showToast('⚠️ กรุณากรอกชื่อและนามสกุลครับ','error'); return; }
-  const { error } = await sb.from('members').update({ fname, lname, addr1, addr2 }).eq('id', editMemberId);
-  if (error) { showToast('❌ ' + error.message,'error'); return; }
-  showToast('✅ บันทึกข้อมูลส่วนตัวแล้วครับ');
-  loadMembers();
-}
-
-async function saveEditPhone() {
-  const newPhone = document.getElementById('e-phone-new').value.trim().replace(/-/g,'');
-  if (!newPhone || !/^[0-9]{9,10}$/.test(newPhone)) {
-    showToast('⚠️ เบอร์โทรไม่ถูกต้องครับ','error'); return;
-  }
-  // เช็คเบอร์ซ้ำ
-  const { data: exist } = await sb.from('members').select('nick').eq('phone', newPhone).neq('id', editMemberId).maybeSingle();
-  if (exist) { showToast('⚠️ เบอร์โทรนี้ถูกใช้แล้วครับ','error'); return; }
-
-  const m = allMembers.find(x => x.id === editMemberId);
-  // เปลี่ยนเบอร์ → reset password (ลูกค้าต้องตั้งใหม่เพราะ hash ใช้เบอร์เดิม)
-  const updates = { phone: newPhone, password: null };
-  const { error } = await sb.from('members').update(updates).eq('id', editMemberId);
-  if (error) { showToast('❌ ' + error.message,'error'); return; }
-
-  // อัปเดต allMembers
-  const idx = allMembers.findIndex(x => x.id === editMemberId);
-  if (idx !== -1) allMembers[idx] = { ...allMembers[idx], phone: newPhone, password: null };
-
-  showToast(`✅ เปลี่ยนเบอร์โทรเป็น ${newPhone} แล้วครับ\n⚠️ รหัสผ่านถูก reset — ลูกค้าต้องตั้งรหัสผ่านใหม่`);
-  document.getElementById('e-phone-old').value = newPhone;
-  document.getElementById('e-phone-new').value = '';
-  // อัปเดต fillEditForm
-  document.getElementById('e-phone-old').value = newPhone;
-  loadMembers();
-}
-
-async function saveEditPass() {
-  const pass1 = document.getElementById('e-pass-new').value;
-  const pass2 = document.getElementById('e-pass-new2').value;
-  if (!pass1 || pass1.length < 6) { showToast('⚠️ รหัสผ่านต้องมีอย่างน้อย 6 ตัวอักษรครับ','error'); return; }
-  if (pass1 !== pass2)             { showToast('⚠️ รหัสผ่านไม่ตรงกันครับ','error'); return; }
-
-  // หา phone ล่าสุดของสมาชิก
-  const m = allMembers.find(x => x.id === editMemberId);
-  if (!m) { showToast('❌ ไม่พบข้อมูลสมาชิกครับ','error'); return; }
-
-  // ✅ ใช้ hash เดียวกับที่หน้าบ้าน Login ใช้
-  const pwHash = btoa(unescape(encodeURIComponent(m.phone + ':' + pass1)));
-
-  const { error } = await sb.from('members').update({ password: pwHash }).eq('id', editMemberId);
-  if (error) { showToast('❌ ' + error.message,'error'); return; }
-
-  // อัปเดต allMembers
-  const idx = allMembers.findIndex(x => x.id === editMemberId);
-  if (idx !== -1) allMembers[idx] = { ...allMembers[idx], password: pwHash };
-
-  showToast(`✅ เปลี่ยนรหัสผ่านให้ ${m.nick} แล้วครับ ลูกค้าสามารถ Login ด้วยรหัสใหม่ได้ทันที`);
-  document.getElementById('e-pass-new').value  = '';
-  document.getElementById('e-pass-new2').value = '';
-}
-
-async function saveEditBal() {
-  const newBal = parseFloat(document.getElementById('e-bal-new').value);
-  const note   = document.getElementById('e-bal-note').value.trim();
-  if (isNaN(newBal) || newBal < 0) { showToast('⚠️ กรุณากรอกยอดเงินที่ถูกต้องครับ','error'); return; }
-  if (!note) { showToast('⚠️ กรุณากรอกหมายเหตุด้วยครับ','error'); return; }
-
-  const m = allMembers.find(x => x.id === editMemberId);
-  if (!confirm(`ยืนยันปรับยอดเงิน?\n\nสมาชิก: ${m?.nick}\nยอดเดิม: ${Number(m?.balance||0).toLocaleString()} ฿\nยอดใหม่: ${newBal.toLocaleString()} ฿\nหมายเหตุ: ${note}`)) return;
-
-  const { error } = await sb.from('members').update({ balance: newBal }).eq('id', editMemberId);
-  if (error) { showToast('❌ ' + error.message,'error'); return; }
-  showToast(`✅ ปรับยอดเงิน ${m?.nick} เป็น ${newBal.toLocaleString()} ฿ แล้วครับ`);
-  document.getElementById('e-bal-old').value = newBal.toLocaleString() + ' ฿';
-  loadMembers();
-}
-
 async function deleteMember(id, nick) {
-  if (!confirm(`ยืนยันลบสมาชิก "${nick}" ออกจากระบบ?`)) return;
+  if (!confirm(`ลบสมาชิก "${nick}" ใช่ไหมครับ?`)) return;
   await sb.from('members').delete().eq('id', id);
   showToast(`✅ ลบสมาชิก ${nick} แล้วครับ`);
   loadMembers(); loadOverview();
 }
 
-// ── MATCHES ──
-let allMatches = [];
-let verdictMatchId = null;
-
-// ── VERDICT PANEL ──
-async function loadVerdict() {
-  const { data } = await sb.from('matches')
-    .select('*')
-    .eq('status', 'done')
-    .order('created_at', { ascending: false });
-
-  const rows = data || [];
-  const pending = rows.filter(m => !m.winner);
-  const done    = rows.filter(m =>  m.winner);
-
-  // สถิติ
-  document.getElementById('vd-waiting-count').textContent = pending.length;
-  document.getElementById('vd-done-count').textContent    = done.length;
-  document.getElementById('vd-total-count').textContent   = rows.length;
-
-  // badge ใน topnav
-  const badge = document.getElementById('verdict-badge');
-  if (pending.length > 0) {
-    badge.textContent = pending.length;
-    badge.style.display = 'inline';
-  } else {
-    badge.style.display = 'none';
-  }
-
-  renderVerdictPending(pending);
-  renderVerdictDone(done);
-}
-
-function renderVerdictPending(rows) {
-  const el = document.getElementById('vd-pending-list');
-  if (!rows.length) {
-    el.innerHTML = `
-      <div style="text-align:center;padding:40px 20px;background:#f8fff8;border:2px dashed #c8eac8;border-radius:12px;">
-        <div style="font-size:40px;margin-bottom:10px;">✅</div>
-        <div style="font-family:'Kanit',sans-serif;font-weight:700;font-size:14px;color:var(--green);">ตัดสินผลครบทุกรายการแล้วครับ!</div>
-      </div>`;
-    return;
-  }
-
-  el.innerHTML = '';
-  rows.forEach(m => {
-    const card = document.createElement('div');
-    card.className = 'vd-card';
-    card.id = `vd-card-${m.id}`;
-    card.innerHTML = `
-      <div class="vd-card-header">
-        <div>
-          <div class="vd-card-round">🏆 ${m.round || '—'}</div>
-          <div class="vd-card-meta">📅 ${m.date||'—'} &nbsp;·&nbsp; 🕐 ${m.time||'—'} &nbsp;·&nbsp; 📍 ${m.location||'—'}</div>
-        </div>
-        ${m.code ? `<div class="vd-card-code">#${m.code}</div>` : ''}
-      </div>
-
-      <div class="vd-bulls">
-        <!-- วัวฝั่ง A -->
-        <div class="vd-bull">
-          <div class="vd-bull-icon">🐂</div>
-          <div class="vd-bull-name">${m.name_a || '—'}</div>
-          <div class="vd-bull-owner">${m.owner_a || ''}</div>
-          ${m.weight_a ? `<div class="vd-bull-weight">⚖️ ${m.weight_a}</div>` : ''}
-          <div style="font-family:'Kanit',sans-serif;font-size:11px;color:#aaa;margin-top:4px;">🔴 เจ้าบ้าน</div>
-        </div>
-
-        <!-- VS -->
-        <div class="vd-vs">VS</div>
-
-        <!-- วัวฝั่ง B -->
-        <div class="vd-bull">
-          <div class="vd-bull-icon">🐃</div>
-          <div class="vd-bull-name">${m.name_b || '—'}</div>
-          <div class="vd-bull-owner">${m.owner_b || ''}</div>
-          ${m.weight_b ? `<div class="vd-bull-weight">⚖️ ${m.weight_b}</div>` : ''}
-          <div style="font-family:'Kanit',sans-serif;font-size:11px;color:#aaa;margin-top:4px;">🔵 ทีมเยือน</div>
-        </div>
-      </div>
-
-      <!-- ปุ่มตัดสิน -->
-      <div style="padding:0 18px 14px;background:#FFFBEB;border-top:2px dashed #FDE68A;">
-        <div style="text-align:center;font-family:'Kanit',sans-serif;font-size:12px;font-weight:700;color:#92400E;padding:8px 0 10px;">
-          ⚖️ เลือกผู้ชนะการแข่งขัน
-        </div>
-        <div class="vd-actions" style="border-radius:10px;overflow:hidden;border:1px solid #e5e5e0;">
-          <button class="vd-btn vd-btn-a" onclick="doVerdict('${m.id}','${(m.name_a||'').replace(/'/g,"\\'")}','A','${(m.round||'').replace(/'/g,"\\'")}','${(m.name_b||'').replace(/'/g,"\\'")}')">
-            🔴 ${m.name_a||'เจ้าบ้าน'}<br><span style="font-size:10px;font-weight:400;opacity:.7;">กด = ชนะ</span>
-          </button>
-          <button class="vd-btn vd-btn-b" onclick="doVerdict('${m.id}','${(m.name_b||'').replace(/'/g,"\\'")}','B','${(m.round||'').replace(/'/g,"\\'")}','${(m.name_a||'').replace(/'/g,"\\'")}')">
-            🔵 ${m.name_b||'ทีมเยือน'}<br><span style="font-size:10px;font-weight:400;opacity:.7;">กด = ชนะ</span>
-          </button>
-        </div>
-      </div>`;
-    el.appendChild(card);
-  });
-}
-
-function renderVerdictDone(rows) {
-  const el = document.getElementById('vd-done-list');
-  if (!rows.length) {
-    el.innerHTML = '<div style="text-align:center;padding:20px;color:#aaa;font-family:\'Kanit\',sans-serif;">ยังไม่มีรายการที่ตัดสินแล้ว</div>';
-    return;
-  }
-  el.innerHTML = rows.map(m => `
-    <div class="vd-done-card">
-      <div style="flex:1;">
-        <div style="font-family:'Kanit',sans-serif;font-weight:700;font-size:13px;">${m.round||'—'}
-          ${m.code?`<span style="font-size:10px;color:#aaa;letter-spacing:1px;margin-left:6px;">#${m.code}</span>`:''}
-        </div>
-        <div style="font-size:12px;color:#aaa;margin-top:2px;">${m.name_a||'—'} <span style="color:#ccc;">VS</span> ${m.name_b||'—'}</div>
-        <div style="font-size:11px;color:#aaa;margin-top:1px;">📅 ${m.date||'—'} · 📍 ${m.location||'—'}</div>
-      </div>
-      <div style="text-align:right;flex-shrink:0;">
-        <div style="font-size:10px;color:#aaa;font-family:'Kanit',sans-serif;">🏆 ผู้ชนะ</div>
-        <div style="font-family:'Kanit',sans-serif;font-weight:900;font-size:14px;color:var(--green);">${m.winner}</div>
-        <button style="margin-top:5px;font-family:'Kanit',sans-serif;font-size:10px;padding:3px 10px;border-radius:5px;border:1px solid #ddd;background:#fff;cursor:pointer;color:#666;" onclick="reopenVerdict('${m.id}')">✏️ แก้ไข</button>
-      </div>
-    </div>`).join('');
-}
-
-async function doVerdict(matchId, winnerName, side, round, loserName) {
-  const sideLabel = side === 'A' ? '🔴 เจ้าบ้าน' : '🔵 ทีมเยือน';
-
-  // ── ดึงข้อมูล bets ของแมชนี้ก่อน ──
-  const { data: bets, error: bErr } = await sb.from('bets')
-    .select('*')
-    .eq('match_id', matchId)
-    .in('status', ['waiting', 'matched']);
-
-  if (bErr) { showToast('❌ โหลดข้อมูลเดิมพันไม่ได้: ' + bErr.message, 'error'); return; }
-
-  const allBetRows = bets || [];
-  const m = allMatches.find(x => x.id === matchId);
-
-  // ── คำนวณยอดรวม ──
-  const totalAll    = allBetRows.reduce((s, b) => s + Number(b.amount || 0), 0);
-  const fee         = Math.floor(totalAll * 0.07);
-  const payoutPool  = totalAll - fee;
-
-  // ฝั่งชนะ = side_name ตรงกับ winnerName
-  const winnerBets  = allBetRows.filter(b => b.side_name === winnerName);
-  const winnerTotal = winnerBets.reduce((s, b) => s + Number(b.amount || 0), 0);
-  const loserBets   = allBetRows.filter(b => b.side_name !== winnerName);
-  const loserTotal  = loserBets.reduce((s, b) => s + Number(b.amount || 0), 0);
-
-  // สรุปตัวเลขสำหรับ confirm
-  const summaryLines = winnerBets.length > 0
-    ? winnerBets.map(b => {
-        const ratio   = winnerTotal > 0 ? Number(b.amount) / winnerTotal : 0;
-        const payout  = Math.floor(payoutPool * ratio);
-        return `  · ${b.nick}: ลง ${Number(b.amount).toLocaleString()} ฿ → ได้รับ ${payout.toLocaleString()} ฿`;
-      }).join('\n')
-    : '  (ไม่มีคนทายฝั่งนี้)';
-
-  const confirmMsg = [
-    `ยืนยันผลการแข่งขัน?`,
-    ``,
-    `📋 ${round}`,
-    `🏆 ผู้ชนะ: ${winnerName} (${sideLabel})`,
-    `❌ แพ้: ${loserName}`,
-    ``,
-    `💰 ยอดเดิมพันรวม: ${totalAll.toLocaleString()} ฿`,
-    `   🔴 ฝั่งเจ้าบ้าน: ${side==='A'?winnerTotal:loserTotal} ฿`,
-    `   🔵 ฝั่งทีมเยือน: ${side==='B'?winnerTotal:loserTotal} ฿`,
-    `✂️ หักค่าบริการ 7%: ${fee.toLocaleString()} ฿`,
-    `💵 จ่ายคืนฝั่งชนะ: ${payoutPool.toLocaleString()} ฿`,
-    ``,
-    `📤 รายการโอน:`,
-    summaryLines,
-  ].join('\n');
-
-  if (!confirm(confirmMsg)) return;
-
-  // ── บันทึกผลแมช ──
-  const { error: mErr } = await sb.from('matches')
-    .update({ winner: winnerName })
-    .eq('id', matchId);
-  if (mErr) { showToast('❌ ' + mErr.message, 'error'); return; }
-
-  // ── จ่ายเงินให้ฝั่งชนะ ──
-  let paidCount = 0;
-  for (const bet of winnerBets) {
-    const ratio  = winnerTotal > 0 ? Number(bet.amount) / winnerTotal : 0;
-    const payout = Math.floor(payoutPool * ratio);
-    if (payout <= 0) continue;
-
-    // ดึงยอดเงินปัจจุบันของสมาชิก
-    const { data: mem } = await sb.from('members')
-      .select('balance, nick')
-      .eq('nick', bet.nick)
-      .maybeSingle();
-
-    if (mem) {
-      const newBal = Number(mem.balance || 0) + payout;
-      await sb.from('members').update({ balance: newBal }).eq('nick', bet.nick);
-    }
-
-    // อัปเดตสถานะ bet → won
-    await sb.from('bets').update({ status: 'won' }).eq('id', bet.id);
-    paidCount++;
-  }
-
-  // ── อัปเดต bets ฝั่งแพ้ → lost ──
-  for (const bet of loserBets) {
-    await sb.from('bets').update({ status: 'lost' }).eq('id', bet.id);
-  }
-
-  // ── อัปเดต allMatches ──
-  const idx = allMatches.findIndex(x => x.id === matchId);
-  if (idx !== -1) allMatches[idx] = { ...allMatches[idx], winner: winnerName };
-
-  // Animate card ออก
-  const card = document.getElementById(`vd-card-${matchId}`);
-  if (card) {
-    card.style.transition = 'all .35s';
-    card.style.transform  = 'translateX(30px)';
-    card.style.opacity    = '0';
-    setTimeout(() => { loadVerdict(); loadOverview(); }, 400);
-  } else {
-    loadVerdict(); loadOverview();
-  }
-
-  if (winnerBets.length > 0) {
-    showToast(`🏆 ${winnerName} ชนะ! โอนรางวัล ${payoutPool.toLocaleString()} ฿ ให้ ${paidCount} คน (หัก fee ${fee.toLocaleString()} ฿) ✅`);
-  } else {
-    showToast(`🏆 ${winnerName} ชนะ! (ไม่มีคนทายฝั่งนี้ ไม่มีการจ่ายรางวัล)`);
-  }
-}
-
-async function reopenVerdict(matchId) {
-  if (!confirm('ต้องการแก้ไขผลการแข่งขันนี้?')) return;
-  await sb.from('matches').update({ winner: null }).eq('id', matchId);
-  const idx = allMatches.findIndex(m => m.id === matchId);
-  if (idx !== -1) allMatches[idx] = { ...allMatches[idx], winner: null };
-  loadVerdict();
-  showToast('✅ รีเซ็ตผลแล้ว กรุณาตัดสินใหม่ครับ');
-}
-
-// Real-time: เมื่อมีแมชจบใหม่ → โหลด verdict panel
-function subscribeVerdictUpdates() {
-  sb.channel('verdict-matches')
-    .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'matches' }, payload => {
-      const m = payload.new;
-      if (m.status === 'done') {
-        loadVerdict();
-        // แสดง badge ถ้าไม่ได้อยู่หน้า verdict
-        if (currentPanel !== 'verdict' && !m.winner) {
-          showToast(`⚔️ "${m.round}" แข่งจบแล้ว! รอตัดสินผลครับ`);
-        }
-      }
-    })
-    .subscribe();
-}
-
+// ===== MATCHES =====
 async function loadMatches() {
-  const { data } = await sb.from('matches').select('*').order('created_at',{ascending:false});
+  const {data} = await sb.from('matches').select('*').order('date',{ascending:true}).order('created_at',{ascending:false});
   allMatches = data || [];
   filterMatches_();
 }
 
 function filterMatches_() {
-  const q      = document.getElementById('match-search')?.value.toLowerCase() || '';
-  const status = document.getElementById('match-status-filter')?.value || 'all';
-  const from   = document.getElementById('match-date-from')?.value || '';
-  const to     = document.getElementById('match-date-to')?.value || '';
-
+  const q = (document.getElementById('match-search')?.value || '').toLowerCase();
+  const sf = document.getElementById('match-status-filter')?.value || '';
   let rows = allMatches;
-  if (status !== 'all') rows = rows.filter(m => m.status === status);
-  if (q) rows = rows.filter(m =>
-    m.round?.toLowerCase().includes(q) ||
-    m.name_a?.toLowerCase().includes(q) ||
-    m.name_b?.toLowerCase().includes(q) ||
-    m.location?.toLowerCase().includes(q)
-  );
-  // date filter (กรองจาก field date ซึ่งเป็น text ไม่ใช่ ISO)
-  // ถ้ามีการตั้ง date filter แสดงผลทั้งหมดที่มีวันที่ในช่วง
-  const res = document.getElementById('match-filter-result');
-  if (res) res.textContent = (from||to||q||status!=='all') ? `พบ ${rows.length} คู่` : '';
-
-  renderMatchRows(rows);
-}
-
-function clearMatchFilter() {
-  ['match-date-from','match-date-to','match-search'].forEach(id => {
-    const el = document.getElementById(id); if (el) el.value = '';
-  });
-  const sf = document.getElementById('match-status-filter');
-  if (sf) sf.value = 'all';
-  filterMatches_();
-}
-
-// อัปเดต dropdown ผู้ชนะในฟอร์มเพิ่ม
-function updateWinnerOptions() {
-  const nameA = document.getElementById('m-name-a')?.value.trim() || '';
-  const nameB = document.getElementById('m-name-b')?.value.trim() || '';
-  const sel   = document.getElementById('m-winner-preset');
-  if (!sel) return;
-  sel.innerHTML = `<option value="">— ยังไม่ตัดสิน —</option>`;
-  if (nameA) sel.innerHTML += `<option value="${nameA}">🔴 ${nameA} (เจ้าบ้าน)</option>`;
-  if (nameB) sel.innerHTML += `<option value="${nameB}">🔵 ${nameB} (ทีมเยือน)</option>`;
-}
-
-function renderMatchRows(rows) {
-  const tb = document.getElementById('matches-tbody');
-  if (!rows.length) { tb.innerHTML = '<tr class="loading-row"><td colspan="8">ไม่พบรายการแข่งขัน</td></tr>'; return; }
-
-  // จัดกลุ่มตามวันที่
-  const groups = {};
-  rows.forEach(m => {
-    const key = m.date || 'ไม่ระบุวันที่';
-    if (!groups[key]) groups[key] = [];
-    groups[key].push(m);
-  });
-
-  let html = '';
-  Object.entries(groups).forEach(([date, matches]) => {
-    // header วันที่
-    html += `<tr style="background:#f0f4f0;">
-      <td colspan="8" style="font-family:'Kanit',sans-serif;font-weight:700;font-size:13px;color:var(--green);padding:10px 12px;">
-        📅 ${date} &nbsp;·&nbsp; <span style="font-weight:400;color:#888;">${matches.length} คู่แข่งขัน</span>
-      </td>
-    </tr>`;
-    // rows
-    html += matches.map(m => {
-      const isDone = m.status === 'done';
-      const statusBadge = m.status === 'upcoming'
-        ? `<span class="badge badge-pending">⏳ รอแข่ง</span>`
-        : m.status === 'live'
-          ? `<span class="badge badge-live">🔴 LIVE</span>`
-          : `<span class="badge badge-approved">✅ จบแล้ว</span>`;
-
-      // ── Verdict Column ──
-      let verdictHtml = '';
-      if (isDone && m.winner) {
-        // ตัดสินแล้ว — แสดงผลพร้อมปุ่มเปลี่ยน
-        const isA = m.winner === m.name_a;
-        verdictHtml = `
-          <div style="display:flex;flex-direction:column;gap:5px;">
-            <div style="display:flex;align-items:center;gap:6px;">
-              <span style="font-size:16px;">🏆</span>
-              <div>
-                <div style="font-family:'Kanit',sans-serif;font-weight:900;font-size:13px;color:var(--green);">${m.winner}</div>
-                <div style="font-size:10px;color:#aaa;">${isA?'🔴 เจ้าบ้าน':'🔵 ทีมเยือน'} · ชนะ</div>
-              </div>
-            </div>
-            <button class="action-btn" style="font-size:10px;padding:3px 8px;background:#FFF8E1;color:#795548;border:1px solid #FFD54F;" onclick="showVerdictPanel('${m.id}')">✏️ แก้ไขผล</button>
-          </div>`;
-      } else if (isDone && !m.winner) {
-        // จบแล้วแต่ยังไม่ตัดสิน — แสดง dropdown พร้อมปุ่มชัดเจน
-        verdictHtml = `
-          <div style="background:#FFF8E1;border:1px solid #FFD54F;border-radius:8px;padding:8px 10px;">
-            <div style="font-family:'Kanit',sans-serif;font-size:11px;font-weight:700;color:#795548;margin-bottom:6px;">⚖️ รอตัดสินผล</div>
-            <div style="display:flex;flex-direction:column;gap:5px;">
-              <button class="action-btn" style="background:rgba(239,68,68,0.1);color:var(--red);border:1px solid rgba(239,68,68,0.3);font-size:12px;padding:6px 10px;width:100%;text-align:left;" 
-                onclick="confirmQuickVerdict('${m.id}','${(m.name_a||'').replace(/'/g,"\\'")}','A')">
-                🔴 ${m.name_a||'เจ้าบ้าน'} ชนะ
-              </button>
-              <button class="action-btn" style="background:rgba(59,130,246,0.1);color:#1877F2;border:1px solid rgba(59,130,246,0.3);font-size:12px;padding:6px 10px;width:100%;text-align:left;"
-                onclick="confirmQuickVerdict('${m.id}','${(m.name_b||'').replace(/'/g,"\\'")}','B')">
-                🔵 ${m.name_b||'ทีมเยือน'} ชนะ
-              </button>
-            </div>
-          </div>`;
-      } else if (m.status === 'live') {
-        // กำลังแข่ง — บอกว่ายังตัดสินไม่ได้
-        verdictHtml = `<div style="text-align:center;font-size:11px;color:#aaa;font-family:'Kanit',sans-serif;padding:6px;">🔴 กำลังแข่งขัน<br>รอจบก่อนตัดสิน</div>`;
-      } else {
-        // รอแข่ง — ยังตัดสินไม่ได้
-        verdictHtml = `<div style="text-align:center;font-size:11px;color:#ccc;font-family:'Kanit',sans-serif;padding:6px;">⏳ ยังไม่ถึงเวลา</div>`;
-      }
-
+  if (q) rows = rows.filter(m => m.round?.toLowerCase().includes(q) || m.name_a?.toLowerCase().includes(q) || m.name_b?.toLowerCase().includes(q) || m.code?.includes(q));
+  if (sf) rows = rows.filter(m => (m.status||'upcoming') === sf);
+  const el = document.getElementById('matches-list');
+  if (!rows.length) { el.innerHTML = '<div style="text-align:center;padding:24px;color:#aaa;">ไม่พบรายการ</div>'; return; }
+  el.innerHTML = `<table><thead><tr><th>รหัส</th><th>รุ่น/วันที่</th><th>🔴 เจ้าบ้าน</th><th>🔵 ทีมเยือน</th><th>รางวัล</th><th>สถานะ</th><th>ตัดสิน</th><th>จัดการ</th></tr></thead><tbody>` +
+    rows.map(m => {
+      const s = m.status||'upcoming';
       return `<tr>
+        <td>${m.code?`<span class="match-code">${m.code}</span>`:'—'}</td>
+        <td><strong>${m.round||'—'}</strong><br><span style="font-size:11px;color:#aaa;">${m.date||''} ${m.time||''}</span></td>
+        <td>${m.name_a||'—'}<br><span style="font-size:11px;color:#aaa;">${m.owner_a||''} ${m.weight_a?'·'+m.weight_a+'กก':''}</span></td>
+        <td>${m.name_b||'—'}<br><span style="font-size:11px;color:#aaa;">${m.owner_b||''} ${m.weight_b?'·'+m.weight_b+'กก':''}</span></td>
+        <td style="font-family:'Kanit',sans-serif;font-weight:700;">${Number(m.prize||0).toLocaleString()} ฿</td>
         <td>
-          <div style="font-family:'Kanit',sans-serif;font-weight:700;font-size:13px;">${m.round||'—'}</div>
-          <div style="font-size:11px;color:#aaa;">${m.time||''} · ${m.location||''}</div>
-          ${m.code ? `<div style="display:inline-block;margin-top:3px;background:#1B6B2F;color:#fff;font-family:'Kanit',sans-serif;font-weight:900;font-size:12px;padding:2px 10px;border-radius:4px;letter-spacing:3px;">${m.code}</div>` : ''}
+          <select class="status-select" onchange="updateMatchStatus('${m.id}',this.value)">
+            <option value="upcoming" ${s==='upcoming'?'selected':''}>⏳ รอแข่ง</option>
+            <option value="live" ${s==='live'?'selected':''}>🔴 กำลังแข่ง</option>
+            <option value="done" ${s==='done'?'selected':''}>✅ จบแล้ว</option>
+          </select>
         </td>
-        <td>
-          <div style="font-family:'Kanit',sans-serif;font-weight:700;color:var(--red);">🔴 ${m.name_a||'—'}</div>
-          <div style="font-size:11px;color:#aaa;">${m.owner_a||''} ${m.weight_a?'· '+m.weight_a:''}</div>
+        <td>${m.winner?`<span class="badge badge-approved">🏆 ${m.winner==='red'?(m.name_a||'เจ้าบ้าน'):(m.name_b||'ทีมเยือน')}</span>`:'—'}</td>
+        <td style="display:flex;gap:4px;flex-wrap:wrap;">
+          <button class="btn btn-red" onclick="deleteMatch('${m.id}')">ลบ</button>
         </td>
-        <td>
-          <div style="font-family:'Kanit',sans-serif;font-weight:700;color:#1877F2;">🔵 ${m.name_b||'—'}</div>
-          <div style="font-size:11px;color:#aaa;">${m.owner_b||''} ${m.weight_b?'· '+m.weight_b:''}</div>
-        </td>
-        <td style="font-size:12px;">${m.location||'—'}</td>
-        <td style="font-family:'Kanit',sans-serif;font-size:12px;font-weight:700;">${Number(m.prize||0).toLocaleString()} ฿</td>
-        <td>
-          ${statusBadge}
-          <button class="action-btn" style="margin-top:4px;font-size:10px;padding:3px 8px;background:#f0f0eb;color:#666;" onclick="quickStatus('${m.id}','${m.status}')">เปลี่ยน</button>
-        </td>
-        <td>${verdictHtml}</td>
-        <td><button class="action-btn red" onclick="deleteMatch('${m.id}')">ลบ</button></td>
       </tr>`;
-    }).join('');
-  });
-  tb.innerHTML = html;
-}
-
-async function confirmQuickVerdict(matchId, winnerName, side) {
-  const m     = allMatches.find(x => x.id === matchId);
-  const color = side === 'A' ? '🔴' : '🔵';
-  const role  = side === 'A' ? 'เจ้าบ้าน' : 'ทีมเยือน';
-  if (!confirm(`ยืนยันตัดสินผล?\n\n${color} ${winnerName} (${role}) ชนะ\n\nรายการ: ${m?.round||''}\nวันที่: ${m?.date||''}`)) return;
-  const { error } = await sb.from('matches').update({ status:'done', winner: winnerName }).eq('id', matchId);
-  if (error) { showToast('❌ '+error.message,'error'); return; }
-  const idx = allMatches.findIndex(x => x.id === matchId);
-  if (idx !== -1) allMatches[idx] = { ...allMatches[idx], status:'done', winner: winnerName };
-  filterMatches_();
-  showToast(`🏆 ${winnerName} ชนะ! บันทึกผลแล้วครับ`);
-}
-
-function showVerdictPanel(matchId) {
-  const m = allMatches.find(x => x.id === matchId);
-  if (!m) return;
-  verdictMatchId = matchId;
-  document.getElementById('verdict-match-name').textContent = `${m.round||''} · ${m.name_a||'—'} VS ${m.name_b||'—'}`;
-  const sel = document.getElementById('verdict-winner');
-  sel.innerHTML = `
-    <option value="${m.name_a}" ${m.winner===m.name_a?'selected':''}>🔴 ${m.name_a} (เจ้าบ้าน)</option>
-    <option value="${m.name_b}" ${m.winner===m.name_b?'selected':''}>🔵 ${m.name_b} (ทีมเยือน)</option>`;
-  document.getElementById('verdict-modal').classList.add('open');
-}
-
-async function quickVerdict(matchId) {
-  const sel    = document.getElementById(`verdict-select-${matchId}`);
-  const winner = sel?.value;
-  if (!winner) { showToast('⚠️ กรุณาเลือกผู้ชนะก่อนครับ','error'); return; }
-  const { error } = await sb.from('matches').update({ status:'done', winner }).eq('id', matchId);
-  if (error) { showToast('❌ '+error.message,'error'); return; }
-  const idx = allMatches.findIndex(m => m.id === matchId);
-  if (idx !== -1) allMatches[idx] = { ...allMatches[idx], status:'done', winner };
-  filterMatches_();
-  showToast(`🏆 บันทึกผล: ${winner} ชนะแล้วครับ`);
-}
-
-async function quickStatus(matchId, currentStatus) {
-  const next = currentStatus === 'upcoming' ? 'live' : currentStatus === 'live' ? 'done' : 'upcoming';
-  const label = next === 'upcoming' ? '⏳ รอแข่ง' : next === 'live' ? '🔴 LIVE' : '✅ จบแล้ว';
-  if (!confirm(`เปลี่ยนสถานะเป็น ${label}?`)) return;
-  const { error } = await sb.from('matches').update({ status: next }).eq('id', matchId);
-  if (error) { showToast('❌ '+error.message,'error'); return; }
-  const idx = allMatches.findIndex(m => m.id === matchId);
-  if (idx !== -1) allMatches[idx] = { ...allMatches[idx], status: next };
-  filterMatches_();
-  showToast(`✅ เปลี่ยนสถานะเป็น ${label} แล้วครับ`);
-}
-
-// ── สร้าง Match Code 4 หลักไม่ซ้ำ ──
-async function generateMatchCode() {
-  let code, attempts = 0;
-  do {
-    code = String(Math.floor(Math.random() * 9000) + 1000);
-    const { data } = await sb.from('matches').select('id').eq('code', code).maybeSingle();
-    if (!data) break;
-    attempts++;
-  } while (attempts < 30);
-  return code;
+    }).join('') + '</tbody></table>';
 }
 
 async function addMatch() {
-  const round = document.getElementById('m-round').value.trim();
-  const nameA = document.getElementById('m-name-a').value.trim();
-  const nameB = document.getElementById('m-name-b').value.trim();
-  if (!round || !nameA || !nameB) { showToast('⚠️ กรุณากรอก รุ่น, ชื่อวัวทั้งสองฝ่ายครับ','error'); return; }
-
-  const status = document.getElementById('m-status').value;
-  const winner = document.getElementById('m-winner-preset').value || null;
-  const code   = await generateMatchCode();
-
-  const payload = {
-    round,
-    date:     document.getElementById('m-date').value,
-    time:     document.getElementById('m-time').value,
-    location: document.getElementById('m-loc').value,
-    prize:    parseFloat(document.getElementById('m-prize').value)||0,
-    status:   winner ? 'done' : status,
-    winner:   winner || null,
-    name_a:   nameA, owner_a: document.getElementById('m-owner-a').value,
-    weight_a: document.getElementById('m-weight-a').value,
-    name_b:   nameB, owner_b: document.getElementById('m-owner-b').value,
-    weight_b: document.getElementById('m-weight-b').value,
-  };
-
-  // ลองใส่ code ก่อน ถ้า column ยังไม่มีให้ fallback
-  let result = await sb.from('matches').insert({ ...payload, code });
-  if (result.error && result.error.message.toLowerCase().includes('code')) {
-    result = await sb.from('matches').insert(payload);
-    if (result.error) { showToast('❌ '+result.error.message,'error'); return; }
-    showToast('✅ เพิ่มคู่แข่งขันแล้วครับ (กรุณารัน match-code-4digit.sql)');
-  } else if (result.error) {
-    showToast('❌ '+result.error.message,'error'); return;
-  } else {
-    showToast(`✅ เพิ่มคู่แข่งขันแล้วครับ · รหัส: ${code}`);
-  }
-
-  ['m-round','m-date','m-time','m-loc','m-prize','m-name-a','m-owner-a','m-weight-a','m-name-b','m-owner-b','m-weight-b'].forEach(id => {
-    const el = document.getElementById(id); if(el) el.value='';
+  const round   = document.getElementById('m-round').value.trim();
+  const name_a  = document.getElementById('m-name-a').value.trim();
+  const name_b  = document.getElementById('m-name-b').value.trim();
+  if (!round || !name_a || !name_b) { showToast('⚠️ กรุณากรอกรุ่น และชื่อวัวทั้งสองฝั่งครับ','error'); return; }
+  // สร้างรหัส 4 หลัก
+  const code = String(Math.floor(1000 + Math.random() * 9000));
+  const {error} = await sb.from('matches').insert({
+    round, name_a, name_b,
+    owner_a: document.getElementById('m-owner-a').value.trim(),
+    owner_b: document.getElementById('m-owner-b').value.trim(),
+    weight_a: document.getElementById('m-weight-a').value || null,
+    weight_b: document.getElementById('m-weight-b').value || null,
+    date: document.getElementById('m-date').value.trim(),
+    time: document.getElementById('m-time').value.trim(),
+    location: document.getElementById('m-location').value.trim(),
+    prize: parseFloat(document.getElementById('m-prize').value) || 0,
+    status: 'upcoming', code,
   });
-  const wp = document.getElementById('m-winner-preset'); if(wp) wp.value='';
+  if (error) { showToast('❌ เกิดข้อผิดพลาด: '+error.message,'error'); return; }
+  showToast(`✅ เพิ่มคู่แข่งขัน ${name_a} vs ${name_b} แล้วครับ! รหัส: ${code}`);
+  ['m-round','m-name-a','m-name-b','m-owner-a','m-owner-b','m-weight-a','m-weight-b','m-date','m-time','m-location','m-prize'].forEach(id => { const el = document.getElementById(id); if(el) el.value=''; });
   loadMatches(); loadOverview();
 }
 
-// Real-time matches — Admin เห็นทันที + หน้าบ้านก็ได้รับผ่าน Supabase channel
-function subscribeMatchesRealtime() {
-  sb.channel('admin-matches-rt')
-    .on('postgres_changes', { event: '*', schema: 'public', table: 'matches' }, payload => {
-      const ev = payload.eventType;
-      const m  = payload.new || payload.old;
-      if (ev === 'INSERT') { allMatches.unshift(m); }
-      else if (ev === 'UPDATE') {
-        const idx = allMatches.findIndex(x => x.id === m.id);
-        if (idx !== -1) allMatches[idx] = { ...allMatches[idx], ...m };
-        else allMatches.unshift(m);
-      } else if (ev === 'DELETE') {
-        allMatches = allMatches.filter(x => x.id !== m.id);
-      }
-      filterMatches_();
-      loadOverview();
-    })
-    .subscribe();
-}
-
-
-function openVerdict(id, nameA, nameB, round) {
-  verdictMatchId = id;
-  document.getElementById('verdict-match-name').textContent = `${round} · ${nameA} VS ${nameB}`;
-  const sel = document.getElementById('verdict-winner');
-  sel.innerHTML = `<option value="${nameA}">🔴 ${nameA} (เจ้าบ้าน)</option><option value="${nameB}">🔵 ${nameB} (ทีมเยือน)</option>`;
-  document.getElementById('verdict-modal').classList.add('open');
-}
-
-async function confirmVerdict() {
-  const winner = document.getElementById('verdict-winner').value;
-  await sb.from('matches').update({ status:'done', winner }).eq('id', verdictMatchId);
-  document.getElementById('verdict-modal').classList.remove('open');
-  const idx = allMatches.findIndex(m => m.id === verdictMatchId);
-  if (idx !== -1) allMatches[idx] = { ...allMatches[idx], status:'done', winner };
-  filterMatches_();
-  showToast(`✅ บันทึกผล: ${winner} ชนะ`);
+async function updateMatchStatus(id, status) {
+  await sb.from('matches').update({ status }).eq('id', id);
+  showToast('✅ อัปเดตสถานะแล้วครับ');
+  loadMatches(); loadVerdict();
 }
 
 async function deleteMatch(id) {
-  if (!confirm('ยืนยันลบคู่แข่งขันนี้?')) return;
+  if (!confirm('ลบคู่แข่งขันนี้ใช่ไหมครับ?')) return;
   await sb.from('matches').delete().eq('id', id);
-  allMatches = allMatches.filter(m => m.id !== id);
-  filterMatches_();
-  showToast('✅ ลบคู่แข่งขันแล้วครับ');
-  loadOverview();
+  showToast('✅ ลบแล้วครับ');
+  loadMatches(); loadVerdict(); loadOverview();
 }
 
-// ── NEWS ──
-async function loadNews() {
-  const { data } = await sb.from('news').select('*').order('created_at',{ascending:false});
-  const el = document.getElementById('news-list');
-  if (!data?.length) { el.innerHTML = '<div style="text-align:center;padding:20px;color:#aaa;font-family:\'Kanit\',sans-serif;">ยังไม่มีข่าว</div>'; return; }
-  el.innerHTML = data.map(n => `
-    <div style="border:1px solid #e5e5e0;border-radius:9px;padding:12px;">
-      <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px;">
-        <div style="font-family:'Kanit',sans-serif;font-weight:700;font-size:13px;">${n.title}</div>
-        <span class="badge ${n.status==='published'?'badge-approved':'badge-pending'}">${n.status==='published'?'เผยแพร่':'ร่าง'}</span>
+// ===== VERDICT =====
+async function loadVerdict() {
+  const {data} = await sb.from('matches').select('*').in('status',['upcoming','live','done']).order('date',{ascending:true});
+  const pending = (data||[]).filter(m => (m.status==='done') && !m.winner);
+  const done    = (data||[]).filter(m => m.winner);
+  renderVerdictPending(pending);
+  renderVerdictDone(done);
+}
+
+function renderVerdictPending(rows) {
+  const el = document.getElementById('verdict-pending');
+  if (!rows.length) { el.innerHTML = '<div style="text-align:center;padding:20px;color:#aaa;">ไม่มีรายการรอตัดสินครับ</div>'; return; }
+  el.innerHTML = rows.map(m => `
+    <div style="background:#f9f9f9;border:1px solid #e5e5e0;border-radius:10px;padding:16px;margin-bottom:12px;">
+      <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;margin-bottom:12px;">
+        <div>
+          <strong style="font-family:'Kanit',sans-serif;">${m.round||'—'}</strong>
+          ${m.code?`<span class="match-code" style="margin-left:8px;">${m.code}</span>`:''}
+          <div style="font-size:12px;color:#aaa;">${m.date||''} · ${m.location||''}</div>
+        </div>
+        <span class="badge badge-${m.status}">${m.status==='done'?'✅ จบแล้ว':'⏳ รอ'}</span>
       </div>
-      <div style="font-size:12px;color:#888;margin-top:4px;">${(n.body||'').slice(0,80)}${(n.body||'').length>80?'...':''}</div>
-      <div style="display:flex;justify-content:space-between;align-items:center;margin-top:8px;">
-        <div style="font-size:11px;color:#bbb;">${fmtDate(n.created_at)}</div>
-        <button class="action-btn red" onclick="deleteNews('${n.id}')">ลบ</button>
+      <div style="display:flex;gap:10px;align-items:center;justify-content:center;margin-bottom:12px;">
+        <div style="text-align:center;flex:1;">
+          <div style="font-family:'Kanit',sans-serif;font-weight:700;font-size:15px;color:#c8102e;">${m.name_a||'เจ้าบ้าน'}</div>
+          <div style="font-size:12px;color:#aaa;">${m.owner_a||''}</div>
+        </div>
+        <div style="font-family:'Kanit',sans-serif;font-weight:900;color:#aaa;">VS</div>
+        <div style="text-align:center;flex:1;">
+          <div style="font-family:'Kanit',sans-serif;font-weight:700;font-size:15px;color:#1e50c8;">${m.name_b||'ทีมเยือน'}</div>
+          <div style="font-size:12px;color:#aaa;">${m.owner_b||''}</div>
+        </div>
+      </div>
+      <div style="display:flex;gap:8px;">
+        <button class="btn btn-red" style="flex:1;" onclick="doVerdict('${m.id}','red','${(m.name_a||'เจ้าบ้าน').replace(/'/g,"\\'")}')">🏆 ${m.name_a||'เจ้าบ้าน'} ชนะ</button>
+        <button class="btn btn-primary" style="flex:1;" onclick="doVerdict('${m.id}','blue','${(m.name_b||'ทีมเยือน').replace(/'/g,"\\'")}')">🏆 ${m.name_b||'ทีมเยือน'} ชนะ</button>
       </div>
     </div>`).join('');
 }
 
+function renderVerdictDone(rows) {
+  const el = document.getElementById('verdict-done');
+  if (!rows.length) { el.innerHTML = '<div style="text-align:center;padding:20px;color:#aaa;">ยังไม่มีรายการครับ</div>'; return; }
+  el.innerHTML = `<table><thead><tr><th>รหัส</th><th>รุ่น</th><th>ผู้ชนะ</th><th>รางวัล</th><th>จัดการ</th></tr></thead><tbody>` +
+    rows.map(m => `<tr>
+      <td>${m.code?`<span class="match-code">${m.code}</span>`:'—'}</td>
+      <td>${m.round||'—'}</td>
+      <td><span class="badge badge-approved">🏆 ${m.winner==='red'?(m.name_a||'เจ้าบ้าน'):(m.name_b||'ทีมเยือน')}</span></td>
+      <td>${Number(m.prize||0).toLocaleString()} ฿</td>
+      <td><button class="btn btn-gold" onclick="resetVerdict('${m.id}')">รีเซ็ต</button></td>
+    </tr>`).join('') + '</tbody></table>';
+}
+
+async function doVerdict(matchId, winner, winnerName) {
+  if (!confirm(`ยืนยัน: "${winnerName}" ชนะ ใช่ไหมครับ?\n\nระบบจะ:\n• รวมเงินเดิมพันทั้งหมด\n• หัก 7% ค่าบริการ\n• โอนเงินที่เหลือให้ผู้ชนะทุกคนตามสัดส่วน`)) return;
+  // อัปเดตผลแมช
+  await sb.from('matches').update({ winner, status: 'done' }).eq('id', matchId);
+  // จ่ายเงินพร้อมหัก 7%
+  const result = await payoutBets(matchId, winner);
+  showToast(`✅ ${winnerName} ชนะ! รวม ${result.totalPool.toLocaleString()} ฿ หัก 7% = ${result.fee.toLocaleString()} ฿ จ่ายผู้ชนะ ${result.totalPaid.toLocaleString()} ฿`);
+  loadVerdict(); loadMatches(); loadBets(); loadOverview(); loadMembers();
+}
+
+async function payoutBets(matchId, winner) {
+  // ดึงการเดิมพันทั้งหมดของแมชนี้ที่จับคู่แล้ว
+  const { data: bets } = await sb.from('bets').select('*').eq('match_id', matchId).in('status', ['matched', 'waiting']);
+  if (!bets?.length) return { totalPool: 0, fee: 0, totalPaid: 0 };
+
+  // แยกฝั่งชนะและแพ้
+  const winnerBets = bets.filter(b => b.side === winner);
+  const loserBets  = bets.filter(b => b.side !== winner);
+
+  // คำนวณ pool รวม = เงินฝั่งชนะ + เงินฝั่งแพ้
+  const winnerPool = winnerBets.reduce((s, b) => s + Number(b.amount), 0);
+  const loserPool  = loserBets.reduce((s, b) => s + Number(b.amount), 0);
+  const totalPool  = winnerPool + loserPool;
+
+  // หัก 7% ค่าบริการจาก pool รวม
+  const FEE_RATE  = 0.07;
+  const fee       = Math.floor(totalPool * FEE_RATE);
+  const netPool   = totalPool - fee; // เงินที่จ่ายให้ผู้ชนะทั้งหมด
+
+  let totalPaid = 0;
+
+  // อัปเดตสถานะการเดิมพันทั้งหมด
+  for (const bet of bets) {
+    const won = bet.side === winner;
+    await sb.from('bets').update({ status: won ? 'won' : 'lost' }).eq('id', bet.id);
+  }
+
+  // จ่ายเงินให้ผู้ชนะแต่ละคน ตามสัดส่วนที่วางเดิมพัน
+  if (winnerPool > 0 && winnerBets.length > 0) {
+    // ใช้ Map สะสมเงินต่อ nick เผื่อคนเดียวมีหลาย bet
+    const payMap = new Map();
+
+    for (const bet of winnerBets) {
+      // สัดส่วน = เงินของ bet นี้ / winnerPool ทั้งหมด
+      const ratio    = Number(bet.amount) / winnerPool;
+      // ได้รับ = คืนเงินต้น + กำไรจาก loserPool ตามสัดส่วน (หลังหัก fee)
+      const returned = Math.floor(Number(bet.amount) + (loserPool * (1 - FEE_RATE) * ratio));
+      const prev = payMap.get(bet.nick) || 0;
+      payMap.set(bet.nick, prev + returned);
+    }
+
+    // อัปเดตยอดเงินในบัญชีผู้ชนะ
+    for (const [nick, amount] of payMap.entries()) {
+      const { data: mem } = await sb.from('members').select('balance').eq('nick', nick).maybeSingle();
+      if (mem) {
+        const newBalance = (mem.balance || 0) + amount;
+        await sb.from('members').update({ balance: newBalance }).eq('nick', nick);
+        totalPaid += amount;
+        console.log(`✅ จ่าย ${nick}: +${amount.toLocaleString()} ฿ (ยอดใหม่: ${newBalance.toLocaleString()} ฿)`);
+      }
+    }
+  }
+
+  // บันทึก fee ลง Supabase (optional: เก็บเป็น revenue)
+  await sb.from('deposits').insert({
+    nick: 'SYSTEM',
+    amount: fee,
+    bank: 'ค่าบริการ 7%',
+    txn: 'FEE-' + matchId.slice(0,8) + '-' + Date.now(),
+    status: 'approved',
+  }).then(() => {}).catch(() => {}); // ไม่ error ถ้า insert ไม่ได้
+
+  return { totalPool, fee, totalPaid };
+}
+
+async function resetVerdict(matchId) {
+  if (!confirm('รีเซ็ตผลการแข่งขันนี้ใช่ไหมครับ?')) return;
+  await sb.from('matches').update({ winner: null, status: 'done' }).eq('id', matchId);
+  showToast('✅ รีเซ็ตผลแล้วครับ');
+  loadVerdict(); loadMatches();
+}
+
+// ===== DEPOSITS =====
+async function loadDeposits() {
+  const {data} = await sb.from('deposits').select('*').order('created_at',{ascending:false});
+  allDeposits = data || [];
+  filterDeposits();
+}
+
+function filterDeposits() {
+  const sf = document.getElementById('dep-filter')?.value || '';
+  const rows = sf ? allDeposits.filter(d => d.status === sf) : allDeposits;
+  const tb = document.getElementById('dep-tbody');
+  if (!rows.length) { tb.innerHTML = '<tr><td colspan="7" style="text-align:center;padding:20px;color:#aaa;">ไม่มีรายการ</td></tr>'; return; }
+  tb.innerHTML = rows.map(d => `<tr id="dep-row-${d.id}">
+    <td><strong>${d.nick}</strong></td>
+    <td style="font-family:'Kanit',sans-serif;font-weight:700;color:var(--green);">${Number(d.amount).toLocaleString()} ฿</td>
+    <td>${d.bank||'—'}</td>
+    <td style="font-size:11px;color:#aaa;">${d.txn||'—'}</td>
+    <td><span class="badge badge-${d.status}">${d.status==='pending'?'⏳ รอ':d.status==='approved'?'✅ อนุมัติ':'❌ ปฏิเสธ'}</span></td>
+    <td style="font-size:12px;color:#aaa;">${fmtDate(d.created_at)}</td>
+    <td style="display:flex;gap:4px;flex-wrap:wrap;">
+      ${d.status==='pending'?`
+        <button class="btn btn-green" onclick="approveDeposit('${d.id}','${d.nick}',${d.amount})">อนุมัติ</button>
+        <button class="btn btn-red" onclick="rejectDeposit('${d.id}','${d.nick}')">ปฏิเสธ</button>
+      `:'—'}
+    </td>
+  </tr>`).join('');
+}
+
+async function approveDeposit(id, nick, amount) {
+  if (!confirm(`อนุมัติเติมเงิน ${Number(amount).toLocaleString()} ฿ ให้ ${nick} ใช่ไหมครับ?`)) return;
+  const {data:mem} = await sb.from('members').select('balance').eq('nick',nick).maybeSingle();
+  if (!mem) { showToast('❌ ไม่พบสมาชิกครับ','error'); return; }
+  const newBal = (mem.balance||0) + Number(amount);
+  await Promise.all([
+    sb.from('deposits').update({ status:'approved', approved_at: new Date().toISOString(), approved_by:'Admin' }).eq('id',id),
+    sb.from('members').update({ balance: newBal }).eq('nick',nick),
+  ]);
+  showToast(`✅ อนุมัติแล้ว! ${nick} ได้รับ +${Number(amount).toLocaleString()} ฿ ยอดใหม่: ${newBal.toLocaleString()} ฿`);
+  loadDeposits(); loadOverview(); loadMembers();
+}
+
+async function rejectDeposit(id, nick) {
+  const reason = prompt('เหตุผลที่ปฏิเสธ (ไม่บังคับ):') || '';
+  await sb.from('deposits').update({ status:'rejected', reason }).eq('id',id);
+  showToast(`❌ ปฏิเสธคำขอเติมเงินของ ${nick} แล้วครับ`);
+  loadDeposits(); loadOverview();
+}
+
+// ===== WITHDRAWALS =====
+async function loadWithdrawals() {
+  const {data} = await sb.from('withdrawals').select('*').order('created_at',{ascending:false});
+  allWithdrawals = data || [];
+  renderWithdrawals(allWithdrawals);
+}
+
+function renderWithdrawals(rows) {
+  const tb = document.getElementById('with-tbody');
+  if (!rows.length) { tb.innerHTML = '<tr><td colspan="7" style="text-align:center;padding:20px;color:#aaa;">ไม่มีรายการ</td></tr>'; return; }
+  tb.innerHTML = rows.map(w => `<tr id="with-row-${w.id}">
+    <td><strong>${w.nick}</strong></td>
+    <td style="font-family:'Kanit',sans-serif;font-weight:700;color:var(--red);">${Number(w.amount).toLocaleString()} ฿</td>
+    <td>${w.bank||'—'}</td>
+    <td style="font-size:12px;">${w.acc_no||'—'}<br><span style="color:#aaa;font-size:11px;">${w.acc_name||''}</span></td>
+    <td><span class="badge badge-${w.status}">${w.status==='pending'?'⏳ รอ':w.status==='approved'?'✅ โอนแล้ว':'❌ ปฏิเสธ'}</span></td>
+    <td style="font-size:12px;color:#aaa;">${fmtDate(w.created_at)}</td>
+    <td style="display:flex;gap:4px;flex-wrap:wrap;">
+      ${w.status==='pending'?`
+        <button class="btn btn-green" onclick="approveWithdrawal('${w.id}','${w.nick}',${w.amount})">โอนแล้ว</button>
+        <button class="btn btn-red" onclick="rejectWithdrawal('${w.id}','${w.nick}',${w.amount})">ปฏิเสธ</button>
+      `:'—'}
+    </td>
+  </tr>`).join('');
+}
+
+async function approveWithdrawal(id, nick, amount) {
+  if (!confirm(`ยืนยันว่าโอนเงิน ${Number(amount).toLocaleString()} ฿ ให้ ${nick} แล้วใช่ไหมครับ?`)) return;
+  await sb.from('withdrawals').update({ status:'approved', approved_at: new Date().toISOString(), approved_by:'Admin' }).eq('id',id);
+  showToast(`✅ ยืนยันการโอนเงินให้ ${nick} แล้วครับ`);
+  loadWithdrawals(); loadOverview();
+}
+
+async function rejectWithdrawal(id, nick, amount) {
+  if (!confirm(`ปฏิเสธและคืนเงิน ${Number(amount).toLocaleString()} ฿ ให้ ${nick} ใช่ไหมครับ?`)) return;
+  const reason = prompt('เหตุผลที่ปฏิเสธ:') || '';
+  // คืนเงิน
+  const {data:mem} = await sb.from('members').select('balance').eq('nick',nick).maybeSingle();
+  if (mem) await sb.from('members').update({ balance: (mem.balance||0)+Number(amount) }).eq('nick',nick);
+  await sb.from('withdrawals').update({ status:'rejected', reason }).eq('id',id);
+  showToast(`✅ ปฏิเสธและคืนเงิน ${Number(amount).toLocaleString()} ฿ ให้ ${nick} แล้วครับ`);
+  loadWithdrawals(); loadOverview(); loadMembers();
+}
+
+// ===== BETS =====
+async function loadBets() {
+  const {data} = await sb.from('bets').select('*, matches(round,name_a,name_b,code)').order('created_at',{ascending:false});
+  allBets = data || [];
+  document.getElementById('bets-count').textContent = `(${allBets.length} รายการ)`;
+  filterBets();
+}
+
+function filterBets() {
+  const q = (document.getElementById('bet-search')?.value||'').toLowerCase();
+  const rows = q ? allBets.filter(b => b.nick?.toLowerCase().includes(q) || b.matches?.code?.includes(q)) : allBets;
+  const tb = document.getElementById('bets-tbody');
+  if (!rows.length) { tb.innerHTML = '<tr><td colspan="7" style="text-align:center;padding:20px;color:#aaa;">ไม่มีรายการ</td></tr>'; return; }
+  tb.innerHTML = rows.map(b => `<tr>
+    <td><strong>${b.nick}</strong></td>
+    <td>${b.side==='red'?'🔴':'🔵'} ${b.side_name||'—'}<br><span style="font-size:11px;color:#aaa;">${b.matches?.round||''} ${b.matches?.code?'#'+b.matches.code:''}</span></td>
+    <td>×${b.odds}</td>
+    <td style="font-family:'Kanit',sans-serif;font-weight:700;">${Number(b.amount).toLocaleString()} ฿</td>
+    <td><span class="badge badge-${b.status==='won'?'approved':b.status==='lost'?'rejected':b.status==='matched'?'approved':'pending'}">${b.status==='won'?'🏆 ชนะ':b.status==='lost'?'❌ แพ้':b.status==='matched'?'✅ จับคู่':'⏳ รอ'}</span></td>
+    <td style="font-size:12px;">${b.matched_with||'—'}</td>
+    <td style="font-size:11px;color:#aaa;">${fmtDate(b.created_at)}</td>
+  </tr>`).join('');
+}
+
+// ===== NEWS =====
+async function loadNews() {
+  const {data} = await sb.from('news').select('*').order('created_at',{ascending:false}).limit(20);
+  const el = document.getElementById('news-list');
+  if (!data?.length) { el.innerHTML = '<div style="text-align:center;padding:20px;color:#aaa;">ยังไม่มีข่าวสารครับ</div>'; return; }
+  el.innerHTML = data.map(n => `
+    <div style="background:#f9f9f9;border:1px solid #e5e5e0;border-radius:10px;padding:14px;margin-bottom:10px;display:flex;justify-content:space-between;align-items:flex-start;gap:10px;">
+      <div>
+        <div style="font-family:'Kanit',sans-serif;font-weight:700;font-size:14px;">${n.title||'—'}</div>
+        <div style="font-size:12px;color:#666;margin-top:4px;">${n.body||''}</div>
+        <div style="font-size:11px;color:#aaa;margin-top:4px;">${fmtDate(n.created_at)}</div>
+      </div>
+      <button class="btn btn-red" onclick="deleteNews('${n.id}')">ลบ</button>
+    </div>`).join('');
+}
+
 async function addNews() {
-  const title = document.getElementById('n-title').value.trim();
-  const body  = document.getElementById('n-body').value.trim();
-  if (!title) { showToast('⚠️ กรุณาใส่หัวข่าวครับ','error'); return; }
-  await sb.from('news').insert({ title, body, category: document.getElementById('n-cat').value, status: document.getElementById('n-status').value });
-  showToast('✅ โพสต์ข่าวแล้วครับ');
-  document.getElementById('n-title').value=''; document.getElementById('n-body').value='';
+  const title = document.getElementById('news-title').value.trim();
+  const body  = document.getElementById('news-body').value.trim();
+  if (!title) { showToast('⚠️ กรุณากรอกหัวข้อข่าวครับ','error'); return; }
+  const {error} = await sb.from('news').insert({ title, body });
+  if (error) { showToast('❌ เกิดข้อผิดพลาดครับ','error'); return; }
+  document.getElementById('news-title').value = '';
+  document.getElementById('news-body').value = '';
+  showToast('✅ โพสต์ข่าวแล้วครับ!');
   loadNews();
 }
 
 async function deleteNews(id) {
+  if (!confirm('ลบข่าวนี้ใช่ไหมครับ?')) return;
   await sb.from('news').delete().eq('id',id);
   showToast('✅ ลบข่าวแล้วครับ');
   loadNews();
 }
 
-// ── DEPOSITS ──
-let allDeps = [];
-async function loadDeposits() {
-  const { data } = await sb.from('deposits').select('*').order('created_at',{ascending:false});
-  allDeps = data || [];
-  updateDepStats();
-  renderDeps(allDeps);
-}
-
-function updateDepStats() {
-  const pending  = allDeps.filter(d=>d.status==='pending').length;
-  const approved = allDeps.filter(d=>d.status==='approved').length;
-  const total    = allDeps.filter(d=>d.status==='approved').reduce((s,d)=>s+Number(d.amount||0),0);
-  document.getElementById('dep-pending-count').textContent  = pending;
-  document.getElementById('dep-approved-count').textContent = approved;
-  document.getElementById('dep-total').textContent          = total.toLocaleString()+' ฿';
-  document.getElementById('dep-pending-badge').textContent  = pending;
-  document.getElementById('dep-approved-badge').textContent = approved;
-}
-function renderDeps(rows) { filterDep(); }
-
-function filterDep() {
-  const qP = document.getElementById('dep-search-pending')?.value.toLowerCase()  || '';
-  const qA = document.getElementById('dep-search-approved')?.value.toLowerCase() || '';
-  const pending  = allDeps.filter(d => d.status === 'pending' && (!qP || d.nick?.toLowerCase().includes(qP) || d.txn?.includes(qP)) && inDateRange(d.created_at, 'dep-pending-from', 'dep-pending-to'));
-  const approved = allDeps.filter(d => d.status !== 'pending' && (!qA || d.nick?.toLowerCase().includes(qA) || d.txn?.includes(qA)) && inDateRange(d.created_at, 'dep-approved-from', 'dep-approved-to'));
-  const rp = document.getElementById('dep-pending-result');
-  const ra = document.getElementById('dep-approved-result');
-  if (rp) rp.textContent = (document.getElementById('dep-pending-from')?.value || document.getElementById('dep-pending-to')?.value) ? `พบ ${pending.length} รายการ` : '';
-  if (ra) ra.textContent = (document.getElementById('dep-approved-from')?.value || document.getElementById('dep-approved-to')?.value) ? `พบ ${approved.length} รายการ` : '';
-
-  // ── ตาราง รอตรวจสอบ ──
-  const pt = document.getElementById('dep-pending-tbody');
-  if (!pending.length) {
-    pt.innerHTML = '<tr class="loading-row"><td colspan="8" style="color:var(--green);">✅ ไม่มีรายการรอตรวจสอบแล้วครับ</td></tr>';
-  } else {
-    pt.innerHTML = pending.map(d => `
-      <tr id="dep-row-${d.id}" style="transition:all .3s;">
-        <td><strong>${d.nick}</strong></td>
-        <td style="font-size:12px;">${d.fname||''} ${d.lname||''}</td>
-        <td style="font-size:12px;">${d.phone||'—'}</td>
-        <td><strong style="color:var(--green);">+${Number(d.amount).toLocaleString()} ฿</strong></td>
-        <td style="font-size:12px;">${d.bank||'—'}</td>
-        <td style="font-family:'Kanit',sans-serif;font-size:11px;color:#aaa;">${d.txn||'—'}</td>
-        <td style="font-size:12px;color:#aaa;">${fmtDate(d.created_at)}</td>
-        <td style="display:flex;gap:5px;">
-          <button class="action-btn green" onclick="approveDeposit('${d.id}','${d.nick}',${d.amount})">✅ อนุมัติ</button>
-          <button class="action-btn red" onclick="openReject('${d.id}','deposit','${d.nick}',${d.amount})">❌ ปฏิเสธ</button>
-        </td>
-      </tr>`).join('');
-  }
-
-  // ── ตาราง อนุมัติแล้ว (คลิกดูรายละเอียด) ──
-  const at = document.getElementById('dep-approved-tbody');
-  if (!approved.length) {
-    at.innerHTML = '<tr class="loading-row"><td colspan="10">ยังไม่มีรายการอนุมัติ</td></tr>';
-  } else {
-    at.innerHTML = approved.map(d => {
-      const safeD = JSON.stringify(d).replace(/\\/g,'\\\\').replace(/"/g,'&quot;');
-      return `
-        <tr style="cursor:pointer;transition:background .15s;" onmouseover="this.style.background='#f0faf0'" onmouseout="this.style.background=''" onclick="openDepDetail(JSON.parse(this.dataset.d))" data-d="${safeD}">
-          <td><strong>${d.nick}</strong></td>
-          <td style="font-size:12px;">${d.fname||''} ${d.lname||''}</td>
-          <td style="font-size:12px;">${d.phone||'—'}</td>
-          <td><strong style="color:var(--green);">+${Number(d.amount).toLocaleString()} ฿</strong></td>
-          <td style="font-size:12px;">${d.bank||'—'}</td>
-          <td style="font-family:'Kanit',sans-serif;font-size:11px;color:#aaa;">${d.txn||'—'}</td>
-          <td style="font-size:12px;color:#aaa;">${fmtDate(d.created_at)}</td>
-          <td style="font-size:12px;font-family:'Kanit',sans-serif;color:var(--green);font-weight:700;">${d.approved_by||'Admin'}</td>
-          <td style="font-size:12px;color:#aaa;">${d.approved_at ? fmtDate(d.approved_at) : '—'}</td>
-          <td>
-            <span class="badge ${d.status==='approved'?'badge-approved':'badge-rejected'}">${d.status==='approved'?'✅ สำเร็จ':'❌ ปฏิเสธ'}</span>
-            <div style="font-size:10px;color:#aaa;margin-top:2px;">🔍 คลิกดูรายละเอียด</div>
-          </td>
-        </tr>`;
-    }).join('');
-  }
-}
-
-// ── Modal รายละเอียดเติมเงิน ──
-function openDepDetail(d) {
-  const overlay = document.createElement('div');
-  overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:3000;display:flex;align-items:center;justify-content:center;padding:16px;';
-  overlay.onclick = e => { if(e.target===overlay) overlay.remove(); };
-  const statusColor = d.status==='approved' ? '#27943F' : d.status==='rejected' ? 'var(--red)' : '#7A4F00';
-  const statusLabel = d.status==='approved' ? '✅ อนุมัติสำเร็จ' : d.status==='rejected' ? '❌ ปฏิเสธ' : '⏳ รอตรวจสอบ';
-  const rows = [
-    ['👤 ชื่อบัญชี', d.nick||'—'],
-    ['🙍 ชื่อ-สกุล', ((d.fname||'') + ' ' + (d.lname||'')).trim()||'—'],
-    ['📱 เบอร์โทร', d.phone||'—'],
-    ['💵 จำนวนเงิน', '+' + Number(d.amount).toLocaleString() + ' ฿'],
-    ['🏦 ธนาคารที่โอนจาก', d.bank||'—'],
-    ['🔢 TXN', d.txn||'—'],
-    ['🕐 เวลาที่ส่งคำขอ', fmtDate(d.created_at)],
-    ['👮 ผู้อนุมัติ', d.approved_by||'—'],
-    ['✅ เวลาอนุมัติ', d.approved_at ? fmtDate(d.approved_at) : '—'],
-    d.reason ? ['❌ เหตุผลปฏิเสธ', d.reason] : null,
-  ].filter(Boolean);
-  overlay.innerHTML = `
-    <div style="background:#fff;border-radius:16px;padding:24px;width:100%;max-width:460px;max-height:90vh;overflow-y:auto;box-shadow:0 20px 60px rgba(0,0,0,.3);">
-      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;">
-        <div style="font-family:'Kanit',sans-serif;font-weight:900;font-size:16px;">💰 รายละเอียดการเติมเงิน</div>
-        <button onclick="this.closest('[style*=fixed]').remove()" style="background:none;border:none;font-size:22px;cursor:pointer;color:#aaa;">×</button>
-      </div>
-      <div style="background:${d.status==='approved'?'#EAF3DE':d.status==='rejected'?'#FCEBEB':'#FAEEDA'};border-radius:10px;padding:14px;margin-bottom:16px;text-align:center;">
-        <div style="font-family:'Kanit',sans-serif;font-weight:900;font-size:18px;color:${statusColor};">${statusLabel}</div>
-        ${d.approved_at ? '<div style="font-size:12px;color:#888;margin-top:4px;">' + fmtDate(d.approved_at) + '</div>' : ''}
-      </div>
-      <div style="display:flex;flex-direction:column;gap:8px;">
-        ${rows.map(([k,v]) => `<div style="display:flex;justify-content:space-between;align-items:center;padding:9px 12px;background:#f8f8f5;border-radius:8px;gap:12px;"><span style="font-size:12px;color:#888;font-family:'Kanit',sans-serif;white-space:nowrap;">${k}</span><span style="font-size:13px;font-family:'Kanit',sans-serif;font-weight:700;color:#1a1a1a;text-align:right;">${v}</span></div>`).join('')}
-      </div>
-      <button onclick="this.closest('[style*=fixed]').remove()" style="width:100%;margin-top:16px;font-family:'Kanit',sans-serif;font-weight:700;font-size:13px;padding:12px;border-radius:10px;border:1px solid #ddd;background:#fff;cursor:pointer;color:#666;">ปิด</button>
-    </div>`;
-  document.body.appendChild(overlay);
-}
-
-async function approveDeposit(id, nick, amount) {
-  const row = document.getElementById(`dep-row-${id}`);
-  const btn = row?.querySelector('.action-btn.green');
-  if (btn) { btn.disabled = true; btn.textContent = '⏳ กำลังอนุมัติ...'; }
-
-  const { data: member } = await sb.from('members').select('balance').eq('nick', nick).maybeSingle();
-  if (member) {
-    await sb.from('members').update({ balance: Number(member.balance||0) + Number(amount) }).eq('nick', nick);
-  }
-  const approvedAt = new Date().toISOString();
-  let res = await sb.from('deposits').update({ status:'approved', approved_by:'Admin', approved_at:approvedAt }).eq('id', id);
-  if (res.error) res = await sb.from('deposits').update({ status:'approved' }).eq('id', id);
-  if (res.error) { showToast('❌ ' + res.error.message, 'error'); if(btn){btn.disabled=false;btn.textContent='✅ อนุมัติ';} return; }
-
-  // Fade แถวออก
-  if (row) { row.style.transition='all .35s'; row.style.opacity='0'; row.style.transform='translateX(30px)'; row.style.background='#f0faf0'; }
-
-  // อัปเดต memory
-  const idx = allDeps.findIndex(d => d.id === id);
-  if (idx !== -1) allDeps[idx] = { ...allDeps[idx], status:'approved', approved_by:'Admin', approved_at:approvedAt };
-
-  showToast(`✅ อนุมัติเติมเงิน +${Number(amount).toLocaleString()} ฿ ให้ ${nick}`);
-
-  setTimeout(() => { updateDepStats(); filterDep(); loadOverview(); }, 380);
-}
-
-
-// ── WITHDRAWALS ──
-let allWiths = [];
-async function loadWithdrawals() {
-  const { data } = await sb.from('withdrawals').select('*').order('created_at',{ascending:false});
-  allWiths = data || [];
-  updateWithStats();
-  renderWiths(allWiths);
-}
-
-function updateWithStats() {
-  const pending = allWiths.filter(w=>w.status==='pending').length;
-  const done    = allWiths.filter(w=>w.status==='approved').length;
-  const total   = allWiths.filter(w=>w.status==='approved').reduce((s,w)=>s+Number(w.amount||0),0);
-  document.getElementById('with-pending-count').textContent  = pending;
-  document.getElementById('with-done-count').textContent     = done;
-  document.getElementById('with-total').textContent          = total.toLocaleString()+' ฿';
-  document.getElementById('with-pending-badge').textContent  = pending;
-  document.getElementById('with-approved-badge').textContent = done;
-}
-
-function renderWiths(rows) { filterWith(); }
-
-function filterWith() {
-  const qP = document.getElementById('with-search-pending')?.value.toLowerCase()  || '';
-  const qA = document.getElementById('with-search-approved')?.value.toLowerCase() || '';
-
-  const pending = allWiths.filter(w =>
-    w.status === 'pending' &&
-    (!qP || w.nick?.toLowerCase().includes(qP) || w.txn?.includes(qP)) &&
-    inDateRange(w.created_at, 'with-pending-from', 'with-pending-to')
-  );
-  const approved = allWiths.filter(w =>
-    w.status !== 'pending' &&
-    (!qA || w.nick?.toLowerCase().includes(qA) || w.txn?.includes(qA)) &&
-    inDateRange(w.created_at, 'with-approved-from', 'with-approved-to')
-  );
-
-  const rp = document.getElementById('with-pending-result');
-  const ra = document.getElementById('with-approved-result');
-  if (rp) rp.textContent = document.getElementById('with-pending-from')?.value || document.getElementById('with-pending-to')?.value ? `พบ ${pending.length} รายการ` : '';
-  if (ra) ra.textContent = document.getElementById('with-approved-from')?.value || document.getElementById('with-approved-to')?.value ? `พบ ${approved.length} รายการ` : '';
-
-  const pt = document.getElementById('with-pending-tbody');
-  const at = document.getElementById('with-approved-tbody');
-  if (!pending.length) { pt.innerHTML = '<tr class="loading-row"><td colspan="8">ไม่มีรายการรอดำเนินการ</td></tr>'; }
-  else { pt.innerHTML = pending.map(w => `
-    <tr id="with-row-${w.id}">
-      <td><strong>${w.nick}</strong></td>
-      <td><strong style="color:var(--red);">−${Number(w.amount).toLocaleString()} ฿</strong></td>
-      <td style="font-size:12px;">${w.bank||'—'}</td>
-      <td style="font-size:12px;">${w.acc_no||'—'}</td>
-      <td style="font-size:12px;">${w.acc_name||'—'}</td>
-      <td style="font-family:'Kanit',sans-serif;font-size:11px;color:#aaa;">${w.txn||'—'}</td>
-      <td style="font-size:12px;color:#aaa;">${fmtDate(w.created_at)}</td>
-      <td style="display:flex;gap:5px;">
-        <button class="action-btn green" onclick="approveWithdraw('${w.id}','${w.nick}',${w.amount})">✅ โอนแล้ว</button>
-        <button class="action-btn red" onclick="openReject('${w.id}','withdraw','${w.nick}',${w.amount})">❌ ปฏิเสธ</button>
-      </td>
-    </tr>`).join(''); }
-  if (!approved.length) { at.innerHTML = '<tr class="loading-row"><td colspan="9">ยังไม่มีรายการโอน</td></tr>'; }
-  else { at.innerHTML = approved.map(w => `
-    <tr>
-      <td><strong>${w.nick}</strong></td>
-      <td><strong style="color:var(--red);">−${Number(w.amount).toLocaleString()} ฿</strong></td>
-      <td style="font-size:12px;">${w.bank||'—'}</td>
-      <td style="font-size:12px;">${w.acc_no||'—'}</td>
-      <td style="font-family:'Kanit',sans-serif;font-size:11px;color:#aaa;">${w.txn||'—'}</td>
-      <td style="font-size:12px;color:#aaa;">${fmtDate(w.created_at)}</td>
-      <td style="font-size:12px;font-family:'Kanit',sans-serif;color:var(--green);font-weight:700;">${w.approved_by||'Admin'}</td>
-      <td style="font-size:12px;color:#aaa;">${w.approved_at ? fmtDate(w.approved_at) : '—'}</td>
-      <td><span class="badge ${w.status==='approved'?'badge-approved':'badge-rejected'}">${w.status==='approved'?'✅ โอนสำเร็จ':'❌ ปฏิเสธ'}</span></td>
-    </tr>`).join(''); }
-}
-
-async function approveWithdraw(id, nick, amount) {
-  const row = document.getElementById(`with-row-${id}`);
-  const btn = row?.querySelector('.action-btn.green');
-  if (btn) { btn.disabled = true; btn.textContent = '⏳ กำลังบันทึก...'; }
-
-  const approvedAt = new Date().toISOString();
-  let res = await sb.from('withdrawals').update({
-    status: 'approved', approved_by: 'Admin', approved_at: approvedAt
-  }).eq('id', id);
-  if (res.error) res = await sb.from('withdrawals').update({ status: 'approved' }).eq('id', id);
-
-  if (res.error) {
-    showToast('❌ ' + res.error.message, 'error');
-    if (btn) { btn.disabled = false; btn.textContent = '✅ โอนแล้ว'; }
-    return;
-  }
-
-  // ── Fade แถวออกจาก pending ทันที ──
-  if (row) {
-    row.style.transition = 'all .35s';
-    row.style.opacity    = '0';
-    row.style.transform  = 'translateX(30px)';
-    row.style.background = '#f0faf0';
-  }
-
-  // อัปเดต allWiths ใน memory ทันที
-  const idx = allWiths.findIndex(w => w.id === id);
-  if (idx !== -1) {
-    allWiths[idx] = { ...allWiths[idx], status:'approved', approved_by:'Admin', approved_at: approvedAt };
-  }
-
-  showToast(`✅ โอนสำเร็จ! บันทึกให้ ${nick} แล้วครับ`);
-
-  // รอ animation เสร็จแล้ว re-render
-  setTimeout(() => {
-    updateWithStats();
-    filterWith();
-    loadOverview();
-  }, 380);
-}
-
-// ── REJECT MODAL ──
-let rejectTarget = null;
-function openReject(id, type, nick, amount) {
-  rejectTarget = { id, type, nick, amount };
-  document.getElementById('reject-info').textContent = `${nick} · ${Number(amount).toLocaleString()} ฿`;
-  document.getElementById('reject-reason').value = '';
-  document.getElementById('reject-modal').classList.add('open');
-}
-function setRejectReason(btn, reason) {
-  document.querySelectorAll('#reject-modal button').forEach(b => b.style.background='#fff');
-  btn.style.background = '#FCEBEB';
-  document.getElementById('reject-reason').value = reason;
-}
-async function confirmReject() {
-  const reason = document.getElementById('reject-reason').value.trim();
-  if (!reason) { showToast('⚠️ กรุณาระบุเหตุผลครับ','error'); return; }
-  const { id, type, nick, amount } = rejectTarget;
-
-  if (type === 'withdraw') {
-    // คืนเงิน
-    const { data: member } = await sb.from('members').select('balance').eq('nick',nick).maybeSingle();
-    if (member) await sb.from('members').update({ balance: Number(member.balance||0)+Number(amount) }).eq('nick',nick);
-    const { error } = await sb.from('withdrawals').update({ status:'rejected', reason }).eq('id',id);
-    if (error) { showToast('❌ '+error.message,'error'); return; }
-    // อัปเดต allWiths ทันที
-    const idx = allWiths.findIndex(w => w.id === id);
-    if (idx !== -1) allWiths[idx] = { ...allWiths[idx], status:'rejected', reason };
-    updateWithStats();
-    renderWiths(allWiths);
-    showToast(`❌ ปฏิเสธ คืนเงิน +${Number(amount).toLocaleString()} ฿ ให้ ${nick}`);
-  } else {
-    const { error } = await sb.from('deposits').update({ status:'rejected', reason }).eq('id',id);
-    if (error) { showToast('❌ '+error.message,'error'); return; }
-    // อัปเดต allDeps ทันที
-    const idx = allDeps.findIndex(d => d.id === id);
-    if (idx !== -1) allDeps[idx] = { ...allDeps[idx], status:'rejected', reason };
-    updateDepStats();
-    renderDeps(allDeps);
-    showToast(`❌ ปฏิเสธรายการเติมเงินของ ${nick}`);
-  }
-  document.getElementById('reject-modal').classList.remove('open');
-  loadOverview();
-}
-
-// ── BETS ──
-let allBetsData = [];
-async function loadBets() {
-  // Join กับ matches เพื่อได้ code และ round
-  const { data } = await sb.from('bets')
-    .select('*, matches(round, code, name_a, name_b, date)')
-    .order('created_at', { ascending: false });
-  allBetsData = data || [];
-  filterBets();
-}
-
-function filterBets() {
-  const q      = document.getElementById('bet-search')?.value.toLowerCase() || '';
-  const code   = document.getElementById('bet-code-search')?.value.trim() || '';
-  const status = document.getElementById('bet-status-filter')?.value || 'all';
-  const rows   = allBetsData.filter(b => {
-    const matchQ    = !q || b.nick?.toLowerCase().includes(q) || b.txn?.includes(q) || b.side_name?.toLowerCase().includes(q);
-    const matchCode = !code || b.matches?.code === code;
-    const matchS    = status === 'all' || b.status === status;
-    const matchD    = inDateRange(b.created_at, 'bet-date-from', 'bet-date-to');
-    return matchQ && matchCode && matchS && matchD;
-  });
-
-  const res = document.getElementById('bet-filter-result');
-  if (res) res.textContent = (q || code || status !== 'all' || document.getElementById('bet-date-from')?.value) ? `พบ ${rows.length} รายการ` : '';
-
-  document.getElementById('bet-total-count').textContent   = allBetsData.length;
-  document.getElementById('bet-waiting-count').textContent = allBetsData.filter(b => b.status === 'waiting').length;
-  document.getElementById('bet-matched-count').textContent = allBetsData.filter(b => ['matched','won','lost'].includes(b.status)).length;
-
-  const tb = document.getElementById('bets-tbody');
-  if (!rows.length) { tb.innerHTML = '<tr class="loading-row"><td colspan="9">ไม่พบรายการ</td></tr>'; return; }
-  tb.innerHTML = rows.map(b => {
-    const m = b.matches || {};
-    const statusBadge = b.status === 'matched' ? '<span class="badge badge-approved">🤝 จับคู่</span>'
-      : b.status === 'waiting' ? '<span class="badge badge-pending">⏳ รอจับคู่</span>'
-      : b.status === 'won'     ? '<span class="badge badge-approved">🏆 ชนะ</span>'
-      : b.status === 'lost'    ? '<span class="badge badge-rejected">❌ แพ้</span>'
-      : `<span class="badge">${b.status}</span>`;
-    return `<tr>
-      <td><strong>${b.nick}</strong></td>
-      <td>${m.code ? `<span style="font-family:'Kanit',sans-serif;font-weight:900;font-size:13px;color:#B8860B;background:#FFF8E1;padding:2px 8px;border-radius:4px;letter-spacing:2px;">${m.code}</span>` : '—'}</td>
-      <td>${b.side==='red'?'🔴':'🔵'} ${b.side_name||'—'}</td>
-      <td style="font-family:'Kanit',sans-serif;font-size:13px;color:#B8860B;">1 : ${b.odds}</td>
-      <td><strong>${Number(b.amount).toLocaleString()} ฿</strong></td>
-      <td style="font-family:'Kanit',sans-serif;font-size:11px;color:#aaa;">${b.txn||'—'}</td>
-      <td>${statusBadge}</td>
-      <td style="font-size:12px;">${b.matched_with||'—'}</td>
-      <td style="font-size:12px;color:#aaa;">${fmtDate(b.created_at)}</td>
-    </tr>`;
-  }).join('');
-}
-
-// Real-time bets subscription
-function subscribeBetsRealtime() {
-  sb.channel('admin-bets-rt')
-    .on('postgres_changes', { event: '*', schema: 'public', table: 'bets' }, () => {
-      loadBets();
-      loadOverview();
-    })
-    .subscribe(() => {
-      const dot = document.getElementById('bet-realtime-dot');
-      if (dot) dot.style.background = 'var(--green)';
-    });
-}
-
-
-// ── SETTINGS ──
+// ===== SETTINGS =====
 async function loadSettings() {
-  const { data } = await sb.from('settings').select('*');
+  const {data} = await sb.from('settings').select('*');
   if (!data) return;
   const bank    = data.find(s=>s.key==='bankAccount')?.value || {};
   const contact = data.find(s=>s.key==='contact')?.value || {};
-  if (bank.bankName)   document.getElementById('sf-bank').value   = bank.bankName;
-  if (bank.accNo)      document.getElementById('sf-accno').value  = bank.accNo;
-  if (bank.accName)    document.getElementById('sf-accname').value= bank.accName;
-  if (contact.phone1)  document.getElementById('sf-phone').value  = contact.phone1;
-  if (contact.lineId)  document.getElementById('sf-line').value   = contact.lineId;
-  if (contact.fbName)  document.getElementById('sf-fb').value     = contact.fbName;
-  if (contact.hoursTime) document.getElementById('sf-hours').value = contact.hoursTime;
+  if (bank.bankName) document.getElementById('sf-bank').value    = bank.bankName;
+  if (bank.accNo)    document.getElementById('sf-accno').value   = bank.accNo;
+  if (bank.accName)  document.getElementById('sf-accname').value = bank.accName;
+  if (contact.phone1)     document.getElementById('sf-phone').value = contact.phone1;
+  if (contact.lineId)     document.getElementById('sf-line').value  = contact.lineId;
+  if (contact.fbName)     document.getElementById('sf-fb').value    = contact.fbName;
+  if (contact.hoursTime)  document.getElementById('sf-hours').value = contact.hoursTime;
 }
 
-async function saveBankSettings() {
-  const val = { bankName: document.getElementById('sf-bank').value, accNo: document.getElementById('sf-accno').value, accName: document.getElementById('sf-accname').value };
-  await sb.from('settings').upsert({ key:'bankAccount', value:val });
-  showToast('✅ บันทึกบัญชีรับเงินแล้วครับ');
+async function saveSettings(type) {
+  let key, value;
+  if (type === 'bank') {
+    key = 'bankAccount';
+    value = { bankName: document.getElementById('sf-bank').value, accNo: document.getElementById('sf-accno').value, accName: document.getElementById('sf-accname').value };
+  } else {
+    key = 'contact';
+    value = { phone1: document.getElementById('sf-phone').value, lineId: document.getElementById('sf-line').value, fbName: document.getElementById('sf-fb').value, hoursTime: document.getElementById('sf-hours').value };
+  }
+  await sb.from('settings').upsert({ key, value }, { onConflict:'key' });
+  showToast('✅ บันทึกการตั้งค่าแล้วครับ!');
 }
 
-async function saveContactSettings() {
-  const val = { phone1: document.getElementById('sf-phone').value, lineId: document.getElementById('sf-line').value, fbName: document.getElementById('sf-fb').value, hoursTime: document.getElementById('sf-hours').value };
-  await sb.from('settings').upsert({ key:'contact', value:val });
-  showToast('✅ บันทึกช่องทางติดต่อแล้วครับ');
-}
-
-// ── NOTIFICATIONS (Real-time) ──
+// ===== REALTIME NOTIFICATIONS =====
 function subscribeNotifications() {
-  sb.channel('realtime-changes')
-    // deposits ใหม่
-    .on('postgres_changes', { event:'INSERT', schema:'public', table:'deposits' }, payload => {
+  sb.channel('admin-notifications')
+    .on('postgres_changes',{event:'INSERT',schema:'public',table:'deposits'}, payload => {
       const d = payload.new;
-      // อัปเดต badge แจ้งเตือน
-      let n = parseInt(document.getElementById('notif-num').textContent) || 0;
-      n++;
-      document.getElementById('notif-num').textContent = n;
-      document.getElementById('notif-badge').style.display = 'inline';
+      notifCount++;
+      const badge = document.getElementById('notif-badge');
+      badge.textContent = notifCount;
+      badge.style.display = 'inline';
       showToast(`🔔 ${d.nick} ขอเติมเงิน ${Number(d.amount).toLocaleString()} ฿`);
-      // reload ข้อมูล
-      loadDeposits();
-      loadOverview();
+      loadDeposits(); loadOverview();
     })
-    // deposits อัปเดต (อนุมัติ/ปฏิเสธ)
-    .on('postgres_changes', { event:'UPDATE', schema:'public', table:'deposits' }, () => {
-      loadDeposits();
-      loadOverview();
-    })
-    // withdrawals ใหม่
-    .on('postgres_changes', { event:'INSERT', schema:'public', table:'withdrawals' }, payload => {
+    .on('postgres_changes',{event:'INSERT',schema:'public',table:'withdrawals'}, payload => {
       const w = payload.new;
-      let n = parseInt(document.getElementById('notif-num').textContent) || 0;
-      n++;
-      document.getElementById('notif-num').textContent = n;
-      document.getElementById('notif-badge').style.display = 'inline';
-      showToast(`🔔 ${w.nick} ขอถอนเงิน ${Number(w.amount).toLocaleString()} ฿`);
-      loadWithdrawals();
-      loadOverview();
+      showToast(`🏧 ${w.nick} ขอถอนเงิน ${Number(w.amount).toLocaleString()} ฿`);
+      loadWithdrawals(); loadOverview();
     })
-    // withdrawals อัปเดต
-    .on('postgres_changes', { event:'UPDATE', schema:'public', table:'withdrawals' }, () => {
-      loadWithdrawals();
-      loadOverview();
+    .on('postgres_changes',{event:'INSERT',schema:'public',table:'members'}, payload => {
+      showToast(`👤 สมาชิกใหม่: ${payload.new.nick}`);
+      loadMembers(); loadOverview();
     })
-    // members ใหม่
-    .on('postgres_changes', { event:'INSERT', schema:'public', table:'members' }, payload => {
-      const m = payload.new;
-      showToast(`👤 สมาชิกใหม่: ${m.nick}`);
-      loadMembers();
-      loadOverview();
-    })
-    // members อัปเดต (ยอดเงิน)
-    .on('postgres_changes', { event:'UPDATE', schema:'public', table:'members' }, () => {
+    .on('postgres_changes',{event:'UPDATE',schema:'public',table:'members'}, () => {
       loadMembers();
     })
     .subscribe(status => {
-      if (status === 'SUBSCRIBED') {
-        console.log('✅ Realtime connected');
-      }
+      console.log('Admin Realtime:', status);
+      const dot = document.getElementById('realtime-dot');
+      if (dot) dot.style.background = status==='SUBSCRIBED' ? '#639922' : '#C8102E';
     });
 }
-
-// close modals on overlay click
-document.getElementById('verdict-modal').addEventListener('click', e => { if(e.target===document.getElementById('verdict-modal')) e.target.classList.remove('open'); });
-document.getElementById('reject-modal').addEventListener('click', e => { if(e.target===document.getElementById('reject-modal')) e.target.classList.remove('open'); });
 </script>
-</div><!-- end dashboard -->
 </body>
 </html>
