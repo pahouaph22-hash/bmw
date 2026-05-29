@@ -1226,16 +1226,6 @@ window.addEventListener('DOMContentLoaded', async () => {
     });
   }
 });
-          errEl.style.display = 'block';
-          errEl.style.background = 'rgba(27,107,47,.15)';
-          errEl.style.color = '#4ade80';
-          errEl.style.borderRadius = '6px';
-          errEl.style.padding = '8px 12px';
-        }
-      }, 300);
-    });
-  }
-});
 
 // ===== LOAD MATCHES =====
 async function loadMatches() {
@@ -2743,7 +2733,7 @@ document.querySelectorAll('.overlay').forEach(el => {
 
 
 // ===== FIRE RING CANVAS =====
-(function initFireRing() {
+;(function initFireRing() {
   const canvas = document.getElementById('fire-canvas');
   if (!canvas) return;
   const ctx = canvas.getContext('2d');
@@ -2752,8 +2742,10 @@ document.querySelectorAll('.overlay').forEach(el => {
   function resize() {
     const wrap = canvas.closest('.section-fire-wrap');
     if (!wrap) return;
-    canvas.width  = Math.min(wrap.offsetWidth, 960);
-    canvas.height = wrap.offsetHeight;
+    const w = wrap.offsetWidth || 960;
+    const h = wrap.offsetHeight || 500;
+    canvas.width  = Math.min(w, 960);
+    canvas.height = Math.max(h, 300); // ไม่ให้ต่ำกว่า 300px
   }
   resize();
   window.addEventListener('resize', resize);
@@ -2799,8 +2791,10 @@ document.querySelectorAll('.overlay').forEach(el => {
   let time = 0;
 
   function drawRing(cx, cy, radius) {
+    if (radius <= 0) return; // guard
+
     // Glow halo
-    const halo = ctx.createRadialGradient(cx, cy, radius * 0.7, cx, cy, radius * 1.4);
+    const halo = ctx.createRadialGradient(cx, cy, Math.max(radius * 0.7, 0.1), cx, cy, radius * 1.4);
     halo.addColorStop(0,   'rgba(255,120,0,0)');
     halo.addColorStop(0.5, 'rgba(255,80,0,.08)');
     halo.addColorStop(1,   'rgba(200,40,0,0)');
@@ -2810,7 +2804,7 @@ document.querySelectorAll('.overlay').forEach(el => {
     ctx.fill();
 
     // Core ring glow
-    const grad = ctx.createRadialGradient(cx, cy, radius - 18, cx, cy, radius + 18);
+    const grad = ctx.createRadialGradient(cx, cy, Math.max(radius - 18, 0.1), cx, cy, radius + 18);
     grad.addColorStop(0,   'rgba(255,160,0,0)');
     grad.addColorStop(0.4, 'rgba(255,100,0,.35)');
     grad.addColorStop(0.5, 'rgba(255,180,0,.7)');
@@ -2879,7 +2873,7 @@ document.querySelectorAll('.overlay').forEach(el => {
 
     const cx = canvas.width  / 2;
     const cy = canvas.height / 2;
-    const radius = Math.min(canvas.width, canvas.height) * 0.32;
+    const radius = Math.max(Math.min(canvas.width, canvas.height) * 0.32, 30); // ขั้นต่ำ 30px
 
     time++;
     rotation += 0.012;
