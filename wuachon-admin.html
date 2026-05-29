@@ -1075,7 +1075,40 @@ async function confirmSlipUpload() {
   errEl.style.display = 'none';
 
   try {
-    // ---- พยายาม upload สลิปไป Storage (ถ้า bucket มี) ----
+    // ---- STEP 1: อัปเดต status = approved ----
+    const { data: updData, error: dbErr } = await sb
+      .from('withdrawals')
+      .update({ status: 'approved' })
+      .eq('id', wid)
+      .select(); // เพิ่ม .select() เพื่อ confirm ว่า update จริงๆ
+
+    if (dbErr) {
+      const msg = dbErr?.message || dbErr?.details || JSON.stringify(dbErr);
+      errEl.textContent = '❌ บันทึกไม่สำเร็จ: ' + msg;
+      errEl.style.display = 'block';
+      btn.disabled = false;
+      btn.textContent = '✅ อัปโหลดสลิป / ยืนยันการโอน';
+      return;
+    }
+
+    // ถ้า update ไม่กระทบ row ใดเลย (RLS silently block)
+    if (!updData || updData.length === 0) {
+      errEl.textContent = '❌ ไม่สามารถอัปเดตได้ — กรุณารัน SQL เปิด RLS ใน Supabase ก่อนครับ (ดู fix-withdrawals-rls.sql)';
+      errEl.style.display = 'block';
+      btn.disabled = false;
+      btn.textContent = '✅ อัปโหลดสลิป / ยืนยันการโอน';
+      return;
+    }
+
+    // ---- STEP 2: พยายาม update approved_at, approved_by (ถ้ามี column) ----
+    try {
+      await sb.from('withdrawals').update({
+        approved_at: new Date().toISOString(),
+        approved_by: 'Admin',
+      }).eq('id', wid);
+    } catch(_) {}
+
+    // ---- STEP 3: upload สลิปไป Storage (optional) ----
     let slip_url = '';
     try {
       const ext = file.name.split('.').pop() || 'jpg';
@@ -1086,45 +1119,25 @@ async function confirmSlipUpload() {
       if (!uploadErr) {
         const { data: urlData } = sb.storage.from('slips').getPublicUrl(fileName);
         slip_url = urlData?.publicUrl || '';
+        // อัปเดต slip_url ถ้า upload สำเร็จ
+        try {
+          await sb.from('withdrawals').update({ slip_url }).eq('id', wid);
+        } catch(_) {}
       }
-      // ถ้า upload ล้มเหลว (bucket ไม่มี ฯลฯ) ก็ไม่เป็นไร ดำเนินการต่อ
     } catch(_) {}
 
-    // ---- อัปเดต DB (อัปเดตเฉพาะ field ที่มีแน่นอน) ----
-    const updatePayload = {
-      status: 'approved',
-      approved_at:  new Date().toISOString(),
-      approved_by:  'Admin',
-    };
-    // เพิ่ม slip_url ก็ต่อเมื่อ upload สำเร็จ
-    if (slip_url) updatePayload.slip_url = slip_url;
-
-    const { error: dbErr } = await sb
-      .from('withdrawals')
-      .update(updatePayload)
-      .eq('id', wid);
-
-    if (dbErr) {
-      errEl.textContent = '❌ บันทึกไม่สำเร็จ: ' + dbErr.message;
-      errEl.style.display = 'block';
-      btn.disabled = false;
-      btn.textContent = '✅ อัปโหลดสลิป / ยืนยันการโอน';
-      return;
-    }
-
-    // ---- อัปเดต allWithdrawals ใน memory ทันที (ไม่ต้องรอ reload) ----
+    // ---- STEP 4: อัปเดต memory ทันที ----
     const idx = allWithdrawals.findIndex(w => w.id === wid);
     if (idx !== -1) {
       allWithdrawals[idx] = {
         ...allWithdrawals[idx],
         status: 'approved',
-        slip_url,
-        approved_at: updatePayload.approved_at,
-        approved_by: 'Admin',
+        slip_url: slip_url || allWithdrawals[idx].slip_url || '',
+        approved_at: new Date().toISOString(),
       };
     }
 
-    // ---- fade row แล้ว re-render ทันที ----
+    // ---- STEP 5: fade row ออก ----
     const row = document.getElementById('with-row-' + wid);
     if (row) {
       row.style.transition = 'opacity .35s, transform .35s';
@@ -1135,16 +1148,16 @@ async function confirmSlipUpload() {
     closeSlipModal();
     showToast(`✅ โอนเงิน ${Number(amount).toLocaleString()} ฿ ให้ ${nick} สำเร็จ!`);
 
-    // re-render จาก memory ก่อน แล้วค่อย reload จาก DB
+    // ---- STEP 6: re-render จาก memory ก่อน แล้ว sync DB ----
     setTimeout(() => {
-      filterWithdrawals();          // render จาก allWithdrawals ที่ update แล้ว
-      loadWithdrawals();            // sync กับ DB จริง
+      filterWithdrawals();
+      loadWithdrawals();
       loadOverview();
       loadMembers();
     }, 400);
 
   } catch(e) {
-    errEl.textContent = '❌ เกิดข้อผิดพลาด: ' + (e.message || e);
+    errEl.textContent = '❌ เกิดข้อผิดพลาด: ' + (e?.message || JSON.stringify(e));
     errEl.style.display = 'block';
   } finally {
     btn.disabled = false;
