@@ -1001,6 +1001,33 @@ async function approveDeposit(id, nick, amount) {
   if (!mem) { showToast('❌ ไม่พบสมาชิกครับ','error'); return; }
   const newBal = (mem.balance||0) + Number(amount);
 
+  // STEP 1: update status เพียง field เดียว + .select() เพื่อตรวจสอบ
+  const { data: updData, error: dbErr } = await sb
+    .from('deposits')
+    .update({ status: 'approved' })
+    .eq('id', id)
+    .select();
+
+  if (dbErr) {
+    showToast('❌ อนุมัติไม่สำเร็จ: ' + (dbErr.message||JSON.stringify(dbErr)), 'error');
+    return;
+  }
+  if (!updData || updData.length === 0) {
+    showToast('❌ ไม่สามารถอัปเดตได้ — กรุณารัน SQL เปิด RLS ใน Supabase ครับ', 'error');
+    return;
+  }
+
+  // STEP 2: update approved_at, approved_by แยก try (ถ้ามี column)
+  try {
+    await sb.from('deposits').update({
+      approved_at: new Date().toISOString(),
+      approved_by: 'Admin',
+    }).eq('id', id);
+  } catch(_) {}
+
+  // STEP 3: เพิ่มยอดเงินสมาชิก
+  await sb.from('members').update({ balance: newBal }).eq('nick', nick);
+
   // Fade row ออก
   const row = document.getElementById('dep-row-' + id);
   if (row) {
@@ -1009,11 +1036,6 @@ async function approveDeposit(id, nick, amount) {
     row.style.transform = 'translateX(30px)';
   }
 
-  await Promise.all([
-    sb.from('deposits').update({ status:'approved', approved_at: new Date().toISOString(), approved_by:'Admin' }).eq('id',id),
-    sb.from('members').update({ balance: newBal }).eq('nick',nick),
-  ]);
-
   // อัปเดต memory ทันที
   const idx = allDeposits.findIndex(d => d.id === id);
   if (idx !== -1) {
@@ -1021,7 +1043,6 @@ async function approveDeposit(id, nick, amount) {
   }
 
   showToast(`✅ อนุมัติแล้ว! ${nick} ได้รับ +${Number(amount).toLocaleString()} ฿ ยอดใหม่: ${newBal.toLocaleString()} ฿`);
-
   setTimeout(() => { filterDeposits(); loadDeposits(); loadOverview(); loadMembers(); }, 450);
 }
 
