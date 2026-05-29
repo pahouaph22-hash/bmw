@@ -155,6 +155,7 @@ tr:hover td{background:#fafafa;}
       <div class="sb-item" data-panel="withdrawals" onclick="switchPanel('withdrawals')">🏧 ถอนเงิน</div>
       <div class="sb-item" data-panel="bets" onclick="switchPanel('bets')">🎯 P2P</div>
       <div class="sb-section">|</div>
+      <div class="sb-item" data-panel="referral" onclick="switchPanel('referral');loadReferralPanel();">🎁 แนะนำสมาชิก</div>
       <div class="sb-item" data-panel="news" onclick="switchPanel('news')">📰 ข่าวสาร</div>
       <div class="sb-item" data-panel="settings" onclick="switchPanel('settings')">⚙️ ตั้งค่า</div>
     </div>
@@ -395,6 +396,32 @@ tr:hover td{background:#fafafa;}
         </div>
       </div>
 
+      <!-- REFERRAL -->
+      <div class="panel" id="panel-referral">
+        <div class="card">
+          <div class="card-title">🎁 ภาพรวมระบบแนะนำสมาชิก
+            <div style="display:flex;gap:8px;">
+              <button class="btn btn-primary" onclick="loadReferralPanel()">🔄 รีเฟรช</button>
+            </div>
+          </div>
+          <div id="ref-stats-grid" style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:16px;">
+            <div class="stat-card"><div class="ico">👥</div><div class="val" id="ref-total-members">—</div><div class="lbl">สมาชิกที่ถูกแนะนำ</div></div>
+            <div class="stat-card"><div class="ico">💰</div><div class="val" id="ref-total-commission">—</div><div class="lbl">คอมฯ จ่ายรวม (฿)</div></div>
+            <div class="stat-card"><div class="ico">📋</div><div class="val" id="ref-total-logs">—</div><div class="lbl">รายการทั้งหมด</div></div>
+          </div>
+          <div style="overflow-x:auto;">
+            <table>
+              <thead><tr><th>ผู้แนะนำ</th><th>สมาชิกใหม่</th><th>ยอดเติมเงิน</th><th>คอมฯ ที่ได้</th><th>อัตรา</th><th>วันที่</th></tr></thead>
+              <tbody id="ref-logs-tbody"><tr><td colspan="6" style="text-align:center;padding:24px;color:#aaa;">กำลังโหลด...</td></tr></tbody>
+            </table>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-title">🏆 Top ผู้แนะนำสมาชิก</div>
+          <div id="ref-top-list"><div style="text-align:center;padding:20px;color:#aaa;">กำลังโหลด...</div></div>
+        </div>
+      </div>
+
       <!-- NEWS -->
       <div class="panel" id="panel-news">
         <div class="card">
@@ -431,6 +458,24 @@ tr:hover td{background:#fafafa;}
             </div>
           </div>
           <button class="save-btn" onclick="saveSettings('fee')">💾 บันทึกค่าบริการ</button>
+        </div>
+        <div class="card" style="border-left:4px solid #60a5fa;">
+          <div class="card-title">🎁 ค่าคอมมิชชันระบบแนะนำสมาชิก</div>
+          <div class="form-row">
+            <div class="fg">
+              <label>อัตราค่าคอมฯ (%)</label>
+              <div style="display:flex;align-items:center;gap:8px;">
+                <input id="sf-ref-rate" type="number" min="0" max="30" step="0.5" placeholder="5" style="flex:1;">
+                <span style="font-family:'Kanit',sans-serif;font-weight:700;font-size:16px;color:#60a5fa;">%</span>
+              </div>
+              <div style="font-size:11px;color:#aaa;margin-top:4px;">คำนวณจากยอดเติมเงินครั้งแรกของสมาชิกใหม่ (ค่าเริ่มต้น 5%)</div>
+            </div>
+            <div class="fg">
+              <label>ตัวอย่าง</label>
+              <div id="ref-rate-preview" style="background:#f9f9f9;border:1px solid #e5e5e0;border-radius:8px;padding:12px;font-size:12px;color:#555;min-height:56px;">กรอก % เพื่อดูตัวอย่าง</div>
+            </div>
+          </div>
+          <button class="save-btn" onclick="saveSettings('refRate')">💾 บันทึกค่าคอมฯ</button>
         </div>
         <div class="card">
           <div class="card-title">🏦 บัญชีรับเงิน</div>
@@ -1069,6 +1114,20 @@ async function approveDeposit(id, nick, amount) {
     allDeposits[idx] = { ...allDeposits[idx], status:'approved', approved_at: new Date().toISOString() };
   }
 
+  // จ่ายค่าคอมฯ ถ้าเป็นการเติมเงินครั้งแรกและมีผู้แนะนำ
+  const depRow = allDeposits.find(d => d.id === id);
+  if (depRow?.is_first_deposit) {
+    await payReferralCommission(nick, amount, true);
+  } else {
+    // ตรวจสอบซ้ำจาก DB กรณีที่ is_first_deposit ไม่ได้เซ็ต
+    const { count: prevApproved } = await sb.from('deposits')
+      .select('*',{count:'exact',head:true})
+      .eq('nick',nick).eq('status','approved');
+    if ((prevApproved||0) <= 1) { // <= 1 เพราะรายการนี้เพิ่งอนุมัติไป
+      await payReferralCommission(nick, amount, true);
+    }
+  }
+
   showToast(`✅ อนุมัติแล้ว! ${nick} ได้รับ +${Number(amount).toLocaleString()} ฿ ยอดใหม่: ${newBal.toLocaleString()} ฿`);
   setTimeout(() => { filterDeposits(); loadDeposits(); loadOverview(); loadMembers(); }, 450);
 }
@@ -1393,6 +1452,15 @@ async function loadSettings() {
     updateFeePreview(rate);
     feeEl.addEventListener('input', () => updateFeePreview(parseFloat(feeEl.value)||0));
   }
+  // โหลดค่า referral rate
+  const refRateData = data.find(s=>s.key==='refRate')?.value;
+  const refEl = document.getElementById('sf-ref-rate');
+  if (refEl) {
+    const rr = refRateData?.rate ?? 5;
+    refEl.value = rr;
+    updateRefRatePreview(rr);
+    refEl.addEventListener('input', () => updateRefRatePreview(parseFloat(refEl.value)||0));
+  }
 }
 
 function updateFeePreview(rate) {
@@ -1407,8 +1475,28 @@ function updateFeePreview(rate) {
     <div style="color:var(--green);margin-top:3px;">จ่ายผู้ชนะ = <b>${net.toLocaleString()} ฿</b></div>`;
 }
 
+function updateRefRatePreview(rate) {
+  const el = document.getElementById('ref-rate-preview');
+  if (!el) return;
+  const dep = 1000;
+  const com = Math.floor(dep * rate / 100);
+  el.innerHTML = `<div>ตัวอย่างเติมเงิน <b>1,000 ฿</b></div>
+    <div style="color:#60a5fa;margin-top:3px;">คอมฯ ผู้แนะนำ = <b>+${com.toLocaleString()} ฿</b></div>
+    <div style="font-size:11px;color:#aaa;margin-top:2px;">จ่ายทันทีตอน Admin อนุมัติ</div>`;
+}
+
 async function saveSettings(type) {
   let key, value;
+  if (type === 'refRate') {
+    const rate = parseFloat(document.getElementById('sf-ref-rate')?.value);
+    if (isNaN(rate) || rate < 0 || rate > 30) {
+      showToast('⚠️ กรุณากรอก % ระหว่าง 0–30 ครับ', 'error'); return;
+    }
+    await sb.from('settings').upsert({ key:'refRate', value:{ rate } }, { onConflict:'key' });
+    showToast(`✅ บันทึกค่าคอมฯ แนะนำสมาชิก ${rate}% แล้วครับ!`);
+    updateRefRatePreview(rate);
+    return;
+  }
   if (type === 'bank') {
     key = 'bankAccount';
     value = { bankName: document.getElementById('sf-bank').value, accNo: document.getElementById('sf-accno').value, accName: document.getElementById('sf-accname').value };
@@ -1429,6 +1517,94 @@ async function saveSettings(type) {
   }
   await sb.from('settings').upsert({ key, value }, { onConflict:'key' });
   showToast('✅ บันทึกการตั้งค่าแล้วครับ!');
+}
+
+
+// ===== REFERRAL PANEL =====
+async function loadReferralPanel() {
+  const [logsRes, settingsRes] = await Promise.all([
+    sb.from('referral_logs').select('*').order('created_at',{ascending:false}).limit(100),
+    sb.from('settings').select('value').eq('key','refRate').maybeSingle(),
+  ]);
+  const logs = logsRes.data || [];
+  const refRate = settingsRes.data?.value?.rate ?? 5;
+
+  // สถิติรวม
+  const totalCom = logs.reduce((s,l)=>s+Number(l.commission||0),0);
+  const el_m = document.getElementById('ref-total-members');
+  const el_c = document.getElementById('ref-total-commission');
+  const el_l = document.getElementById('ref-total-logs');
+  if (el_m) el_m.textContent = logs.length;
+  if (el_c) el_c.textContent = totalCom.toLocaleString();
+  if (el_l) el_l.textContent = logs.length;
+
+  // ตาราง logs
+  const tb = document.getElementById('ref-logs-tbody');
+  if (tb) {
+    if (!logs.length) {
+      tb.innerHTML = '<tr><td colspan="6" style="text-align:center;padding:24px;color:#aaa;">ยังไม่มีประวัติครับ</td></tr>';
+    } else {
+      tb.innerHTML = logs.map(l => `<tr>
+        <td><strong style="cursor:pointer;color:var(--green);text-decoration:underline;" onclick="openMember('${l.referrer_nick}')">${l.referrer_nick}</strong></td>
+        <td><strong style="cursor:pointer;color:var(--green);text-decoration:underline;" onclick="openMember('${l.new_member_nick}')">${l.new_member_nick}</strong></td>
+        <td style="font-family:'Kanit',sans-serif;font-weight:700;">${Number(l.deposit_amount||0).toLocaleString()} ฿</td>
+        <td style="font-family:'Kanit',sans-serif;font-weight:700;color:#60a5fa;">+${Number(l.commission||0).toLocaleString()} ฿</td>
+        <td>${(l.ref_rate||refRate)}%</td>
+        <td style="font-size:12px;color:#aaa;">${fmtDate(l.created_at)}</td>
+      </tr>`).join('');
+    }
+  }
+
+  // Top referrers
+  const topMap = new Map();
+  logs.forEach(l => {
+    topMap.set(l.referrer_nick, (topMap.get(l.referrer_nick)||0) + Number(l.commission||0));
+  });
+  const top = [...topMap.entries()].sort((a,b)=>b[1]-a[1]).slice(0,10);
+  const topEl = document.getElementById('ref-top-list');
+  if (topEl) {
+    if (!top.length) {
+      topEl.innerHTML = '<div style="text-align:center;padding:20px;color:#aaa;">ยังไม่มีข้อมูลครับ</div>';
+    } else {
+      topEl.innerHTML = top.map(([nick,total],i)=>`
+        <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 0;border-bottom:1px solid #f0f0f0;">
+          <div style="display:flex;align-items:center;gap:10px;">
+            <span style="font-family:'Kanit',sans-serif;font-weight:900;font-size:18px;color:${i===0?'#F5A800':i===1?'#aaa':i===2?'#cd7f32':'#ccc'};">${i+1}</span>
+            <strong style="cursor:pointer;color:var(--green);text-decoration:underline;" onclick="openMember('${nick}')">${nick}</strong>
+          </div>
+          <span style="font-family:'Kanit',sans-serif;font-weight:700;color:#60a5fa;">+${total.toLocaleString()} ฿</span>
+        </div>`).join('');
+    }
+  }
+}
+
+// จ่ายค่าคอมฯ แนะนำสมาชิก (เรียกจาก approveDeposit)
+async function payReferralCommission(nick, depositAmount, isFirstDeposit) {
+  if (!isFirstDeposit) return; // จ่ายเฉพาะครั้งแรก
+  // ดึง referred_by ของสมาชิก
+  const { data: mem } = await sb.from('members').select('referred_by').eq('nick', nick).maybeSingle();
+  if (!mem?.referred_by) return; // ไม่มีผู้แนะนำ
+  const referrerNick = mem.referred_by;
+  // ดึง ref rate
+  const { data: settingsData } = await sb.from('settings').select('value').eq('key','refRate').maybeSingle();
+  const refRate = settingsData?.value?.rate ?? 5;
+  const commission = Math.floor(Number(depositAmount) * refRate / 100);
+  if (commission <= 0) return;
+  // เพิ่มยอดเงินให้ผู้แนะนำ
+  const { data: referrer } = await sb.from('members').select('balance').eq('nick', referrerNick).maybeSingle();
+  if (!referrer) return;
+  await sb.from('members').update({ balance: (referrer.balance||0) + commission }).eq('nick', referrerNick);
+  // บันทึก log
+  try {
+    await sb.from('referral_logs').insert({
+      referrer_nick:   referrerNick,
+      new_member_nick: nick,
+      deposit_amount:  depositAmount,
+      commission,
+      ref_rate:        refRate,
+    });
+  } catch(_) {}
+  showToast(`🎁 จ่ายค่าคอมฯ ${commission.toLocaleString()} ฿ ให้ ${referrerNick} (แนะนำ ${nick}) แล้วครับ`);
 }
 
 // ===== REALTIME NOTIFICATIONS =====
