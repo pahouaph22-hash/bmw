@@ -252,10 +252,9 @@ tr:hover td{background:#fafafa;}
           <div class="card-title">💰 คำขอเติมเงิน
             <div style="display:flex;gap:8px;">
               <select class="filter-select" id="dep-filter" onchange="filterDeposits()">
-                <option value="">ทุกสถานะ</option>
-                <option value="pending">รอดำเนินการ</option>
-                <option value="approved">อนุมัติแล้ว</option>
-                <option value="rejected">ปฏิเสธ</option>
+                <option value="pending" selected>⏳ รอดำเนินการ</option>
+                <option value="approved">✅ อนุมัติแล้ว</option>
+                <option value="rejected">❌ ถูกปฏิเสธ</option>
               </select>
             </div>
           </div>
@@ -742,16 +741,24 @@ async function loadDeposits() {
 }
 
 function filterDeposits() {
-  const sf = document.getElementById('dep-filter')?.value || '';
-  const rows = sf ? allDeposits.filter(d => d.status === sf) : allDeposits;
+  // default แสดงแค่ pending ถ้าไม่ได้เลือก filter
+  const sf = document.getElementById('dep-filter')?.value || 'pending';
+  const rows = allDeposits.filter(d => d.status === sf);
   const tb = document.getElementById('dep-tbody');
-  if (!rows.length) { tb.innerHTML = '<tr><td colspan="7" style="text-align:center;padding:20px;color:#aaa;">ไม่มีรายการ</td></tr>'; return; }
+  if (!rows.length) {
+    const labels = { pending:'รอดำเนินการ', approved:'อนุมัติแล้ว', rejected:'ถูกปฏิเสธ' };
+    tb.innerHTML = `<tr><td colspan="7" style="text-align:center;padding:24px;color:#aaa;">ไม่มีรายการ${labels[sf]?` "${labels[sf]}"`:''}</td></tr>`;
+    return;
+  }
   tb.innerHTML = rows.map(d => `<tr id="dep-row-${d.id}">
     <td><strong>${d.nick}</strong></td>
     <td style="font-family:'Kanit',sans-serif;font-weight:700;color:var(--green);">${Number(d.amount).toLocaleString()} ฿</td>
     <td>${d.bank||'—'}</td>
     <td style="font-size:11px;color:#aaa;">${d.txn||'—'}</td>
-    <td><span class="badge badge-${d.status}">${d.status==='pending'?'⏳ รอ':d.status==='approved'?'✅ อนุมัติ':'❌ ปฏิเสธ'}</span></td>
+    <td>
+      <span class="badge badge-${d.status}">${d.status==='pending'?'⏳ รอ':d.status==='approved'?'✅ อนุมัติ':'❌ ปฏิเสธ'}</span>
+      ${d.reason ? `<div style="font-size:11px;color:#f87171;margin-top:3px;">เหตุผล: ${d.reason}</div>` : ''}
+    </td>
     <td style="font-size:12px;color:#aaa;">${fmtDate(d.created_at)}</td>
     <td style="display:flex;gap:4px;flex-wrap:wrap;">
       ${d.status==='pending'?`
@@ -776,10 +783,19 @@ async function approveDeposit(id, nick, amount) {
 }
 
 async function rejectDeposit(id, nick) {
-  const reason = prompt('เหตุผลที่ปฏิเสธ (ไม่บังคับ):') || '';
-  await sb.from('deposits').update({ status:'rejected', reason }).eq('id',id);
+  const reason = prompt('เหตุผลที่ปฏิเสธ (ไม่บังคับ):');
+  if (reason === null) return; // กด Cancel ไม่ทำอะไร
+  // Fade row ออกก่อนหาย
+  const row = document.getElementById('dep-row-' + id);
+  if (row) {
+    row.style.transition = 'opacity .4s, transform .4s';
+    row.style.opacity = '0';
+    row.style.transform = 'translateX(30px)';
+  }
+  await sb.from('deposits').update({ status: 'rejected', reason: reason || '' }).eq('id', id);
   showToast(`❌ ปฏิเสธคำขอเติมเงินของ ${nick} แล้วครับ`);
-  loadDeposits(); loadOverview();
+  // รอ animation เสร็จแล้วค่อย reload
+  setTimeout(() => { loadDeposits(); loadOverview(); }, 450);
 }
 
 // ===== WITHDRAWALS =====
