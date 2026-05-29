@@ -1157,6 +1157,7 @@ async function doLogin() {
   closeModal('login');
   renderNav();
   showToast(`✅ ยินดีต้อนรับ ${data.nick} ครับ!`);
+  goToMyAccount();
 }
 
 async function doRegister() {
@@ -1185,6 +1186,7 @@ async function doRegister() {
   closeModal('register');
   renderNav();
   showToast(`🎉 สมัครสำเร็จ ยินดีต้อนรับ ${data.nick}!`);
+  goToMyAccount();
 }
 
 function doLogout() {
@@ -2062,17 +2064,19 @@ document.querySelectorAll('.overlay').forEach(el => {
   }
 
   window.showMyAccount = window._real_showMyAccount = function showMyAccount() {
-    document.getElementById('main-content').style.display  = 'none';
-    document.getElementById('page-schedule').style.display  = 'none';
-    document.getElementById('page-register').style.display  = 'none';
-    document.getElementById('page-history').style.display   = 'none';
+    // ซ่อนทุก page (null-safe)
+    ['main-content','page-schedule','page-register','page-history'].forEach(id => {
+      const el = document.getElementById(id);
+      if (el) el.style.display = 'none';
+    });
     document.getElementById('page-myaccount').style.display = 'block';
     window.scrollTo(0, 0);
   }
 
   window.hideMyAccount = window._real_hideMyAccount = function hideMyAccount() {
     document.getElementById('page-myaccount').style.display = 'none';
-    document.getElementById('main-content').style.display   = 'block';
+    const mc = document.getElementById('main-content');
+    if (mc) mc.style.display = 'block';
     window.scrollTo(0, 0);
   }
 
