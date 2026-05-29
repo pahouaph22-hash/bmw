@@ -1188,13 +1188,15 @@ let currentUser = null;
 
 // ===== INIT =====
 window.addEventListener('DOMContentLoaded', async () => {
-  // ===== ENSURE main-content แสดงผลเสมอตอนโหลด =====
+  // ===== FORCE show main-content ก่อนทุกอย่าง =====
   const mc = document.getElementById('main-content');
   const pm = document.getElementById('page-myaccount');
-  if (mc) mc.style.display = 'block';
+  const ph = document.getElementById('page-history');
+  if (mc) { mc.style.display = 'block'; mc.style.visibility = 'visible'; }
   if (pm) pm.style.display = 'none';
+  if (ph) ph.style.display = 'none';
 
-  // โหลด session
+  // โหลด session — แต่ไม่ redirect ไปหน้าบัญชีอัตโนมัติ
   try {
     const raw = sessionStorage.getItem('bw_user');
     if (raw) { currentUser = JSON.parse(raw); renderNav(); }
