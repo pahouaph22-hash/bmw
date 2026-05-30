@@ -435,244 +435,221 @@ fns.forEach(function(fn){
     gap: 16px;
   }
 
-  /* MATCH CARD */
+  /* ======= MATCH CARD — Redesign ======= */
   .match-card-fe {
     background: var(--dark2);
-    border: 1px solid rgba(255,255,255,0.08);
-    border-radius: 16px;
+    border: 1px solid rgba(255,255,255,0.07);
+    border-radius: 20px;
     overflow: hidden;
     cursor: pointer;
-    transition: transform 0.2s, box-shadow 0.2s, border-color 0.2s;
+    transition: transform 0.25s, box-shadow 0.25s, border-color 0.25s;
     animation: fadeUp 0.5s ease both;
+    position: relative;
   }
   .match-card-fe:hover {
-    transform: translateY(-3px);
-    border-color: rgba(245,200,66,0.35);
-    box-shadow: 0 12px 32px rgba(0,0,0,0.3);
+    transform: translateY(-4px);
+    border-color: rgba(245,200,66,0.4);
+    box-shadow: 0 16px 40px rgba(0,0,0,0.4), 0 0 0 1px rgba(245,200,66,0.1);
   }
   .match-card-fe.live {
     border-color: rgba(239,68,68,0.5);
-    box-shadow: 0 0 20px rgba(239,68,68,0.15);
+    box-shadow: 0 0 24px rgba(239,68,68,0.2);
   }
 
-  /* MATCH HEADER */
+  /* ======= MATCH HEADER ======= */
   .match-header {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    padding: 10px 18px;
-    background: rgba(0,0,0,0.2);
-    border-bottom: 1px solid rgba(255,255,255,0.05);
+    padding: 12px 18px;
+    background: rgba(0,0,0,0.25);
+    border-bottom: 1px solid rgba(255,255,255,0.06);
     flex-wrap: wrap;
-    gap: 8px;
+    gap: 6px;
   }
   .match-round {
     font-family: 'Kanit', sans-serif;
-    font-weight: 700;
-    font-size: 12px;
+    font-weight: 900;
+    font-size: 13px;
     color: var(--gold);
-    letter-spacing: 1px;
-    text-transform: uppercase;
+    letter-spacing: 0.5px;
   }
   .match-meta {
     display: flex;
     align-items: center;
-    gap: 14px;
+    gap: 10px;
     font-size: 11px;
-    color: rgba(240,255,232,0.45);
+    color: rgba(240,255,232,0.4);
     font-family: 'Kanit', sans-serif;
+    flex-wrap: wrap;
   }
-  .match-meta span { display: flex; align-items: center; gap: 4px; }
+  .match-meta span { display: flex; align-items: center; gap: 3px; }
   .match-status-badge {
     font-family: 'Kanit', sans-serif;
     font-weight: 700;
     font-size: 10px;
     padding: 3px 10px;
     border-radius: 999px;
-    letter-spacing: 1px;
+    letter-spacing: 0.5px;
+    white-space: nowrap;
   }
-  .status-upcoming { background: rgba(245,200,66,0.12); color: var(--gold); border: 1px solid rgba(245,200,66,0.25); }
-  .status-live { background: rgba(239,68,68,0.15); color: #f87171; border: 1px solid rgba(239,68,68,0.35); animation: pulse-badge 1.5s infinite; }
-  .status-done { background: rgba(74,222,128,0.1); color: var(--accent); border: 1px solid rgba(74,222,128,0.2); }
+  .status-upcoming { background: rgba(245,200,66,0.12); color: var(--gold); border: 1px solid rgba(245,200,66,0.3); }
+  .status-live { background: rgba(239,68,68,0.18); color: #f87171; border: 1px solid rgba(239,68,68,0.4); animation: pulse-badge 1.5s infinite; }
+  .status-done { background: rgba(74,222,128,0.12); color: var(--accent); border: 1px solid rgba(74,222,128,0.25); }
 
-  /* MATCH BODY — VS layout */
+  /* ======= MATCH BODY — แสดงวัว 2 ฝ่ายชัดเจน ======= */
   .match-body {
     display: grid;
-    grid-template-columns: 1fr 100px 1fr;
+    grid-template-columns: 1fr 80px 1fr;
     align-items: stretch;
-    min-height: 120px;
+    min-height: 140px;
   }
 
   /* TEAM SIDE */
   .team-side {
     display: flex;
+    flex-direction: column;
     align-items: center;
-    gap: 14px;
-    padding: 18px 20px;
+    justify-content: center;
+    gap: 10px;
+    padding: 20px 16px;
+    text-align: center;
     transition: background 0.2s;
   }
   .team-side.red-side {
-    background: linear-gradient(135deg, rgba(239,68,68,0.08) 0%, transparent 60%);
-    border-right: 1px solid rgba(255,255,255,0.04);
+    background: linear-gradient(160deg, rgba(239,68,68,0.12) 0%, rgba(239,68,68,0.03) 100%);
+    border-right: 1px solid rgba(239,68,68,0.12);
   }
   .team-side.blue-side {
-    background: linear-gradient(225deg, rgba(59,130,246,0.08) 0%, transparent 60%);
-    border-left: 1px solid rgba(255,255,255,0.04);
-    flex-direction: row-reverse;
+    background: linear-gradient(200deg, rgba(59,130,246,0.12) 0%, rgba(59,130,246,0.03) 100%);
+    border-left: 1px solid rgba(59,130,246,0.12);
   }
 
-  /* TEAM PHOTO */
+  /* TEAM PHOTO — ใหญ่ขึ้นเพื่อเห็นวัวชัด */
   .team-photo {
-    width: 60px;
-    height: 60px;
+    width: 80px;
+    height: 80px;
     border-radius: 50%;
     overflow: hidden;
     flex-shrink: 0;
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 28px;
-    border: 3px solid rgba(255,255,255,0.08);
+    font-size: 40px;
+    transition: transform 0.2s;
   }
-  .team-photo.red-photo { border-color: rgba(239,68,68,0.4); background: rgba(239,68,68,0.08); }
-  .team-photo.blue-photo { border-color: rgba(59,130,246,0.4); background: rgba(59,130,246,0.08); }
-  .team-photo img { width: 100%; height: 100%; object-fit: cover; }
+  .team-photo.red-photo {
+    border: 3px solid rgba(239,68,68,0.5);
+    background: radial-gradient(circle, rgba(239,68,68,0.15), rgba(239,68,68,0.05));
+    box-shadow: 0 0 16px rgba(239,68,68,0.2);
+  }
+  .team-photo.blue-photo {
+    border: 3px solid rgba(59,130,246,0.5);
+    background: radial-gradient(circle, rgba(59,130,246,0.15), rgba(59,130,246,0.05));
+    box-shadow: 0 0 16px rgba(59,130,246,0.2);
+  }
+  .team-photo img { width: 100%; height: 100%; object-fit: cover; border-radius: 50%; }
+  .match-card-fe:hover .team-photo { transform: scale(1.06); }
 
   /* TEAM INFO */
-  .team-info { flex: 1; }
-  .team-side.blue-side .team-info { text-align: right; }
-  .team-label {
-    font-size: 10px;
-    font-family: 'Kanit', sans-serif;
-    font-weight: 700;
-    letter-spacing: 2px;
-    margin-bottom: 4px;
-    text-transform: uppercase;
-  }
-  .team-label.red { color: rgba(239,68,68,0.7); }
-  .team-label.blue { color: rgba(59,130,246,0.7); }
+  .team-info { text-align: center; }
   .team-name {
     font-family: 'Kanit', sans-serif;
     font-weight: 900;
-    font-size: 18px;
+    font-size: 16px;
     color: var(--cream);
     line-height: 1.2;
-    margin-bottom: 4px;
+    margin-bottom: 3px;
   }
-  .team-name.winner-name { color: var(--gold); }
+  .team-name.winner-name {
+    color: var(--gold);
+    text-shadow: 0 0 12px rgba(245,200,66,0.4);
+  }
   .team-owner {
-    font-size: 12px;
-    color: rgba(240,255,232,0.45);
-    margin-bottom: 5px;
+    font-size: 11px;
+    color: rgba(240,255,232,0.4);
+    margin-bottom: 3px;
   }
-  .team-stats {
-    display: flex;
-    gap: 6px;
-    flex-wrap: wrap;
-  }
-  .team-side.blue-side .team-stats { justify-content: flex-end; }
-  .team-stat-tag {
+  .team-weight {
+    display: inline-block;
     font-family: 'Kanit', sans-serif;
     font-size: 10px;
     font-weight: 700;
     padding: 2px 8px;
     border-radius: 4px;
     background: rgba(255,255,255,0.06);
-    color: rgba(240,255,232,0.5);
-    border: 1px solid rgba(255,255,255,0.07);
+    color: rgba(240,255,232,0.45);
+    border: 1px solid rgba(255,255,255,0.08);
+  }
+  .winner-crown {
+    font-size: 18px;
+    margin-bottom: 2px;
+    filter: drop-shadow(0 0 6px rgba(245,200,66,0.6));
   }
 
   /* VS CENTER */
-  .match-vs-center {
+  .match-center {
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    gap: 6px;
-    padding: 12px 8px;
-    background: rgba(0,0,0,0.15);
+    gap: 5px;
+    padding: 10px 4px;
+    background: rgba(0,0,0,0.18);
     border-left: 1px solid rgba(255,255,255,0.04);
     border-right: 1px solid rgba(255,255,255,0.04);
   }
   .vs-text {
     font-family: 'Kanit', sans-serif;
     font-weight: 900;
-    font-size: 20px;
-    color: rgba(240,255,232,0.2);
+    font-size: 18px;
+    color: rgba(240,255,232,0.18);
     letter-spacing: 2px;
   }
-  .match-time-center {
+
+  /* WINNER BAR */
+  .match-footer-done {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 10px 18px;
+    background: linear-gradient(135deg, rgba(245,200,66,0.1), rgba(245,200,66,0.05));
+    border-top: 1px solid rgba(245,200,66,0.2);
     font-family: 'Kanit', sans-serif;
     font-size: 13px;
     font-weight: 700;
-    color: var(--cream);
-    text-align: center;
-  }
-  .match-date-center {
-    font-size: 10px;
-    color: rgba(240,255,232,0.35);
-    text-align: center;
-    font-family: 'Kanit', sans-serif;
-  }
-  .prize-badge {
-    background: rgba(245,200,66,0.1);
-    border: 1px solid rgba(245,200,66,0.2);
-    border-radius: 6px;
-    padding: 3px 8px;
-    font-family: 'Kanit', sans-serif;
-    font-size: 10px;
-    font-weight: 700;
     color: var(--gold);
-    text-align: center;
-    line-height: 1.4;
   }
+  .match-footer-done strong { color: var(--cream); }
 
-  /* MATCH FOOTER */
-  .match-footer {
+  /* FOOTER ACTIONS */
+  .match-actions {
     display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 10px 18px;
-    border-top: 1px solid rgba(255,255,255,0.05);
-    background: rgba(0,0,0,0.1);
-    flex-wrap: wrap;
     gap: 8px;
-  }
-  .match-location {
-    font-size: 12px;
-    color: rgba(240,255,232,0.4);
-    font-family: 'Kanit', sans-serif;
-    display: flex;
-    align-items: center;
-    gap: 5px;
-  }
-  .match-winner-bar {
-    font-family: 'Kanit', sans-serif;
-    font-size: 12px;
-    font-weight: 700;
-    color: var(--gold);
-    display: flex;
-    align-items: center;
-    gap: 6px;
+    padding: 10px 14px;
+    background: rgba(0,0,0,0.12);
+    border-top: 1px solid rgba(255,255,255,0.05);
   }
   .match-detail-btn {
+    flex: 1;
     font-family: 'Kanit', sans-serif;
-    font-size: 11px;
+    font-size: 12px;
     font-weight: 700;
-    padding: 5px 14px;
-    border-radius: 6px;
+    padding: 8px 12px;
+    border-radius: 8px;
     border: 1px solid rgba(245,200,66,0.25);
     background: transparent;
     color: var(--gold);
     cursor: pointer;
     transition: all 0.15s;
-    letter-spacing: 0.5px;
+    text-align: center;
+    white-space: nowrap;
   }
   .match-detail-btn:hover { background: rgba(245,200,66,0.1); }
   .live-dot {
     display: inline-block;
-    width: 7px;
-    height: 7px;
+    width: 7px; height: 7px;
     border-radius: 50%;
     background: #f87171;
     animation: pulse-badge 1s infinite;
@@ -999,16 +976,16 @@ fns.forEach(function(fn){
     font-family: 'Sarabun', sans-serif;
   }
 
-  /* EVENTS */
+  /* EVENTS — Mobile */
   .events-section {
-    padding: 60px 40px;
+    padding: 40px 16px;
     max-width: 1100px;
     margin: 0 auto;
   }
   .section-title {
     font-family: 'Kanit', sans-serif;
     font-weight: 900;
-    font-size: 36px;
+    font-size: 28px;
     color: var(--gold);
     text-align: center;
     margin-bottom: 8px;
@@ -1018,14 +995,17 @@ fns.forEach(function(fn){
     width: 60px;
     height: 4px;
     background: var(--red);
-    margin: 0 auto 40px;
+    margin: 0 auto 32px;
     border-radius: 2px;
   }
   .event-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-    gap: 24px;
+    grid-template-columns: 1fr;
+    gap: 16px;
   }
+  .match-body { grid-template-columns: 1fr 60px 1fr; min-height: 120px; }
+  .team-photo { width: 60px; height: 60px; font-size: 30px; }
+  .team-name { font-size: 14px; }
   .event-card {
     background: var(--dark2);
     border: 1px solid rgba(245,168,0,0.2);
@@ -2479,6 +2459,22 @@ fns.forEach(function(fn){
     font-size: 12px;
     color: rgba(255,248,236,0.3);
   }
+
+  /* EVENTS — Desktop (tablet+) */
+  @media (min-width: 640px) {
+    .events-section { padding: 60px 32px; }
+    .event-grid { grid-template-columns: repeat(2, 1fr); gap: 20px; }
+    .section-title { font-size: 36px; }
+    .match-body { grid-template-columns: 1fr 80px 1fr; min-height: 140px; }
+    .team-photo { width: 80px; height: 80px; font-size: 40px; }
+    .team-name { font-size: 16px; }
+  }
+  @media (min-width: 1024px) {
+    .events-section { padding: 70px 40px; }
+    .event-grid { grid-template-columns: repeat(3, 1fr); gap: 24px; }
+    .section-title { font-size: 40px; }
+  }
+
 </style>
 </head>
 <body>
@@ -3792,41 +3788,65 @@ fns.forEach(function(fn){
           prize: `${prizeNum.toLocaleString()} บาท`,
           winner: m.winner||'', photoA: m.photo_a||'', photoB: m.photo_b||''
         });
+        const winA = isDone && m.winner === m.name_a;
+        const winB = isDone && m.winner === m.name_b;
         card.innerHTML = `
+          <!-- Header -->
           <div class="match-header">
             <div class="match-round">🏆 ${m.round||'รายการแข่งขัน'}</div>
             <div class="match-meta">
-              <span>📅 ${m.date||'—'}</span>
+              ${m.date?`<span>📅 ${m.date}</span>`:''}
               ${m.time?`<span>⏰ ${m.time}</span>`:''}
+              ${m.location?`<span>📍 ${m.location}</span>`:''}
               ${prizeNum?`<span>💰 ${prizeNum.toLocaleString()} ฿</span>`:''}
             </div>
             <span class="match-status-badge ${statusClass}">${isLive?'<span class="live-dot"></span>':''}${statusLabel}</span>
           </div>
+
+          <!-- Body: วัว 2 ฝ่าย -->
           <div class="match-body">
+
+            <!-- ฝั่งแดง -->
             <div class="team-side red-side">
-              <div class="team-photo red-photo">${m.photo_a?`<img src="${m.photo_a}" alt="${m.name_a}">`:'🐂'}</div>
+              ${winA?'<div class="winner-crown">🏆</div>':''}
+              <div class="team-photo red-photo">
+                ${m.photo_a?`<img src="${m.photo_a}" alt="${m.name_a||''}">`:'🐂'}
+              </div>
               <div class="team-info">
-                <div class="team-name${isDone&&m.winner===m.name_a?' winner-name':''}">${m.name_a||'—'}${isDone&&m.winner===m.name_a?' 🏆':''}</div>
-                ${m.owner_a?`<div class="team-owner">เจ้าของ: ${m.owner_a}</div>`:''}
-                ${m.weight_a?`<div class="team-weight">${m.weight_a}</div>`:''}
+                <div class="team-name${winA?' winner-name':''}">${m.name_a||'—'}</div>
+                ${m.owner_a?`<div class="team-owner">${m.owner_a}</div>`:''}
+                ${m.weight_a?`<div class="team-weight">⚖️ ${m.weight_a}</div>`:''}
               </div>
             </div>
+
+            <!-- กลาง VS -->
             <div class="match-center">
               <div class="vs-text">VS</div>
-              ${m.code?`<div style="font-size:10px;color:rgba(245,200,66,0.5);letter-spacing:2px;font-family:Kanit,sans-serif;">#${m.code}</div>`:''}
+              ${m.code?`<div style="font-size:9px;color:rgba(245,200,66,0.35);letter-spacing:2px;font-family:Kanit,sans-serif;margin-top:4px;">#${m.code}</div>`:''}
             </div>
+
+            <!-- ฝั่งน้ำเงิน -->
             <div class="team-side blue-side">
-              <div class="team-photo blue-photo">${m.photo_b?`<img src="${m.photo_b}" alt="${m.name_b}">`:'🐃'}</div>
+              ${winB?'<div class="winner-crown">🏆</div>':''}
+              <div class="team-photo blue-photo">
+                ${m.photo_b?`<img src="${m.photo_b}" alt="${m.name_b||''}">`:'🐃'}
+              </div>
               <div class="team-info">
-                <div class="team-name${isDone&&m.winner===m.name_b?' winner-name':''}">${m.name_b||'—'}${isDone&&m.winner===m.name_b?' 🏆':''}</div>
-                ${m.owner_b?`<div class="team-owner">เจ้าของ: ${m.owner_b}</div>`:''}
-                ${m.weight_b?`<div class="team-weight">${m.weight_b}</div>`:''}
+                <div class="team-name${winB?' winner-name':''}">${m.name_b||'—'}</div>
+                ${m.owner_b?`<div class="team-owner">${m.owner_b}</div>`:''}
+                ${m.weight_b?`<div class="team-weight">⚖️ ${m.weight_b}</div>`:''}
               </div>
             </div>
           </div>
-          ${isDone&&m.winner?`<div class="match-footer-done">🏆 ผู้ชนะ: <strong>${m.winner}</strong></div>`:''}
-          <button class="match-detail-btn" onclick="event.stopPropagation();openModal({round:'${(m.round||'').replace(/'/g,"\'")}',bullA:'${(m.name_a||'').replace(/'/g,"\'")}',ownerA:'${(m.owner_a||'').replace(/'/g,"\'")}',weightA:'${m.weight_a||''}',bullB:'${(m.name_b||'').replace(/'/g,"\'")}',ownerB:'${(m.owner_b||'').replace(/'/g,"\'")}',weightB:'${m.weight_b||''}',date:'${m.date||''}',time:'${m.time||''}',loc:'${(m.location||'').replace(/'/g,"\'")}',prize:'${prizeNum.toLocaleString()} บาท',winner:'${m.winner||''}',photoA:'${m.photo_a||''}',photoB:'${m.photo_b||''}'})">ดูรายละเอียด →</button>
-          ${!isDone ? `<a href="wuachon-match.html?id=${m.id}" class="match-detail-btn" style="background:var(--green2);color:#fff;text-decoration:none;text-align:center;">🎯 วางเดิมพัน</a>` : ''}`;
+
+          <!-- Winner bar -->
+          ${isDone&&m.winner?`<div class="match-footer-done">🏆 ผู้ชนะ: <strong>${m.winner}</strong>${m.location?` &nbsp;·&nbsp; 📍 ${m.location}`:''}</div>`:''}
+
+          <!-- Actions -->
+          <div class="match-actions">
+            <button class="match-detail-btn" onclick="event.stopPropagation();openModal({round:'${(m.round||'').replace(/'/g,"\'")}',bullA:'${(m.name_a||'').replace(/'/g,"\'")}',ownerA:'${(m.owner_a||'').replace(/'/g,"\'")}',weightA:'${m.weight_a||''}',bullB:'${(m.name_b||'').replace(/'/g,"\'")}',ownerB:'${(m.owner_b||'').replace(/'/g,"\'")}',weightB:'${m.weight_b||''}',date:'${m.date||''}',time:'${m.time||''}',loc:'${(m.location||'').replace(/'/g,"\'")}',prize:'${prizeNum.toLocaleString()} บาท',winner:'${m.winner||''}',photoA:'${m.photo_a||''}',photoB:'${m.photo_b||''}'})">🔍 รายละเอียด</button>
+            ${!isDone?`<a href="wuachon-match.html?id=${m.id}" class="match-detail-btn" style="background:var(--green2);color:#fff;text-decoration:none;display:block;line-height:2.2;" onclick="event.stopPropagation();">🎯 วางเดิมพัน</a>`:''}
+          </div>`;
         evGrid.appendChild(card);
       });
     }
