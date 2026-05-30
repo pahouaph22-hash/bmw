@@ -1193,44 +1193,23 @@ let currentUser = null;
 
 // ===== INIT =====
 window.addEventListener('DOMContentLoaded', async () => {
-  // แสดงหน้าแรกก่อนเสมอ (ป้องกันหน้าว่าง)
+  // แสดงหน้าแรกก่อนเสมอ
   const mc = document.getElementById('main-content');
   const pm = document.getElementById('page-myaccount');
   if (mc) mc.style.display = 'block';
   if (pm) pm.style.display = 'none';
 
-  // โหลด session
-  try {
-    const raw = sessionStorage.getItem('bw_user');
-    if (raw) {
-      currentUser = JSON.parse(raw);
-      renderNav();
-    }
-  } catch(e) { sessionStorage.removeItem('bw_user'); }
-
   await Promise.all([loadMatches(), loadStats()]);
   subscribeRealtime();
   setInterval(loadMatches, 30000);
 
-  // ===== ตรวจ ?ref= ใน URL =====
-  const urlParams = new URLSearchParams(location.search);
-  const refCode   = urlParams.get('ref');
+  // ตรวจ ?ref= ใน URL
+  const refCode = new URLSearchParams(location.search).get('ref');
   if (refCode && !currentUser) {
     requestAnimationFrame(() => {
       const refInput = document.getElementById('reg-ref-code');
       if (refInput) refInput.value = refCode.toUpperCase();
-      openModal('register');
-      setTimeout(() => {
-        const errEl = document.getElementById('reg-error');
-        if (errEl) {
-          errEl.textContent = `✅ คุณถูกแนะนำด้วยรหัส ${refCode.toUpperCase()} — สมัครได้เลยครับ!`;
-          errEl.style.display = 'block';
-          errEl.style.background = 'rgba(27,107,47,.15)';
-          errEl.style.color = '#4ade80';
-          errEl.style.borderRadius = '6px';
-          errEl.style.padding = '8px 12px';
-        }
-      }, 300);
+      if (typeof openModal === 'function') openModal('register');
     });
   }
 });
