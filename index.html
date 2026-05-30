@@ -1199,7 +1199,12 @@ window.addEventListener('DOMContentLoaded', async () => {
   if (mc) mc.style.display = 'block';
   if (pm) pm.style.display = 'none';
 
-  // โหลด session (ต้องทำหลัง DOM พร้อม)
+  // overlay click to close
+  document.querySelectorAll('.overlay').forEach(el => {
+    el.addEventListener('click', e => { if (e.target === el) el.classList.remove('open'); });
+  });
+
+  // โหลด session หลัง DOM พร้อม
   if (typeof initSessionFE === 'function') initSessionFE();
   if (typeof renderNav === 'function') renderNav();
 
@@ -1465,9 +1470,7 @@ function renderNav() {
 function openModal(id) { document.getElementById('modal-' + id).classList.add('open'); }
 function closeModal(id) { document.getElementById('modal-' + id).classList.remove('open'); }
 function switchModal(from, to) { closeModal(from); openModal(to); }
-document.querySelectorAll('.overlay').forEach(el => {
-  el.addEventListener('click', e => { if (e.target === el) el.classList.remove('open'); });
-});
+// overlay click handler ถูกย้ายไปใน DOMContentLoaded แล้ว
 
   window.showHistory = window._real_showHistory = function showHistory() {
     document.getElementById('main-content').style.display = 'none';
