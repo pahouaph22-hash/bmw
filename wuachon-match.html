@@ -280,30 +280,61 @@ function formatDate(d) {
 function buildStreamEmbed(url) {
   if (!url) return '';
   let embedUrl = '';
+  let originalUrl = url;
+  let platform = '';
+
   try {
-    const u = new URL(url);
     // YouTube: youtube.com/watch?v=ID หรือ youtu.be/ID
     const ytMatch = url.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/)([a-zA-Z0-9_-]{11})/);
     if (ytMatch) {
-      embedUrl = `https://www.youtube.com/embed/${ytMatch[1]}?autoplay=1&mute=0&rel=0`;
+      // เพิ่ม origin เพื่อช่วย embed permission
+      embedUrl = `https://www.youtube.com/embed/${ytMatch[1]}?autoplay=1&rel=0&origin=${encodeURIComponent(location.origin)}`;
+      platform = 'youtube';
     }
     // YouTube Live (/live/)
     const ytLive = url.match(/youtube\.com\/live\/([a-zA-Z0-9_-]{11})/);
     if (ytLive) {
-      embedUrl = `https://www.youtube.com/embed/${ytLive[1]}?autoplay=1&mute=0&rel=0`;
+      embedUrl = `https://www.youtube.com/embed/${ytLive[1]}?autoplay=1&rel=0&origin=${encodeURIComponent(location.origin)}`;
+      platform = 'youtube';
     }
-    // Facebook: fb.gg/v/ID หรือ facebook.com/*/videos/ID
+    // Facebook
     if (!embedUrl && (url.includes('facebook.com') || url.includes('fb.gg') || url.includes('fb.watch'))) {
       const encodedUrl = encodeURIComponent(url);
-      embedUrl = `https://www.facebook.com/plugins/video.php?href=${encodedUrl}&show_text=false&autoplay=true`;
+      embedUrl = `https://www.facebook.com/plugins/video.php?href=${encodedUrl}&show_text=false&autoplay=true&width=560`;
+      platform = 'facebook';
     }
   } catch(_) {}
+
   if (!embedUrl) return '';
+
+  const tip = platform === 'youtube'
+    ? `<div style="padding:8px 12px;background:rgba(255,255,255,.04);border-top:1px solid var(--border);font-size:11px;color:rgba(255,248,236,.4);text-align:center;">
+        ถ้า player ไม่ทำงาน → ไปที่ YouTube Studio → เปิด "Allow embedding" ให้วิดีโอนี้ครับ
+        <a href="${originalUrl}" target="_blank" style="color:var(--gold);margin-left:8px;">▶ เปิดดูใน YouTube</a>
+      </div>`
+    : `<div style="padding:8px 12px;background:rgba(255,255,255,.04);border-top:1px solid var(--border);font-size:11px;color:rgba(255,248,236,.4);text-align:center;">
+        <a href="${originalUrl}" target="_blank" style="color:var(--gold);">▶ เปิดดูใน Facebook</a>
+      </div>`;
+
   return `
   <div class="live-player-wrap">
     <span class="live-badge">LIVE</span>
-    <iframe src="${embedUrl}" allow="autoplay; fullscreen; picture-in-picture" allowfullscreen></iframe>
-  </div>`;
+    <iframe src="${embedUrl}"
+      allow="autoplay; fullscreen; picture-in-picture"
+      allowfullscreen
+      onerror="this.parentElement.querySelector('.embed-err').style.display='block';this.style.display='none';">
+    </iframe>
+    <div class="embed-err" style="display:none;padding:32px;text-align:center;">
+      <div style="font-size:36px;margin-bottom:10px;">📡</div>
+      <div style="font-family:'Kanit',sans-serif;font-weight:700;color:#fff;margin-bottom:6px;">ไม่สามารถแสดงผลได้</div>
+      <div style="font-size:12px;color:rgba(255,255,255,.5);margin-bottom:14px;">วิดีโอนี้ไม่อนุญาตให้ embed</div>
+      <a href="${originalUrl}" target="_blank"
+        style="background:var(--red);color:#fff;font-family:'Kanit',sans-serif;font-weight:700;font-size:13px;padding:10px 24px;border-radius:8px;text-decoration:none;">
+        ▶ ดูไลฟ์สดที่นี่
+      </a>
+    </div>
+  </div>
+  ${tip}`;
 }
 
 function renderPage() {

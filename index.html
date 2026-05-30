@@ -5471,11 +5471,59 @@ fns.forEach(function(fn){
     document.getElementById('reg-success').style.display = 'none';
     window.scrollTo(0, 0);
   }
-  window.showSchedule = window._real_showSchedule = function showSchedule() {
+  window.showSchedule = window._real_showSchedule = async function showSchedule() {
     document.getElementById('main-content').style.display = 'none';
     document.getElementById('page-register').style.display = 'none';
     document.getElementById('page-schedule').style.display = 'block';
     window.scrollTo(0, 0);
+    // ซ่อน mock data แสดง real data
+    const mockWrap = document.getElementById('bet-mock-wrap');
+    if (mockWrap) mockWrap.style.display = 'none';
+    const wrap = document.getElementById('schedule-fb-wrap');
+    if (!wrap) return;
+    wrap.innerHTML = '<div style="text-align:center;padding:48px;color:rgba(255,248,236,0.4);font-family:Kanit,sans-serif;"><div style="font-size:32px;margin-bottom:12px;">⏳</div>กำลังโหลด...</div>';
+    const { data } = await sb.from('matches').select('*').order('date',{ascending:true}).order('created_at',{ascending:false});
+    if (!data?.length) {
+      wrap.innerHTML = '<div style="text-align:center;padding:48px;color:rgba(255,248,236,0.4);font-family:Kanit,sans-serif;"><div style="font-size:32px;margin-bottom:12px;">🐂</div>ยังไม่มีรายการแข่งขันครับ</div>';
+      return;
+    }
+    wrap.innerHTML = '';
+    data.forEach(m => {
+      const isLive = m.status==='live', isDone = m.status==='done';
+      const statusLabel = isLive?'<span class="live-dot"></span>● LIVE':isDone?'จบแล้ว':'⏳ รอแข่ง';
+      const statusClass = isLive?'status-live':isDone?'status-done':'status-upcoming';
+      const prizeNum = Number(m.prize||0);
+      const card = document.createElement('div');
+      card.className = 'sched-card';
+      card.innerHTML = `
+        <div class="bet-match-header">
+          <div>
+            <div class="bet-round-label">🏆 ${m.round||'รายการแข่งขัน'}</div>
+            <div class="bet-match-info">📅 ${m.date||'—'} ${m.time?'· ⏰ '+m.time:''} ${m.location?'· 📍 '+m.location:''} ${prizeNum?'· 💰 '+prizeNum.toLocaleString()+' ฿':''}</div>
+          </div>
+          <span class="match-status-badge ${statusClass}">${statusLabel}</span>
+        </div>
+        <div class="sched-card-body">
+          <div class="sched-side red-sched">
+            <div class="sched-photo red-glow">${m.photo_a?`<img src="${m.photo_a}" style="width:100%;height:100%;object-fit:cover;border-radius:50%;">`:'🐂'}</div>
+            <div class="sched-name${isDone&&m.winner===m.name_a?' winner-name':''}">${m.name_a||'—'}${isDone&&m.winner===m.name_a?' 🏆':''}</div>
+            ${m.owner_a?`<div style="font-size:11px;color:rgba(255,248,236,0.5);">${m.owner_a}</div>`:''}
+          </div>
+          <div class="sched-center">
+            <div class="sched-vs">VS</div>
+            ${isDone&&m.winner?`<div style="font-size:11px;color:var(--gold);font-family:Kanit,sans-serif;margin-top:4px;">ผู้ชนะ: ${m.winner}</div>`:''}
+            ${m.code?`<div style="font-size:10px;color:rgba(245,200,66,0.4);letter-spacing:2px;font-family:Kanit,sans-serif;">#${m.code}</div>`:''}
+          </div>
+          <div class="sched-side blue-sched">
+            <div class="sched-photo blue-glow">${m.photo_b?`<img src="${m.photo_b}" style="width:100%;height:100%;object-fit:cover;border-radius:50%;">`:'🐃'}</div>
+            <div class="sched-name${isDone&&m.winner===m.name_b?' winner-name':''}">${m.name_b||'—'}${isDone&&m.winner===m.name_b?' 🏆':''}</div>
+            ${m.owner_b?`<div style="font-size:11px;color:rgba(255,248,236,0.5);">${m.owner_b}</div>`:''}
+          </div>
+        </div>
+        <button class="match-detail-btn" onclick="openModal({round:'${(m.round||'').replace(/'/g,"\\'")}',bullA:'${(m.name_a||'').replace(/'/g,"\\'")}',ownerA:'${(m.owner_a||'').replace(/'/g,"\\'")}',weightA:'${m.weight_a||''}',bullB:'${(m.name_b||'').replace(/'/g,"\\'")}',ownerB:'${(m.owner_b||'').replace(/'/g,"\\'")}',weightB:'${m.weight_b||''}',date:'${m.date||''}',time:'${m.time||''}',loc:'${(m.location||'').replace(/'/g,"\\'")}',prize:'${prizeNum.toLocaleString()} บาท',winner:'${m.winner||''}',photoA:'${m.photo_a||''}',photoB:'${m.photo_b||''}'})">ดูรายละเอียด →</button>
+      `;
+      wrap.appendChild(card);
+    });
   }
   window.hideSchedule = window._real_hideSchedule = function hideSchedule() {
     document.getElementById('main-content').style.display = 'block';
