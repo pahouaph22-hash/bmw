@@ -1,49 +1,2360 @@
-<!DOCTYPE html><!-- v20260530_015845 -->
+<!DOCTYPE html>
 <html lang="th">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>วัวชนไทย — ศึกวัวชนภาคใต้</title>
-<link href="https://fonts.googleapis.com/css2?family=Kanit:wght@400;600;700;900&family=Sarabun:wght@400;500&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Kanit:wght@400;500;700;900&family=Sarabun:wght@400;500&display=swap" rel="stylesheet">
+<script>
+// ── Global stubs ── รันก่อน CDN และ main script ──
+(function(){
+var fns=['showRegister','hideRegister','showSchedule','hideSchedule',
+'showHistory','hideHistory','showMyAccount','hideMyAccount',
+'goToMyAccount','logout','openModal','closeModal',
+'switchAuthTab','submitRegister','submitLogin',
+'switchAccTab','setDepAmount','setWithAmount','setWithAll',
+'submitDeposit','submitWithdraw','bindBankAccount',
+'submitChangePass','toggleNotifCenter','clearNotifications',
+'loadDepHistory','loadWithHistory','loadBetHistory',
+'loadDashboard','loadWithdrawPanel','clearHistFilter',
+'setRating','submitSupport','renderHistory','loadHistory',
+'openHistoryDetail','hideHistory','toggleFAQ'];
+fns.forEach(function(fn){
+  window[fn]=function(){
+    var a=arguments;
+    var t=setInterval(function(){
+      if(window['_real_'+fn]){clearInterval(t);window['_real_'+fn].apply(null,a);}
+    },50);
+    setTimeout(function(){clearInterval(t);},5000);
+  };
+});
+})();
+</script>
 <script src="https://unpkg.com/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
 <style>
-*,*::before,*::after{margin:0;padding:0;box-sizing:border-box;}
-:root{
-  --red:#C8102E; --gold:#F5A800; --dark:#0d1a0f;
-  --card:#1a2e1c; --cream:#FFF8EC; --green:#1B6B2F; --green2:#27943F;
-  --border:rgba(245,168,0,0.18);
-}
-html{scroll-behavior:smooth;}
-body{font-family:'Sarabun',sans-serif;background:var(--dark);color:var(--cream);min-height:100vh;}
+  *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+  :root {
+    --green:  #1B6B2F;
+    --green2: #27943F;
+    --green3: #0d3d1a;
+    --gold:   #F5C842;
+    --dark:   #071a0c;
+    --dark2:  #0f2e18;
+    --dark3:  #183d22;
+    --cream:  #F0FFE8;
+    --red:    #C8102E;
+    --accent: #4ADE80;
+  }
+  html { scroll-behavior: smooth; }
+  body {
+    font-family: 'Sarabun', sans-serif;
+    background: var(--dark);
+    color: var(--cream);
+    overflow-x: hidden;
+  }
 
-/* ===== NAV ===== */
-/* Force visibility defaults */
-#main-content{display:block;}
-#page-myaccount{display:none;}
-#page-history{display:none;}
+  /* PARTICLES BG */
+  .particles {
+    position: absolute;
+    inset: 0;
+    overflow: hidden;
+    pointer-events: none;
+  }
+  .particle {
+    position: absolute;
+    width: 4px;
+    height: 4px;
+    border-radius: 50%;
+    background: var(--gold);
+    opacity: 0;
+    animation: rise var(--dur, 6s) var(--delay, 0s) infinite ease-in;
+  }
+  @keyframes rise {
+    0%   { opacity: 0; transform: translateY(0) scale(0.5); }
+    10%  { opacity: 0.6; }
+    90%  { opacity: 0.2; }
+    100% { opacity: 0; transform: translateY(-600px) scale(1.5) rotate(180deg); }
+  }
 
-nav{
-  display:flex;align-items:center;justify-content:space-between;
-  padding:13px 28px;background:rgba(13,26,15,0.97);
-  border-bottom:2px solid var(--gold);position:sticky;top:0;z-index:200;
-  backdrop-filter:blur(8px);
-}
-.nav-logo{font-family:'Kanit',sans-serif;font-weight:900;font-size:20px;color:var(--gold);cursor:pointer;}
-.nav-logo em{color:var(--red);font-style:normal;}
-.nav-links{display:flex;gap:22px;}
-.nav-links a{color:rgba(255,248,236,.55);text-decoration:none;font-family:'Kanit',sans-serif;font-size:14px;transition:color .2s;}
-.nav-links a:hover{color:var(--gold);}
-.nav-right{display:flex;align-items:center;gap:10px;}
-.btn-login{background:transparent;color:var(--gold);font-family:'Kanit',sans-serif;font-size:13px;padding:6px 16px;border:1px solid var(--gold);border-radius:6px;cursor:pointer;transition:all .2s;}
-.btn-login:hover{background:var(--gold);color:var(--dark);}
-.btn-register{background:var(--red);color:#fff;font-family:'Kanit',sans-serif;font-size:13px;padding:6px 16px;border-radius:6px;border:none;cursor:pointer;}
-.user-chip{display:flex;align-items:center;gap:8px;}
-.user-chip .nick{font-family:'Kanit',sans-serif;font-size:13px;color:var(--gold);}
-.user-chip .balance{font-family:'Kanit',sans-serif;font-size:13px;color:#7ddc8e;}
-.btn-logout{background:transparent;color:rgba(255,248,236,.4);font-size:12px;padding:4px 10px;border:1px solid rgba(255,255,255,.1);border-radius:5px;cursor:pointer;font-family:'Kanit',sans-serif;}
-.btn-myacc{background:rgba(245,168,0,.12);color:var(--gold);font-family:'Kanit',sans-serif;font-size:13px;font-weight:700;padding:6px 14px;border:1px solid rgba(245,168,0,.3);border-radius:7px;cursor:pointer;transition:all .2s;}
-.btn-myacc:hover{background:rgba(245,168,0,.22);}
+  /* HERO SPLIT LAYOUT */
+  .hero-split {
+    flex-direction: row !important;
+    justify-content: center;
+    align-items: center;
+    gap: 60px;
+    padding: 80px 60px 60px;
+    text-align: left;
+  }
+  .hero-left {
+    flex: 1;
+    max-width: 520px;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  .hero-left .hero-badge { margin-bottom: 20px; }
+  .hero-left .hero-cta { justify-content: flex-start; margin-top: 36px; }
+  .hero-right {
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    animation: float 4s ease-in-out infinite;
+  }
+  @keyframes float {
+    0%, 100% { transform: translateY(0) rotate(-2deg); }
+    50% { transform: translateY(-16px) rotate(2deg); }
+  }
+  @media (max-width: 768px) {
+    .hero-split { flex-direction: column !important; text-align: center; padding: 60px 24px 40px; gap: 32px; }
+    .hero-left { align-items: center; }
+    .hero-left .hero-cta { justify-content: center; }
+    .hero-right svg { width: 180px; height: 180px; }
+  }
 
+  /* NAV */
+  nav {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 14px 40px;
+    background: rgba(7,26,12,0.97);
+    border-bottom: 2px solid var(--gold);
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    backdrop-filter: blur(12px);
+  }
+  .nav-logo {
+    font-family: 'Kanit', sans-serif;
+    font-weight: 900;
+    font-size: 22px;
+    color: var(--gold);
+  }
+  .nav-logo span { color: var(--accent); }
+  .nav-links { display: flex; gap: 28px; }
+  .nav-links a {
+    font-family: 'Kanit', sans-serif;
+    font-weight: 700;
+    font-size: 14px;
+    color: rgba(240,255,232,0.75);
+    text-decoration: none;
+    letter-spacing: 0.5px;
+    transition: color 0.2s;
+    position: relative;
+  }
+  .nav-links a::after {
+    content: '';
+    position: absolute;
+    bottom: -3px;
+    left: 0;
+    width: 0;
+    height: 2px;
+    background: var(--gold);
+    transition: width 0.25s;
+  }
+  .nav-links a:hover { color: var(--gold); }
+  .nav-links a:hover::after { width: 100%; }
+
+  /* HERO */
+  .hero {
+    position: relative;
+    min-height: 560px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    padding: 80px 40px 60px;
+    overflow: hidden;
+    background: radial-gradient(ellipse at 30% 50%, #1B6B2F44 0%, transparent 60%),
+                radial-gradient(ellipse at 70% 20%, #27943F33 0%, transparent 50%),
+                linear-gradient(180deg, #071a0c 0%, #0a2412 100%);
+  }
+  .hero-pattern {
+    position: absolute;
+    inset: 0;
+    opacity: 0.06;
+    background-image:
+      repeating-linear-gradient(45deg, var(--gold) 0, var(--gold) 1px, transparent 0, transparent 50%),
+      repeating-linear-gradient(-45deg, var(--gold) 0, var(--gold) 1px, transparent 0, transparent 50%);
+    background-size: 28px 28px;
+  }
+  .hero-glow {
+    position: absolute;
+    width: 500px;
+    height: 500px;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(39,148,63,0.18) 0%, transparent 70%);
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    animation: glow-pulse 4s ease-in-out infinite;
+    pointer-events: none;
+  }
+  @keyframes glow-pulse {
+    0%,100% { transform: translate(-50%,-50%) scale(1); opacity: 0.6; }
+    50% { transform: translate(-50%,-50%) scale(1.2); opacity: 1; }
+  }
+  .hero-badge {
+    display: inline-block;
+    background: linear-gradient(135deg, var(--green), var(--green2));
+    color: #fff;
+    font-family: 'Kanit', sans-serif;
+    font-weight: 700;
+    font-size: 13px;
+    padding: 6px 22px;
+    border-radius: 999px;
+    letter-spacing: 2px;
+    margin-bottom: 18px;
+    position: relative;
+    border: 1px solid rgba(245,200,66,0.4);
+    animation: pulse-badge 2s infinite;
+  }
+  @keyframes pulse-badge {
+    0%, 100% { box-shadow: 0 0 0 0 rgba(39,148,63,0.5); }
+    50% { box-shadow: 0 0 0 10px rgba(39,148,63,0); }
+  }
+  .hero-icon {
+    font-size: 72px;
+    margin-bottom: 10px;
+    position: relative;
+    animation: fadeUp 0.5s ease both, shake 6s 2s ease-in-out infinite;
+  }
+  @keyframes shake {
+    0%,90%,100% { transform: rotate(0deg); }
+    92% { transform: rotate(-8deg); }
+    96% { transform: rotate(8deg); }
+  }
+  .hero-title {
+    font-family: 'Kanit', sans-serif;
+    font-weight: 900;
+    font-size: clamp(48px, 8vw, 82px);
+    line-height: 1.0;
+    color: var(--gold);
+    position: relative;
+    animation: fadeUp 0.7s ease both;
+    text-shadow: 0 0 40px rgba(245,200,66,0.3);
+  }
+  .hero-title .red { color: var(--accent); text-shadow: 0 0 30px rgba(74,222,128,0.4); }
+  .hero-sub {
+    font-size: 17px;
+    color: rgba(240,255,232,0.65);
+    margin-top: 14px;
+    position: relative;
+    animation: fadeUp 0.7s 0.15s ease both;
+    max-width: 560px;
+    line-height: 1.6;
+  }
+  .hero-cta {
+    margin-top: 32px;
+    display: flex;
+    gap: 16px;
+    justify-content: center;
+    flex-wrap: wrap;
+    position: relative;
+    animation: fadeUp 0.7s 0.3s ease both;
+  }
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(28px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+  .btn-main {
+    background: linear-gradient(135deg, var(--green), var(--green2));
+    color: #fff;
+    font-family: 'Kanit', sans-serif;
+    font-weight: 700;
+    font-size: 15px;
+    padding: 13px 36px;
+    border: none;
+    border-radius: 7px;
+    cursor: pointer;
+    letter-spacing: 1px;
+    transition: transform 0.15s, box-shadow 0.15s;
+    box-shadow: 0 4px 20px rgba(27,107,47,0.4);
+  }
+  .btn-main:hover { transform: translateY(-2px) scale(1.04); box-shadow: 0 8px 28px rgba(27,107,47,0.6); }
+  .btn-outline {
+    background: transparent;
+    color: var(--gold);
+    font-family: 'Kanit', sans-serif;
+    font-weight: 700;
+    font-size: 15px;
+    padding: 13px 30px;
+    border: 2px solid var(--gold);
+    border-radius: 7px;
+    cursor: pointer;
+    letter-spacing: 1px;
+    transition: all 0.2s;
+  }
+  .btn-outline:hover { background: var(--gold); color: var(--dark); transform: translateY(-2px); }
+
+  /* NEWS TICKER */
+  .ticker-wrap {
+    background: var(--dark2);
+    border-top: 1px solid rgba(245,200,66,0.2);
+    border-bottom: 1px solid rgba(245,200,66,0.2);
+    padding: 10px 0;
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+  }
+  .ticker-label {
+    background: linear-gradient(135deg, var(--green), var(--green2));
+    color: #fff;
+    font-family: 'Kanit', sans-serif;
+    font-weight: 700;
+    font-size: 12px;
+    padding: 4px 16px;
+    letter-spacing: 2px;
+    white-space: nowrap;
+    flex-shrink: 0;
+    margin-right: 20px;
+  }
+  .ticker-track {
+    display: flex;
+    animation: ticker 28s linear infinite;
+    white-space: nowrap;
+  }
+  .ticker-track:hover { animation-play-state: paused; }
+  .ticker-item {
+    font-family: 'Sarabun', sans-serif;
+    font-size: 14px;
+    color: rgba(240,255,232,0.75);
+    padding-right: 60px;
+  }
+  .ticker-item::before { content: '🟢 '; }
+  @keyframes ticker {
+    from { transform: translateX(0); }
+    to   { transform: translateX(-50%); }
+  }
+
+  /* COUNTDOWN */
+  .countdown-bar {
+    background: linear-gradient(135deg, var(--green3), var(--dark2));
+    border-top: 1px solid rgba(245,200,66,0.15);
+    border-bottom: 1px solid rgba(245,200,66,0.15);
+    padding: 16px 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 40px;
+    flex-wrap: wrap;
+  }
+  .cd-label {
+    font-family: 'Kanit', sans-serif;
+    font-weight: 700;
+    font-size: 14px;
+    color: var(--cream);
+    letter-spacing: 2px;
+  }
+  .cd-timer { display: flex; gap: 14px; align-items: center; }
+  .cd-unit { text-align: center; }
+  .cd-num {
+    font-family: 'Kanit', sans-serif;
+    font-weight: 900;
+    font-size: 32px;
+    color: var(--gold);
+    line-height: 1;
+    display: block;
+    text-shadow: 0 0 20px rgba(245,200,66,0.4);
+  }
+  .cd-txt {
+    font-size: 10px;
+    color: rgba(240,255,232,0.5);
+    letter-spacing: 2px;
+    font-family: 'Kanit', sans-serif;
+  }
+  .cd-sep {
+    font-family: 'Kanit', sans-serif;
+    font-weight: 900;
+    font-size: 26px;
+    color: var(--gold);
+    margin-bottom: 14px;
+  }
+
+  /* STATS */
+  .stats-bar {
+    background: var(--dark2);
+    padding: 36px 40px;
+    display: flex;
+    justify-content: center;
+    gap: 60px;
+    flex-wrap: wrap;
+    border-bottom: 1px solid rgba(245,200,66,0.12);
+  }
+  .stat-item {
+    text-align: center;
+    animation: countUp 1s ease both;
+  }
+  @keyframes countUp {
+    from { opacity: 0; transform: translateY(20px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+  .stat-num {
+    font-family: 'Kanit', sans-serif;
+    font-weight: 900;
+    font-size: 40px;
+    color: var(--gold);
+    line-height: 1;
+    text-shadow: 0 0 20px rgba(245,200,66,0.3);
+  }
+  .stat-label {
+    font-size: 13px;
+    color: rgba(240,255,232,0.5);
+    margin-top: 5px;
+    font-family: 'Sarabun', sans-serif;
+  }
+
+  /* EVENTS */
+  .events-section {
+    padding: 60px 40px;
+    max-width: 1100px;
+    margin: 0 auto;
+  }
+  .section-title {
+    font-family: 'Kanit', sans-serif;
+    font-weight: 900;
+    font-size: 36px;
+    color: var(--gold);
+    text-align: center;
+    margin-bottom: 8px;
+    text-shadow: 0 0 30px rgba(245,200,66,0.2);
+  }
+  .section-title .red { color: var(--accent); }
+  .section-line {
+    width: 60px;
+    height: 4px;
+    background: linear-gradient(to right, var(--green), var(--accent));
+    margin: 0 auto 40px;
+    border-radius: 2px;
+  }
+  .event-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+
+  /* MATCH CARD */
+  .match-card-fe {
+    background: var(--dark2);
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 16px;
+    overflow: hidden;
+    cursor: pointer;
+    transition: transform 0.2s, box-shadow 0.2s, border-color 0.2s;
+    animation: fadeUp 0.5s ease both;
+  }
+  .match-card-fe:hover {
+    transform: translateY(-3px);
+    border-color: rgba(245,200,66,0.35);
+    box-shadow: 0 12px 32px rgba(0,0,0,0.3);
+  }
+  .match-card-fe.live {
+    border-color: rgba(239,68,68,0.5);
+    box-shadow: 0 0 20px rgba(239,68,68,0.15);
+  }
+
+  /* MATCH HEADER */
+  .match-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px 18px;
+    background: rgba(0,0,0,0.2);
+    border-bottom: 1px solid rgba(255,255,255,0.05);
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+  .match-round {
+    font-family: 'Kanit', sans-serif;
+    font-weight: 700;
+    font-size: 12px;
+    color: var(--gold);
+    letter-spacing: 1px;
+    text-transform: uppercase;
+  }
+  .match-meta {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    font-size: 11px;
+    color: rgba(240,255,232,0.45);
+    font-family: 'Kanit', sans-serif;
+  }
+  .match-meta span { display: flex; align-items: center; gap: 4px; }
+  .match-status-badge {
+    font-family: 'Kanit', sans-serif;
+    font-weight: 700;
+    font-size: 10px;
+    padding: 3px 10px;
+    border-radius: 999px;
+    letter-spacing: 1px;
+  }
+  .status-upcoming { background: rgba(245,200,66,0.12); color: var(--gold); border: 1px solid rgba(245,200,66,0.25); }
+  .status-live { background: rgba(239,68,68,0.15); color: #f87171; border: 1px solid rgba(239,68,68,0.35); animation: pulse-badge 1.5s infinite; }
+  .status-done { background: rgba(74,222,128,0.1); color: var(--accent); border: 1px solid rgba(74,222,128,0.2); }
+
+  /* MATCH BODY — VS layout */
+  .match-body {
+    display: grid;
+    grid-template-columns: 1fr 100px 1fr;
+    align-items: stretch;
+    min-height: 120px;
+  }
+
+  /* TEAM SIDE */
+  .team-side {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 18px 20px;
+    transition: background 0.2s;
+  }
+  .team-side.red-side {
+    background: linear-gradient(135deg, rgba(239,68,68,0.08) 0%, transparent 60%);
+    border-right: 1px solid rgba(255,255,255,0.04);
+  }
+  .team-side.blue-side {
+    background: linear-gradient(225deg, rgba(59,130,246,0.08) 0%, transparent 60%);
+    border-left: 1px solid rgba(255,255,255,0.04);
+    flex-direction: row-reverse;
+  }
+
+  /* TEAM PHOTO */
+  .team-photo {
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    overflow: hidden;
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 28px;
+    border: 3px solid rgba(255,255,255,0.08);
+  }
+  .team-photo.red-photo { border-color: rgba(239,68,68,0.4); background: rgba(239,68,68,0.08); }
+  .team-photo.blue-photo { border-color: rgba(59,130,246,0.4); background: rgba(59,130,246,0.08); }
+  .team-photo img { width: 100%; height: 100%; object-fit: cover; }
+
+  /* TEAM INFO */
+  .team-info { flex: 1; }
+  .team-side.blue-side .team-info { text-align: right; }
+  .team-label {
+    font-size: 10px;
+    font-family: 'Kanit', sans-serif;
+    font-weight: 700;
+    letter-spacing: 2px;
+    margin-bottom: 4px;
+    text-transform: uppercase;
+  }
+  .team-label.red { color: rgba(239,68,68,0.7); }
+  .team-label.blue { color: rgba(59,130,246,0.7); }
+  .team-name {
+    font-family: 'Kanit', sans-serif;
+    font-weight: 900;
+    font-size: 18px;
+    color: var(--cream);
+    line-height: 1.2;
+    margin-bottom: 4px;
+  }
+  .team-name.winner-name { color: var(--gold); }
+  .team-owner {
+    font-size: 12px;
+    color: rgba(240,255,232,0.45);
+    margin-bottom: 5px;
+  }
+  .team-stats {
+    display: flex;
+    gap: 6px;
+    flex-wrap: wrap;
+  }
+  .team-side.blue-side .team-stats { justify-content: flex-end; }
+  .team-stat-tag {
+    font-family: 'Kanit', sans-serif;
+    font-size: 10px;
+    font-weight: 700;
+    padding: 2px 8px;
+    border-radius: 4px;
+    background: rgba(255,255,255,0.06);
+    color: rgba(240,255,232,0.5);
+    border: 1px solid rgba(255,255,255,0.07);
+  }
+
+  /* VS CENTER */
+  .match-vs-center {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    padding: 12px 8px;
+    background: rgba(0,0,0,0.15);
+    border-left: 1px solid rgba(255,255,255,0.04);
+    border-right: 1px solid rgba(255,255,255,0.04);
+  }
+  .vs-text {
+    font-family: 'Kanit', sans-serif;
+    font-weight: 900;
+    font-size: 20px;
+    color: rgba(240,255,232,0.2);
+    letter-spacing: 2px;
+  }
+  .match-time-center {
+    font-family: 'Kanit', sans-serif;
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--cream);
+    text-align: center;
+  }
+  .match-date-center {
+    font-size: 10px;
+    color: rgba(240,255,232,0.35);
+    text-align: center;
+    font-family: 'Kanit', sans-serif;
+  }
+  .prize-badge {
+    background: rgba(245,200,66,0.1);
+    border: 1px solid rgba(245,200,66,0.2);
+    border-radius: 6px;
+    padding: 3px 8px;
+    font-family: 'Kanit', sans-serif;
+    font-size: 10px;
+    font-weight: 700;
+    color: var(--gold);
+    text-align: center;
+    line-height: 1.4;
+  }
+
+  /* MATCH FOOTER */
+  .match-footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px 18px;
+    border-top: 1px solid rgba(255,255,255,0.05);
+    background: rgba(0,0,0,0.1);
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+  .match-location {
+    font-size: 12px;
+    color: rgba(240,255,232,0.4);
+    font-family: 'Kanit', sans-serif;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+  }
+  .match-winner-bar {
+    font-family: 'Kanit', sans-serif;
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--gold);
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .match-detail-btn {
+    font-family: 'Kanit', sans-serif;
+    font-size: 11px;
+    font-weight: 700;
+    padding: 5px 14px;
+    border-radius: 6px;
+    border: 1px solid rgba(245,200,66,0.25);
+    background: transparent;
+    color: var(--gold);
+    cursor: pointer;
+    transition: all 0.15s;
+    letter-spacing: 0.5px;
+  }
+  .match-detail-btn:hover { background: rgba(245,200,66,0.1); }
+  .live-dot {
+    display: inline-block;
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: #f87171;
+    animation: pulse-badge 1s infinite;
+    margin-right: 4px;
+  }
+
+
+  /* GOLD DIVIDER */
+  .gold-divider {
+    height: 1px;
+    background: linear-gradient(to right, transparent, var(--gold), transparent);
+    margin: 0;
+  }
+
+  /* FOOTER */
+  footer {
+    background: #030e06;
+    border-top: 2px solid var(--gold);
+    padding: 32px 40px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 16px;
+  }
+  .footer-logo {
+    font-family: 'Kanit', sans-serif;
+    font-weight: 900;
+    font-size: 20px;
+    color: var(--gold);
+  }
+  .footer-logo span { color: var(--accent); }
+  .footer-links { display: flex; gap: 24px; }
+  .footer-links a {
+    font-family: 'Kanit', sans-serif;
+    font-weight: 700;
+    font-size: 13px;
+    color: rgba(240,255,232,0.4);
+    text-decoration: none;
+    transition: color 0.2s;
+  }
+  .footer-links a:hover { color: var(--gold); }
+  .footer-copy {
+    font-size: 12px;
+    color: rgba(240,255,232,0.25);
+  }
+
+    flex-direction: row !important;
+    justify-content: center;
+    align-items: center;
+    gap: 60px;
+    padding: 80px 60px 60px;
+    text-align: left;
+  }
+  .hero-left {
+    flex: 1;
+    max-width: 520px;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  .hero-left .hero-badge { margin-bottom: 20px; }
+  .hero-left .hero-cta { justify-content: flex-start; margin-top: 36px; }
+  .hero-right {
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    animation: float 4s ease-in-out infinite;
+  }
+  @keyframes float {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-12px); }
+  }
+  @media (max-width: 768px) {
+    .hero-split { flex-direction: column !important; text-align: center; padding: 60px 24px 40px; gap: 32px; }
+    .hero-left { align-items: center; }
+    .hero-left .hero-cta { justify-content: center; }
+    .hero-right svg { width: 180px; height: 180px; }
+  }
+
+  /* NAV */
+  nav {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 14px 40px;
+    background: rgba(26,10,0,0.97);
+    border-bottom: 2px solid var(--gold);
+    position: sticky;
+    top: 0;
+    z-index: 100;
+  }
+  .nav-logo {
+    font-family: 'Kanit', sans-serif;
+    font-weight: 900;
+    font-size: 22px;
+    color: var(--gold);
+  }
+  .nav-logo span { color: var(--red); }
+  .nav-links { display: flex; gap: 28px; }
+  .nav-links a {
+    font-family: 'Kanit', sans-serif;
+    font-weight: 700;
+    font-size: 14px;
+    color: rgba(255,248,236,0.8);
+    text-decoration: none;
+    letter-spacing: 0.5px;
+    transition: color 0.2s;
+  }
+  .nav-links a:hover { color: var(--gold); }
+
+  /* HERO */
+  .hero {
+    position: relative;
+    min-height: 520px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    padding: 80px 40px 60px;
+    overflow: hidden;
+    background: radial-gradient(ellipse at 50% 0%, #4a0a00 0%, #1A0A00 70%);
+  }
+  .hero-pattern {
+    position: absolute;
+    inset: 0;
+    opacity: 0.07;
+    background-image:
+      repeating-linear-gradient(45deg, var(--gold) 0, var(--gold) 1px, transparent 0, transparent 50%),
+      repeating-linear-gradient(-45deg, var(--gold) 0, var(--gold) 1px, transparent 0, transparent 50%);
+    background-size: 30px 30px;
+  }
+  .hero-badge {
+    display: inline-block;
+    background: var(--red);
+    color: #fff;
+    font-family: 'Kanit', sans-serif;
+    font-weight: 700;
+    font-size: 13px;
+    padding: 6px 22px;
+    border-radius: 999px;
+    letter-spacing: 2px;
+    margin-bottom: 18px;
+    position: relative;
+    animation: pulse-badge 2s infinite;
+  }
+  @keyframes pulse-badge {
+    0%, 100% { box-shadow: 0 0 0 0 rgba(200,16,46,0.5); }
+    50% { box-shadow: 0 0 0 10px rgba(200,16,46,0); }
+  }
+  .hero-icon {
+    font-size: 72px;
+    margin-bottom: 10px;
+    position: relative;
+    animation: fadeUp 0.5s ease both;
+  }
+  .hero-title {
+    font-family: 'Kanit', sans-serif;
+    font-weight: 900;
+    font-size: clamp(48px, 8vw, 80px);
+    line-height: 1.0;
+    color: var(--gold);
+    position: relative;
+    animation: fadeUp 0.7s ease both;
+  }
+  .hero-title .red { color: var(--red); }
+  .hero-sub {
+    font-size: 17px;
+    color: rgba(255,248,236,0.7);
+    margin-top: 14px;
+    position: relative;
+    animation: fadeUp 0.7s 0.15s ease both;
+    max-width: 560px;
+    line-height: 1.6;
+  }
+  .hero-cta {
+    margin-top: 32px;
+    display: flex;
+    gap: 16px;
+    justify-content: center;
+    flex-wrap: wrap;
+    position: relative;
+    animation: fadeUp 0.7s 0.3s ease both;
+  }
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(28px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  .btn-main {
+    background: var(--red);
+    color: #fff;
+    font-family: 'Kanit', sans-serif;
+    font-weight: 700;
+    font-size: 15px;
+    padding: 13px 36px;
+    border: none;
+    border-radius: 7px;
+    cursor: pointer;
+    letter-spacing: 1px;
+    transition: background 0.15s, transform 0.15s;
+  }
+  .btn-main:hover { background: #a50c24; transform: scale(1.04); }
+  .btn-outline {
+    background: transparent;
+    color: var(--gold);
+    font-family: 'Kanit', sans-serif;
+    font-weight: 700;
+    font-size: 15px;
+    padding: 13px 30px;
+    border: 2px solid var(--gold);
+    border-radius: 7px;
+    cursor: pointer;
+    letter-spacing: 1px;
+    transition: background 0.15s, color 0.15s;
+  }
+  .btn-outline:hover { background: var(--gold); color: var(--dark); }
+
+  /* NEWS TICKER */
+  .ticker-wrap {
+    background: var(--dark2);
+    border-top: 1px solid rgba(245,168,0,0.2);
+    border-bottom: 1px solid rgba(245,168,0,0.2);
+    padding: 10px 0;
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+  }
+  .ticker-label {
+    background: var(--red);
+    color: #fff;
+    font-family: 'Kanit', sans-serif;
+    font-weight: 700;
+    font-size: 12px;
+    padding: 4px 16px;
+    letter-spacing: 2px;
+    white-space: nowrap;
+    flex-shrink: 0;
+    margin-right: 20px;
+  }
+  .ticker-track {
+    display: flex;
+    gap: 0;
+    animation: ticker 28s linear infinite;
+    white-space: nowrap;
+  }
+  .ticker-track:hover { animation-play-state: paused; }
+  .ticker-item {
+    font-family: 'Sarabun', sans-serif;
+    font-size: 14px;
+    color: rgba(255,248,236,0.75);
+    padding-right: 60px;
+  }
+  .ticker-item::before { content: '🔴 '; }
+  @keyframes ticker {
+    from { transform: translateX(0); }
+    to { transform: translateX(-50%); }
+  }
+
+  /* COUNTDOWN */
+  .countdown-bar {
+    background: var(--red);
+    padding: 16px 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 40px;
+    flex-wrap: wrap;
+  }
+  .cd-label {
+    font-family: 'Kanit', sans-serif;
+    font-weight: 700;
+    font-size: 14px;
+    color: #fff;
+    letter-spacing: 2px;
+  }
+  .cd-timer { display: flex; gap: 14px; align-items: center; }
+  .cd-unit { text-align: center; }
+  .cd-num {
+    font-family: 'Kanit', sans-serif;
+    font-weight: 900;
+    font-size: 32px;
+    color: var(--gold);
+    line-height: 1;
+    display: block;
+  }
+  .cd-txt {
+    font-size: 10px;
+    color: rgba(255,255,255,0.7);
+    letter-spacing: 2px;
+    font-family: 'Kanit', sans-serif;
+  }
+  .cd-sep {
+    font-family: 'Kanit', sans-serif;
+    font-weight: 900;
+    font-size: 26px;
+    color: var(--gold);
+    margin-bottom: 14px;
+  }
+
+  /* STATS */
+  .stats-bar {
+    background: var(--dark2);
+    padding: 36px 40px;
+    display: flex;
+    justify-content: center;
+    gap: 60px;
+    flex-wrap: wrap;
+    border-bottom: 1px solid rgba(245,168,0,0.15);
+  }
+  .stat-item { text-align: center; }
+  .stat-num {
+    font-family: 'Kanit', sans-serif;
+    font-weight: 900;
+    font-size: 40px;
+    color: var(--gold);
+    line-height: 1;
+  }
+  .stat-label {
+    font-size: 13px;
+    color: rgba(255,248,236,0.55);
+    margin-top: 5px;
+    font-family: 'Sarabun', sans-serif;
+  }
+
+  /* EVENTS */
+  .events-section {
+    padding: 60px 40px;
+    max-width: 1100px;
+    margin: 0 auto;
+  }
+  .section-title {
+    font-family: 'Kanit', sans-serif;
+    font-weight: 900;
+    font-size: 36px;
+    color: var(--gold);
+    text-align: center;
+    margin-bottom: 8px;
+  }
+  .section-title .red { color: var(--red); }
+  .section-line {
+    width: 60px;
+    height: 4px;
+    background: var(--red);
+    margin: 0 auto 40px;
+    border-radius: 2px;
+  }
+  .event-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 24px;
+  }
+  .event-card {
+    background: var(--dark2);
+    border: 1px solid rgba(245,168,0,0.2);
+    border-radius: 14px;
+    overflow: hidden;
+    transition: transform 0.2s, border-color 0.2s, box-shadow 0.2s;
+    cursor: pointer;
+  }
+  .event-card:hover {
+    transform: translateY(-6px);
+    border-color: var(--gold);
+    box-shadow: 0 12px 32px rgba(245,168,0,0.12);
+  }
+  .event-card-top {
+    background: linear-gradient(135deg, var(--red), #7a0010);
+    padding: 28px;
+    text-align: center;
+    font-size: 48px;
+    position: relative;
+  }
+  .ev-badge {
+    position: absolute;
+    top: 12px;
+    right: 12px;
+    background: var(--gold);
+    color: var(--dark);
+    font-family: 'Kanit', sans-serif;
+    font-weight: 700;
+    font-size: 10px;
+    padding: 3px 10px;
+    border-radius: 999px;
+  }
+  .event-card-body { padding: 20px 22px 24px; }
+  .ev-name {
+    font-family: 'Kanit', sans-serif;
+    font-weight: 900;
+    font-size: 20px;
+    color: var(--cream);
+    margin-bottom: 8px;
+  }
+  .ev-detail {
+    font-size: 14px;
+    color: rgba(255,248,236,0.6);
+    line-height: 1.7;
+  }
+  .ev-detail strong { color: var(--gold); font-family: 'Kanit', sans-serif; }
+  .ev-btn {
+    display: block;
+    margin-top: 16px;
+    background: var(--red);
+    color: #fff;
+    text-align: center;
+    font-family: 'Kanit', sans-serif;
+    font-weight: 700;
+    font-size: 13px;
+    padding: 11px;
+    border-radius: 7px;
+    border: none;
+    cursor: pointer;
+    letter-spacing: 1px;
+    width: 100%;
+    transition: background 0.15s;
+  }
+  .ev-btn:hover { background: #a50c24; }
+
+  /* HISTORY PAGE */
+  .history-section {
+    padding: 48px 40px 60px;
+    max-width: 860px;
+    margin: 0 auto;
+  }
+  .history-back {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-family: 'Kanit', sans-serif;
+    font-weight: 700;
+    font-size: 13px;
+    color: rgba(240,255,232,0.5);
+    cursor: pointer;
+    margin-bottom: 28px;
+    transition: color 0.2s;
+    background: none;
+    border: none;
+    padding: 0;
+  }
+  .history-back:hover { color: var(--gold); }
+
+  .history-stats {
+    display: grid;
+    grid-template-columns: repeat(3,1fr);
+    gap: 14px;
+    margin-bottom: 32px;
+  }
+  .history-stat {
+    background: var(--dark2);
+    border: 1px solid rgba(39,148,63,0.2);
+    border-radius: 12px;
+    padding: 16px 20px;
+    text-align: center;
+  }
+  .history-stat-num {
+    font-family: 'Kanit', sans-serif;
+    font-weight: 900;
+    font-size: 32px;
+    color: var(--gold);
+  }
+  .history-stat-label {
+    font-size: 12px;
+    color: rgba(240,255,232,0.5);
+    margin-top: 4px;
+    font-family: 'Kanit', sans-serif;
+  }
+
+  .history-card {
+    background: var(--dark2);
+    border: 1px solid rgba(39,148,63,0.2);
+    border-radius: 14px;
+    overflow: hidden;
+    margin-bottom: 14px;
+    cursor: pointer;
+    transition: transform 0.18s, border-color 0.18s, box-shadow 0.18s;
+    animation: fadeUp 0.4s ease both;
+  }
+  .history-card:hover {
+    transform: translateY(-3px);
+    border-color: var(--gold);
+    box-shadow: 0 8px 28px rgba(27,107,47,0.2);
+  }
+  .history-card-inner {
+    display: grid;
+    grid-template-columns: 1fr 120px 1fr;
+    align-items: stretch;
+    min-height: 100px;
+  }
+  .history-bull {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 16px 20px;
+    background: #0a2010;
+  }
+  .history-bull.right {
+    flex-direction: row-reverse;
+    text-align: right;
+  }
+  .history-bull.winner-side { background: rgba(39,148,63,0.12); }
+  .history-bull-photo {
+    width: 60px;
+    height: 60px;
+    border-radius: 10px;
+    overflow: hidden;
+    border: 2px solid rgba(245,200,66,0.2);
+    flex-shrink: 0;
+    background: rgba(255,255,255,0.04);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 24px;
+  }
+  .history-bull-photo img { width:100%; height:100%; object-fit:cover; }
+  .history-bull-info { display: flex; flex-direction: column; }
+  .history-bull.right .history-bull-info { align-items: flex-end; }
+  .history-bull-name {
+    font-family: 'Kanit', sans-serif;
+    font-weight: 900;
+    font-size: 17px;
+    color: var(--cream);
+  }
+  .history-bull-name.winner {
+    color: var(--gold);
+  }
+  .history-bull-owner { font-size: 11px; color: rgba(240,255,232,0.4); margin-top: 2px; }
+  .history-bull-weight {
+    display: inline-block;
+    background: rgba(245,200,66,0.1);
+    color: var(--gold);
+    font-family: 'Kanit', sans-serif;
+    font-size: 10px;
+    font-weight: 700;
+    padding: 2px 8px;
+    border-radius: 4px;
+    margin-top: 5px;
+    border: 1px solid rgba(245,200,66,0.15);
+  }
+  .history-center {
+    background: #071a0c;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+    border-left: 1px solid rgba(39,148,63,0.15);
+    border-right: 1px solid rgba(39,148,63,0.15);
+    padding: 10px 0;
+  }
+  .history-vs {
+    font-family: 'Kanit', sans-serif;
+    font-weight: 900;
+    font-size: 13px;
+    color: rgba(240,255,232,0.3);
+  }
+  .history-date { font-family: 'Kanit', sans-serif; font-size: 10px; color: rgba(240,255,232,0.4); text-align: center; }
+  .history-round { font-family: 'Kanit', sans-serif; font-size: 10px; color: var(--gold); opacity: 0.7; text-align: center; }
+
+  .history-winner-bar {
+    background: linear-gradient(135deg, rgba(39,148,63,0.15), rgba(27,107,47,0.08));
+    border-top: 1px solid rgba(39,148,63,0.2);
+    padding: 8px 20px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-family: 'Kanit', sans-serif;
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--gold);
+  }
+  .history-winner-bar .loc {
+    margin-left: auto;
+    font-size: 11px;
+    font-weight: 400;
+    color: rgba(240,255,232,0.35);
+  }
+
+  .history-empty {
+    text-align: center;
+    padding: 60px 20px;
+    color: rgba(240,255,232,0.35);
+    font-family: 'Kanit', sans-serif;
+  }
+  .history-empty .icon { font-size: 48px; margin-bottom: 12px; }
+
+  /* BETTING SYSTEM */
+  .bet-match-wrap { display: flex; flex-direction: column; gap: 20px; }
+  .bet-match-card {
+    background: var(--dark2);
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 18px;
+    overflow: hidden;
+  }
+  .bet-match-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 14px 20px;
+    background: rgba(0,0,0,0.25);
+    border-bottom: 1px solid rgba(255,255,255,0.06);
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+  .bet-round-label {
+    font-family: 'Kanit', sans-serif;
+    font-weight: 900;
+    font-size: 15px;
+    color: var(--gold);
+    margin-bottom: 3px;
+  }
+  .bet-match-info {
+    font-size: 12px;
+    color: rgba(240,255,232,0.4);
+    font-family: 'Kanit', sans-serif;
+  }
+
+  /* ARENA */
+  .bet-arena {
+    display: grid;
+    grid-template-columns: 1fr 90px 1fr;
+    align-items: center;
+    padding: 24px 20px;
+    gap: 12px;
+    border-bottom: 1px solid rgba(255,255,255,0.05);
+  }
+  .bet-team {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    gap: 8px;
+  }
+  .bet-team-photo {
+    width: 72px;
+    height: 72px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 34px;
+    border: 3px solid transparent;
+    transition: transform 0.2s;
+  }
+  .red-glow {
+    background: radial-gradient(circle, rgba(239,68,68,0.15), rgba(239,68,68,0.04));
+    border-color: rgba(239,68,68,0.4);
+    box-shadow: 0 0 20px rgba(239,68,68,0.15);
+  }
+  .blue-glow {
+    background: radial-gradient(circle, rgba(59,130,246,0.15), rgba(59,130,246,0.04));
+    border-color: rgba(59,130,246,0.4);
+    box-shadow: 0 0 20px rgba(59,130,246,0.15);
+  }
+  .bet-team-name {
+    font-family: 'Kanit', sans-serif;
+    font-weight: 900;
+    font-size: 18px;
+    color: var(--cream);
+  }
+  .bet-team-owner {
+    font-size: 11px;
+    color: rgba(240,255,232,0.4);
+  }
+  .bet-team-tags {
+    display: flex;
+    gap: 5px;
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+  .bet-odds-box {
+    border-radius: 9px;
+    padding: 8px 16px;
+    text-align: center;
+    margin-top: 4px;
+  }
+  .red-odds { background: rgba(239,68,68,0.1); border: 1px solid rgba(239,68,68,0.25); }
+  .blue-odds { background: rgba(59,130,246,0.1); border: 1px solid rgba(59,130,246,0.25); }
+  .bet-odds-label { font-size: 10px; color: rgba(240,255,232,0.4); font-family: 'Kanit', sans-serif; }
+  .bet-odds-val { font-family: 'Kanit', sans-serif; font-weight: 900; font-size: 20px; color: var(--gold); }
+  .bet-pool-info {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    font-size: 11px;
+    color: rgba(240,255,232,0.4);
+    font-family: 'Kanit', sans-serif;
+  }
+  .bet-pool-dot { width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0; }
+  .red-dot { background: #f87171; }
+  .blue-dot { background: #60a5fa; }
+
+  /* VS CENTER */
+  .bet-vs-col {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+  }
+  .bet-vs-circle {
+    width: 52px;
+    height: 52px;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.05);
+    border: 2px solid rgba(255,255,255,0.1);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'Kanit', sans-serif;
+    font-weight: 900;
+    font-size: 14px;
+    color: rgba(240,255,232,0.3);
+  }
+  .bet-prize-box {
+    background: rgba(245,200,66,0.07);
+    border: 1px solid rgba(245,200,66,0.15);
+    border-radius: 8px;
+    padding: 6px 10px;
+    text-align: center;
+    font-family: 'Kanit', sans-serif;
+  }
+
+  /* BET PANEL */
+  .bet-panel {
+    padding: 20px;
+    background: rgba(0,0,0,0.15);
+    border-bottom: 1px solid rgba(255,255,255,0.05);
+  }
+  .bet-select-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    margin-bottom: 16px;
+  }
+  .bet-side-btn {
+    padding: 12px;
+    border-radius: 10px;
+    text-align: center;
+    cursor: pointer;
+    font-family: 'Kanit', sans-serif;
+    font-weight: 700;
+    font-size: 14px;
+    border: 2px solid transparent;
+    transition: all 0.2s;
+    opacity: .6;
+  }
+  .red-side-btn {
+    background: rgba(239,68,68,0.08);
+    border-color: rgba(239,68,68,0.2);
+    color: #f87171;
+  }
+  .red-side-btn.active {
+    background: rgba(239,68,68,0.18);
+    border-color: #f87171;
+    opacity: 1;
+    box-shadow: 0 0 16px rgba(239,68,68,0.2);
+  }
+  .blue-side-btn {
+    background: rgba(59,130,246,0.08);
+    border-color: rgba(59,130,246,0.2);
+    color: #60a5fa;
+  }
+  .blue-side-btn.active {
+    background: rgba(59,130,246,0.18);
+    border-color: #60a5fa;
+    opacity: 1;
+    box-shadow: 0 0 16px rgba(59,130,246,0.2);
+  }
+  .bet-amount-label {
+    font-family: 'Kanit', sans-serif;
+    font-size: 12px;
+    font-weight: 700;
+    color: rgba(240,255,232,0.5);
+    letter-spacing: .5px;
+    margin-bottom: 8px;
+  }
+  .bet-quick-btns {
+    display: flex;
+    gap: 7px;
+    margin-bottom: 10px;
+    flex-wrap: wrap;
+  }
+  .bet-quick-btns button {
+    font-family: 'Kanit', sans-serif;
+    font-size: 12px;
+    font-weight: 700;
+    padding: 6px 14px;
+    border-radius: 7px;
+    border: 1px solid rgba(245,200,66,0.25);
+    background: transparent;
+    color: rgba(240,255,232,0.6);
+    cursor: pointer;
+    transition: all .15s;
+  }
+  .bet-quick-btns button:hover {
+    background: rgba(245,200,66,0.1);
+    color: var(--gold);
+    border-color: var(--gold);
+  }
+  .bet-input-wrap {
+    position: relative;
+    margin-bottom: 8px;
+  }
+  .bet-input {
+    font-family: 'Sarabun', sans-serif;
+    font-size: 15px;
+    padding: 11px 40px 11px 14px;
+    border: 1px solid rgba(255,255,255,0.12);
+    border-radius: 9px;
+    background: rgba(255,255,255,0.05);
+    color: var(--cream);
+    width: 100%;
+    transition: border-color .2s;
+  }
+  .bet-input:focus { outline: none; border-color: var(--gold); }
+  .bet-input::placeholder { color: rgba(240,255,232,0.25); }
+  .bet-currency {
+    position: absolute;
+    right: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    font-family: 'Kanit', sans-serif;
+    font-weight: 700;
+    color: rgba(240,255,232,0.3);
+    font-size: 13px;
+  }
+  .bet-balance-hint {
+    font-size: 12px;
+    color: rgba(240,255,232,0.4);
+    font-family: 'Kanit', sans-serif;
+    margin-bottom: 10px;
+  }
+  .bet-expect-row {
+    background: rgba(245,200,66,0.07);
+    border: 1px solid rgba(245,200,66,0.15);
+    border-radius: 8px;
+    padding: 10px 14px;
+    margin-bottom: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    font-size: 13px;
+    color: rgba(240,255,232,0.6);
+    font-family: 'Kanit', sans-serif;
+  }
+  .bet-submit-btn {
+    width: 100%;
+    background: linear-gradient(135deg, var(--green), var(--green2));
+    color: #fff;
+    font-family: 'Kanit', sans-serif;
+    font-weight: 900;
+    font-size: 15px;
+    padding: 13px;
+    border: none;
+    border-radius: 10px;
+    cursor: pointer;
+    letter-spacing: 1px;
+    transition: all .2s;
+    box-shadow: 0 4px 16px rgba(27,107,47,0.3);
+  }
+  .bet-submit-btn:hover { opacity: .88; transform: translateY(-1px); }
+  .bet-matching-status {
+    margin-top: 12px;
+    padding: 11px 14px;
+    border-radius: 9px;
+    font-family: 'Kanit', sans-serif;
+    font-size: 13px;
+    text-align: center;
+    animation: fadeUp .3s ease;
+  }
+  .status-waiting {
+    background: rgba(245,200,66,0.08);
+    border: 1px solid rgba(245,200,66,0.2);
+    color: var(--gold);
+  }
+  .status-matched {
+    background: rgba(74,222,128,0.08);
+    border: 1px solid rgba(74,222,128,0.2);
+    color: var(--accent);
+  }
+
+  /* BET QUEUE */
+  .bet-queue-section {
+    padding: 16px 20px;
+  }
+  .bet-queue-title {
+    font-family: 'Kanit', sans-serif;
+    font-weight: 700;
+    font-size: 13px;
+    color: rgba(240,255,232,0.5);
+    margin-bottom: 10px;
+    letter-spacing: .5px;
+  }
+  .bet-queue-list { display: flex; flex-direction: column; gap: 7px; }
+  .bet-queue-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 9px 14px;
+    border-radius: 9px;
+    font-size: 13px;
+    background: rgba(255,255,255,0.03);
+    border: 1px solid rgba(255,255,255,0.06);
+  }
+  .red-queue { border-left: 3px solid rgba(239,68,68,0.5); }
+  .blue-queue { border-left: 3px solid rgba(59,130,246,0.5); }
+  .bet-queue-name { font-family: 'Kanit', sans-serif; font-weight: 700; color: var(--cream); min-width: 60px; }
+  .bet-queue-side { color: rgba(240,255,232,0.45); flex: 1; font-size: 12px; }
+  .bet-queue-amount { font-family: 'Kanit', sans-serif; font-weight: 700; color: var(--gold); min-width: 60px; text-align: right; }
+  .bet-queue-badge {
+    font-family: 'Kanit', sans-serif;
+    font-size: 10px;
+    font-weight: 700;
+    padding: 3px 9px;
+    border-radius: 999px;
+    white-space: nowrap;
+  }
+  .waiting { background: rgba(245,200,66,0.1); color: var(--gold); border: 1px solid rgba(245,200,66,0.2); }
+  .matched { background: rgba(74,222,128,0.1); color: var(--accent); border: 1px solid rgba(74,222,128,0.2); }
+
+  .bet-step-label {
+    font-family: 'Kanit', sans-serif;
+    font-size: 12px;
+    font-weight: 700;
+    color: rgba(240,255,232,0.45);
+    letter-spacing: .5px;
+    margin-bottom: 8px;
+    margin-top: 14px;
+  }
+  .bet-step-label:first-child { margin-top: 0; }
+  .bet-odds-selector { margin-bottom: 12px; }
+  .bet-odds-presets {
+    display: flex;
+    gap: 7px;
+    flex-wrap: wrap;
+    margin-bottom: 8px;
+  }
+  .bet-odds-preset {
+    font-family: 'Kanit', sans-serif;
+    font-size: 12px;
+    font-weight: 700;
+    padding: 6px 13px;
+    border-radius: 7px;
+    border: 1px solid rgba(245,200,66,0.2);
+    background: transparent;
+    color: rgba(240,255,232,0.5);
+    cursor: pointer;
+    transition: all .15s;
+  }
+  .bet-odds-preset:hover { border-color: var(--gold); color: var(--gold); }
+  .bet-odds-preset.active { background: rgba(245,200,66,0.12); border-color: var(--gold); color: var(--gold); }
+  .bet-odds-custom-wrap {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .bet-odds-input {
+    font-family: 'Kanit', sans-serif;
+    font-size: 14px;
+    font-weight: 700;
+    padding: 7px 10px;
+    border: 1px solid rgba(245,200,66,0.25);
+    border-radius: 8px;
+    background: rgba(255,255,255,0.05);
+    color: var(--gold);
+    width: 80px;
+    text-align: center;
+  }
+  .bet-odds-input:focus { outline: none; border-color: var(--gold); }
+  .bet-queue-item {
+    display: grid;
+    grid-template-columns: 14px 80px 1fr 90px 70px 60px;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 14px;
+    border-radius: 9px;
+    background: rgba(255,255,255,0.03);
+    border: 1px solid rgba(255,255,255,0.06);
+    transition: background .15s;
+  }
+  .bet-queue-item:hover { background: rgba(255,255,255,0.05); }
+  .bet-queue-odds {
+    font-family: 'Kanit', sans-serif;
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--gold);
+  }
+  .bet-join-btn {
+    font-family: 'Kanit', sans-serif;
+    font-size: 11px;
+    font-weight: 700;
+    padding: 5px 10px;
+    border-radius: 6px;
+    border: 1px solid var(--green);
+    background: transparent;
+    color: var(--accent);
+    cursor: pointer;
+    transition: all .15s;
+    white-space: nowrap;
+  }
+  .bet-join-btn:hover { background: var(--green); color: #fff; }
+
+  /* SCHEDULE LIST CARD */
+  .sched-card {
+    background: var(--dark2);
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 16px;
+    overflow: hidden;
+    cursor: pointer;
+    transition: transform .2s, border-color .2s, box-shadow .2s;
+    margin-bottom: 14px;
+  }
+  .sched-card:hover {
+    transform: translateY(-3px);
+    border-color: rgba(245,200,66,0.35);
+    box-shadow: 0 10px 28px rgba(0,0,0,0.3);
+  }
+  .sched-card-body {
+    display: grid;
+    grid-template-columns: 1fr 80px 1fr;
+    align-items: center;
+    padding: 18px 20px;
+    gap: 10px;
+  }
+  .sched-side {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+    text-align: center;
+  }
+  .sched-photo {
+    width: 56px;
+    height: 56px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 28px;
+    border: 2px solid transparent;
+  }
+  .sched-name {
+    font-family: 'Kanit', sans-serif;
+    font-weight: 900;
+    font-size: 16px;
+    color: var(--cream);
+  }
+  .sched-owner { font-size: 11px; color: rgba(240,255,232,0.4); }
+  .sched-tag {
+    font-family: 'Kanit', sans-serif;
+    font-size: 10px;
+    font-weight: 700;
+    padding: 2px 8px;
+    border-radius: 4px;
+    background: rgba(255,255,255,0.06);
+    color: rgba(240,255,232,0.5);
+    border: 1px solid rgba(255,255,255,0.07);
+  }
+  .sched-center {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+  }
+  .sched-vs {
+    font-family: 'Kanit', sans-serif;
+    font-weight: 900;
+    font-size: 16px;
+    color: rgba(240,255,232,0.2);
+  }
+  .sched-prize {
+    font-family: 'Kanit', sans-serif;
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--gold);
+  }
+  .sched-pool {
+    font-family: 'Kanit', sans-serif;
+    font-size: 11px;
+    color: rgba(240,255,232,0.4);
+  }
+  .sched-footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px 18px;
+    border-top: 1px solid rgba(255,255,255,0.05);
+    background: rgba(0,0,0,0.1);
+  }
+  .sched-enter-btn {
+    font-family: 'Kanit', sans-serif;
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--gold);
+    letter-spacing: .5px;
+  }
+  .red-sched .sched-photo { border-color: rgba(239,68,68,0.4); background: rgba(239,68,68,0.06); }
+  .blue-sched { align-items: center; }
+  .blue-sched .sched-photo { border-color: rgba(59,130,246,0.4); background: rgba(59,130,246,0.06); }
+
+  /* SCHEDULE SECTION */
+  .page { display: none; }
+  .page.active { display: block; }
+
+  .schedule-section {
+    padding: 48px 40px 60px;
+    max-width: 860px;
+    margin: 0 auto;
+  }
+  .schedule-back {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-family: 'Kanit', sans-serif;
+    font-weight: 700;
+    font-size: 13px;
+    color: rgba(255,248,236,0.5);
+    cursor: pointer;
+    margin-bottom: 28px;
+    transition: color 0.2s;
+    background: none;
+    border: none;
+    padding: 0;
+  }
+  .schedule-back:hover { color: var(--gold); }
+
+  .round-group { margin-bottom: 44px; }
+  .round-label {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-family: 'Kanit', sans-serif;
+    font-weight: 900;
+    font-size: 13px;
+    color: var(--cream);
+    letter-spacing: 1px;
+    background: rgba(245,168,0,0.08);
+    border-left: 4px solid var(--gold);
+    border-radius: 0 8px 8px 0;
+    padding: 10px 18px;
+    margin-bottom: 16px;
+  }
+  .round-label span {
+    margin-left: auto;
+    font-size: 11px;
+    color: rgba(255,248,236,0.45);
+    font-weight: 400;
+    letter-spacing: 0.5px;
+  }
+
+  /* MATCH CARD */
+  .match-card {
+    position: relative;
+    border-radius: 16px;
+    margin-bottom: 14px;
+    cursor: pointer;
+    overflow: hidden;
+    transition: transform 0.18s;
+  }
+  .match-card:hover { transform: translateY(-3px); }
+
+  .match-card-inner {
+    display: grid;
+    grid-template-columns: 1fr 110px 1fr;
+    align-items: stretch;
+    min-height: 110px;
+  }
+
+  /* Bull sides */
+  .bull-side {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    padding: 20px 22px;
+    background: #200e00;
+    position: relative;
+  }
+  .bull-side.left { border-radius: 16px 0 0 16px; border-right: none; }
+  .bull-side.right {
+    align-items: flex-end;
+    text-align: right;
+    border-radius: 0 16px 16px 0;
+    border-left: none;
+  }
+  .match-card:hover .bull-side { background: #2e1200; }
+
+  /* Live card accent */
+  .match-card.live .bull-side.left { background: #2a0a0a; }
+  .match-card.live .bull-side.right { background: #2a0a0a; }
+  .match-card.live .match-center-col { background: #C8102E; }
+
+  /* Done card */
+  .match-card.done { opacity: 0.72; }
+  .match-card.done .bull-side { background: #1a0e00; }
+
+  .bull-number {
+    font-size: 10px;
+    color: rgba(255,248,236,0.3);
+    font-family: 'Kanit', sans-serif;
+    letter-spacing: 1.5px;
+    margin-bottom: 5px;
+  }
+  .bull-name {
+    font-family: 'Kanit', sans-serif;
+    font-weight: 900;
+    font-size: 20px;
+    color: var(--cream);
+    line-height: 1.1;
+  }
+  .bull-name.winner { color: var(--gold); }
+  .bull-owner {
+    font-size: 12px;
+    color: rgba(255,248,236,0.4);
+    margin-top: 4px;
+    font-family: 'Sarabun', sans-serif;
+  }
+  .bull-weight {
+    display: inline-block;
+    background: rgba(245,168,0,0.12);
+    color: var(--gold);
+    font-family: 'Kanit', sans-serif;
+    font-size: 11px;
+    font-weight: 700;
+    padding: 3px 9px;
+    border-radius: 5px;
+    margin-top: 8px;
+    border: 1px solid rgba(245,168,0,0.2);
+  }
+  .bull-side.left .bull-weight { border-color: rgba(245,168,0,0.2); }
+
+  /* CENTER column */
+  .match-center-col {
+    background: #2a1200;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    padding: 12px 0;
+    border-left: 1px solid rgba(245,168,0,0.1);
+    border-right: 1px solid rgba(245,168,0,0.1);
+  }
+  .vs-circle {
+    width: 52px;
+    height: 52px;
+    border-radius: 50%;
+    border: 2px solid var(--gold);
+    background: #1A0A00;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'Kanit', sans-serif;
+    font-weight: 900;
+    font-size: 15px;
+    color: var(--gold);
+  }
+  .match-card.live .vs-circle {
+    border-color: #fff;
+    color: #fff;
+    background: rgba(255,255,255,0.1);
+  }
+  .match-time {
+    font-family: 'Kanit', sans-serif;
+    font-size: 11px;
+    color: rgba(255,248,236,0.6);
+  }
+  .match-card.live .match-time { color: rgba(255,255,255,0.85); }
+
+  .match-status {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    font-family: 'Kanit', sans-serif;
+    font-size: 10px;
+    font-weight: 700;
+    padding: 3px 10px;
+    border-radius: 999px;
+    letter-spacing: 1px;
+  }
+  .status-live {
+    background: rgba(255,255,255,0.2);
+    color: #fff;
+    animation: blink-st 1s infinite;
+  }
+  @keyframes blink-st { 0%,100%{opacity:1} 50%{opacity:0.6} }
+  .status-upcoming { background: rgba(245,168,0,0.15); color: var(--gold); }
+  .status-done { background: rgba(255,255,255,0.07); color: rgba(255,248,236,0.4); }
+
+  /* Live pulse border */
+  .match-card.live {
+    box-shadow: 0 0 0 2px var(--red);
+    animation: live-pulse 2s infinite;
+  }
+  @keyframes live-pulse {
+    0%,100% { box-shadow: 0 0 0 2px rgba(200,16,46,0.9), 0 0 20px rgba(200,16,46,0.15); }
+    50% { box-shadow: 0 0 0 3px rgba(200,16,46,0.5), 0 0 28px rgba(200,16,46,0.25); }
+  }
+
+  /* BULL PHOTO in card */
+  .bull-photo-wrap {
+    width: 72px;
+    height: 72px;
+    border-radius: 10px;
+    overflow: hidden;
+    border: 2px solid rgba(245,168,0,0.25);
+    background: rgba(255,255,255,0.04);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: border-color 0.2s;
+    flex-shrink: 0;
+    position: relative;
+  }
+  .bull-photo-wrap:hover { border-color: var(--gold); }
+  .bull-photo-wrap img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+  .bull-photo-placeholder {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+    font-family: 'Kanit', sans-serif;
+    font-size: 9px;
+    color: rgba(255,248,236,0.3);
+    text-align: center;
+    padding: 6px;
+  }
+  .bull-photo-placeholder i { font-size: 22px; color: rgba(255,248,236,0.2); }
+  .bull-photo-input { display: none; }
+
+  .bull-side.left { flex-direction: row; align-items: center; gap: 14px; }
+  .bull-side.right { flex-direction: row-reverse; align-items: center; gap: 14px; }
+  .bull-info { display: flex; flex-direction: column; }
+  .bull-side.right .bull-info { align-items: flex-end; text-align: right; }
+
+  /* MODAL bull photo */
+  .modal-bull-photo {
+    width: 90px;
+    height: 90px;
+    border-radius: 12px;
+    overflow: hidden;
+    border: 2px solid rgba(245,168,0,0.3);
+    background: rgba(255,255,255,0.04);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 10px;
+    cursor: pointer;
+    transition: border-color 0.2s;
+  }
+  .modal-bull-photo:hover { border-color: var(--gold); }
+  .modal-bull-photo img { width: 100%; height: 100%; object-fit: cover; }
+  .modal-bull-photo-placeholder {
+    font-size: 32px;
+    opacity: 0.4;
+  }
+
+  /* winner bar at bottom of done card */
+  .match-winner-bar {
+    background: rgba(245,168,0,0.1);
+    border-top: 1px solid rgba(245,168,0,0.2);
+    padding: 7px 22px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-family: 'Kanit', sans-serif;
+    font-size: 12px;
+    color: var(--gold);
+    font-weight: 700;
+  }
+  .match-winner-bar span { opacity: 0.5; font-weight: 400; font-size: 11px; margin-left: auto; }
+
+
+  .match-status {
+    display: inline-block;
+    font-family: 'Kanit', sans-serif;
+    font-size: 10px;
+    font-weight: 700;
+    padding: 3px 10px;
+    border-radius: 999px;
+    letter-spacing: 1px;
+    margin-top: 6px;
+  }
+  .status-live { background: var(--red); color: #fff; animation: blink 1s infinite; }
+  @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0.6} }
+  .status-upcoming { background: rgba(245,168,0,0.15); color: var(--gold); }
+  .status-done { background: rgba(255,255,255,0.08); color: rgba(255,248,236,0.4); }
+
+  /* MODAL */
+  .modal-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.75);
+    z-index: 200;
+    align-items: center;
+    justify-content: center;
+  }
+  .modal-overlay.open { display: flex; }
+  .modal {
+    background: #1e0d00;
+    border: 1px solid rgba(245,168,0,0.3);
+    border-radius: 18px;
+    width: 90%;
+    max-width: 560px;
+    overflow: hidden;
+    animation: modalIn 0.25s ease;
+  }
+  @keyframes modalIn { from{opacity:0;transform:scale(0.95)} to{opacity:1;transform:scale(1)} }
+  .modal-header {
+    background: linear-gradient(135deg, #3a0010, #1e0d00);
+    border-bottom: 1px solid rgba(245,168,0,0.2);
+    padding: 20px 24px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  .modal-round {
+    font-family: 'Kanit', sans-serif;
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--gold);
+    letter-spacing: 2px;
+  }
+  .modal-close {
+    background: none;
+    border: none;
+    color: rgba(255,248,236,0.5);
+    font-size: 22px;
+    cursor: pointer;
+    line-height: 1;
+    transition: color 0.15s;
+  }
+  .modal-close:hover { color: var(--cream); }
+  .modal-body { padding: 28px 24px; }
+  .modal-vs {
+    display: grid;
+    grid-template-columns: 1fr auto 1fr;
+    align-items: center;
+    gap: 16px;
+    margin-bottom: 28px;
+  }
+  .modal-bull { text-align: center; }
+  .modal-bull-icon { font-size: 40px; margin-bottom: 8px; }
+  .modal-bull-name {
+    font-family: 'Kanit', sans-serif;
+    font-weight: 900;
+    font-size: 20px;
+    color: var(--cream);
+    line-height: 1.1;
+  }
+  .modal-bull-name.winner { color: var(--gold); }
+  .modal-bull-sub { font-size: 12px; color: rgba(255,248,236,0.45); margin-top: 4px; }
+  .modal-bull-tag {
+    display: inline-block;
+    background: rgba(245,168,0,0.12);
+    color: var(--gold);
+    font-family: 'Kanit', sans-serif;
+    font-size: 11px;
+    font-weight: 700;
+    padding: 3px 10px;
+    border-radius: 6px;
+    margin-top: 8px;
+  }
+  .modal-vs-circle {
+    width: 56px;
+    height: 56px;
+    border-radius: 50%;
+    border: 2px solid rgba(245,168,0,0.5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'Kanit', sans-serif;
+    font-weight: 900;
+    font-size: 16px;
+    color: var(--gold);
+  }
+  .modal-info {
+    background: rgba(255,255,255,0.04);
+    border-radius: 10px;
+    padding: 16px 20px;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 14px;
+  }
+  .modal-info-item {}
+  .modal-info-label {
+    font-size: 10px;
+    color: rgba(255,248,236,0.4);
+    font-family: 'Kanit', sans-serif;
+    letter-spacing: 1.5px;
+    margin-bottom: 4px;
+  }
+  .modal-info-val {
+    font-family: 'Kanit', sans-serif;
+    font-weight: 700;
+    font-size: 15px;
+    color: var(--cream);
+  }
+  .modal-winner-bar {
+    margin-top: 20px;
+    background: rgba(245,168,0,0.1);
+    border: 1px solid rgba(245,168,0,0.3);
+    border-radius: 10px;
+    padding: 14px 20px;
+    text-align: center;
+  }
+  .modal-winner-label {
+    font-size: 10px;
+    color: var(--gold);
+    font-family: 'Kanit', sans-serif;
+    letter-spacing: 2px;
+    margin-bottom: 4px;
+  }
+  .modal-winner-name {
+    font-family: 'Kanit', sans-serif;
+    font-weight: 900;
+    font-size: 20px;
+    color: var(--gold);
+  }
+
+  /* REGISTER PAGE */
+  .register-section {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 60px 20px;
+    background: radial-gradient(ellipse at 50% 0%, #3a0800 0%, #1A0A00 60%);
+  }
+  .register-card {
+    background: #1e0d00;
+    border: 1px solid rgba(245,168,0,0.25);
+    border-radius: 20px;
+    width: 100%;
+    max-width: 480px;
+    overflow: hidden;
+  }
+  .register-header {
+    background: linear-gradient(135deg, #3a0010, #1e0d00);
+    border-bottom: 2px solid var(--gold);
+    padding: 28px 32px 24px;
+    text-align: center;
+  }
+  .register-logo {
+    font-family: 'Kanit', sans-serif;
+    font-weight: 900;
+    font-size: 20px;
+    color: var(--gold);
+    margin-bottom: 4px;
+  }
+  .register-logo span { color: var(--red); }
+  .register-title {
+    font-family: 'Kanit', sans-serif;
+    font-weight: 900;
+    font-size: 26px;
+    color: var(--cream);
+    margin-top: 12px;
+  }
+  .register-sub {
+    font-size: 13px;
+    color: rgba(255,248,236,0.5);
+    margin-top: 4px;
+  }
+  .register-body { padding: 32px; }
+
+  .reg-group { margin-bottom: 20px; }
+  .reg-label {
+    display: block;
+    font-family: 'Kanit', sans-serif;
+    font-weight: 700;
+    font-size: 12px;
+    color: var(--gold);
+    letter-spacing: 1px;
+    margin-bottom: 7px;
+  }
+  .reg-label em {
+    font-style: normal;
+    color: rgba(255,248,236,0.4);
+    font-weight: 400;
+    font-size: 11px;
+    margin-left: 6px;
+    letter-spacing: 0;
+  }
+  .reg-input {
+    width: 100%;
+    background: rgba(255,255,255,0.05);
+    border: 1px solid rgba(245,168,0,0.2);
+    border-radius: 10px;
+    padding: 12px 16px;
+    font-family: 'Sarabun', sans-serif;
+    font-size: 15px;
+    color: var(--cream);
+    transition: border-color 0.2s, background 0.2s;
+    outline: none;
+  }
+  .reg-input::placeholder { color: rgba(255,248,236,0.25); }
+  .reg-input:focus {
+    border-color: var(--gold);
+    background: rgba(245,168,0,0.06);
+  }
+  .reg-input-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+
+  .reg-hint {
+    font-size: 11px;
+    color: rgba(255,248,236,0.35);
+    margin-top: 5px;
+    font-family: 'Sarabun', sans-serif;
+  }
+  .reg-divider {
+    height: 1px;
+    background: rgba(245,168,0,0.1);
+    margin: 24px 0;
+  }
+  .reg-section-label {
+    font-family: 'Kanit', sans-serif;
+    font-size: 11px;
+    font-weight: 700;
+    color: rgba(255,248,236,0.35);
+    letter-spacing: 2px;
+    margin-bottom: 16px;
+  }
+  .reg-submit {
+    width: 100%;
+    background: var(--red);
+    color: #fff;
+    font-family: 'Kanit', sans-serif;
+    font-weight: 900;
+    font-size: 16px;
+    padding: 14px;
+    border: none;
+    border-radius: 10px;
+    cursor: pointer;
+    letter-spacing: 1px;
+    margin-top: 8px;
+    transition: background 0.15s, transform 0.15s;
+  }
+  .reg-submit:hover { background: #a50c24; transform: scale(1.01); }
+  .reg-login {
+    text-align: center;
+    margin-top: 16px;
+    font-size: 13px;
+    color: rgba(255,248,236,0.4);
+    font-family: 'Sarabun', sans-serif;
+  }
+  .reg-login a {
+    color: var(--gold);
+    text-decoration: none;
+    font-family: 'Kanit', sans-serif;
+    font-weight: 700;
+  }
+  .reg-success {
+    display: none;
+    text-align: center;
+    padding: 40px 32px;
+  }
+  .reg-success-icon { font-size: 56px; margin-bottom: 16px; }
+  .reg-success-title {
+    font-family: 'Kanit', sans-serif;
+    font-weight: 900;
+    font-size: 24px;
+    color: var(--gold);
+    margin-bottom: 8px;
+  }
+  .reg-success-sub {
+    font-size: 14px;
+    color: rgba(255,248,236,0.6);
+    line-height: 1.6;
+    margin-bottom: 24px;
+  }
+
+  /* DIVIDER */
+  .gold-divider {
+    height: 1px;
+    background: linear-gradient(to right, transparent, var(--gold), transparent);
+    margin: 0;
+  }
+
+  /* MY ACCOUNT PAGE */
   .account-section{max-width:860px;margin:0 auto;padding:48px 40px 60px;}
   .account-back{display:inline-flex;align-items:center;gap:8px;font-family:'Kanit',sans-serif;font-weight:700;font-size:13px;color:rgba(240,255,232,0.5);cursor:pointer;margin-bottom:28px;background:none;border:none;padding:0;transition:color .2s;}
   .account-back:hover{color:var(--gold);}
@@ -135,319 +2446,708 @@ nav{
   .star-btn.active{opacity:1;}
   .star-btn:hover{opacity:.8;}
 
-/* ===== TICKER ===== */
-.ticker{background:rgba(200,16,46,.12);border-bottom:1px solid rgba(200,16,46,.25);padding:7px 0;overflow:hidden;}
-.ticker-inner{display:flex;gap:60px;white-space:nowrap;animation:tick 30s linear infinite;}
-.ticker-item{font-family:'Kanit',sans-serif;font-size:12px;color:rgba(255,248,236,.65);}
-.ticker-item::before{content:'🔴 ';}
-@keyframes tick{0%{transform:translateX(0);}100%{transform:translateX(-50%);}}
-
-/* ===== HERO ===== */
-.hero{
-  text-align:center;padding:64px 24px 48px;
-  position:relative;overflow:hidden;
-  background:#0d1a0f;
-  min-height:400px;
-}
-/* BG Image Layer */
-.hero::after{
-  content:'';
-  position:absolute;inset:0;
-  background:linear-gradient(135deg, rgba(39,148,63,0.15) 0%, rgba(200,16,46,0.1) 100%);
-  opacity:.5;
-  pointer-events:none;
-  z-index:0;
-}
-/* Pattern overlay */
-.hero::before{
-  content:'';position:absolute;inset:0;
-  background:
-    radial-gradient(ellipse at 30% 50%, rgba(200,16,46,.35) 0%, transparent 55%),
-    radial-gradient(ellipse at 70% 50%, rgba(30,80,200,.3) 0%, transparent 55%),
-    radial-gradient(ellipse at 50% 100%, rgba(0,0,0,.6) 0%, transparent 60%);
-  pointer-events:none;
-  z-index:1;
-}
-/* Animations */
-
-  50%{opacity:.38;}
-}
-
-  33%{background-size:130% auto; background-position:48% center;}
-  66%{background-size:125% auto; background-position:52% center;}
-}
-/* Spark particles */
-.hero-spark{
-  position:absolute;border-radius:50%;pointer-events:none;z-index:2;
-  animation:sparkFloat var(--dur,3s) ease-in-out infinite var(--delay,0s);
-}
-@keyframes sparkFloat{
-  0%{transform:translateY(0) translateX(0) scale(1);opacity:.8;}
-  33%{transform:translateY(-20px) translateX(10px) scale(1.3);opacity:1;}
-  66%{transform:translateY(-10px) translateX(-8px) scale(.8);opacity:.6;}
-  100%{transform:translateY(0) translateX(0) scale(1);opacity:.8;}
-}
-.hero-badge{
-  display:inline-block;font-family:'Kanit',sans-serif;font-size:12px;font-weight:700;
-  padding:4px 14px;background:rgba(245,168,0,.15);border:1px solid rgba(245,168,0,.4);
-  border-radius:20px;color:var(--gold);margin-bottom:16px;letter-spacing:.05em;
-  position:relative;z-index:3;
-  text-shadow:0 0 20px rgba(245,168,0,.5);
-}
-.hero-title{font-family:'Kanit',sans-serif;font-weight:900;font-size:clamp(36px,7vw,64px);line-height:1.1;margin-bottom:14px;position:relative;z-index:3;}
-.hero-title .red{color:var(--red);}
-.hero-sub{color:rgba(255,248,236,.7);font-size:15px;margin-bottom:28px;position:relative;z-index:3;text-shadow:0 2px 8px rgba(0,0,0,.8);}
-.hero-cta{display:flex;gap:12px;justify-content:center;flex-wrap:wrap;position:relative;z-index:3;}
-.btn-hero-main{background:var(--red);color:#fff;font-family:'Kanit',sans-serif;font-weight:700;font-size:15px;padding:13px 32px;border-radius:8px;border:none;cursor:pointer;transition:all .2s;}
-.btn-hero-main:hover{background:#a50e24;transform:translateY(-1px);}
-.btn-hero-out{background:transparent;color:var(--gold);font-family:'Kanit',sans-serif;font-weight:700;font-size:15px;padding:13px 32px;border-radius:8px;border:2px solid var(--gold);cursor:pointer;transition:all .2s;}
-.btn-hero-out:hover{background:var(--gold);color:var(--dark);}
-
-/* ===== STATS ===== */
-.stats-bar{display:flex;justify-content:center;gap:0;background:rgba(0,0,0,.25);border-top:1px solid var(--border);border-bottom:1px solid var(--border);}
-.stat{flex:1;max-width:180px;text-align:center;padding:18px 10px;border-right:1px solid var(--border);}
-.stat:last-child{border-right:none;}
-.stat-num{font-family:'Kanit',sans-serif;font-weight:900;font-size:22px;color:var(--gold);}
-.stat-label{font-size:11px;color:rgba(255,248,236,.4);margin-top:2px;}
-
-/* ===== MATCHES SECTION ===== */
-.section{max-width:960px;margin:0 auto;padding:40px 16px 60px;}
-.section-head{text-align:center;margin-bottom:32px;position:relative;}
-.section-head h2{font-family:'Kanit',sans-serif;font-weight:900;font-size:26px;position:relative;z-index:2;}
-.section-head h2 .red{color:var(--red);}
-.section-divider{width:50px;height:3px;background:var(--gold);margin:10px auto 0;position:relative;z-index:2;}
-
-/* ===== FIRE RING SECTION BG ===== */
-.section-fire-wrap{
-  position:relative;
-  background:radial-gradient(ellipse at 50% 0%,rgba(200,80,0,.12) 0%,transparent 70%);
-  padding-top:10px;
-}
-#fire-canvas{
-  position:absolute;
-  top:50%;left:50%;
-  transform:translate(-50%,-50%);
-  pointer-events:none;
-  opacity:.55;
-  z-index:0;
-}
-.section-fire-wrap .section-head,
-.section-fire-wrap #matches-container{position:relative;z-index:2;}
-
-/* Section title glow animation */
-@keyframes titleGlow{
-  0%,100%{text-shadow:0 0 20px rgba(245,168,0,.2),0 0 40px rgba(200,50,0,.1);}
-  50%{text-shadow:0 0 30px rgba(245,168,0,.5),0 0 60px rgba(200,80,0,.25),0 0 80px rgba(245,168,0,.1);}
-}
-.section-head h2{animation:titleGlow 3s ease-in-out infinite;}
-
-/* ===== MATCH CARD ===== */
-.match-card{
-  background:var(--card);border:1px solid var(--border);border-radius:14px;
-  margin-bottom:16px;overflow:hidden;cursor:pointer;
-  transition:border-color .2s,box-shadow .2s;
-}
-.match-card:hover{border-color:rgba(245,168,0,.5);box-shadow:0 6px 28px rgba(0,0,0,.35);}
-.mc-header{
-  display:flex;align-items:center;justify-content:space-between;
-  padding:11px 18px;background:rgba(0,0,0,.2);border-bottom:1px solid var(--border);
-  gap:8px;flex-wrap:wrap;
-}
-.mc-round{font-family:'Kanit',sans-serif;font-weight:700;font-size:14px;color:var(--gold);}
-.mc-meta{display:flex;gap:12px;align-items:center;flex-wrap:wrap;}
-.mc-meta span{font-size:12px;color:rgba(255,248,236,.5);}
-.mc-meta b{color:rgba(255,248,236,.75);}
-.mc-status{font-family:'Kanit',sans-serif;font-size:11px;font-weight:700;padding:3px 10px;border-radius:20px;}
-.s-upcoming{background:rgba(245,168,0,.12);color:var(--gold);border:1px solid rgba(245,168,0,.25);}
-.s-live{background:rgba(200,16,46,.2);color:#ff7c7c;border:1px solid rgba(200,16,46,.35);animation:pulse 1.4s infinite;}
-.s-done{background:rgba(27,107,47,.2);color:#7ddc8e;border:1px solid rgba(27,107,47,.35);}
-@keyframes pulse{0%,100%{opacity:1;}50%{opacity:.55;}}
-.mc-body{padding:18px;}
-.vs-grid{display:grid;grid-template-columns:1fr auto 1fr;align-items:center;gap:10px;}
-.bull{display:flex;flex-direction:column;align-items:center;gap:5px;}
-.bull-ico{width:60px;height:60px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:26px;}
-.bull-red{background:rgba(200,16,46,.12);border:2px solid rgba(200,16,46,.35);}
-.bull-blue{background:rgba(30,80,200,.12);border:2px solid rgba(30,80,200,.35);}
-.bull-name{font-family:'Kanit',sans-serif;font-weight:700;font-size:14px;text-align:center;}
-.bull-owner{font-size:11px;color:rgba(255,248,236,.4);text-align:center;}
-.bull-wt{font-size:11px;background:rgba(255,255,255,.05);padding:2px 8px;border-radius:10px;color:rgba(255,248,236,.55);}
-.vs-mid{text-align:center;}
-.vs-txt{font-family:'Kanit',sans-serif;font-weight:900;font-size:17px;color:var(--gold);}
-.prize{font-family:'Kanit',sans-serif;font-weight:700;font-size:13px;color:var(--gold);margin-top:4px;}
-.mc-footer{
-  display:flex;align-items:center;justify-content:space-between;
-  padding:10px 18px;border-top:1px solid var(--border);background:rgba(0,0,0,.1);
-}
-.mc-bets{font-size:12px;color:rgba(255,248,236,.4);}
-.mc-bets b{color:var(--gold);}
-.btn-view{font-family:'Kanit',sans-serif;font-size:13px;font-weight:700;padding:7px 18px;border-radius:7px;background:var(--green2);color:#fff;border:none;cursor:pointer;transition:background .2s;}
-.btn-view:hover{background:#2fa848;}
-
-/* ===== EMPTY / SKELETON ===== */
-.skeleton{background:linear-gradient(90deg,var(--card) 25%,rgba(255,255,255,.04) 50%,var(--card) 75%);background-size:200% 100%;animation:shimmer 1.5s infinite;border-radius:14px;height:160px;margin-bottom:16px;}
-@keyframes shimmer{0%{background-position:200% 0}100%{background-position:-200% 0}}
-.empty{text-align:center;padding:60px 20px;color:rgba(255,248,236,.25);}
-.empty-ico{font-size:44px;margin-bottom:12px;}
-.empty-txt{font-family:'Kanit',sans-serif;font-size:16px;}
-
-/* ===== MODAL ===== */
-.overlay{position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:500;display:none;align-items:center;justify-content:center;padding:16px;}
-.overlay.open{display:flex;}
-.modal{background:#1a2e1c;border:1px solid var(--border);border-radius:14px;width:100%;max-width:420px;padding:28px 24px;position:relative;}
-.modal h3{font-family:'Kanit',sans-serif;font-weight:900;font-size:20px;color:var(--gold);margin-bottom:18px;}
-.modal-close{position:absolute;top:14px;right:16px;background:none;border:none;color:rgba(255,248,236,.4);font-size:20px;cursor:pointer;}
-.form-group{margin-bottom:14px;}
-.form-group label{display:block;font-family:'Kanit',sans-serif;font-size:12px;color:rgba(255,248,236,.5);margin-bottom:5px;}
-.form-group input{width:100%;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);border-radius:7px;padding:10px 12px;color:var(--cream);font-family:'Sarabun',sans-serif;font-size:14px;outline:none;transition:border-color .2s;}
-.form-group input:focus{border-color:var(--gold);}
-.btn-submit{width:100%;background:var(--red);color:#fff;font-family:'Kanit',sans-serif;font-weight:700;font-size:15px;padding:12px;border-radius:8px;border:none;cursor:pointer;margin-top:6px;}
-.btn-submit:hover{background:#a50e24;}
-.modal-switch{text-align:center;margin-top:14px;font-size:13px;color:rgba(255,248,236,.4);}
-.modal-switch a{color:var(--gold);cursor:pointer;text-decoration:none;}
-.form-error{font-size:12px;color:#ff7c7c;margin-top:-8px;margin-bottom:6px;display:none;}
-
-/* ===== TOAST ===== */
-.toast{position:fixed;bottom:24px;right:24px;background:#1e3a1e;border:1px solid var(--green2);color:#fff;font-family:'Kanit',sans-serif;font-size:14px;padding:12px 20px;border-radius:10px;z-index:999;opacity:0;transform:translateY(10px);transition:all .3s;pointer-events:none;max-width:300px;}
-.toast.show{opacity:1;transform:translateY(0);}
-
-@media(max-width:600px){
-  .nav-links{display:none;}
-  .stats-bar{display:grid;grid-template-columns:1fr 1fr;}
-  .stat{border-right:1px solid var(--border);}
-  .stat:nth-child(2n){border-right:none;}
-  .vs-grid{gap:6px;}
-  .bull-ico{width:48px;height:48px;font-size:22px;}
-}
+  /* FOOTER */
+    border-top: 2px solid var(--gold);
+    padding: 32px 40px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 16px;
+  }
+  .footer-logo {
+    font-family: 'Kanit', sans-serif;
+    font-weight: 900;
+    font-size: 20px;
+    color: var(--gold);
+  }
+  .footer-logo span { color: var(--red); }
+  .footer-links { display: flex; gap: 24px; }
+  .footer-links a {
+    font-family: 'Kanit', sans-serif;
+    font-weight: 700;
+    font-size: 13px;
+    color: rgba(255,248,236,0.45);
+    text-decoration: none;
+  }
+  .footer-links a:hover { color: var(--gold); }
+  .footer-copy {
+    font-size: 12px;
+    color: rgba(255,248,236,0.3);
+  }
 </style>
 </head>
 <body>
 
+<!-- MODAL -->
+<div class="modal-overlay" id="modal" onclick="closeModal(event)">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-round" id="m-round">รุ่นแชมเปียน · คู่ที่ 1</div>
+      <button class="modal-close" onclick="document.getElementById('modal').classList.remove('open')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="modal-vs">
+        <div class="modal-bull">
+          <div class="modal-bull-photo" onclick="document.getElementById('modal-img-a').click()">
+            <img id="modal-photo-a" src="" style="display:none">
+            <div class="modal-bull-photo-placeholder" id="modal-placeholder-a">🐂</div>
+          </div>
+          <input type="file" id="modal-img-a" accept="image/*" style="display:none" onchange="loadModalPhoto(this,'modal-photo-a','modal-placeholder-a')">
+          <div class="modal-bull-name" id="m-bull-a">เจ้าพายุ</div>
+          <div class="modal-bull-sub" id="m-owner-a">เจ้าของ: นายสมชาย</div>
+          <div class="modal-bull-tag" id="m-weight-a">520 กก.</div>
+        </div>
+        <div class="modal-vs-circle">VS</div>
+        <div class="modal-bull">
+          <div class="modal-bull-photo" onclick="document.getElementById('modal-img-b').click()">
+            <img id="modal-photo-b" src="" style="display:none">
+            <div class="modal-bull-photo-placeholder" id="modal-placeholder-b">🐃</div>
+          </div>
+          <input type="file" id="modal-img-b" accept="image/*" style="display:none" onchange="loadModalPhoto(this,'modal-photo-b','modal-placeholder-b')">
+          <div class="modal-bull-name" id="m-bull-b">ดำมหากาฬ</div>
+          <div class="modal-bull-sub" id="m-owner-b">เจ้าของ: นายวิชัย</div>
+          <div class="modal-bull-tag" id="m-weight-b">510 กก.</div>
+        </div>
+      </div>
+      <div class="modal-info">
+        <div class="modal-info-item">
+          <div class="modal-info-label">วันที่</div>
+          <div class="modal-info-val" id="m-date">4 มิ.ย. 68</div>
+        </div>
+        <div class="modal-info-item">
+          <div class="modal-info-label">เวลา</div>
+          <div class="modal-info-val" id="m-time">09:00 น.</div>
+        </div>
+        <div class="modal-info-item">
+          <div class="modal-info-label">สถานที่</div>
+          <div class="modal-info-val" id="m-loc">สนามหลัก นครศรีธรรมราช</div>
+        </div>
+        <div class="modal-info-item">
+          <div class="modal-info-label">รางวัล</div>
+          <div class="modal-info-val" id="m-prize">500,000 บาท</div>
+        </div>
+      </div>
+      <div class="modal-winner-bar" id="m-winner-bar" style="display:none">
+        <div class="modal-winner-label">🏆 ผู้ชนะ</div>
+        <div class="modal-winner-name" id="m-winner-name"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
 <!-- NAV -->
+<div id="main-content">
 <nav>
-  <div class="nav-logo" onclick="window.scrollTo(0,0)">🐂 <em>วัวชน</em>ไทย</div>
+  <div class="nav-logo" style="display:flex;align-items:center;gap:10px;">
+    <svg viewBox="0 0 60 60" width="40" height="40" xmlns="http://www.w3.org/2000/svg">
+      <circle cx="30" cy="30" r="28" fill="#1A0A00" stroke="#F5A800" stroke-width="2.5"/>
+      <circle cx="30" cy="30" r="24" fill="none" stroke="#C8102E" stroke-width="1"/>
+      <g transform="translate(8,10)">
+        <path d="M14,20 Q2,6 10,2" fill="none" stroke="#F5A800" stroke-width="3.5" stroke-linecap="round"/>
+        <path d="M30,20 Q42,6 34,2" fill="none" stroke="#F5A800" stroke-width="3.5" stroke-linecap="round"/>
+        <circle cx="10" cy="2" r="2.5" fill="#F5A800"/>
+        <circle cx="34" cy="2" r="2.5" fill="#F5A800"/>
+        <ellipse cx="22" cy="28" rx="18" ry="16" fill="#C8102E"/>
+        <circle cx="14" cy="22" r="4" fill="#FFF8EC"/>
+        <circle cx="30" cy="22" r="4" fill="#FFF8EC"/>
+        <circle cx="15" cy="22" r="2.5" fill="#1A0A00"/>
+        <circle cx="31" cy="22" r="2.5" fill="#1A0A00"/>
+        <ellipse cx="22" cy="34" rx="10" ry="7" fill="#a50c24"/>
+        <ellipse cx="18" cy="35" rx="3" ry="2.5" fill="#1A0A00"/>
+        <ellipse cx="26" cy="35" rx="3" ry="2.5" fill="#1A0A00"/>
+      </g>
+    </svg>
+    <span style="font-family:'Kanit',sans-serif;font-weight:900;font-size:20px;color:#F5A800;">วัวชน<span style="color:#C8102E;">ไทย</span></span>
+  </div>
   <div class="nav-links">
-    <a href="#">หน้าแรก</a>
-    <a href="wuachon-schedule.html">ตารางแข่ง</a>
+    <a href="#" onclick="goHome();return false;">หน้าแรก</a>
+    <a href="#" onclick="showSchedule();return false;">ตารางแข่ง</a>
+    <a href="#" onclick="showHistory();return false;">ประวัติการแข่งขัน</a>
+    <a href="#" onclick="showMyAccount();return false;" id="nav-myaccount" style="display:none;">👤 บัญชีของฉัน</a>
+    <a href="#" onclick="showRegister();return false;" id="nav-register">สมัคร / Login</a>
   </div>
-  <div class="nav-right" id="nav-right">
-    <button class="btn-login" onclick="openModal('login')">เข้าสู่ระบบ</button>
-    <button class="btn-register" onclick="openModal('register')">สมัครสมาชิก</button>
-  </div>
+  <svg viewBox="0 0 240 240" width="44" height="44" xmlns="http://www.w3.org/2000/svg" style="flex-shrink:0;">
+    <circle cx="120" cy="120" r="116" fill="#1A0A00" stroke="#F5A800" stroke-width="8"/>
+    <circle cx="120" cy="120" r="100" fill="none" stroke="#C8102E" stroke-width="4"/>
+    <circle cx="120" cy="120" r="84" fill="#2a1200" stroke="#F5A800" stroke-width="2" stroke-dasharray="6,7"/>
+    <g transform="translate(56,44)">
+      <path d="M32,44 Q6,10 24,0" fill="none" stroke="#F5A800" stroke-width="10" stroke-linecap="round"/>
+      <path d="M96,44 Q122,10 104,0" fill="none" stroke="#F5A800" stroke-width="10" stroke-linecap="round"/>
+      <circle cx="24" cy="0" r="7" fill="#F5A800"/>
+      <circle cx="104" cy="0" r="7" fill="#F5A800"/>
+      <ellipse cx="26" cy="54" rx="14" ry="10" fill="#a50c24"/>
+      <ellipse cx="102" cy="54" rx="14" ry="10" fill="#a50c24"/>
+      <ellipse cx="64" cy="70" rx="44" ry="40" fill="#C8102E"/>
+      <circle cx="44" cy="58" r="10" fill="#FFF8EC"/>
+      <circle cx="84" cy="58" r="10" fill="#FFF8EC"/>
+      <circle cx="46" cy="58" r="6" fill="#1A0A00"/>
+      <circle cx="86" cy="58" r="6" fill="#1A0A00"/>
+      <circle cx="47" cy="56" r="2" fill="#FFF8EC"/>
+      <circle cx="87" cy="56" r="2" fill="#FFF8EC"/>
+      <ellipse cx="64" cy="88" rx="26" ry="18" fill="#a50c24"/>
+      <ellipse cx="54" cy="90" rx="8" ry="6" fill="#1A0A00"/>
+      <ellipse cx="74" cy="90" rx="8" ry="6" fill="#1A0A00"/>
+    </g>
+    <path id="nt" d="M24,120 A96,96 0 0,1 216,120" fill="none"/>
+    <text font-family="Kanit,sans-serif" font-weight="900" font-size="22" fill="#F5A800" letter-spacing="9">
+      <textPath href="#nt" startOffset="7%">วัวชนไทย</textPath>
+    </text>
+    <path id="nb" d="M24,120 A96,96 0 0,0 216,120" fill="none"/>
+    <text font-family="Kanit,sans-serif" font-weight="700" font-size="14" fill="#FFF8EC" letter-spacing="5" opacity="0.7">
+      <textPath href="#nb" startOffset="5%">BULL FIGHT THAI</textPath>
+    </text>
+    <text x="28" y="127" text-anchor="middle" font-size="16" fill="#F5A800">★</text>
+    <text x="212" y="127" text-anchor="middle" font-size="16" fill="#F5A800">★</text>
+  </svg>
 </nav>
 
-<div id="main-content">
-<!-- TICKER -->
-<div class="ticker">
-  <div class="ticker-inner" id="ticker-inner">
-    <span class="ticker-item">ยินดีต้อนรับสู่วัวชนไทย</span>
-    <span class="ticker-item">เปิดรับสมัครคู่วัวชนแล้ววันนี้</span>
-    <span class="ticker-item">สนามหลักนครศรีธรรมราชพร้อม 100%</span>
-    <span class="ticker-item">ติดต่อเพิ่มเติม Line: @wuachon</span>
-    <span class="ticker-item">ยินดีต้อนรับสู่วัวชนไทย</span>
-    <span class="ticker-item">เปิดรับสมัครคู่วัวชนแล้ววันนี้</span>
-    <span class="ticker-item">สนามหลักนครศรีธรรมราชพร้อม 100%</span>
-    <span class="ticker-item">ติดต่อเพิ่มเติม Line: @wuachon</span>
+<!-- NEWS TICKER -->
+<div class="ticker-wrap">
+  <div class="ticker-label">ข่าวสาร</div>
+  <div class="ticker-track">
+    <span class="ticker-item">เปิดรับสมัครคู่วัวชนแล้ววันนี้!</span>
+    <span class="ticker-item">พบกับวัวดาว "เจ้าพายุ" รุ่นแชมเปียน</span>
+    <span class="ticker-item">ประกาศรายชื่อกรรมการตัดสิน ปี 68</span>
+    <span class="ticker-item">สนามนครศรีธรรมราชพร้อม 100%</span>
+    <span class="ticker-item">เปิดรับสมัครคู่วัวชนแล้ววันนี้!</span>
+    <span class="ticker-item">พบกับวัวดาว "เจ้าพายุ" รุ่นแชมเปียน</span>
+    <span class="ticker-item">ประกาศรายชื่อกรรมการตัดสิน ปี 68</span>
+    <span class="ticker-item">สนามนครศรีธรรมราชพร้อม 100%</span>
   </div>
 </div>
 
 <!-- HERO -->
-<div class="hero">
-  <!-- Spark Particles -->
-  <div class="hero-spark" style="width:6px;height:6px;background:#ff4444;top:20%;left:15%;--dur:2.5s;--delay:0s;box-shadow:0 0 10px #ff4444;"></div>
-  <div class="hero-spark" style="width:4px;height:4px;background:#F5A800;top:35%;left:25%;--dur:3.2s;--delay:-.8s;box-shadow:0 0 8px #F5A800;"></div>
-  <div class="hero-spark" style="width:8px;height:8px;background:#4488ff;top:25%;right:18%;--dur:2.8s;--delay:-.5s;box-shadow:0 0 12px #4488ff;"></div>
-  <div class="hero-spark" style="width:5px;height:5px;background:#ff4444;top:60%;right:22%;--dur:3.5s;--delay:-1.2s;box-shadow:0 0 10px #ff4444;"></div>
-  <div class="hero-spark" style="width:3px;height:3px;background:#fff;top:45%;left:10%;--dur:2.2s;--delay:-.3s;box-shadow:0 0 6px #fff;"></div>
-  <div class="hero-spark" style="width:6px;height:6px;background:#4488ff;top:70%;left:30%;--dur:4s;--delay:-.9s;box-shadow:0 0 10px #4488ff;"></div>
-  <div class="hero-spark" style="width:4px;height:4px;background:#F5A800;top:15%;right:30%;--dur:3s;--delay:-1.5s;box-shadow:0 0 8px #F5A800;"></div>
-  <div class="hero-spark" style="width:7px;height:7px;background:#ff44aa;top:55%;right:12%;--dur:2.6s;--delay:-.6s;box-shadow:0 0 14px #ff44aa;"></div>
+<section class="hero">
+  <div class="hero-pattern"></div>
+  <div class="hero-glow"></div>
+  <div class="particles" id="particles"></div>
+  <div class="hero-icon">🐂</div>
   <div class="hero-badge">⚡ มหกรรมวัวชนแห่งปี</div>
   <h1 class="hero-title">ศึก<span class="red">วัวชน</span><br>ภาคใต้</h1>
   <p class="hero-sub">ประเพณีอันยิ่งใหญ่ · พลังแห่งสายเลือดใต้ · ความมันส์ที่หาที่ไหนไม่ได้</p>
   <div class="hero-cta">
-    <button class="btn-hero-main" onclick="openModal('register')">สมัครสมาชิก</button>
-    <button class="btn-hero-out" onclick="window.location.href='wuachon-schedule.html'">ดูตารางแข่ง</button>
+    <button class="btn-main" onclick="showRegister()">สมัครบัญชี</button>
+    <button class="btn-outline" onclick="showSchedule()">ดูตารางแข่ง</button>
+  </div>
+</section>
+
+<!-- COUNTDOWN -->
+<div class="countdown-bar">
+  <div class="cd-label">🔥 นับถอยหลังสู่การแข่งขัน</div>
+  <div class="cd-timer">
+    <div class="cd-unit"><span class="cd-num" id="cd-d">12</span><span class="cd-txt">วัน</span></div>
+    <div class="cd-sep">:</div>
+    <div class="cd-unit"><span class="cd-num" id="cd-h">08</span><span class="cd-txt">ชั่วโมง</span></div>
+    <div class="cd-sep">:</div>
+    <div class="cd-unit"><span class="cd-num" id="cd-m">34</span><span class="cd-txt">นาที</span></div>
+    <div class="cd-sep">:</div>
+    <div class="cd-unit"><span class="cd-num" id="cd-s">00</span><span class="cd-txt">วินาที</span></div>
   </div>
 </div>
 
 <!-- STATS -->
 <div class="stats-bar">
-  <div class="stat"><div class="stat-num" id="stat-matches">—</div><div class="stat-label">คู่แข่งขันทั้งหมด</div></div>
-  <div class="stat"><div class="stat-num" id="stat-live">—</div><div class="stat-label">กำลังแข่งขัน</div></div>
-  <div class="stat"><div class="stat-num" id="stat-members">—</div><div class="stat-label">สมาชิกทั้งหมด</div></div>
-  <div class="stat"><div class="stat-num" id="stat-bets">—</div><div class="stat-label">รายการเดิมพัน</div></div>
+  <div class="stat-item"><div class="stat-num">128</div><div class="stat-label">คู่วัวที่ลงทะเบียน</div></div>
+  <div class="stat-item"><div class="stat-num">5,000+</div><div class="stat-label">ผู้ชมที่คาดการณ์</div></div>
+  <div class="stat-item"><div class="stat-num">3 วัน</div><div class="stat-label">ระยะเวลาการแข่งขัน</div></div>
+  <div class="stat-item"><div class="stat-num">12 จังหวัด</div><div class="stat-label">ทีมที่เข้าร่วม</div></div>
 </div>
 
-<!-- MATCHES SECTION -->
-<div class="section section-fire-wrap">
-  <canvas id="fire-canvas"></canvas>
-  <div class="section-head">
-    <h2>ผล<span class="red">การแข่งขัน</span></h2>
-    <div class="section-divider"></div>
-  </div>
-  <div id="matches-container">
-    <div class="skeleton"></div>
-    <div class="skeleton" style="height:140px;opacity:.6"></div>
-    <div class="skeleton" style="height:120px;opacity:.3"></div>
+<div class="gold-divider"></div>
+
+<!-- EVENTS -->
+<div class="events-section">
+  <h2 class="section-title">ผล<span class="red">การแข่งขัน</span></h2>
+  <div class="section-line"></div>
+  <div class="event-grid" id="events-grid-fb">
+
+    <!-- MOCK: จบแล้ว #1 -->
+    <div class="match-card-fe">
+      <div class="match-header">
+        <div class="match-round">🏆 รุ่นแชมเปียน</div>
+        <div class="match-meta">
+          <span>📅 23 พ.ค. 68</span>
+          <span>⏰ 13:30</span>
+          <span>💰 500,000 ฿</span>
+        </div>
+        <span class="match-status-badge status-done">✅ จบแล้ว</span>
+      </div>
+      <div class="match-body">
+        <div class="team-side red-side">
+          <div class="team-photo red-photo">🐂</div>
+          <div class="team-info">
+            <div class="team-label red">🔴 เจ้าบ้าน</div>
+            <div class="team-name winner-name">เจ้าพายุ 🏆</div>
+            <div class="team-owner">เจ้าของ: นายสมชาย ใจดี</div>
+            <div class="team-stats">
+              <span class="team-stat-tag">⚖️ 520 กก.</span>
+              <span class="team-stat-tag" style="background:rgba(74,222,128,0.1);color:var(--accent);border-color:rgba(74,222,128,0.25);">ชนะ</span>
+            </div>
+          </div>
+        </div>
+        <div class="match-vs-center">
+          <div class="vs-text">VS</div>
+          <div class="match-date-center">23 พ.ค. 68</div>
+          <div class="prize-badge">รางวัล<br>500,000 ฿</div>
+        </div>
+        <div class="team-side blue-side">
+          <div class="team-photo blue-photo">🐃</div>
+          <div class="team-info">
+            <div class="team-label blue">🔵 ทีมเยือน</div>
+            <div class="team-name" style="opacity:.55;">ดำมหากาฬ</div>
+            <div class="team-owner">เจ้าของ: นายวิชัย แก้วมณี</div>
+            <div class="team-stats">
+              <span class="team-stat-tag">⚖️ 510 กก.</span>
+              <span class="team-stat-tag" style="background:rgba(248,113,113,0.08);color:#f87171;border-color:rgba(248,113,113,0.2);">แพ้</span>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="match-footer">
+        <div class="match-location">📍 สนามหลัก · นครศรีธรรมราช</div>
+        <div class="match-winner-bar">🏆 ผู้ชนะ: เจ้าพายุ</div>
+        <button class="match-detail-btn">ดูรายละเอียด →</button>
+      </div>
+    </div>
+
+    <!-- MOCK: จบแล้ว #2 -->
+    <div class="match-card-fe">
+      <div class="match-header">
+        <div class="match-round">🏆 รุ่นน้ำหนัก 500 กก.</div>
+        <div class="match-meta">
+          <span>📅 22 พ.ค. 68</span>
+          <span>⏰ 09:00</span>
+          <span>💰 200,000 ฿</span>
+        </div>
+        <span class="match-status-badge status-done">✅ จบแล้ว</span>
+      </div>
+      <div class="match-body">
+        <div class="team-side red-side">
+          <div class="team-photo red-photo">🐂</div>
+          <div class="team-info">
+            <div class="team-label red">🔴 เจ้าบ้าน</div>
+            <div class="team-name" style="opacity:.55;">แดงอรหันต์</div>
+            <div class="team-owner">เจ้าของ: นายประสิทธิ์ ทองดี</div>
+            <div class="team-stats">
+              <span class="team-stat-tag">⚖️ 498 กก.</span>
+              <span class="team-stat-tag" style="background:rgba(248,113,113,0.08);color:#f87171;border-color:rgba(248,113,113,0.2);">แพ้</span>
+            </div>
+          </div>
+        </div>
+        <div class="match-vs-center">
+          <div class="vs-text">VS</div>
+          <div class="match-date-center">22 พ.ค. 68</div>
+          <div class="prize-badge">รางวัล<br>200,000 ฿</div>
+        </div>
+        <div class="team-side blue-side">
+          <div class="team-photo blue-photo">🐃</div>
+          <div class="team-info">
+            <div class="team-label blue">🔵 ทีมเยือน</div>
+            <div class="team-name winner-name">ขาวมงคล 🏆</div>
+            <div class="team-owner">เจ้าของ: นายชาญ บุญมา</div>
+            <div class="team-stats">
+              <span class="team-stat-tag">⚖️ 502 กก.</span>
+              <span class="team-stat-tag" style="background:rgba(74,222,128,0.1);color:var(--accent);border-color:rgba(74,222,128,0.25);">ชนะ</span>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="match-footer">
+        <div class="match-location">📍 สนาม A · พัทลุง</div>
+        <div class="match-winner-bar">🏆 ผู้ชนะ: ขาวมงคล</div>
+        <button class="match-detail-btn">ดูรายละเอียด →</button>
+      </div>
+    </div>
+
+    <!-- MOCK: จบแล้ว #3 -->
+    <div class="match-card-fe">
+      <div class="match-header">
+        <div class="match-round">🏆 รุ่นน้ำหนัก 400 กก.</div>
+        <div class="match-meta">
+          <span>📅 21 พ.ค. 68</span>
+          <span>⏰ 10:00</span>
+          <span>💰 100,000 ฿</span>
+        </div>
+        <span class="match-status-badge status-done">✅ จบแล้ว</span>
+      </div>
+      <div class="match-body">
+        <div class="team-side red-side">
+          <div class="team-photo red-photo">🐂</div>
+          <div class="team-info">
+            <div class="team-label red">🔴 เจ้าบ้าน</div>
+            <div class="team-name winner-name">เหลืองฟ้าผ่า 🏆</div>
+            <div class="team-owner">เจ้าของ: นายธนา สุขใส</div>
+            <div class="team-stats">
+              <span class="team-stat-tag">⚖️ 405 กก.</span>
+              <span class="team-stat-tag" style="background:rgba(74,222,128,0.1);color:var(--accent);border-color:rgba(74,222,128,0.25);">ชนะ</span>
+            </div>
+          </div>
+        </div>
+        <div class="match-vs-center">
+          <div class="vs-text">VS</div>
+          <div class="match-date-center">21 พ.ค. 68</div>
+          <div class="prize-badge">รางวัล<br>100,000 ฿</div>
+        </div>
+        <div class="team-side blue-side">
+          <div class="team-photo blue-photo">🐃</div>
+          <div class="team-info">
+            <div class="team-label blue">🔵 ทีมเยือน</div>
+            <div class="team-name" style="opacity:.55;">น้ำตาลทอง</div>
+            <div class="team-owner">เจ้าของ: นายพงศ์ ศรีสุข</div>
+            <div class="team-stats">
+              <span class="team-stat-tag">⚖️ 398 กก.</span>
+              <span class="team-stat-tag" style="background:rgba(248,113,113,0.08);color:#f87171;border-color:rgba(248,113,113,0.2);">แพ้</span>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="match-footer">
+        <div class="match-location">📍 สนาม B · สงขลา</div>
+        <div class="match-winner-bar">🏆 ผู้ชนะ: เหลืองฟ้าผ่า</div>
+        <button class="match-detail-btn">ดูรายละเอียด →</button>
+      </div>
+    </div>
+
   </div>
 </div>
 
-<!-- LOGIN MODAL -->
-<div class="overlay" id="modal-login">
-  <div class="modal">
-    <button class="modal-close" onclick="closeModal('login')">✕</button>
-    <h3>🔐 เข้าสู่ระบบ</h3>
-    <div class="form-group">
-      <label>ชื่อผู้ใช้ (Nick)</label>
-      <input id="login-nick" placeholder="กรอก nick ของคุณ" autocomplete="off">
+</div><!-- end main-content -->
+
+<!-- REGISTER PAGE -->
+<div id="page-register" style="display:none">
+  <div class="register-section">
+    <div class="register-card">
+      <div class="register-header">
+        <div class="register-logo">วัวชน<span>ไทย</span></div>
+        <div class="register-title">สมัครสมาชิก</div>
+        <div class="register-sub">กรอกข้อมูลจริงเพื่อลงทะเบียน</div>
+      </div>
+
+      <div class="register-body">
+        <div id="reg-form">
+
+          <!-- Tab สมัคร / Login -->
+          <div style="display:flex;gap:0;margin-bottom:24px;border-radius:10px;overflow:hidden;border:1px solid rgba(255,255,255,0.1);">
+            <button id="tab-register" onclick="switchAuthTab('register')" style="flex:1;font-family:'Kanit',sans-serif;font-weight:700;font-size:14px;padding:12px;border:none;background:var(--green);color:#fff;cursor:pointer;transition:all .2s;">📝 สมัครสมาชิก</button>
+            <button id="tab-login" onclick="switchAuthTab('login')" style="flex:1;font-family:'Kanit',sans-serif;font-weight:700;font-size:14px;padding:12px;border:none;background:rgba(255,255,255,0.05);color:rgba(240,255,232,0.5);cursor:pointer;transition:all .2s;">🔑 เข้าสู่ระบบ</button>
+          </div>
+
+          <!-- ฟอร์มสมัครสมาชิก -->
+          <div id="form-register">
+            <div class="reg-section-label">ข้อมูลส่วนตัว</div>
+            <div class="reg-input-row">
+              <div class="reg-group">
+                <label class="reg-label">ชื่อจริง</label>
+                <input class="reg-input" type="text" id="r-fname" placeholder="ชื่อจริง">
+              </div>
+              <div class="reg-group">
+                <label class="reg-label">นามสกุล</label>
+                <input class="reg-input" type="text" id="r-lname" placeholder="นามสกุล">
+              </div>
+            </div>
+            <div class="reg-group">
+              <label class="reg-label">ชื่อบัญชี (ชื่อเล่น) <em>ใช้แสดงในระบบ</em></label>
+              <input class="reg-input" type="text" id="r-nick" placeholder="เช่น เสือ, มังกร, แดง">
+              <div class="reg-hint">ชื่อนี้จะแสดงแทนชื่อจริงในระบบวัวชนไทย</div>
+            </div>
+            <div class="reg-divider"></div>
+            <div class="reg-section-label">ข้อมูลติดต่อ</div>
+            <div class="reg-group">
+              <label class="reg-label">เบอร์โทรศัพท์ <em>ใช้เป็น Username Login</em></label>
+              <input class="reg-input" type="tel" id="r-phone" placeholder="0xx-xxx-xxxx" maxlength="10">
+            </div>
+            <div class="reg-group">
+              <label class="reg-label">รหัสผ่าน</label>
+              <input class="reg-input" type="password" id="r-password" placeholder="อย่างน้อย 6 ตัวอักษร">
+            </div>
+            <div class="reg-group">
+              <label class="reg-label">ยืนยันรหัสผ่าน</label>
+              <input class="reg-input" type="password" id="r-password2" placeholder="พิมพ์รหัสผ่านอีกครั้ง">
+            </div>
+            <div class="reg-group">
+              <label class="reg-label">ที่อยู่อาศัย</label>
+              <input class="reg-input" type="text" id="r-addr1" placeholder="บ้านเลขที่ / หมู่ / ซอย / ถนน" style="margin-bottom:8px">
+              <input class="reg-input" type="text" id="r-addr2" placeholder="ตำบล / อำเภอ / จังหวัด">
+            </div>
+            <div id="reg-error" style="display:none;background:rgba(200,16,46,0.1);border:1px solid rgba(200,16,46,0.3);border-radius:8px;padding:10px 14px;font-size:13px;color:#f09595;font-family:'Sarabun',sans-serif;margin-bottom:12px;"></div>
+            <button class="reg-submit" onclick="submitRegister()">สมัครสมาชิก →</button>
+            <div class="reg-login">มีบัญชีแล้ว? <a href="#" onclick="switchAuthTab('login');return false;">เข้าสู่ระบบ</a> &nbsp;·&nbsp; <a href="#" onclick="hideRegister();return false;">กลับหน้าแรก</a></div>
+          </div>
+
+          <!-- ฟอร์ม Login -->
+          <div id="form-login" style="display:none;">
+            <div class="reg-section-label">เข้าสู่ระบบ</div>
+            <div class="reg-group">
+              <label class="reg-label">เบอร์โทรศัพท์ <em>หรือ</em> ชื่อบัญชี</label>
+              <input class="reg-input" type="text" id="l-phone" placeholder="0xx-xxx-xxxx หรือ ชื่อบัญชีของคุณ">
+            </div>
+            <div class="reg-group">
+              <label class="reg-label">รหัสผ่าน</label>
+              <input class="reg-input" type="password" id="l-password" placeholder="รหัสผ่านของคุณ">
+            </div>
+            <div id="login-error" style="display:none;background:rgba(200,16,46,0.1);border:1px solid rgba(200,16,46,0.3);border-radius:8px;padding:10px 14px;font-size:13px;color:#f09595;font-family:'Sarabun',sans-serif;margin-bottom:12px;"></div>
+            <button class="reg-submit" onclick="submitLogin()">🔑 เข้าสู่ระบบ →</button>
+            <div class="reg-login">ยังไม่มีบัญชี? <a href="#" onclick="switchAuthTab('register');return false;">สมัครสมาชิก</a> &nbsp;·&nbsp; <a href="#" onclick="hideRegister();return false;">กลับหน้าแรก</a></div>
+          </div>
+
+        </div>
+
+        <div class="reg-success" id="reg-success">
+          <div class="reg-success-icon">🎉</div>
+          <div class="reg-success-title" id="reg-success-name">ยินดีต้อนรับ!</div>
+          <div class="reg-success-sub">สมัครสมาชิกสำเร็จแล้วครับ<br>คุณสามารถเข้าใช้งานระบบวัวชนไทยได้ทันที</div>
+          <button class="reg-submit" onclick="goToMyAccount()" style="margin-bottom:10px;">👤 ไปยังบัญชีของฉัน</button>
+          <button onclick="hideRegister()" style="background:transparent;border:1px solid rgba(240,255,232,0.3);color:rgba(240,255,232,0.6);font-family:'Kanit',sans-serif;font-size:13px;padding:10px 20px;border-radius:8px;cursor:pointer;width:100%;">กลับหน้าแรก</button>
+        </div>
+      </div>
     </div>
-    <div class="form-group">
-      <label>รหัสผ่าน</label>
-      <input id="login-pass" type="password" placeholder="รหัสผ่าน">
-    </div>
-    <div class="form-error" id="login-error">nick หรือรหัสผ่านไม่ถูกต้อง</div>
-    <button class="btn-submit" onclick="doLogin()">เข้าสู่ระบบ</button>
-    <div class="modal-switch">ยังไม่มีบัญชี? <a onclick="switchModal('login','register')">สมัครสมาชิก</a></div>
   </div>
 </div>
 
-<!-- REGISTER MODAL -->
-<div class="overlay" id="modal-register">
-  <div class="modal">
-    <button class="modal-close" onclick="closeModal('register')">✕</button>
-    <h3>📝 สมัครสมาชิก</h3>
-    <div class="form-group">
-      <label>ชื่อผู้ใช้ (Nick) *</label>
-      <input id="reg-nick" placeholder="nick ที่ต้องการ (ไม่ซ้ำ)" autocomplete="off">
-    </div>
-    <div class="form-group">
-      <label>ชื่อจริง *</label>
-      <input id="reg-fname" placeholder="ชื่อ">
-    </div>
-    <div class="form-group">
-      <label>นามสกุล *</label>
-      <input id="reg-lname" placeholder="นามสกุล">
-    </div>
-    <div class="form-group">
-      <label>เบอร์โทรศัพท์ *</label>
-      <input id="reg-phone" placeholder="08x-xxx-xxxx" type="tel">
-    </div>
-    <div class="form-group">
-      <label>รหัสผ่าน *</label>
-      <input id="reg-pass" type="password" placeholder="อย่างน้อย 6 ตัวอักษร">
-    </div>
-    <div class="form-group">
-      <label>รหัสแนะนำ (ถ้ามี)</label>
-      <input id="reg-ref-code" placeholder="กรอกรหัสแนะนำจากเพื่อน" style="text-transform:uppercase;" oninput="this.value=this.value.toUpperCase()">
-      <div style="font-size:11px;color:rgba(255,248,236,.35);margin-top:4px;">ไม่บังคับ — ใส่เพื่อให้ผู้แนะนำได้รับค่าคอมฯ</div>
-    </div>
-    <div class="form-error" id="reg-error"></div>
-    <button class="btn-submit" onclick="doRegister()">สมัครสมาชิก</button>
-    <div class="modal-switch">มีบัญชีแล้ว? <a onclick="switchModal('register','login')">เข้าสู่ระบบ</a></div>
-  </div>
-</div><!-- /main-content -->
+<!-- SCHEDULE PAGE -->
+<div id="page-schedule" style="display:none">
+  <div class="schedule-section">
 
-<div id="page-myaccount">
+    <!-- LIST VIEW: แสดงรายการทั้งหมด -->
+    <div id="sched-list-view">
+      <button class="schedule-back" onclick="hideSchedule()">← กลับหน้าแรก</button>
+      <h2 class="section-title">ตาราง<span class="red">การแข่งขัน</span></h2>
+      <div class="section-line"></div>
+      <div id="schedule-fb-wrap">
+        <div style="text-align:center;padding:48px;color:rgba(255,248,236,0.4);font-family:'Kanit',sans-serif;">
+          <div style="font-size:32px;margin-bottom:12px;">⏳</div>กำลังโหลด...
+        </div>
+      </div>
+
+      <!-- MOCK list -->
+      <div class="bet-match-wrap" id="bet-mock-wrap">
+
+        <!-- การ์ดคู่ที่ 1 -->
+        <div class="sched-card" onclick="openMatchDetail('match-1')">
+          <div class="bet-match-header">
+            <div>
+              <div class="bet-round-label">🏆 รุ่นแชมเปียน</div>
+              <div class="bet-match-info">📅 28 พ.ค. 68 &nbsp;·&nbsp; ⏰ 13:30 น. &nbsp;·&nbsp; 📍 สนามหลัก นครศรีธรรมราช</div>
+            </div>
+            <span class="match-status-badge status-upcoming">⏳ รอแข่ง</span>
+          </div>
+          <div class="sched-card-body">
+            <div class="sched-side red-sched">
+              <div class="sched-photo red-glow">🐂</div>
+              <div class="sched-name">เจ้าพายุ</div>
+              <div class="sched-owner">นายสมชาย ใจดี</div>
+              <div class="sched-tag">⚖️ 520 กก.</div>
+            </div>
+            <div class="sched-center">
+              <div class="sched-vs">VS</div>
+              <div class="sched-prize">💰 500,000 ฿</div>
+              <div class="sched-pool">🎯 22,300 ฿</div>
+            </div>
+            <div class="sched-side blue-sched">
+              <div class="sched-photo blue-glow">🐃</div>
+              <div class="sched-name">ดำมหากาฬ</div>
+              <div class="sched-owner">นายวิชัย แก้วมณี</div>
+              <div class="sched-tag">⚖️ 510 กก.</div>
+            </div>
+          </div>
+          <div class="sched-footer">
+            <span style="font-size:12px;color:rgba(240,255,232,0.4);font-family:'Kanit',sans-serif;">📋 3 รายการรอจับคู่</span>
+            <span class="sched-enter-btn">เข้าดูและวางเดิมพัน →</span>
+          </div>
+        </div>
+
+        <!-- การ์ดคู่ที่ 2 -->
+        <div class="sched-card" onclick="openMatchDetail('match-2')">
+          <div class="bet-match-header">
+            <div>
+              <div class="bet-round-label">🏆 รุ่นน้ำหนัก 500 กก.</div>
+              <div class="bet-match-info">📅 29 พ.ค. 68 &nbsp;·&nbsp; ⏰ 09:00 น. &nbsp;·&nbsp; 📍 สนาม A พัทลุง</div>
+            </div>
+            <span class="match-status-badge status-upcoming">⏳ รอแข่ง</span>
+          </div>
+          <div class="sched-card-body">
+            <div class="sched-side red-sched">
+              <div class="sched-photo red-glow">🐂</div>
+              <div class="sched-name">แดงอรหันต์</div>
+              <div class="sched-owner">นายประสิทธิ์ ทองดี</div>
+              <div class="sched-tag">⚖️ 498 กก.</div>
+            </div>
+            <div class="sched-center">
+              <div class="sched-vs">VS</div>
+              <div class="sched-prize">💰 200,000 ฿</div>
+              <div class="sched-pool">🎯 8,500 ฿</div>
+            </div>
+            <div class="sched-side blue-sched">
+              <div class="sched-photo blue-glow">🐃</div>
+              <div class="sched-name">ขาวมงคล</div>
+              <div class="sched-owner">นายชาญ บุญมา</div>
+              <div class="sched-tag">⚖️ 502 กก.</div>
+            </div>
+          </div>
+          <div class="sched-footer">
+            <span style="font-size:12px;color:rgba(240,255,232,0.4);font-family:'Kanit',sans-serif;">📋 1 รายการรอจับคู่</span>
+            <span class="sched-enter-btn">เข้าดูและวางเดิมพัน →</span>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- DETAIL VIEW: หน้ารายละเอียดและวางเดิมพัน -->
+    <div id="sched-detail-view" style="display:none;">
+      <button class="schedule-back" onclick="closeMatchDetail()">← กลับรายการแข่งขัน</button>
+
+      <!-- หัวข้อคู่แข่ง -->
+      <div id="detail-header"></div>
+
+      <!-- Arena (VS) -->
+      <div class="bet-match-card" style="margin-bottom:16px;">
+        <div class="bet-arena" id="detail-arena">
+          <!-- โหลดจาก openMatchDetail() -->
+        </div>
+
+        <!-- BET PANEL -->
+        <div class="bet-panel" id="bet-panel-1">
+          <div class="bet-step-label">① เลือกวัวที่ต้องการเดิมพัน</div>
+          <div class="bet-select-row">
+            <div class="bet-side-btn red-side-btn" id="red-btn-1" onclick="selectSide(1,'red',this)">🔴 <span id="btn-name-a">—</span></div>
+            <div class="bet-side-btn blue-side-btn" id="blue-btn-1" onclick="selectSide(1,'blue',this)">🔵 <span id="btn-name-b">—</span></div>
+          </div>
+          <div class="bet-step-label">② จำนวนเงินเดิมพัน</div>
+          <div class="bet-quick-btns">
+            <button onclick="setBetAmount(1,100)">100</button>
+            <button onclick="setBetAmount(1,500)">500</button>
+            <button onclick="setBetAmount(1,1000)">1,000</button>
+            <button onclick="setBetAmount(1,5000)">5,000</button>
+          </div>
+          <div class="bet-input-wrap">
+            <input type="number" id="bet-amount-1" class="bet-input" placeholder="ขั้นต่ำ 100 ฿" min="100" oninput="calcExpected(1)">
+            <span class="bet-currency">฿</span>
+          </div>
+          <div class="bet-balance-hint">ยอดเงินคงเหลือ: <span id="bet-bal-1" style="color:var(--accent);">0 ฿</span></div>
+          <div class="bet-step-label">③ กำหนดอัตราต่อรอง</div>
+          <div class="bet-odds-selector">
+            <div class="bet-odds-presets">
+              <button class="bet-odds-preset active" onclick="setOdds(1,1.5,this)">1 : 1.5</button>
+              <button class="bet-odds-preset" onclick="setOdds(1,1.8,this)">1 : 1.8</button>
+              <button class="bet-odds-preset" onclick="setOdds(1,2.0,this)">1 : 2.0</button>
+              <button class="bet-odds-preset" onclick="setOdds(1,2.5,this)">1 : 2.5</button>
+              <button class="bet-odds-preset" onclick="setOdds(1,3.0,this)">1 : 3.0</button>
+            </div>
+            <div class="bet-odds-custom-wrap">
+              <span style="font-size:12px;color:rgba(240,255,232,0.45);font-family:'Kanit',sans-serif;">กำหนดเอง 1 :</span>
+              <input type="number" id="bet-odds-1" class="bet-odds-input" value="1.5" min="1.1" max="10" step="0.1" oninput="calcExpected(1)">
+            </div>
+          </div>
+          <div class="bet-expect-row" id="bet-expect-1" style="display:none;">
+            <div>
+              <div style="font-size:11px;color:rgba(240,255,232,0.4);margin-bottom:2px;">วางเดิมพัน</div>
+              <div style="font-family:'Kanit',sans-serif;font-weight:700;font-size:15px;color:var(--cream);" id="bet-stake-show-1">0 ฿</div>
+            </div>
+            <div style="font-size:18px;color:rgba(240,255,232,0.2);">→</div>
+            <div style="text-align:right;">
+              <div style="font-size:11px;color:rgba(240,255,232,0.4);margin-bottom:2px;">หากชนะจะได้รับ</div>
+              <div style="font-family:'Kanit',sans-serif;font-weight:900;font-size:18px;color:var(--gold);" id="bet-expect-val-1">0 ฿</div>
+            </div>
+          </div>
+          <button class="bet-submit-btn" id="bet-submit-1">🎯 วางเดิมพันและรอจับคู่</button>
+          <div class="bet-matching-status" id="bet-status-1" style="display:none;"></div>
+        </div>
+
+        <!-- รายการรอจับคู่ -->
+        <div class="bet-queue-section">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
+            <div class="bet-queue-title">📋 รายการรอจับคู่</div>
+            <div style="font-size:11px;color:rgba(240,255,232,0.35);font-family:'Kanit',sans-serif;" id="queue-count-1">2 รายการ</div>
+          </div>
+          <div style="display:grid;grid-template-columns:80px 1fr 90px 80px 60px;gap:8px;padding:6px 12px;font-family:'Kanit',sans-serif;font-size:10px;color:rgba(240,255,232,0.35);letter-spacing:1px;margin-bottom:4px;">
+            <span>ชื่อบัญชี</span><span>วัวที่เลือก</span><span>อัตราต่อรอง</span><span>จำนวนเงิน</span><span></span>
+          </div>
+          <div class="bet-queue-list" id="bet-queue-1">
+            <div class="bet-queue-item red-queue" id="bq-mock-1">
+              <span class="bet-queue-dot red-dot"></span>
+              <span class="bet-queue-name">เสือดำ</span>
+              <span class="bet-queue-side">🔴 เจ้าพายุ</span>
+              <span class="bet-queue-odds">1 : 2.0</span>
+              <span class="bet-queue-amount">500 ฿</span>
+              <button class="bet-join-btn" onclick="joinBet(this,'bq-mock-1',1,'เสือดำ','เจ้าพายุ',500,2.0)">จับคู่</button>
+            </div>
+            <div class="bet-queue-item blue-queue" id="bq-mock-2">
+              <span class="bet-queue-dot blue-dot"></span>
+              <span class="bet-queue-name">พยัคฆ์</span>
+              <span class="bet-queue-side">🔵 ดำมหากาฬ</span>
+              <span class="bet-queue-odds">1 : 1.8</span>
+              <span class="bet-queue-amount">1,000 ฿</span>
+              <button class="bet-join-btn" onclick="joinBet(this,'bq-mock-2',1,'พยัคฆ์','ดำมหากาฬ',1000,1.8)">จับคู่</button>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+  </div>
+</div>
+
+
+
+
+<!-- HISTORY PAGE -->
+<div id="page-history" style="display:none">
+  <div class="history-section">
+    <button class="history-back" onclick="hideHistory()">← กลับหน้าแรก</button>
+    <h2 class="section-title">ผล<span class="red">การแข่งขัน</span></h2>
+    <div class="section-line"></div>
+
+    <!-- Notification Banner (ซ่อนไว้ก่อน แสดงเมื่อมีผลใหม่) -->
+    <div id="result-notif" style="display:none;background:linear-gradient(135deg,rgba(39,148,63,0.2),rgba(245,200,66,0.1));border:1px solid rgba(245,200,66,0.4);border-radius:12px;padding:14px 18px;margin-bottom:20px;animation:fadeUp .4s ease;">
+      <div style="display:flex;align-items:center;gap:10px;">
+        <span style="font-size:22px;">🔔</span>
+        <div>
+          <div style="font-family:'Kanit',sans-serif;font-weight:900;font-size:14px;color:var(--gold);" id="result-notif-title">มีผลการแข่งขันใหม่!</div>
+          <div style="font-size:12px;color:rgba(240,255,232,0.6);margin-top:2px;" id="result-notif-sub"></div>
+        </div>
+        <button onclick="document.getElementById('result-notif').style.display='none'" style="margin-left:auto;background:none;border:none;color:rgba(240,255,232,0.4);font-size:18px;cursor:pointer;">×</button>
+      </div>
+    </div>
+
+    <!-- Filter -->
+    <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px;">
+      <input id="hist-search" placeholder="ค้นหาชื่อวัว / รุ่น..." oninput="renderHistory()" style="font-family:'Sarabun',sans-serif;font-size:13px;padding:9px 14px;border:1px solid rgba(39,148,63,0.3);border-radius:8px;background:rgba(255,255,255,0.05);color:var(--cream);flex:1;min-width:180px;">
+      <input type="date" id="hist-date-from" onchange="renderHistory()" style="font-family:'Sarabun',sans-serif;font-size:12px;padding:8px 12px;border:1px solid rgba(39,148,63,0.3);border-radius:8px;background:rgba(255,255,255,0.05);color:var(--cream);">
+      <input type="date" id="hist-date-to" onchange="renderHistory()" style="font-family:'Sarabun',sans-serif;font-size:12px;padding:8px 12px;border:1px solid rgba(39,148,63,0.3);border-radius:8px;background:rgba(255,255,255,0.05);color:var(--cream);">
+      <button onclick="clearHistFilter()" style="font-family:'Kanit',sans-serif;font-size:12px;font-weight:700;padding:8px 14px;border-radius:8px;border:1px solid rgba(39,148,63,0.3);background:transparent;color:rgba(240,255,232,0.5);cursor:pointer;">✕ ล้าง</button>
+    </div>
+
+    <!-- สถิติ -->
+    <div class="history-stats">
+      <div class="history-stat">
+        <div class="history-stat-num" id="hist-total">0</div>
+        <div class="history-stat-label">จบแล้วทั้งหมด</div>
+      </div>
+      <div class="history-stat">
+        <div class="history-stat-num" id="hist-rounds">0</div>
+        <div class="history-stat-label">รุ่นที่แข่ง</div>
+      </div>
+      <div class="history-stat">
+        <div class="history-stat-num" id="hist-latest">—</div>
+        <div class="history-stat-label">แข่งล่าสุด</div>
+      </div>
+    </div>
+
+    <!-- รายการ -->
+    <div id="history-list">
+      <div class="history-empty">
+        <div class="icon">⏳</div>
+        กำลังโหลดข้อมูล...
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- MY ACCOUNT PAGE -->
+<div id="page-myaccount" style="display:none">
   <div class="account-section">
     <button class="account-back" onclick="hideMyAccount()">← กลับหน้าแรก</button>
 
@@ -511,7 +3211,6 @@ nav{
       <button class="acc-tab" onclick="switchAccTab('bet',this)" style="flex-shrink:0;">🎯 P2P</button>
       <button class="acc-tab" onclick="switchAccTab('txn',this)" style="flex-shrink:0;">📋 ธุรกรรม</button>
       <button class="acc-tab" onclick="switchAccTab('support',this)" style="flex-shrink:0;">💬 ติดต่อ</button>
-      <button class="acc-tab" onclick="switchAccTab('referral',this);loadReferralStats();" style="flex-shrink:0;">🎁 แนะนำเพื่อน</button>
     </div>
 
     <!-- DASHBOARD TAB -->
@@ -1050,454 +3749,221 @@ nav{
       </div>
     </div>
 
-    <!-- REFERRAL PANEL -->
-    <div class="acc-panel" id="acc-referral">
-      <div style="padding:18px 20px;overflow-y:auto;max-height:420px;">
-        <div id="acc-referral-content">
-          <div style="text-align:center;padding:30px;color:rgba(255,248,236,.3);">กำลังโหลด...</div>
-        </div>
-      </div>
-    </div>
-    </div>
-
   </div>
 </div>
 
-<div class="toast" id="toast"></div>
+<!-- FOOTER -->
+<footer>
+  <div class="footer-logo">วัวชน<span>ไทย</span></div>
+  <div class="footer-links">
+    <a href="#">นโยบาย</a>
+    <a href="#">ติดต่อ</a>
+    <a href="#">ข่าวสาร</a>
+  </div>
+  <div class="footer-copy">© 2568 ศึกวัวชนภาคใต้ · สงวนลิขสิทธิ์</div>
+</footer>
+
 
 <script>
-// ===== SUPABASE =====
-const SUPA_URL = 'https://xzlpdeqlfczjkospfqqi.supabase.co';
-const SUPA_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inh6bHBkZXFsZmN6amtvc3BmcXFpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzk2NzgyMjAsImV4cCI6MjA5NTI1NDIyMH0.W0pDFJy3lFeO4ht9DpNzeDgVdGvSz94p0KWGfzc0Igw';
-const sb = (typeof supabase !== 'undefined')
-  ? supabase.createClient(SUPA_URL, SUPA_KEY)
-  : { from: () => ({ select: () => ({ eq: () => ({ maybeSingle: () => Promise.resolve({data:null,error:{message:'offline'}}), order: () => ({ limit: () => Promise.resolve({data:[],error:null}) }), limit: () => Promise.resolve({data:[],error:null}) }), single: () => Promise.resolve({data:null,error:{message:'offline'}}), count: 'exact', head: true }), channel: () => ({ on: function(){ return this; }, subscribe: function(cb){ if(cb) cb('SUBSCRIBED'); return this; } }), removeChannel: () => {} })
-  };
+  const target = new Date();
+  target.setDate(target.getDate() + 12);
+  target.setHours(target.getHours() + 8, 34, 0);
 
-// ===== TOAST (ต้องนิยามก่อนทุก function) =====
+  function tick() {
+    const now = new Date();
+    let diff = Math.max(0, Math.floor((target - now) / 1000));
+    const d = Math.floor(diff / 86400); diff %= 86400;
+    const h = Math.floor(diff / 3600); diff %= 3600;
+    const m = Math.floor(diff / 60);
+    const s = diff % 60;
+    document.getElementById('cd-d').textContent = String(d).padStart(2, '0');
+    document.getElementById('cd-h').textContent = String(h).padStart(2, '0');
+    document.getElementById('cd-m').textContent = String(m).padStart(2, '0');
+    document.getElementById('cd-s').textContent = String(s).padStart(2, '0');
+  }
+  // PARTICLES
+  const container = document.getElementById('particles');
+  if (container) {
+    for (let i = 0; i < 28; i++) {
+      const p = document.createElement('div');
+      p.className = 'particle';
+      p.style.cssText = `
+        left: ${Math.random()*100}%;
+        bottom: ${Math.random()*20}%;
+        --dur: ${4 + Math.random()*6}s;
+        --delay: ${Math.random()*6}s;
+        width: ${2 + Math.random()*4}px;
+        height: ${2 + Math.random()*4}px;
+        background: ${Math.random()>0.5 ? '#F5C842' : '#4ADE80'};
+      `;
+      container.appendChild(p);
+    }
+  }
 
-// ===== REFERRAL SYSTEM =====
-async function getMyReferralCode() {
-  if (currentUser?.referral_code) return currentUser.referral_code;
-  const { data } = await sb.from('members').select('referral_code').eq('nick', currentUser?.nick).maybeSingle();
-  return data?.referral_code || '—';
-}
+  tick();
+  setInterval(tick, 1000);
 
-async function loadReferralStats() {
-  if (!currentUser) return;
-  const nick = currentUser.nick;
+  // ── Supabase Config ──
+  const SUPA_URL = 'https://xzlpdeqlfczjkospfqqi.supabase.co';
+  const SUPA_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inh6bHBkZXFsZmN6amtvc3BmcXFpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzk2NzgyMjAsImV4cCI6MjA5NTI1NDIyMH0.W0pDFJy3lFeO4ht9DpNzeDgVdGvSz94p0KWGfzc0Igw';
+  const sb = supabase.createClient(SUPA_URL, SUPA_KEY);
 
-  const [refMems, refLogs] = await Promise.all([
-    sb.from('members').select('nick,fname,lname,created_at').eq('referred_by', nick).order('created_at',{ascending:false}),
-    sb.from('referral_logs').select('*').eq('referrer_nick', nick).order('created_at',{ascending:false}).limit(50),
-  ]);
+  // ===== SUPABASE REAL-TIME SYNC (แทน Firebase) =====
+  (async () => {
+    // ── Settings: ดึงจาก Supabase ──
+    async function loadSettings() {
+      const { data } = await sb.from('settings').select('*');
+      if (!data) return;
+      const contact = data.find(s => s.key === 'contact')?.value || {};
+      const bank    = data.find(s => s.key === 'bankAccount')?.value || {};
 
-  const members = refMems.data || [];
-  const logs    = refLogs.data || [];
-  const totalEarned = logs.reduce((s,l)=>s+Number(l.commission||0),0);
+      // Contact
+      if (contact.phone1)    { const el = document.getElementById('contact-phone1');     if(el) el.textContent = contact.phone1; }
+      if (contact.lineId)    { const el = document.getElementById('contact-line-id');     if(el) el.textContent = contact.lineId; }
+      if (contact.fbName)    { const el = document.getElementById('contact-fb-name');     if(el) el.textContent = contact.fbName; }
+      if (contact.hoursTime) { const el = document.getElementById('contact-phone-hours'); if(el) el.textContent = contact.hoursTime; }
 
-  const refCode = await getMyReferralCode();
-  const shareUrl = `${location.origin}${location.pathname}?ref=${refCode}`;
+      // Bank account (ในหน้าเติมเงิน)
+      if (bank.bankName) { const el = document.getElementById('dep-bank-name'); if(el) el.textContent = bank.bankName; }
+      if (bank.accNo)    { const el = document.getElementById('dep-acc-no');    if(el) el.textContent = bank.accNo; }
+      if (bank.accName)  { const el = document.getElementById('dep-acc-name');  if(el) el.textContent = bank.accName; }
+    }
+    loadSettings();
 
-  const el = document.getElementById('acc-referral-content');
-  if (!el) return;
-
-  el.innerHTML = `
-    <!-- รหัสแนะนำของฉัน -->
-    <div style="background:linear-gradient(135deg,rgba(27,107,47,.3),rgba(245,168,0,.1));border:1px solid rgba(245,168,0,.25);border-radius:12px;padding:18px;text-align:center;margin-bottom:14px;">
-      <div style="font-size:12px;color:rgba(255,248,236,.5);margin-bottom:6px;font-family:'Kanit',sans-serif;">รหัสแนะนำของฉัน</div>
-      <div style="font-family:'Kanit',sans-serif;font-weight:900;font-size:26px;color:var(--gold);letter-spacing:3px;">${refCode}</div>
-      <button onclick="copyRefCode('${refCode}','${shareUrl}')"
-        style="margin-top:10px;background:var(--green2);color:#fff;font-family:'Kanit',sans-serif;font-weight:700;font-size:13px;padding:8px 20px;border-radius:8px;border:none;cursor:pointer;">
-        📋 คัดลอกรหัส / ลิงก์
-      </button>
-    </div>
-
-    <!-- สถิติ -->
-    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:14px;">
-      <div style="background:rgba(255,255,255,.05);border-radius:10px;padding:12px;text-align:center;">
-        <div style="font-family:'Kanit',sans-serif;font-weight:900;font-size:20px;color:var(--gold);">${members.length}</div>
-        <div style="font-size:11px;color:rgba(255,248,236,.4);">คนที่แนะนำ</div>
-      </div>
-      <div style="background:rgba(255,255,255,.05);border-radius:10px;padding:12px;text-align:center;">
-        <div style="font-family:'Kanit',sans-serif;font-weight:900;font-size:20px;color:#4ade80;">+${totalEarned.toLocaleString('th-TH')} ฿</div>
-        <div style="font-size:11px;color:rgba(255,248,236,.4);">รายได้รวม</div>
-      </div>
-      <div style="background:rgba(255,255,255,.05);border-radius:10px;padding:12px;text-align:center;">
-        <div style="font-family:'Kanit',sans-serif;font-weight:900;font-size:20px;color:#60a5fa;">${logs.length}</div>
-        <div style="font-size:11px;color:rgba(255,248,236,.4);">รายการ</div>
-      </div>
-    </div>
-
-    <!-- ประวัติการรับคอมฯ -->
-    <div style="font-family:'Kanit',sans-serif;font-size:13px;font-weight:700;color:rgba(255,248,236,.6);margin-bottom:8px;">📋 ประวัติค่าคอมมิชชัน</div>
-    ${logs.length ? `<div style="max-height:200px;overflow-y:auto;">` +
-      logs.map(l=>`
-        <div style="display:flex;justify-content:space-between;align-items:center;padding:9px 0;border-bottom:1px solid rgba(255,255,255,.05);">
-          <div>
-            <div style="font-family:'Kanit',sans-serif;font-size:13px;">👤 ${l.new_member_nick} เติมเงิน ${Number(l.deposit_amount||0).toLocaleString()} ฿</div>
-            <div style="font-size:11px;color:rgba(255,248,236,.35);">${new Date(l.created_at).toLocaleString('th-TH')}</div>
+    // ── Matches: แสดงบนหน้าแรก ──
+    async function loadHomeMatches() {
+      const { data } = await sb.from('matches').select('*').order('created_at', { ascending: false }).limit(20);
+      if (!data) return;
+      const evGrid = document.getElementById('events-grid-fb');
+      if (!evGrid) return;
+      evGrid.innerHTML = '';
+      if (!data.length) {
+        evGrid.innerHTML = '<div style="text-align:center;padding:40px 20px;color:rgba(240,255,232,0.3);font-family:Kanit,sans-serif;"><div style="font-size:32px;margin-bottom:10px;">🐂</div>ยังไม่มีรายการแข่งขัน</div>';
+        return;
+      }
+      data.forEach((m, i) => {
+        const isLive   = m.status === 'live';
+        const isDone   = m.status === 'done';
+        const statusClass = isLive ? 'status-live' : isDone ? 'status-done' : 'status-upcoming';
+        const statusLabel = isLive ? '● LIVE' : isDone ? 'จบแล้ว' : 'รอแข่ง';
+        const prizeNum = Number(m.prize || 0);
+        const card = document.createElement('div');
+        card.className = `match-card-fe${isLive ? ' live' : ''}`;
+        card.style.animationDelay = `${i * 0.08}s`;
+        card.onclick = () => openModal({
+          round: m.round||'', bullA: m.name_a, ownerA: m.owner_a, weightA: m.weight_a,
+          bullB: m.name_b, ownerB: m.owner_b, weightB: m.weight_b,
+          date: m.date, time: m.time, loc: m.location,
+          prize: `${prizeNum.toLocaleString()} บาท`,
+          winner: m.winner||'', photoA: m.photo_a||'', photoB: m.photo_b||''
+        });
+        card.innerHTML = `
+          <div class="match-header">
+            <div class="match-round">🏆 ${m.round||'รายการแข่งขัน'}</div>
+            <div class="match-meta">
+              <span>📅 ${m.date||'—'}</span>
+              ${m.time?`<span>⏰ ${m.time}</span>`:''}
+              ${prizeNum?`<span>💰 ${prizeNum.toLocaleString()} ฿</span>`:''}
+            </div>
+            <span class="match-status-badge ${statusClass}">${isLive?'<span class="live-dot"></span>':''}${statusLabel}</span>
           </div>
-          <div style="font-family:'Kanit',sans-serif;font-weight:700;color:#4ade80;">+${Number(l.commission||0).toLocaleString()} ฿</div>
-        </div>`).join('') +
-      `</div>` : '<div style="text-align:center;padding:20px;color:rgba(255,248,236,.3);">ยังไม่มีประวัติครับ</div>'}
-
-    <!-- รายชื่อที่แนะนำ -->
-    ${members.length ? `
-    <div style="font-family:'Kanit',sans-serif;font-size:13px;font-weight:700;color:rgba(255,248,236,.6);margin:12px 0 8px;">👥 สมาชิกที่แนะนำมา</div>
-    <div style="max-height:150px;overflow-y:auto;">
-      ${members.map(m=>`
-        <div style="display:flex;justify-content:space-between;padding:7px 0;border-bottom:1px solid rgba(255,255,255,.05);font-size:12px;">
-          <span style="color:rgba(255,248,236,.7);">${m.nick} ${m.fname?'('+m.fname+')':''}</span>
-          <span style="color:rgba(255,248,236,.35);">${new Date(m.created_at).toLocaleDateString('th-TH')}</span>
-        </div>`).join('')}
-    </div>` : ''}`;
-}
-
-function copyRefCode(code, url) {
-  const text = `รหัสแนะนำ: ${code}\nสมัครที่: ${url}`;
-  navigator.clipboard?.writeText(text).then(()=>{
-    showToast('📋 คัดลอกรหัสแนะนำแล้วครับ!');
-  }).catch(()=>{
-    // fallback
-    const ta = document.createElement('textarea');
-    ta.value = text; document.body.appendChild(ta);
-    ta.select(); document.execCommand('copy');
-    document.body.removeChild(ta);
-    showToast('📋 คัดลอกรหัสแนะนำแล้วครับ!');
-  });
-}
-
-function showToast(msg, dur = 3500) {
-  // สร้าง toast แบบ dynamic เพื่อหลีกเลี่ยง null element
-  let t = document.getElementById('toast');
-  if (!t) {
-    t = document.createElement('div');
-    t.id = 'toast';
-    t.style.cssText = 'position:fixed;bottom:24px;right:24px;background:#1e3a1e;border:1px solid #27943F;color:#fff;font-family:Kanit,sans-serif;font-size:14px;padding:12px 20px;border-radius:10px;z-index:9999;opacity:0;transform:translateY(10px);transition:all .3s;pointer-events:none;max-width:300px;';
-    document.body.appendChild(t);
-  }
-  t.textContent = msg;
-  t.style.opacity = '1';
-  t.style.transform = 'translateY(0)';
-  clearTimeout(t._timer);
-  t._timer = setTimeout(() => {
-    t.style.opacity = '0';
-    t.style.transform = 'translateY(10px)';
-  }, dur);
-}
-
-let currentUser = null;
-
-// ===== INIT =====
-window._userWantsAccount = false;
-
-// ป้องกัน main-content ถูกซ่อนโดย inline style ด้วย MutationObserver
-// guard removed - using CSS only
-
-window.addEventListener('DOMContentLoaded', async () => {
-  // init flag
-  window._userWantsAccount = false;
-
-  // Force show main-content ด้วย !important
-  const mc = document.getElementById('main-content');
-  const pm = document.getElementById('page-myaccount');
-  if (mc) mc.style.cssText = 'display:block!important';
-  if (pm) pm.style.display = 'none';
-
-  // MutationObserver - ป้องกัน main-content ถูกซ่อนก่อน user action
-  const mcObs = new MutationObserver(() => {
-    if (!window._userWantsAccount && mc && mc.style.display === 'none') {
-      mc.style.cssText = 'display:block!important';
+          <div class="match-body">
+            <div class="team-side red-side">
+              <div class="team-photo red-photo">${m.photo_a?`<img src="${m.photo_a}" alt="${m.name_a}">`:'🐂'}</div>
+              <div class="team-info">
+                <div class="team-name${isDone&&m.winner===m.name_a?' winner-name':''}">${m.name_a||'—'}${isDone&&m.winner===m.name_a?' 🏆':''}</div>
+                ${m.owner_a?`<div class="team-owner">เจ้าของ: ${m.owner_a}</div>`:''}
+                ${m.weight_a?`<div class="team-weight">${m.weight_a}</div>`:''}
+              </div>
+            </div>
+            <div class="match-center">
+              <div class="vs-text">VS</div>
+              ${m.code?`<div style="font-size:10px;color:rgba(245,200,66,0.5);letter-spacing:2px;font-family:Kanit,sans-serif;">#${m.code}</div>`:''}
+            </div>
+            <div class="team-side blue-side">
+              <div class="team-photo blue-photo">${m.photo_b?`<img src="${m.photo_b}" alt="${m.name_b}">`:'🐃'}</div>
+              <div class="team-info">
+                <div class="team-name${isDone&&m.winner===m.name_b?' winner-name':''}">${m.name_b||'—'}${isDone&&m.winner===m.name_b?' 🏆':''}</div>
+                ${m.owner_b?`<div class="team-owner">เจ้าของ: ${m.owner_b}</div>`:''}
+                ${m.weight_b?`<div class="team-weight">${m.weight_b}</div>`:''}
+              </div>
+            </div>
+          </div>
+          ${isDone&&m.winner?`<div class="match-footer-done">🏆 ผู้ชนะ: <strong>${m.winner}</strong></div>`:''}
+          <button class="match-detail-btn" onclick="event.stopPropagation();openModal({round:'${(m.round||'').replace(/'/g,"\'")}',bullA:'${(m.name_a||'').replace(/'/g,"\'")}',ownerA:'${(m.owner_a||'').replace(/'/g,"\'")}',weightA:'${m.weight_a||''}',bullB:'${(m.name_b||'').replace(/'/g,"\'")}',ownerB:'${(m.owner_b||'').replace(/'/g,"\'")}',weightB:'${m.weight_b||''}',date:'${m.date||''}',time:'${m.time||''}',loc:'${(m.location||'').replace(/'/g,"\'")}',prize:'${prizeNum.toLocaleString()} บาท',winner:'${m.winner||''}',photoA:'${m.photo_a||''}',photoB:'${m.photo_b||''}'})">ดูรายละเอียด →</button>`;
+        evGrid.appendChild(card);
+      });
     }
-  });
-  if (mc) mcObs.observe(mc, { attributes: true, attributeFilter: ['style'] });
-  window._mcObs = mcObs;
+    loadHomeMatches();
 
-  // overlay click to close
-  document.querySelectorAll('.overlay').forEach(el => {
-    el.addEventListener('click', e => { if (e.target === el) el.classList.remove('open'); });
-  });
+    // Real-time matches (หน้าแรก)
+    sb.channel('home-matches')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'matches' }, () => {
+        loadHomeMatches();
+      })
+      .subscribe();
 
-  // โหลด session หลัง DOM พร้อม
-  if (typeof initSessionFE === 'function') initSessionFE();
-  if (typeof renderNav === 'function') renderNav();
-
-  loadMatches(); loadStats();
-  subscribeRealtime();
-  setInterval(loadMatches, 30000);
-
-  // ตรวจ ?ref= ใน URL
-  const refCode = new URLSearchParams(location.search).get('ref');
-  if (refCode && !currentUser) {
-    requestAnimationFrame(() => {
-      const refInput = document.getElementById('reg-ref-code');
-      if (refInput) refInput.value = refCode.toUpperCase();
-      if (typeof openModal === 'function') openModal('register');
-    });
-  }
-});
-
-// ===== LOAD MATCHES =====
-async function loadMatches() {
-  try {
-    if (typeof sb === 'undefined') { renderMatches([]); return; }
-    const { data, error } = await Promise.race([
-      sb.from('matches').select('*').eq('status','done').order('date',{ascending:false}).limit(20),
-      new Promise((_,rej) => setTimeout(() => rej(new Error('timeout')), 5000))
-    ]);
-    if (error) { renderMatches([]); return; }
-    console.log('loadMatches:', data?.length, 'matches done');
-    renderMatches(data || []);
-  } catch(e) {
-    renderMatches([]);
-  }
-}
-
-// ===== LOAD STATS =====
-async function loadStats() {
-  try {
-    if (typeof sb === 'undefined') return;
-    const [{ count: mc }, { count: live }, { count: mem }, { count: bc }] = await Promise.race([
-      Promise.all([
-        sb.from('matches').select('*', { count: 'exact', head: true }),
-        sb.from('matches').select('*', { count: 'exact', head: true }).eq('status', 'live'),
-        sb.from('members').select('*', { count: 'exact', head: true }),
-        sb.from('bets').select('*', { count: 'exact', head: true }),
-      ]),
-      new Promise((_,rej) => setTimeout(() => rej(new Error('timeout')), 5000))
-    ]);
-    document.getElementById('stat-matches').textContent = mc ?? '—';
-    document.getElementById('stat-live').textContent = live ?? 0;
-    document.getElementById('stat-members').textContent = mem ?? '—';
-    document.getElementById('stat-bets').textContent = bc ?? '—';
-  } catch(e) {}
-}
-
-// ===== REALTIME =====
-function subscribeRealtime() {
-  sb.channel('home-rt-' + Date.now())
-    .on('postgres_changes', { event: '*', schema: 'public', table: 'matches' }, () => {
-      loadMatches(); loadStats();
-    })
-    .subscribe(status => {
-      console.log('Realtime:', status);
-      if (status === 'CHANNEL_ERROR' || status === 'TIMED_OUT') setTimeout(subscribeRealtime, 5000);
-    });
-}
-
-// ===== RENDER MATCHES =====
-function renderMatches(matches) {
-  const c = document.getElementById('matches-container');
-  if (!matches.length) { showEmpty('ยังไม่มีรายการแข่งขัน'); return; }
-  c.innerHTML = matches.map(m => cardHTML(m)).join('');
-}
-
-// แปลง status → 'upcoming' | 'live' | 'done'
-function normalizeStatus(raw) {
-  const s = (raw || '').toLowerCase().trim();
-  if (s === 'live' || s === 'กำลังแข่ง') return 'live';
-  if (s === 'done' || s === 'จบแล้ว' || s === 'finish' || s === 'finished') return 'done';
-  return 'upcoming';
-}
-
-// แปลงวันที่ให้อ่านง่าย เช่น 20.2.2020 → 20 ก.พ. 2020
-function formatDate(d) {
-  if (!d) return '';
-  const m1 = d.match(/^(\d{1,2})[.\/](\d{1,2})[.\/](\d{2,4})$/);
-  if (m1) {
-    const [, dd, mm, yy] = m1;
-    const year = yy.length === 2 ? '25' + yy : yy;
-    const months = ['','ม.ค.','ก.พ.','มี.ค.','เม.ย.','พ.ค.','มิ.ย.','ก.ค.','ส.ค.','ก.ย.','ต.ค.','พ.ย.','ธ.ค.'];
-    return `${parseInt(dd)} ${months[parseInt(mm)] || mm} ${year}`;
-  }
-  return d;
-}
-
-function cardHTML(m) {
-  const prize = m.prize ? Number(m.prize).toLocaleString('th-TH') + ' ฿' : '—';
-  const code = m.code ? `<span style="background:var(--green);color:#fff;font-family:'Kanit',sans-serif;font-size:11px;font-weight:700;padding:2px 8px;border-radius:4px;margin-left:8px;">รหัส ${m.code}</span>` : '';
-  const winnerSide = m.winner; // 'red' | 'blue' | null
-  const winnerName = winnerSide === 'red' ? (m.name_a || 'เจ้าบ้าน') : winnerSide === 'blue' ? (m.name_b || 'ทีมเยือน') : null;
-
-  // คำนวณ style แต่ละฝั่งล่วงหน้า (หลีกเลี่ยง nested template literal)
-  const styleRedIco  = winnerSide === 'red'  ? 'border-color:var(--gold);box-shadow:0 0 12px rgba(245,168,0,.3);' : winnerSide === 'blue' ? 'opacity:.4;' : '';
-  const styleRedName = winnerSide === 'red'  ? 'color:var(--gold);' : winnerSide === 'blue' ? 'color:rgba(255,144,144,.35);' : 'color:#ff9090;';
-  const styleBlueIco  = winnerSide === 'blue' ? 'border-color:var(--gold);box-shadow:0 0 12px rgba(245,168,0,.3);' : winnerSide === 'red' ? 'opacity:.4;' : '';
-  const styleBlueName = winnerSide === 'blue' ? 'color:var(--gold);' : winnerSide === 'red' ? 'color:rgba(144,180,255,.35);' : 'color:#90b4ff;';
-  const labelA = (m.name_a || 'เจ้าบ้าน') + (winnerSide === 'red' ? ' 🏆' : '');
-  const labelB = (m.name_b || 'ทีมเยือน') + (winnerSide === 'blue' ? ' 🏆' : '');
-
-  const winnerBanner = winnerName ? `
-    <div style="background:linear-gradient(135deg,rgba(27,107,47,.25),rgba(245,168,0,.1));border-top:1px solid rgba(245,168,0,.2);padding:10px 18px;display:flex;align-items:center;justify-content:center;gap:10px;">
-      <span style="font-size:18px;">🏆</span>
-      <span style="font-family:'Kanit',sans-serif;font-weight:900;font-size:14px;color:var(--gold);">${winnerName} ชนะ!</span>
-    </div>` : '';
-
-  const footerText = winnerName
-    ? `ผู้ชนะ: <b style="color:var(--gold);">${winnerName}</b>`
-    : 'รอประกาศผล';
-
-  return `
-  <div class="match-card" onclick="goMatch('${m.id}')">
-    <div class="mc-header">
-      <div style="display:flex;align-items:center;flex-wrap:wrap;gap:6px;">
-        <span class="mc-round">${m.round || 'รุ่นทั่วไป'}</span>${code}
-      </div>
-      <div class="mc-meta">
-        ${m.date ? `<span>📅 <b>${formatDate(m.date)}</b></span>` : ''}
-        ${m.time ? `<span>🕐 <b>${m.time}</b></span>` : ''}
-        ${m.location ? `<span>📍 <b>${m.location}</b></span>` : ''}
-        <span class="mc-status s-done">✅ จบแล้ว</span>
-      </div>
-    </div>
-    <div class="mc-body">
-      <div class="vs-grid">
-        <div class="bull">
-          <div class="bull-ico bull-red" style="${styleRedIco}">🐂</div>
-          <div class="bull-name" style="${styleRedName}">${labelA}</div>
-          ${m.owner_a ? `<div class="bull-owner">${m.owner_a}</div>` : ''}
-          ${m.weight_a ? `<div class="bull-wt">⚖️ ${m.weight_a} กก.</div>` : ''}
-        </div>
-        <div class="vs-mid">
-          <div class="vs-txt">VS</div>
-          <div class="prize">🏆 ${prize}</div>
-        </div>
-        <div class="bull">
-          <div class="bull-ico bull-blue" style="${styleBlueIco}">🐂</div>
-          <div class="bull-name" style="${styleBlueName}">${labelB}</div>
-          ${m.owner_b ? `<div class="bull-owner">${m.owner_b}</div>` : ''}
-          ${m.weight_b ? `<div class="bull-wt">⚖️ ${m.weight_b} กก.</div>` : ''}
-        </div>
-      </div>
-    </div>
-    ${winnerBanner}
-    <div class="mc-footer">
-      <span class="mc-bets">${footerText}</span>
-      <button class="btn-view" onclick="event.stopPropagation();goMatch('${m.id}')">📊 ดูผล</button>
-    </div>
-  </div>`;
-}
-
-function showEmpty(msg) {
-  document.getElementById('matches-container').innerHTML = `
-    <div class="empty"><div class="empty-ico">⏳</div><div class="empty-txt">${msg}</div></div>`;
-}
-
-function goMatch(id) {
-  window.location.href = `wuachon-match.html?id=${id}`;
-}
-
-// ===== AUTH =====
-async function doLogin() {
-  const nick = document.getElementById('login-nick').value.trim();
-  const pass = document.getElementById('login-pass').value;
-  const errEl = document.getElementById('login-error');
-  errEl.style.display = 'none';
-  if (!nick || !pass) return;
-
-  // ตรวจ Supabase พร้อมใช้งานไหม
-  if (typeof sb === 'undefined') {
-    errEl.style.display = 'block';
-    errEl.textContent = '⚠️ ต้องเปิดผ่าน HTTPS เท่านั้น (ไม่รองรับ file://)';
-    return;
-  }
-
-  try {
-    const { data, error } = await sb.from('members').select('*').eq('nick', nick).eq('password', pass).maybeSingle();
-    if (error || !data) {
-      errEl.style.display = 'block';
-      errEl.textContent = '❌ ชื่อผู้ใช้หรือรหัสผ่านไม่ถูกต้อง';
-      return;
+    // ── News Ticker ──
+    async function loadNewsTicker() {
+      const { data } = await sb.from('news').select('title,status').eq('status','published').order('created_at',{ascending:false}).limit(20);
+      if (!data?.length) return;
+      const doubled = [...data, ...data];
+      const ticker  = document.querySelector('.ticker-track');
+      if (ticker) ticker.innerHTML = doubled.map(n => `<span class="ticker-item">${n.title}</span>`).join('');
     }
-    currentUser = data;
-    sessionStorage.setItem('bw_user', JSON.stringify(data));
-    closeModal('login');
-    renderNav();
-    showToast(`✅ ยินดีต้อนรับ ${data.nick} ครับ!`);
-  } catch(e) {
-    errEl.style.display = 'block';
-    errEl.textContent = '⚠️ เชื่อมต่อไม่ได้ กรุณาลองใหม่';
-  }
-}
+    loadNewsTicker();
 
-async function doRegister() {
-  const nick = document.getElementById('reg-nick').value.trim();
-  const fname = document.getElementById('reg-fname').value.trim();
-  const lname = document.getElementById('reg-lname').value.trim();
-  const phone = document.getElementById('reg-phone').value.trim();
-  const pass = document.getElementById('reg-pass').value;
-  const errEl = document.getElementById('reg-error');
-  errEl.style.display = 'none';
+    // Real-time news ticker
+    sb.channel('home-news')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'news' }, () => {
+        loadNewsTicker();
+      })
+      .subscribe();
 
-  if (!nick || !fname || !lname || !phone || !pass) {
-    errEl.textContent = 'กรุณากรอกข้อมูลให้ครบ'; errEl.style.display = 'block'; return;
-  }
-  if (pass.length < 6) {
-    errEl.textContent = 'รหัสผ่านอย่างน้อย 6 ตัวอักษร'; errEl.style.display = 'block'; return;
-  }
+  })();
 
-  // ตรวจสอบรหัสแนะนำ
-  const refCode = document.getElementById('reg-ref-code')?.value.trim().toUpperCase() || null;
-  let referrerNick = null;
-  if (refCode) {
-    const { data: refMem } = await sb.from('members').select('nick').eq('referral_code', refCode).maybeSingle();
-    if (!refMem) {
-      errEl.textContent = 'รหัสแนะนำไม่ถูกต้องครับ'; errEl.style.display = 'block'; return;
-    }
-    referrerNick = refMem.nick;
+
+  const mainContent = document.getElementById('main-content');
+
+  function loadCardPhoto(input, imgId, phId) {
+    const file = input.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = e => {
+      const img = document.getElementById(imgId);
+      const ph  = document.getElementById(phId);
+      img.src = e.target.result;
+      img.style.display = 'block';
+      ph.style.display  = 'none';
+    };
+    reader.readAsDataURL(file);
   }
 
-  // สร้างรหัสแนะนำของตัวเอง (REF-xxxx)
-  const myRefCode = 'REF-' + nick.toUpperCase().slice(0,4) + Math.floor(1000+Math.random()*9000);
-
-  const { data, error } = await sb.from('members').insert({
-    nick, fname, lname, phone, password: pass, balance: 0,
-    referral_code: myRefCode,
-    referred_by: referrerNick || null,
-  }).select().maybeSingle();
-
-  if (error) {
-    errEl.textContent = error.code === '23505' ? 'ชื่อ nick นี้มีผู้ใช้แล้ว' : 'เกิดข้อผิดพลาด กรุณาลองใหม่';
-    errEl.style.display = 'block'; return;
+  function loadModalPhoto(input, imgId, phId) {
+    const file = input.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = e => {
+      const img = document.getElementById(imgId);
+      const ph  = document.getElementById(phId);
+      img.src = e.target.result;
+      img.style.display = 'block';
+      ph.style.display  = 'none';
+    };
+    reader.readAsDataURL(file);
   }
-  currentUser = data;
-  sessionStorage.setItem('bw_user', JSON.stringify(data));
-  closeModal('register');
-  renderNav();
-  showToast(`🎉 สมัครสำเร็จ ยินดีต้อนรับ ${data.nick}!`);
-}
 
-function doLogout() {
-  sessionStorage.removeItem('bw_user');
-  currentUser = null;
-  renderNav();
-  showToast('ออกจากระบบแล้ว');
-}
-
-function renderNav() {
-  const el = document.getElementById('nav-right');
-  if (currentUser) {
-    el.innerHTML = `
-      <div class="user-chip">
-        <button class="btn-myacc" onclick="goToMyAccount()">👤 ${currentUser.nick} · ฿ ${Number(currentUser.balance||0).toLocaleString('th-TH')}</button>
-        <button class="btn-logout" onclick="doLogout()">ออก</button>
-      </div>`;
-  } else {
-    el.innerHTML = `
-      <button class="btn-login" onclick="openModal('login')">เข้าสู่ระบบ</button>
-      <button class="btn-register" onclick="openModal('register')">สมัครสมาชิก</button>`;
+  function goHome() {
+    document.getElementById('main-content').style.display = 'block';
+    document.getElementById('page-schedule').style.display = 'none';
+    document.getElementById('page-register').style.display = 'none';
+    document.getElementById('page-history').style.display = 'none';
+    window.scrollTo(0, 0);
   }
-}
-
-// ===== MODAL =====
-function openModal(id) { document.getElementById('modal-' + id).classList.add('open'); }
-function closeModal(id) { document.getElementById('modal-' + id).classList.remove('open'); }
-function switchModal(from, to) { closeModal(from); openModal(to); }
-// overlay click handler ถูกย้ายไปใน DOMContentLoaded แล้ว
-
   window.showHistory = window._real_showHistory = function showHistory() {
     document.getElementById('main-content').style.display = 'none';
+    document.getElementById('page-schedule').style.display = 'none';
+    document.getElementById('page-register').style.display = 'none';
     document.getElementById('page-history').style.display = 'block';
     window.scrollTo(0, 0);
     loadHistory();
@@ -2141,6 +4607,7 @@ function switchModal(from, to) { closeModal(from); openModal(to); }
     subscribeMatchResults();
     refreshBalance();
     hideRegister();
+    goToMyAccount();
   }
 
   // ── Set Logged In UI ──
@@ -2164,26 +4631,25 @@ function switchModal(from, to) { closeModal(from); openModal(to); }
     window.scrollTo(0,0);
   }
 
-  // ── โหลด session เมื่อเปิดเว็บ (เรียกจาก DOMContentLoaded) ──
-  function initSessionFE() {
-    const savedUser = sessionStorage.getItem('bw_user');
-    if (savedUser) {
-      try {
-        currentUser = JSON.parse(savedUser);
-        if (currentUser?.nick) {
-          setLoggedIn(currentUser.nick);
-          sb.from('members').select('balance').eq('nick', currentUser.nick).maybeSingle().then(({ data }) => {
-            if (data) {
-              currentUser.balance = Number(data.balance || 0);
-              sessionStorage.setItem('bw_user', JSON.stringify(currentUser));
-              updateAccBalance(currentUser.balance);
-            }
-          });
-          subscribeTxnStatus();
-          subscribeMatchResults();
-        }
-      } catch(e) {}
-    }
+  // ── โหลด session เมื่อเปิดเว็บ ──
+  const savedUser = sessionStorage.getItem('bw_user');
+  if (savedUser) {
+    try {
+      currentUser = JSON.parse(savedUser);
+      if (currentUser?.nick) {
+        setLoggedIn(currentUser.nick);
+        // ดึงยอดเงินล่าสุดจาก Supabase ทันที
+        sb.from('members').select('balance').eq('nick', currentUser.nick).maybeSingle().then(({ data }) => {
+          if (data) {
+            currentUser.balance = Number(data.balance || 0);
+            sessionStorage.setItem('bw_user', JSON.stringify(currentUser));
+            updateAccBalance(currentUser.balance);
+          }
+        });
+        subscribeTxnStatus();
+        subscribeMatchResults();
+      }
+    } catch(e) {}
   }
 
   // ── โหลดประวัติธุรกรรมจาก Supabase ──
@@ -2247,56 +4713,27 @@ function switchModal(from, to) { closeModal(from); openModal(to); }
     });
   }
 
-  function updateAccBalance(amount) {
-    if (!currentUser) return;
-    currentUser.balance = amount;
-    const el = document.getElementById('acc-balance');
-    if (el) el.textContent = Number(amount || 0).toLocaleString('th-TH');
-    // อัปเดต navbar ด้วย
-    const btn = document.querySelector('.btn-myacc');
-    if (btn && currentUser.nick) {
-      btn.textContent = `👤 ${currentUser.nick} · ฿ ${Number(amount || 0).toLocaleString('th-TH')}`;
-    }
-  }
-
   window.goToMyAccount = window._real_goToMyAccount = async function goToMyAccount() {
     if (!currentUser) return;
-    window._userWantsAccount = true;
-    const mc2 = document.getElementById('main-content');
-    if (window._mcObs) { window._mcObs.disconnect(); window._mcObs = null; }
-    if (mc2) mc2.style.cssText = '';
 
-    // set flag ก่อน ถึงจะซ่อน main-content ได้
-    window._userWantsAccount = true;
+    // ดึงข้อมูลล่าสุดจาก Supabase
+    const { data } = await sb.from('members').select('*').eq('nick', currentUser.nick).maybeSingle();
+    if (data) {
+      currentUser = { ...currentUser, ...data };
+      sessionStorage.setItem('bw_user', JSON.stringify(currentUser));
+    }
 
-    // แสดงข้อมูลจาก currentUser ทันที (ไม่รอ Supabase)
     const nick = currentUser.nick || '';
-    const avatarEl = document.getElementById('acc-avatar');
-    if (avatarEl) avatarEl.textContent = nick.charAt(0).toUpperCase() || '?';
-    const nickEl = document.getElementById('acc-info-nick');
-    if (nickEl) nickEl.textContent = nick;
-    const phoneEl = document.getElementById('acc-info-phone');
-    if (phoneEl) phoneEl.textContent = currentUser.phone || '—';
-    const idEl = document.getElementById('acc-info-id');
-    if (idEl) idEl.textContent = currentUser.id || '—';
-    const addrEl = document.getElementById('acc-info-addr');
-    if (addrEl) addrEl.textContent = `${currentUser.addr1||''} ${currentUser.addr2||''}`.trim() || '—';
+    document.getElementById('acc-avatar').textContent        = nick.charAt(0).toUpperCase() || '?';
+    document.getElementById('acc-nick').textContent          = nick;
+    document.getElementById('acc-fullname').textContent      = `${currentUser.fname||''} ${currentUser.lname||''} · ${currentUser.phone||''}`;
+    document.getElementById('acc-id').textContent            = currentUser.id || '—';
+    document.getElementById('acc-info-fullname').textContent = `${currentUser.fname||''} ${currentUser.lname||''}`;
+    document.getElementById('acc-info-nick').textContent     = nick;
+    document.getElementById('acc-info-phone').textContent    = currentUser.phone || '—';
+    document.getElementById('acc-info-id').textContent       = currentUser.id || '—';
+    document.getElementById('acc-info-addr').textContent     = `${currentUser.addr1||''} ${currentUser.addr2||''}`.trim() || '—';
     updateAccBalance(currentUser.balance || 0);
-
-    // โหลดข้อมูลเพิ่มเติมจาก Supabase (background, ไม่ block UI)
-    try {
-      const result = await Promise.race([
-        sb.from('members').select('*').eq('nick', nick).maybeSingle(),
-        new Promise((_,rej) => setTimeout(() => rej(new Error('timeout')), 4000))
-      ]);
-      if (result?.data) {
-        currentUser = { ...currentUser, ...result.data };
-        sessionStorage.setItem('bw_user', JSON.stringify(currentUser));
-        updateAccBalance(currentUser.balance || 0);
-        if (idEl) idEl.textContent = currentUser.id || '—';
-      }
-    } catch(e) { /* ใช้ข้อมูลจาก sessionStorage แทน */ }
-
     loadDashboard();
     loadTxnHistory();
     loadDepHistory();
@@ -2305,35 +4742,80 @@ function switchModal(from, to) { closeModal(from); openModal(to); }
     showMyAccount();
   }
 
-  window.showMyAccount = window._real_showMyAccount = function showMyAccount() {
-    if (!window._userWantsAccount) return;
-    requestAnimationFrame(() => {
-      ['main-content','page-schedule','page-register','page-history'].forEach(id => {
-        const el = document.getElementById(id);
-        if (el) { el.style.cssText = ''; el.style.display = 'none'; }
-      });
-      const ma = document.getElementById('page-myaccount');
-      if (ma) ma.style.display = 'block';
-      window.scrollTo(0, 0);
-    });
+  function updateAccBalance(amount) {
+    if (!currentUser) return;
+    currentUser.balance = amount;
+    const fmt = amount.toLocaleString();
+    document.getElementById('acc-balance').textContent      = fmt;
+    document.getElementById('acc-info-bal').textContent     = fmt + ' ฿';
+    document.getElementById('acc-with-balance').textContent = fmt + ' ฿';
+    const depBal = document.getElementById('dep-current-bal');
+    if (depBal) depBal.textContent = fmt + ' ฿';
   }
 
+  window.setDepAmount = window._real_setDepAmount = function setDepAmount(n) {
+    document.getElementById('dep-amount').value = n;
+    updateDepAmount();
+  }
+
+  function updateDepAmount() {
+    const amt = parseInt(document.getElementById('dep-amount').value) || 0;
+    const preview = document.getElementById('dep-amount-preview');
+    const show    = document.getElementById('dep-amount-show');
+    if (amt >= 100) {
+      preview.style.display = 'block';
+      show.textContent = amt.toLocaleString() + ' ฿';
+    } else {
+      preview.style.display = 'none';
+    }
+  }
+
+  function goDepStep1() {
+    document.getElementById('dep-step1').style.display = 'block';
+    document.getElementById('dep-step2').style.display = 'none';
+    document.getElementById('dep-step3').style.display = 'none';
+  }
+
+  function goDepStep2() {
+    const amt = parseInt(document.getElementById('dep-amount').value) || 0;
+    if (amt < 100) { alert('กรุณาระบุจำนวนเงินขั้นต่ำ 100 บาทครับ'); return; }
+    const fmt = amt.toLocaleString() + ' ฿';
+    document.getElementById('dep-confirm-amount').textContent  = fmt;
+    document.getElementById('dep-notice-amount').textContent   = amt.toLocaleString() + ' บาท';
+    document.getElementById('dep-step3-amount').textContent    = fmt;
+    document.getElementById('dep-step1').style.display = 'none';
+    document.getElementById('dep-step2').style.display = 'block';
+    document.getElementById('dep-step3').style.display = 'none';
+  }
+
+  function goDepStep3() {
+    document.getElementById('dep-step1').style.display = 'none';
+    document.getElementById('dep-step2').style.display = 'none';
+    document.getElementById('dep-step3').style.display = 'block';
+  }
+
+  function copyDepAccNo() {
+    const accno = document.getElementById('dep-acc-no').textContent;
+    navigator.clipboard?.writeText(accno).then(() => alert('คัดลอกเลขบัญชีแล้วครับ: ' + accno));
+  }
+
+  window.setWithAmount = window._real_setWithAmount = function setWithAmount(n) { document.getElementById('with-amount').value = n; }
+  window.setWithAll = window._real_setWithAll = function setWithAll() {
+    document.getElementById('with-amount').value = currentUser?.balance || 0;
+  }
+
+  window.showMyAccount = window._real_showMyAccount = function showMyAccount() {
+    document.getElementById('main-content').style.display  = 'none';
+    document.getElementById('page-schedule').style.display  = 'none';
+    document.getElementById('page-register').style.display  = 'none';
+    document.getElementById('page-history').style.display   = 'none';
+    document.getElementById('page-myaccount').style.display = 'block';
+    window.scrollTo(0, 0);
+  }
 
   window.hideMyAccount = window._real_hideMyAccount = function hideMyAccount() {
-    window._userWantsAccount = false;
     document.getElementById('page-myaccount').style.display = 'none';
-    const mc = document.getElementById('main-content');
-    if (mc) mc.style.cssText = 'display:block!important';
-    // restart observer
-    if (!window._mcObs && mc) {
-      const obs = new MutationObserver(() => {
-        if (!window._userWantsAccount && mc.style.display === 'none') {
-          mc.style.cssText = 'display:block!important';
-        }
-      });
-      obs.observe(mc, { attributes: true, attributeFilter: ['style'] });
-      window._mcObs = obs;
-    }
+    document.getElementById('main-content').style.display   = 'block';
     window.scrollTo(0, 0);
   }
 
@@ -2495,32 +4977,25 @@ function switchModal(from, to) { closeModal(from); openModal(to); }
     el.innerHTML = data.map(w => {
       const isApproved = w.status === 'approved';
       const isRejected = w.status === 'rejected';
-      const isPending  = !isApproved && !isRejected;
       const dateStr    = new Date(w.created_at).toLocaleString('th-TH',{dateStyle:'short',timeStyle:'short'});
       const approvedStr = w.approved_at ? new Date(w.approved_at).toLocaleString('th-TH',{dateStyle:'short',timeStyle:'short'}) : null;
-
-      // ── Status Badge ──
       let statusHtml = isApproved
-        ? `<span style="font-family:Kanit,sans-serif;font-size:12px;font-weight:700;padding:5px 14px;border-radius:999px;background:rgba(74,222,128,0.15);color:#4ade80;border:1px solid rgba(74,222,128,0.3);">✅ สำเร็จ</span>`
+        ? `<span style="font-family:Kanit,sans-serif;font-size:11px;font-weight:700;padding:4px 12px;border-radius:999px;background:rgba(74,222,128,0.15);color:#4ade80;">✅ โอนสำเร็จ</span>`
         : isRejected
-          ? `<span style="font-family:Kanit,sans-serif;font-size:12px;font-weight:700;padding:5px 14px;border-radius:999px;background:rgba(248,113,113,0.15);color:#f87171;border:1px solid rgba(248,113,113,0.3);">❌ ปฏิเสธ</span>`
-          : `<span style="font-family:Kanit,sans-serif;font-size:12px;font-weight:700;padding:5px 14px;border-radius:999px;background:rgba(245,200,66,0.12);color:#F5C842;border:1px solid rgba(245,200,66,0.25);">⏳ รอการดำเนินการ</span>`;
-
-      const borderColor = isApproved ? 'rgba(74,222,128,0.25)' : isRejected ? 'rgba(248,113,113,0.25)' : 'rgba(245,200,66,0.2)';
-
+          ? `<span style="font-family:Kanit,sans-serif;font-size:11px;font-weight:700;padding:4px 12px;border-radius:999px;background:rgba(248,113,113,0.15);color:#f87171;">❌ ปฏิเสธ</span>`
+          : `<span style="font-family:Kanit,sans-serif;font-size:11px;font-weight:700;padding:4px 12px;border-radius:999px;background:rgba(245,200,66,0.12);color:#F5C842;">⏳ รอดำเนินการ</span>`;
       return `
-        <div style="background:rgba(255,255,255,0.04);border:1px solid ${borderColor};border-radius:12px;padding:14px;margin-bottom:10px;">
-          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
-            <div style="font-family:Kanit,sans-serif;font-weight:900;font-size:20px;color:#f87171;">−${Number(w.amount).toLocaleString()} ฿</div>
+        <div style="background:rgba(255,255,255,0.04);border:1px solid ${isApproved?'rgba(74,222,128,0.2)':isRejected?'rgba(248,113,113,0.2)':'rgba(245,200,66,0.2)'};border-radius:10px;padding:14px;margin-bottom:10px;">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">
+            <div style="font-family:Kanit,sans-serif;font-weight:900;font-size:18px;color:#f87171;">−${Number(w.amount).toLocaleString()} ฿</div>
             ${statusHtml}
           </div>
-          <div style="display:flex;flex-direction:column;gap:5px;">
-            <div style="font-size:12px;color:rgba(240,255,232,0.5);">🏦 ${w.bank||'—'} &nbsp;·&nbsp; 💳 ${w.acc_no||'—'}</div>
-            <div style="font-size:11px;color:rgba(240,255,232,0.4);">ชื่อบัญชี: ${w.acc_name||'—'}</div>
-            <div style="font-size:11px;color:rgba(240,255,232,0.3);">TXN: ${w.txn||'—'} &nbsp;·&nbsp; 🕐 ${dateStr}</div>
-            ${isPending ? `<div style="font-size:11px;color:#F5C842;margin-top:2px;">⏳ Admin กำลังดำเนินการโอนเงินให้ครับ</div>` : ''}
-            ${isApproved && approvedStr ? `<div style="font-size:11px;color:#4ade80;margin-top:2px;">✅ โอนสำเร็จเมื่อ: ${approvedStr} &nbsp;·&nbsp; โดย ${w.approved_by||'Admin'}</div>` : ''}
-            ${isRejected && w.reason ? `<div style="font-size:11px;color:#f87171;margin-top:2px;">❌ เหตุผล: ${w.reason}</div>` : ''}
+          <div style="display:flex;flex-direction:column;gap:4px;">
+            <div style="font-size:12px;color:rgba(240,255,232,0.5);">🏦 ${w.bank||'—'} · 💳 ${w.acc_no||'—'}</div>
+            <div style="font-size:11px;color:rgba(240,255,232,0.35);">ชื่อบัญชี: ${w.acc_name||'—'}</div>
+            <div style="font-size:11px;color:rgba(240,255,232,0.3);">TXN: ${w.txn||'—'} · 🕐 ${dateStr}</div>
+            ${isApproved&&approvedStr?`<div style="font-size:11px;color:#4ade80;">✅ โอนเมื่อ: ${approvedStr} · โดย ${w.approved_by||'Admin'}</div>`:''}
+            ${isRejected&&w.reason?`<div style="font-size:11px;color:#f87171;">❌ เหตุผล: ${w.reason}</div>`:''}
           </div>
         </div>`;
     }).join('');
@@ -2583,18 +5058,13 @@ function switchModal(from, to) { closeModal(from); openModal(to); }
     const nick = currentUser.nick || '';
 
     // ✅ บันทึกลง Supabase deposits
-    // ตรวจสอบว่าเป็นการเติมเงินครั้งแรกหรือเปล่า
-    const { count: prevDeps } = await sb.from('deposits').select('*',{count:'exact',head:true}).eq('nick',nick).eq('status','approved');
-    const isFirstDeposit = (prevDeps || 0) === 0;
-
     const { error } = await sb.from('deposits').insert({
       nick,
       fname: currentUser.fname || '',
       lname: currentUser.lname || '',
       phone: currentUser.phone || '',
       amount, bank, txn,
-      status: 'pending',
-      is_first_deposit: isFirstDeposit,
+      status: 'pending'
     });
 
     if (error) {
@@ -2726,176 +5196,318 @@ function switchModal(from, to) { closeModal(from); openModal(to); }
     alert(`✅ ส่งข้อความเรียบร้อยแล้วครับ!\nหัวข้อ: ${subject}\nเจ้าหน้าที่จะตอบกลับภายใน 24 ชั่วโมงครับ`);
   }
 
+  // ── BETTING SYSTEM ──
+  const betSelections = {};
 
-// ===== FIRE RING CANVAS =====
-;(function initFireRing() {
-  const canvas = document.getElementById('fire-canvas');
-  if (!canvas) return;
-  const ctx = canvas.getContext('2d');
-
-  // ปรับขนาด canvas ให้พอดีกับ section
-  function resize() {
-    const wrap = canvas.closest('.section-fire-wrap');
-    if (!wrap) return;
-    const w = wrap.offsetWidth || 960;
-    const h = wrap.offsetHeight || 500;
-    canvas.width  = Math.min(w, 960);
-    canvas.height = Math.max(h, 300); // ไม่ให้ต่ำกว่า 300px
-  }
-  resize();
-  window.addEventListener('resize', resize);
-
-  // ===== Particle System =====
-  const particles = [];
-  const MAX_P = 180;
-
-  function randomRange(a, b) { return a + Math.random() * (b - a); }
-
-  function spawnParticle(cx, cy, radius) {
-    const angle   = randomRange(0, Math.PI * 2);
-    const spread  = randomRange(-0.18, 0.18);
-    const speed   = randomRange(1.2, 3.5);
-    // จุดเกิดบนขอบวงกลม
-    const px = cx + Math.cos(angle) * (radius + randomRange(-12, 12));
-    const py = cy + Math.sin(angle) * (radius + randomRange(-12, 12));
-    // ทิศทาง = ออกจากศูนย์ + สุ่มเล็กน้อย (spark กระเด็น)
-    const dir = angle + Math.PI * 0.5 + spread; // หมุนตามวงกลม
-    const vx  = Math.cos(dir) * speed + Math.cos(angle) * randomRange(0.5, 1.5);
-    const vy  = Math.sin(dir) * speed + Math.sin(angle) * randomRange(0.5, 1.5);
-    const size = randomRange(1, 3.5);
-    // สี: ไล่จากขาว → เหลือง → ส้ม → แดง
-    const colorPick = Math.random();
-    let color;
-    if (colorPick < 0.15)      color = '#ffffff';
-    else if (colorPick < 0.35) color = '#ffe066';
-    else if (colorPick < 0.65) color = '#ffaa00';
-    else if (colorPick < 0.85) color = '#ff6600';
-    else                        color = '#cc2200';
-
-    particles.push({
-      x: px, y: py, vx, vy,
-      size, color,
-      life: 1.0,
-      decay: randomRange(0.008, 0.022),
-      gravity: randomRange(0.04, 0.10),
-    });
+  function selectSide(matchId, side, btn) {
+    betSelections[matchId] = side;
+    document.getElementById(`red-btn-${matchId}`).classList.toggle('active', side === 'red');
+    document.getElementById(`blue-btn-${matchId}`).classList.toggle('active', side === 'blue');
+    calcExpected(matchId);
   }
 
-  // ===== วงไฟหมุน =====
-  let rotation = 0;
-  let time = 0;
-
-  function drawRing(cx, cy, radius) {
-    if (radius <= 0) return; // guard
-
-    // Glow halo
-    const halo = ctx.createRadialGradient(cx, cy, Math.max(radius * 0.7, 0.1), cx, cy, radius * 1.4);
-    halo.addColorStop(0,   'rgba(255,120,0,0)');
-    halo.addColorStop(0.5, 'rgba(255,80,0,.08)');
-    halo.addColorStop(1,   'rgba(200,40,0,0)');
-    ctx.beginPath();
-    ctx.arc(cx, cy, radius * 1.4, 0, Math.PI * 2);
-    ctx.fillStyle = halo;
-    ctx.fill();
-
-    // Core ring glow
-    const grad = ctx.createRadialGradient(cx, cy, Math.max(radius - 18, 0.1), cx, cy, radius + 18);
-    grad.addColorStop(0,   'rgba(255,160,0,0)');
-    grad.addColorStop(0.4, 'rgba(255,100,0,.35)');
-    grad.addColorStop(0.5, 'rgba(255,180,0,.7)');
-    grad.addColorStop(0.6, 'rgba(255,100,0,.35)');
-    grad.addColorStop(1,   'rgba(200,40,0,0)');
-
-    ctx.beginPath();
-    ctx.arc(cx, cy, radius, 0, Math.PI * 2);
-    ctx.strokeStyle = grad;
-    ctx.lineWidth = 24;
-    ctx.shadowBlur = 30;
-    ctx.shadowColor = 'rgba(255,120,0,.6)';
-    ctx.stroke();
-    ctx.shadowBlur = 0;
-
-    // Bright inner ring
-    ctx.beginPath();
-    ctx.arc(cx, cy, radius, 0, Math.PI * 2);
-    ctx.strokeStyle = 'rgba(255,220,80,.6)';
-    ctx.lineWidth = 3;
-    ctx.shadowBlur = 12;
-    ctx.shadowColor = '#ffee00';
-    ctx.stroke();
-    ctx.shadowBlur = 0;
-
-    // Reflection on floor (ด้านล่าง)
-    const reflY = cy + radius + 10;
-    const reflGrad = ctx.createLinearGradient(cx - radius, reflY, cx + radius, reflY);
-    reflGrad.addColorStop(0,   'rgba(200,80,0,0)');
-    reflGrad.addColorStop(0.3, 'rgba(255,120,0,.25)');
-    reflGrad.addColorStop(0.5, 'rgba(255,180,0,.45)');
-    reflGrad.addColorStop(0.7, 'rgba(255,120,0,.25)');
-    reflGrad.addColorStop(1,   'rgba(200,80,0,0)');
-    ctx.beginPath();
-    ctx.ellipse(cx, reflY, radius * 0.8, 8, 0, 0, Math.PI * 2);
-    ctx.fillStyle = reflGrad;
-    ctx.fill();
+  window.setBetAmount = function setBetAmount(matchId, amount) {
+    const input = document.getElementById(`bet-amount-${matchId}`);
+    if (input) { input.value = amount; calcExpected(matchId); }
   }
 
-  function drawParticles() {
-    for (let i = particles.length - 1; i >= 0; i--) {
-      const p = particles[i];
-      p.x  += p.vx;
-      p.y  += p.vy;
-      p.vy += p.gravity;
-      p.vx *= 0.98;
-      p.life -= p.decay;
-      if (p.life <= 0) { particles.splice(i, 1); continue; }
+  window.setOdds = function setOdds(matchId, odds, btn) {
+    // active state
+    btn.closest('.bet-odds-presets').querySelectorAll('.bet-odds-preset').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    const oddsInput = document.getElementById(`bet-odds-${matchId}`);
+    if (oddsInput) oddsInput.value = odds;
+    calcExpected(matchId);
+  }
 
-      ctx.save();
-      ctx.globalAlpha = Math.pow(p.life, 1.5);
-      ctx.beginPath();
-      ctx.arc(p.x, p.y, p.size * p.life, 0, Math.PI * 2);
-      ctx.fillStyle = p.color;
-      ctx.shadowBlur = 8;
-      ctx.shadowColor = p.color;
-      ctx.fill();
-      ctx.restore();
+  function calcExpected(matchId) {
+    const amount   = parseFloat(document.getElementById(`bet-amount-${matchId}`)?.value) || 0;
+    const odds     = parseFloat(document.getElementById(`bet-odds-${matchId}`)?.value) || 1.5;
+    const side     = betSelections[matchId];
+    const expectEl = document.getElementById(`bet-expect-${matchId}`);
+    const valEl    = document.getElementById(`bet-expect-val-${matchId}`);
+    const stakeEl  = document.getElementById(`bet-stake-show-${matchId}`);
+    if (amount >= 100 && side) {
+      if (expectEl) expectEl.style.display = 'flex';
+      if (valEl)    valEl.textContent    = (amount * odds).toLocaleString('th-TH', {maximumFractionDigits:0}) + ' ฿';
+      if (stakeEl)  stakeEl.textContent  = amount.toLocaleString() + ' ฿';
+    } else {
+      if (expectEl) expectEl.style.display = 'none';
     }
   }
 
-  function loop() {
-    if (!document.getElementById('fire-canvas')) return;
-    resize();
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-    const cx = canvas.width  / 2;
-    const cy = canvas.height / 2;
-    const radius = Math.max(Math.min(canvas.width, canvas.height) * 0.32, 30); // ขั้นต่ำ 30px
-
-    time++;
-    rotation += 0.012;
-
-    // Spawn sparks — ปล่อยตาม arc หมุน
-    const spawnCount = 4 + Math.floor(Math.sin(time * 0.05) * 2 + 2);
-    for (let i = 0; i < spawnCount; i++) spawnParticle(cx, cy, radius);
-    if (particles.length > MAX_P) particles.splice(0, particles.length - MAX_P);
-
-    // วาดพื้น dim overlay
-    const bgGrad = ctx.createRadialGradient(cx, cy, 0, cx, cy, radius * 1.8);
-    bgGrad.addColorStop(0,   'rgba(60,20,0,.08)');
-    bgGrad.addColorStop(0.6, 'rgba(30,10,0,.06)');
-    bgGrad.addColorStop(1,   'rgba(0,0,0,0)');
-    ctx.fillStyle = bgGrad;
-    ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-    drawParticles();
-    drawRing(cx, cy, radius);
-
-    requestAnimationFrame(loop);
+  function updateBetBalanceHints() {
+    const bal = currentUser?.balance || 0;
+    document.querySelectorAll('[id^="bet-bal-"]').forEach(el => {
+      el.textContent = bal.toLocaleString() + ' ฿';
+    });
   }
 
-  // เริ่ม loop หลัง DOM พร้อม
-  requestAnimationFrame(loop);
-})();
+  function placeBet(matchId, nameA, nameB) {
+    const amount = parseFloat(document.getElementById(`bet-amount-${matchId}`)?.value) || 0;
+    const odds   = parseFloat(document.getElementById(`bet-odds-${matchId}`)?.value) || 1.5;
+    const side   = betSelections[matchId];
+    const bal    = currentUser?.balance || 0;
 
+    if (!currentUser) { alert('กรุณาสมัครสมาชิกก่อนวางเดิมพันครับ'); return; }
+    if (!side)  { alert('กรุณาเลือกวัวที่ต้องการเดิมพันก่อนครับ'); return; }
+    if (amount < 100) { alert('จำนวนเงินขั้นต่ำ 100 บาทครับ'); return; }
+    if (amount > bal) { alert(`ยอดเงินไม่เพียงพอครับ\nยอดคงเหลือ: ${bal.toLocaleString()} บาท`); return; }
+
+    const sideName  = side === 'red' ? nameA : nameB;
+    const potential = (amount * odds).toLocaleString('th-TH', {maximumFractionDigits:0});
+    const txn       = '7' + Array.from({length:8},()=>Math.floor(Math.random()*10)).join('');
+    const nick      = currentUser.nick || 'คุณ';
+    const sideColor = side === 'red' ? 'red' : 'blue';
+
+    // หักยอดทันที
+    updateAccBalance(bal - amount);
+    updateBetBalanceHints();
+
+    // เพิ่มเข้า queue UI
+    const list = document.getElementById(`bet-queue-${matchId}`);
+    if (list) {
+      const itemId = `bq-${Date.now()}`;
+      const item   = document.createElement('div');
+      item.className = `bet-queue-item ${sideColor}-queue`;
+      item.id        = itemId;
+      item.style.animation = 'fadeUp .3s ease';
+      item.innerHTML = `
+        <span class="bet-queue-dot ${sideColor}-dot"></span>
+        <span class="bet-queue-name">${nick}</span>
+        <span class="bet-queue-side">${side==='red'?'🔴':'🔵'} ${sideName}</span>
+        <span class="bet-queue-odds">1 : ${odds}</span>
+        <span class="bet-queue-amount">${amount.toLocaleString()} ฿</span>
+        <span class="bet-queue-badge waiting">รอจับคู่</span>`;
+      list.insertBefore(item, list.firstChild);
+      // อัปเดตจำนวน
+      updateQueueCount(matchId);
+    }
+
+    // แสดงสถานะ
+    showBetStatus(matchId, 'waiting',
+      `⏳ รอจับคู่เดิมพัน · เลือก <strong>${sideName}</strong> อัตรา 1:${odds} · ${amount.toLocaleString()} ฿<br><span style="font-size:11px;opacity:.7;">ยอดเงินถูกหักแล้ว · คาดจะได้รับ <strong style="color:var(--gold);">${potential} ฿</strong> หากชนะ</span>`
+    );
+
+    // บันทึกประวัติ
+    addBetToHistory(sideName, side==='red'?nameB:nameA, amount, potential, txn, odds);
+
+    // reset
+    const input = document.getElementById(`bet-amount-${matchId}`);
+    if (input) input.value = '';
+    const expectEl = document.getElementById(`bet-expect-${matchId}`);
+    if (expectEl) expectEl.style.display = 'none';
+  }
+
+  // จับคู่กับรายการที่มีอยู่
+  function joinBet(btn, itemId, matchId, opponentNick, opponentSide, amount, odds) {
+    const bal = currentUser?.balance || 0;
+    if (!currentUser) { alert('กรุณาสมัครสมาชิกก่อนครับ'); return; }
+    if (amount > bal) { alert(`ยอดเงินไม่เพียงพอครับ\nยอดคงเหลือ: ${bal.toLocaleString()} บาท`); return; }
+
+    const nick      = currentUser.nick || 'คุณ';
+    const mySide    = opponentSide.includes('เจ้าพายุ') ? 'ดำมหากาฬ' : 'เจ้าพายุ';
+    const potential = (amount * odds).toLocaleString('th-TH', {maximumFractionDigits:0});
+    const txn       = '7' + Array.from({length:8},()=>Math.floor(Math.random()*10)).join('');
+
+    if (!confirm(`ยืนยันจับคู่เดิมพัน?\n\nคุณเลือก: ${mySide}\nจำนวนเงิน: ${amount.toLocaleString()} ฿\nอัตราต่อรอง: 1:${odds}\nหากชนะจะได้รับ: ${potential} ฿`)) return;
+
+    // หักยอดเงิน
+    updateAccBalance(bal - amount);
+    updateBetBalanceHints();
+
+    // ลบรายการออกจาก queue ทันที (จับคู่สำเร็จ)
+    const queueItem = document.getElementById(itemId);
+    if (queueItem) {
+      queueItem.style.transition = 'all .3s ease';
+      queueItem.style.opacity    = '0';
+      queueItem.style.transform  = 'translateX(20px)';
+      setTimeout(() => { queueItem.remove(); updateQueueCount(matchId); }, 300);
+    }
+
+    // แสดงสถานะ
+    showBetStatus(matchId, 'matched',
+      `✅ จับคู่สำเร็จ! กับ <strong>${opponentNick}</strong><br>คุณเลือก: <strong>${mySide}</strong> · อัตรา 1:${odds} · ${amount.toLocaleString()} ฿<br><span style="font-size:11px;">หากชนะจะได้รับ <strong style="color:var(--gold);">${potential} ฿</strong></span>`
+    );
+
+    // บันทึกประวัติ
+    addBetToHistory(mySide, opponentSide.replace(/🔴|🔵/g,'').trim(), amount, potential, txn, odds);
+    showToastFE(`✅ จับคู่กับ ${opponentNick} สำเร็จ! · TXN: ${txn}`);
+  }
+
+  function showBetStatus(matchId, type, html) {
+    const el = document.getElementById(`bet-status-${matchId}`);
+    if (!el) return;
+    el.className = `bet-matching-status ${type === 'matched' ? 'status-matched' : 'status-waiting'}`;
+    el.innerHTML = html;
+    el.style.display = 'block';
+  }
+
+  function updateQueueCount(matchId) {
+    const list  = document.getElementById(`bet-queue-${matchId}`);
+    const count = document.getElementById(`queue-count-${matchId}`);
+    if (list && count) count.textContent = list.children.length + ' รายการ';
+  }
+
+  function showToastFE(msg) {
+    const existing = document.getElementById('toast-fe');
+    if (existing) existing.remove();
+    const t = document.createElement('div');
+    t.id = 'toast-fe';
+    t.style.cssText = 'position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:#1a1a1a;color:#fff;font-family:Kanit,sans-serif;font-size:13px;padding:12px 22px;border-radius:10px;z-index:999;box-shadow:0 8px 24px rgba(0,0,0,0.4);animation:fadeUp .3s ease;';
+    t.textContent = msg;
+    document.body.appendChild(t);
+    setTimeout(() => t.remove(), 3000);
+  }
+
+  function addBetToHistory(myPick, opponent, amount, potential, txn, odds) {
+    const list = document.getElementById('acc-txn-list');
+    if (!list) return;
+    const now = new Date();
+    const dateStr = `${now.getDate()} พ.ค. 68 · ${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}`;
+    const item = document.createElement('div');
+    item.className = 'txn-item';
+    item.innerHTML = `
+      <div class="txn-icon" style="background:rgba(245,200,66,0.1);">🎯</div>
+      <div class="txn-info">
+        <div class="txn-label">เดิมพัน — ${myPick} VS ${opponent}</div>
+        <div class="txn-date">${dateStr} · อัตรา 1:${odds}</div>
+        <div class="txn-id">TXN: ${txn}</div>
+      </div>
+      <div>
+        <div class="txn-amount with">-${parseFloat(amount).toLocaleString()} ฿</div>
+        <div style="font-size:10px;color:rgba(240,255,232,0.3);text-align:right;margin-top:2px;font-family:Kanit,sans-serif;">รอผล · คาด ${potential} ฿</div>
+      </div>`;
+    list.insertBefore(item, list.firstChild);
+  }
+
+  document.addEventListener('input', e => {
+    if (e.target?.id?.startsWith('bet-amount-') || e.target?.id?.startsWith('bet-odds-')) {
+      const matchId = e.target.id.replace('bet-amount-','').replace('bet-odds-','');
+      calcExpected(matchId);
+    }
+  });
+
+  // ── MATCH DETAIL NAVIGATION ──
+  const matchData = {
+    'match-1': { nameA:'เจ้าพายุ', ownerA:'นายสมชาย ใจดี', weightA:'520 กก.', photoA:'🐂',
+                 nameB:'ดำมหากาฬ', ownerB:'นายวิชัย แก้วมณี', weightB:'510 กก.', photoB:'🐃',
+                 round:'รุ่นแชมเปียน', date:'28 พ.ค. 68', time:'13:30 น.', loc:'สนามหลัก นครศรีธรรมราช', prize:'500,000' },
+    'match-2': { nameA:'แดงอรหันต์', ownerA:'นายประสิทธิ์ ทองดี', weightA:'498 กก.', photoA:'🐂',
+                 nameB:'ขาวมงคล', ownerB:'นายชาญ บุญมา', weightB:'502 กก.', photoB:'🐃',
+                 round:'รุ่นน้ำหนัก 500 กก.', date:'29 พ.ค. 68', time:'09:00 น.', loc:'สนาม A พัทลุง', prize:'200,000' },
+  };
+
+  window.openMatchDetail = function openMatchDetail(matchId) {
+    const m = matchData[matchId] || {};
+    // อัปเดต arena
+    document.getElementById('detail-arena').innerHTML = `
+      <div class="bet-team red-team">
+        <div class="bet-team-photo red-glow">${m.photoA||'🐂'}</div>
+        <div class="bet-team-name">${m.nameA||'—'}</div>
+        <div class="bet-team-owner">${m.ownerA||''}</div>
+        <div class="bet-team-tags"><span class="team-stat-tag">⚖️ ${m.weightA||''}</span></div>
+        <div class="bet-pool-info"><span class="bet-pool-dot red-dot"></span><span>🔴 เจ้าบ้าน</span></div>
+      </div>
+      <div class="bet-vs-col">
+        <div class="bet-vs-circle">VS</div>
+        <div class="bet-prize-box"><div style="font-size:10px;opacity:.6;">รางวัล</div><div style="font-weight:900;font-size:15px;color:var(--gold);">${m.prize||'—'} ฿</div></div>
+      </div>
+      <div class="bet-team blue-team">
+        <div class="bet-team-photo blue-glow">${m.photoB||'🐃'}</div>
+        <div class="bet-team-name">${m.nameB||'—'}</div>
+        <div class="bet-team-owner">${m.ownerB||''}</div>
+        <div class="bet-team-tags"><span class="team-stat-tag">⚖️ ${m.weightB||''}</span></div>
+        <div class="bet-pool-info"><span class="bet-pool-dot blue-dot"></span><span>🔵 ทีมเยือน</span></div>
+      </div>`;
+    // อัปเดตปุ่มเลือกฝั่ง
+    const btnA = document.getElementById('btn-name-a');
+    const btnB = document.getElementById('btn-name-b');
+    if (btnA) btnA.textContent = m.nameA || '—';
+    if (btnB) btnB.textContent = m.nameB || '—';
+    // อัปเดตปุ่ม submit
+    const submitBtn = document.getElementById('bet-submit-1');
+    if (submitBtn) submitBtn.onclick = () => placeBet(1, m.nameA, m.nameB);
+    // อัปเดต header
+    document.getElementById('detail-header').innerHTML = `
+      <div style="background:rgba(0,0,0,0.2);border:1px solid rgba(255,255,255,0.06);border-radius:12px;padding:14px 18px;margin-bottom:14px;">
+        <div style="font-family:Kanit,sans-serif;font-weight:900;font-size:16px;color:var(--gold);margin-bottom:4px;">🏆 ${m.round||''}</div>
+        <div style="font-size:12px;color:rgba(240,255,232,0.45);font-family:Kanit,sans-serif;">📅 ${m.date||''} &nbsp;·&nbsp; ⏰ ${m.time||''} &nbsp;·&nbsp; 📍 ${m.loc||''}</div>
+      </div>`;
+    // reset form
+    betSelections[1] = null;
+    document.getElementById('red-btn-1').classList.remove('active');
+    document.getElementById('blue-btn-1').classList.remove('active');
+    const amtEl = document.getElementById('bet-amount-1');
+    if (amtEl) amtEl.value = '';
+    const expEl = document.getElementById('bet-expect-1');
+    if (expEl) expEl.style.display = 'none';
+    const stEl = document.getElementById('bet-status-1');
+    if (stEl) stEl.style.display = 'none';
+    // อัปเดต balance hint
+    updateBetBalanceHints();
+    // switch view
+    document.getElementById('sched-list-view').style.display   = 'none';
+    document.getElementById('sched-detail-view').style.display = 'block';
+    window.scrollTo(0, 0);
+  }
+
+  window.closeMatchDetail = function closeMatchDetail() {
+    document.getElementById('sched-detail-view').style.display = 'none';
+    document.getElementById('sched-list-view').style.display   = 'block';
+    window.scrollTo(0, 0);
+  }
+
+  window.showRegister = window._real_showRegister = function showRegister() {
+    document.getElementById('main-content').style.display = 'none';
+    document.getElementById('page-schedule').style.display = 'none';
+    document.getElementById('page-register').style.display = 'block';
+    window.scrollTo(0, 0);
+  }
+  window.hideRegister = window._real_hideRegister = function hideRegister() {
+    document.getElementById('page-register').style.display = 'none';
+    document.getElementById('main-content').style.display = 'block';
+    document.getElementById('reg-form').style.display = 'block';
+    document.getElementById('reg-success').style.display = 'none';
+    window.scrollTo(0, 0);
+  }
+  window.showSchedule = window._real_showSchedule = function showSchedule() {
+    document.getElementById('main-content').style.display = 'none';
+    document.getElementById('page-register').style.display = 'none';
+    document.getElementById('page-schedule').style.display = 'block';
+    window.scrollTo(0, 0);
+  }
+  window.hideSchedule = window._real_hideSchedule = function hideSchedule() {
+    document.getElementById('main-content').style.display = 'block';
+    document.getElementById('page-schedule').style.display = 'none';
+    window.scrollTo(0, 0);
+  }
+
+  window.openModal = window._real_openModal = function openModal(d) {
+    document.getElementById('m-round').textContent = d.round;
+    document.getElementById('m-bull-a').textContent = d.bullA;
+    document.getElementById('m-owner-a').textContent = 'เจ้าของ: ' + d.ownerA;
+    document.getElementById('m-weight-a').textContent = d.weightA;
+    document.getElementById('m-bull-b').textContent = d.bullB;
+    document.getElementById('m-owner-b').textContent = 'เจ้าของ: ' + d.ownerB;
+    document.getElementById('m-weight-b').textContent = d.weightB;
+    document.getElementById('m-date').textContent = d.date;
+    document.getElementById('m-time').textContent = d.time;
+    document.getElementById('m-loc').textContent = d.loc;
+    document.getElementById('m-prize').textContent = d.prize;
+    const wb = document.getElementById('m-winner-bar');
+    if (d.winner) {
+      wb.style.display = 'block';
+      document.getElementById('m-winner-name').textContent = d.winner;
+    } else {
+      wb.style.display = 'none';
+    }
+    document.getElementById('modal').classList.add('open');
+  }
+  window.closeModal = window._real_closeModal = function closeModal(e) {
+    if (e.target === document.getElementById('modal'))
+      document.getElementById('modal').classList.remove('open');
+  }
 </script>
 </body>
 </html>
