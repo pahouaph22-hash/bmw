@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+<!DOCTYPE html><!-- v20260530_015845 -->
 <html lang="th">
 <head>
 <meta charset="UTF-8">
@@ -1199,6 +1199,10 @@ window.addEventListener('DOMContentLoaded', async () => {
   if (mc) mc.style.display = 'block';
   if (pm) pm.style.display = 'none';
 
+  // โหลด session (ต้องทำหลัง DOM พร้อม)
+  if (typeof initSessionFE === 'function') initSessionFE();
+  if (typeof renderNav === 'function') renderNav();
+
   await Promise.all([loadMatches(), loadStats()]);
   subscribeRealtime();
   setInterval(loadMatches, 30000);
@@ -2136,25 +2140,26 @@ document.querySelectorAll('.overlay').forEach(el => {
     window.scrollTo(0,0);
   }
 
-  // ── โหลด session เมื่อเปิดเว็บ ──
-  const savedUser = sessionStorage.getItem('bw_user');
-  if (savedUser) {
-    try {
-      currentUser = JSON.parse(savedUser);
-      if (currentUser?.nick) {
-        setLoggedIn(currentUser.nick);
-        // ดึงยอดเงินล่าสุดจาก Supabase ทันที
-        sb.from('members').select('balance').eq('nick', currentUser.nick).maybeSingle().then(({ data }) => {
-          if (data) {
-            currentUser.balance = Number(data.balance || 0);
-            sessionStorage.setItem('bw_user', JSON.stringify(currentUser));
-            updateAccBalance(currentUser.balance);
-          }
-        });
-        subscribeTxnStatus();
-        subscribeMatchResults();
-      }
-    } catch(e) {}
+  // ── โหลด session เมื่อเปิดเว็บ (เรียกจาก DOMContentLoaded) ──
+  function initSessionFE() {
+    const savedUser = sessionStorage.getItem('bw_user');
+    if (savedUser) {
+      try {
+        currentUser = JSON.parse(savedUser);
+        if (currentUser?.nick) {
+          setLoggedIn(currentUser.nick);
+          sb.from('members').select('balance').eq('nick', currentUser.nick).maybeSingle().then(({ data }) => {
+            if (data) {
+              currentUser.balance = Number(data.balance || 0);
+              sessionStorage.setItem('bw_user', JSON.stringify(currentUser));
+              updateAccBalance(currentUser.balance);
+            }
+          });
+          subscribeTxnStatus();
+          subscribeMatchResults();
+        }
+      } catch(e) {}
+    }
   }
 
   // ── โหลดประวัติธุรกรรมจาก Supabase ──
