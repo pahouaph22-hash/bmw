@@ -5939,6 +5939,22 @@ fns.forEach(function(fn){
     const txn  = genTxnFE(4);
     const nick = currentUser.nick || '';
 
+    // ── Upload สลิปขึ้น Supabase Storage ──
+    let slip_url = '';
+    const slipFile = document.getElementById('dep-slip-file')?.files?.[0];
+    if (slipFile) {
+      const ext      = slipFile.name.split('.').pop() || 'jpg';
+      const filePath = `slips/dep_${nick}_${Date.now()}.${ext}`;
+      const { data: upData, error: upErr } = await sb.storage
+        .from('slips')
+        .upload(filePath, slipFile, { upsert: true, contentType: slipFile.type });
+      if (!upErr && upData) {
+        const { data: urlData } = sb.storage.from('slips').getPublicUrl(filePath);
+        slip_url = urlData?.publicUrl || '';
+      }
+      // ถ้า upload ไม่สำเร็จ (bucket ไม่มี) ก็ยังส่งคำขอได้ แค่ไม่มี URL
+    }
+
     // ✅ บันทึกลง Supabase deposits
     const { error } = await sb.from('deposits').insert({
       nick,
@@ -5946,6 +5962,7 @@ fns.forEach(function(fn){
       lname: currentUser.lname || '',
       phone: currentUser.phone || '',
       amount, bank, txn,
+      slip_url,
       status: 'pending'
     });
 
