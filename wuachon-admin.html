@@ -3290,11 +3290,20 @@ function clearHeroBull() {
 
 // helper: UPDATE settings ก่อน ถ้าไม่มี row ค่อย INSERT
 async function safeUpsertSettings(key, value) {
-  const { error: eUpd } = await sb.from('settings').update({ value }).eq('key', key);
-  if (eUpd) {
-    // row ไม่มี — ลอง insert
-    const { error: eIns } = await sb.from('settings').insert({ key, value });
-    return eIns;
+  // ใช้ upsert จริง — ถ้า key มีอยู่แล้ว update, ถ้าไม่มี insert
+  const { error } = await sb.from('settings')
+    .upsert({ key, value }, { onConflict: 'key' });
+  if (error) {
+    // fallback: ลอง update ตาม key โดยตรง
+    const { error: eUpd } = await sb.from('settings')
+      .update({ value })
+      .eq('key', key);
+    if (eUpd) {
+      // ยังไม่มี row — insert ใหม่
+      const { error: eIns } = await sb.from('settings').insert({ key, value });
+      if (eIns) console.error('[Settings] save error:', key, eIns.message);
+      return eIns;
+    }
   }
   return null;
 }
@@ -3835,17 +3844,32 @@ function _refLogClear() {
 
 async function loadRefRateLevels() {
   const { data } = await sb.from('settings').select('value').eq('key','refRateLevels').maybeSingle();
-  const levels = data?.value?.levels || [5, 3, 2, 1, 0.5];
-  for (let i = 1; i <= 5; i++) {
-    const inp = document.getElementById(`sf-ref-rate-${i}`);
-    if (inp) inp.value = levels[i-1] ?? 0;
-  }
-  // compat: โหลด refRate เดิมถ้ายังมี
-  if (!data) {
+
+  if (data?.value?.levels?.length === 5) {
+    // ✅ มีข้อมูลครบ 5 ชั้น — ใช้ค่านี้เลย
+    const levels = data.value.levels;
+    for (let i = 1; i <= 5; i++) {
+      const inp = document.getElementById(`sf-ref-rate-${i}`);
+      if (inp) inp.value = levels[i-1] ?? 0;
+    }
+    window._savedRefLevels = [...levels];
+  } else if (data?.value?.levels) {
+    // มีบางส่วน — เติมที่หายไปด้วย 0
+    const levels = data.value.levels;
+    for (let i = 1; i <= 5; i++) {
+      const inp = document.getElementById(`sf-ref-rate-${i}`);
+      if (inp) inp.value = levels[i-1] ?? 0;
+    }
+  } else {
+    // ยังไม่มีข้อมูลเลย — ลอง migrate จาก refRate เดิม (ชั้น 1 เท่านั้น)
     const { data: old } = await sb.from('settings').select('value').eq('key','refRate').maybeSingle();
-    if (old?.value?.rate) {
-      const inp = document.getElementById('sf-ref-rate-1');
-      if (inp) inp.value = old.value.rate;
+    const rate1 = old?.value?.rate ?? '';
+    const inp1 = document.getElementById('sf-ref-rate-1');
+    if (inp1) inp1.value = rate1;
+    // ชั้น 2-5 เว้นว่างไว้ให้ admin กรอกเอง (ไม่ใส่ default)
+    for (let i = 2; i <= 5; i++) {
+      const inp = document.getElementById(`sf-ref-rate-${i}`);
+      if (inp) inp.value = '';
     }
   }
 }
@@ -3853,13 +3877,38 @@ async function loadRefRateLevels() {
 async function saveRefRateLevels() {
   const levels = [];
   for (let i = 1; i <= 5; i++) {
-    const v = parseFloat(document.getElementById(`sf-ref-rate-${i}`)?.value || '0') || 0;
-    levels.push(v);
+    const raw = document.getElementById(`sf-ref-rate-${i}`)?.value ?? '';
+    const v   = raw === '' ? 0 : parseFloat(raw);
+    levels.push(isNaN(v) ? 0 : v);
   }
-  await safeUpsertSettings('refRateLevels', { levels });
-  // compat: อัปเดต refRate เดิมด้วย (ชั้น 1)
+
+  // บันทึกลง Supabase
+  const err = await safeUpsertSettings('refRateLevels', { levels });
+  if (err) {
+    showToast(`❌ บันทึกไม่สำเร็จ: ${err.message}`, 'error');
+    return;
+  }
+  // compat: อัปเดต refRate ชั้น 1 ด้วย
   await safeUpsertSettings('refRate', { rate: levels[0] });
-  showToast('✅ บันทึกค่าคอมมิชชัน 5 ชั้นแล้วครับ!');
+
+  // อัปเดต _vipLevels cache
+  window._savedRefLevels = [...levels];
+
+  // โหลดกลับมาจาก DB เพื่อยืนยันว่าบันทึกสำเร็จจริง
+  const { data: verify } = await sb.from('settings').select('value').eq('key','refRateLevels').maybeSingle();
+  const saved = verify?.value?.levels || [];
+
+  if (saved.length === 5 && saved.every((v,i) => Math.abs(v - levels[i]) < 0.001)) {
+    showToast(`✅ บันทึกค่าคอมมิชชัน 5 ชั้นสำเร็จแล้วครับ! (${levels.map((v,i)=>`ชั้น${i+1}:${v}%`).join(', ')})`);
+  } else {
+    // ค่าไม่ตรง — แสดง warning + ใส่ค่าที่บันทึกได้จริงลง input
+    showToast(`⚠️ บันทึกสำเร็จแต่ค่าบางชั้นอาจไม่ตรง กรุณาตรวจสอบอีกครั้ง`, 'error');
+    // ใส่ค่าจาก DB กลับ
+    saved.forEach((v, i) => {
+      const inp = document.getElementById(`sf-ref-rate-${i+1}`);
+      if (inp) inp.value = v;
+    });
+  }
 }
 
 function previewRefExample() {
@@ -3888,8 +3937,22 @@ function previewRefExample() {
 }
 
 async function getRefRateLevels() {
+  // ใช้ cache ถ้ามี
+  if (window._savedRefLevels?.length === 5) return window._savedRefLevels;
   const { data } = await sb.from('settings').select('value').eq('key','refRateLevels').maybeSingle();
-  return data?.value?.levels || [5, 3, 2, 1, 0.5];
+  const levels = data?.value?.levels;
+  if (Array.isArray(levels) && levels.length > 0) {
+    // เติม 0 ถ้าน้อยกว่า 5 ชั้น
+    while (levels.length < 5) levels.push(0);
+    window._savedRefLevels = levels;
+    return levels;
+  }
+  // fallback: ดึง refRate เก่า (ชั้น 1 เท่านั้น)
+  const { data: old } = await sb.from('settings').select('value').eq('key','refRate').maybeSingle();
+  const rate1 = old?.value?.rate ?? 0;
+  const fallback = [rate1, 0, 0, 0, 0];
+  window._savedRefLevels = fallback;
+  return fallback;
 }
 
 // จ่ายค่าคอม 5 ชั้น จากยอดเดิมพัน
