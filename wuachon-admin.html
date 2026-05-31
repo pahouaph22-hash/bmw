@@ -5704,10 +5704,10 @@ async function loadFinanceTable() {
         ${r.depAmt > 0 ? '+' : ''}${fmtFull(r.depAmt)}
       </td>
       <td style="padding:12px 14px;text-align:right;font-family:'Kanit',sans-serif;${fontW}font-size:13px;color:#dc2626;">
-        ${r.withAmt > 0 ? '−' : ''}${fmt(r.withAmt)}
+        ${r.withAmt > 0 ? '−' : ''}${fmtFull(r.withAmt)}
       </td>
       <td style="padding:12px 14px;text-align:right;font-family:'Kanit',sans-serif;${fontW}font-size:13px;color:${netColor};">
-        ${r.netFlow >= 0 ? '+' : ''}${fmtMoney(r.netFlow)}
+        ${r.netFlow >= 0 ? '+' : ''}${fmtFull(r.netFlow)}
       </td>
       <td style="padding:12px 14px;text-align:right;font-family:'Kanit',sans-serif;${fontW}font-size:14px;color:${profColor};">
         <span style="display:inline-flex;align-items:center;gap:3px;">
@@ -5716,14 +5716,14 @@ async function loadFinanceTable() {
             : r.profitLoss < 0
             ? `<span style="font-size:10px;">▼</span>`
             : ''}
-          ${r.profitLoss >= 0 ? '+' : ''}${fmtMoney(r.profitLoss)}
+          ${r.profitLoss >= 0 ? '+' : ''}${fmtFull(r.profitLoss)}
         </span>
       </td>
       <td style="padding:12px 14px;text-align:right;font-family:'Kanit',sans-serif;${fontW}font-size:13px;color:#854d0e;">
-        ${r.feeAmt > 0 ? '+' : ''}${fmtMoney(r.feeAmt)}
+        ${r.feeAmt > 0 ? '+' : ''}${fmtFull(r.feeAmt)}
       </td>
       <td style="padding:12px 14px;text-align:right;font-family:'Kanit',sans-serif;${fontW}font-size:13px;color:#dc2626;">
-        ${r.rewardAmt > 0 ? '−' : ''}${fmt(r.rewardAmt)}
+        ${r.rewardAmt > 0 ? '−' : ''}${fmtFull(r.rewardAmt)}
       </td>
     </tr>`;
   }).join('');
@@ -5745,11 +5745,11 @@ async function loadFinanceTable() {
     <td style="padding:12px 16px;font-family:'Kanit',sans-serif;font-weight:900;font-size:13px;">รวมทั้งหมด</td>
     <td style="padding:12px 14px;text-align:right;font-family:'Kanit',sans-serif;font-weight:900;font-size:13px;color:#3b82f6;">+${totals.newMembers.toLocaleString()}</td>
     <td style="padding:12px 14px;text-align:right;font-family:'Kanit',sans-serif;font-weight:900;font-size:13px;color:#16a34a;">+${fmtFull(totals.depAmt)}</td>
-    <td style="padding:12px 14px;text-align:right;font-family:'Kanit',sans-serif;font-weight:900;font-size:13px;color:#dc2626;">−${fmt(totals.withAmt)}</td>
-    <td style="padding:12px 14px;text-align:right;font-family:'Kanit',sans-serif;font-weight:900;font-size:13px;color:${colorNet(totals.netFlow)};">${totals.netFlow>=0?'+':''}${fmtMoney(totals.netFlow)}</td>
-    <td style="padding:12px 14px;text-align:right;font-family:'Kanit',sans-serif;font-weight:900;font-size:14px;color:${colorProfit(totals.profitLoss)};">${totals.profitLoss>=0?'+':''}${fmtMoney(totals.profitLoss)}</td>
-    <td style="padding:12px 14px;text-align:right;font-family:'Kanit',sans-serif;font-weight:900;font-size:13px;color:#854d0e;">+${fmtMoney(totals.feeAmt)}</td>
-    <td style="padding:12px 14px;text-align:right;font-family:'Kanit',sans-serif;font-weight:900;font-size:13px;color:#dc2626;">${totals.rewardAmt>0?'−':''}${fmt(totals.rewardAmt)}</td>
+    <td style="padding:12px 14px;text-align:right;font-family:'Kanit',sans-serif;font-weight:900;font-size:13px;color:#dc2626;">−${fmtFull(totals.withAmt)}</td>
+    <td style="padding:12px 14px;text-align:right;font-family:'Kanit',sans-serif;font-weight:900;font-size:13px;color:${colorNet(totals.netFlow)};">${totals.netFlow>=0?'+':''}${fmtFull(totals.netFlow)}</td>
+    <td style="padding:12px 14px;text-align:right;font-family:'Kanit',sans-serif;font-weight:900;font-size:14px;color:${colorProfit(totals.profitLoss)};">${totals.profitLoss>=0?'+':''}${fmtFull(totals.profitLoss)}</td>
+    <td style="padding:12px 14px;text-align:right;font-family:'Kanit',sans-serif;font-weight:900;font-size:13px;color:#854d0e;">+${fmtFull(totals.feeAmt)}</td>
+    <td style="padding:12px 14px;text-align:right;font-family:'Kanit',sans-serif;font-weight:900;font-size:13px;color:#dc2626;">${totals.rewardAmt>0?'−':''}${fmtFull(totals.rewardAmt)}</td>
   </tr>`;
 }
 </script>
