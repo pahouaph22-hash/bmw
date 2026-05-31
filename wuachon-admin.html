@@ -284,6 +284,47 @@ tr:hover td{background:#fafafa;}
           </div>
         </div>
 
+        <!-- FINANCE SUMMARY TABLE -->
+        <div class="card" style="padding:0;overflow:hidden;">
+          <!-- Header -->
+          <div style="padding:16px 20px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;border-bottom:1px solid #e5e5e0;">
+            <div>
+              <div style="font-family:'Kanit',sans-serif;font-weight:700;font-size:15px;">💹 สรุปการเงิน</div>
+              <div style="font-size:12px;color:#aaa;margin-top:2px;">เปรียบเทียบรายรับ-รายจ่าย และกำไร/ขาดทุนตามช่วงเวลา</div>
+            </div>
+            <button onclick="loadFinanceTable()" style="font-family:'Kanit',sans-serif;font-size:12px;font-weight:700;padding:6px 14px;border:1px solid #e0e0e0;border-radius:7px;background:#fff;color:#555;cursor:pointer;">🔄 รีเฟรช</button>
+          </div>
+
+          <!-- Table -->
+          <div style="overflow-x:auto;">
+            <table id="finance-table" style="width:100%;border-collapse:collapse;min-width:680px;">
+              <thead>
+                <tr style="background:#fafaf8;">
+                  <th style="padding:11px 16px;text-align:left;font-family:'Kanit',sans-serif;font-size:12px;font-weight:700;color:#666;border-bottom:2px solid #e5e5e0;white-space:nowrap;min-width:110px;">ช่วงเวลา</th>
+                  <th style="padding:11px 14px;text-align:right;font-family:'Kanit',sans-serif;font-size:12px;font-weight:700;color:#3b82f6;border-bottom:2px solid #e5e5e0;white-space:nowrap;">
+                    <span style="display:inline-flex;align-items:center;gap:4px;justify-content:flex-end;">👥 สมาชิก</span>
+                  </th>
+                  <th style="padding:11px 14px;text-align:right;font-family:'Kanit',sans-serif;font-size:12px;font-weight:700;color:#16a34a;border-bottom:2px solid #e5e5e0;white-space:nowrap;">💰 เติมเงิน (฿)</th>
+                  <th style="padding:11px 14px;text-align:right;font-family:'Kanit',sans-serif;font-size:12px;font-weight:700;color:#dc2626;border-bottom:2px solid #e5e5e0;white-space:nowrap;">🏧 ถอนเงิน (฿)</th>
+                  <th style="padding:11px 14px;text-align:right;font-family:'Kanit',sans-serif;font-size:12px;font-weight:700;color:#666;border-bottom:2px solid #e5e5e0;white-space:nowrap;">⇄ เติม−ถอน (฿)</th>
+                  <th style="padding:11px 14px;text-align:right;font-family:'Kanit',sans-serif;font-size:12px;font-weight:700;color:#666;border-bottom:2px solid #e5e5e0;white-space:nowrap;">📊 กำไร/ขาดทุน (฿)</th>
+                  <th style="padding:11px 14px;text-align:right;font-family:'Kanit',sans-serif;font-size:12px;font-weight:700;color:#854d0e;border-bottom:2px solid #e5e5e0;white-space:nowrap;">🏦 ค่าบริการ (฿)</th>
+                </tr>
+              </thead>
+              <tbody id="finance-tbody">
+                <tr><td colspan="7" style="text-align:center;padding:32px;color:#aaa;font-family:'Kanit',sans-serif;">กำลังโหลด...</td></tr>
+              </tbody>
+            </table>
+          </div>
+
+          <!-- Footer note -->
+          <div style="padding:10px 16px;background:#fafaf8;border-top:1px solid #f0f0ee;font-size:11px;color:#bbb;display:flex;gap:16px;flex-wrap:wrap;">
+            <span>* เติม−ถอน = ยอดเติมเงินอนุมัติ − ยอดถอนเงินอนุมัติ</span>
+            <span>* กำไร/ขาดทุน = (เติม − ถอน) จากเดิมพัน (ผู้ชนะรับ − ผู้แพ้หาย)</span>
+            <span>* ค่าบริการ = หักจากยอด pool เดิมพันตามเปอร์เซ็นต์ที่ตั้งค่าไว้</span>
+          </div>
+        </div>
+
         <!-- RECENT LIST -->
         <div class="card">
           <div class="card-title">🕐 รายการล่าสุด</div>
@@ -3013,7 +3054,187 @@ const _origLoadAll = loadAll;
 loadAll = function() {
   _origLoadAll();
   loadChartData();
+  loadFinanceTable();
 };
+
+// ===== FINANCE SUMMARY TABLE =====
+async function loadFinanceTable() {
+  const tbody = document.getElementById('finance-tbody');
+  if (!tbody) return;
+  tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;padding:32px;color:#aaa;font-family:\'Kanit\',sans-serif;">กำลังโหลด...</td></tr>';
+
+  // โหลดข้อมูลทั้งหมดพร้อมกัน
+  const [memRes, depRes, withRes, betRes, settRes] = await Promise.all([
+    sb.from('members').select('created_at').order('created_at', { ascending: true }),
+    sb.from('deposits').select('created_at,amount,status').order('created_at', { ascending: true }),
+    sb.from('withdrawals').select('created_at,amount,status').order('created_at', { ascending: true }),
+    sb.from('bets').select('created_at,amount,status,odds').order('created_at', { ascending: true }),
+    sb.from('settings').select('value').eq('key', 'feeRate').maybeSingle(),
+  ]);
+
+  const members     = memRes.data  || [];
+  const deposits    = depRes.data  || [];
+  const withdrawals = withRes.data || [];
+  const bets        = betRes.data  || [];
+  const feeRate     = (settRes.data?.value?.rate ?? 7) / 100;
+
+  // ฟังก์ชันช่วย: แปลง ISO → Date
+  const d = iso => new Date(iso);
+
+  // กำหนดช่วงเวลา
+  const now       = new Date();
+  const todayStart= new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  const todayEnd  = new Date(todayStart.getTime() + 86400000 - 1);
+
+  const ystStart  = new Date(todayStart.getTime() - 86400000);
+  const ystEnd    = new Date(todayStart.getTime() - 1);
+
+  // สัปดาห์นี้ (จันทร์–อาทิตย์)
+  const dayOfWeek = now.getDay() === 0 ? 6 : now.getDay() - 1; // 0=Mon
+  const weekStart = new Date(todayStart.getTime() - dayOfWeek * 86400000);
+  const weekEnd   = new Date(weekStart.getTime() + 7 * 86400000 - 1);
+
+  // สัปดาห์ก่อน
+  const prevWeekStart = new Date(weekStart.getTime() - 7 * 86400000);
+  const prevWeekEnd   = new Date(weekStart.getTime() - 1);
+
+  // เดือนนี้
+  const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
+  const monthEnd   = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59, 999);
+
+  // เดือนก่อน
+  const prevMonthStart = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+  const prevMonthEnd   = new Date(now.getFullYear(), now.getMonth(), 0, 23, 59, 59, 999);
+
+  const periods = [
+    { label: 'วันนี้',         icon: '🌤️', from: todayStart,     to: todayEnd     },
+    { label: 'เมื่อวาน',       icon: '📅',  from: ystStart,       to: ystEnd       },
+    { label: 'สัปดาห์นี้',     icon: '📆',  from: weekStart,      to: weekEnd      },
+    { label: 'สัปดาห์ก่อน',   icon: '📋',  from: prevWeekStart,  to: prevWeekEnd  },
+    { label: 'เดือนนี้',       icon: '🗓️',  from: monthStart,     to: monthEnd     },
+    { label: 'เดือนก่อน',      icon: '📂',  from: prevMonthStart, to: prevMonthEnd },
+  ];
+
+  // ฟังก์ชัน filter ตามช่วง
+  const inRange = (iso, from, to) => {
+    const t = d(iso).getTime();
+    return t >= from.getTime() && t <= to.getTime();
+  };
+
+  // คำนวณแต่ละช่วง
+  const rows = periods.map(p => {
+    // สมาชิกใหม่
+    const newMembers = members.filter(r => inRange(r.created_at, p.from, p.to)).length;
+
+    // เติมเงิน (อนุมัติเท่านั้น)
+    const depAmt = deposits
+      .filter(r => r.status === 'approved' && inRange(r.created_at, p.from, p.to))
+      .reduce((s, r) => s + Number(r.amount || 0), 0);
+
+    // ถอนเงิน (อนุมัติเท่านั้น)
+    const withAmt = withdrawals
+      .filter(r => r.status === 'approved' && inRange(r.created_at, p.from, p.to))
+      .reduce((s, r) => s + Number(r.amount || 0), 0);
+
+    // เติม − ถอน
+    const netFlow = depAmt - withAmt;
+
+    // เดิมพันในช่วง: คำนวณกำไร/ขาดทุนของระบบ
+    // กำไรระบบ = ยอดแพ้ทั้งหมด − ยอดชนะทั้งหมด (เฉพาะ won/lost)
+    const betsInRange = bets.filter(r => inRange(r.created_at, p.from, p.to));
+    const betLost = betsInRange
+      .filter(r => r.status === 'lost')
+      .reduce((s, r) => s + Number(r.amount || 0), 0);
+    const betWon = betsInRange
+      .filter(r => r.status === 'won')
+      .reduce((s, r) => s + Number(r.amount || 0), 0);
+    // pool = lost+won, ค่าบริการหักจาก pool ก่อนจ่าย
+    const poolTotal = betLost + betWon;
+    const feeAmt    = Math.floor(poolTotal * feeRate);
+    // กำไร/ขาดทุน = เติม − ถอน (มุมมองสภาพคล่องระบบ)
+    const profitLoss = netFlow;
+
+    return { ...p, newMembers, depAmt, withAmt, netFlow, profitLoss, feeAmt };
+  });
+
+  // Render
+  const fmt = v => Math.abs(v) >= 1000000
+    ? (v/1000000).toFixed(1) + 'M'
+    : Math.abs(v) >= 1000
+    ? (v/1000).toFixed(1) + 'K'
+    : v.toLocaleString();
+
+  const fmtMoney = v => {
+    const sign = v < 0 ? '−' : '';
+    return sign + fmt(Math.abs(v));
+  };
+
+  const colorNet = v => v > 0 ? '#16a34a' : v < 0 ? '#dc2626' : '#888';
+  const colorProfit = v => v > 0 ? '#16a34a' : v < 0 ? '#dc2626' : '#888';
+
+  tbody.innerHTML = rows.map((r, i) => {
+    const isToday   = i === 0;
+    const rowBg     = isToday ? 'background:#fffbeb;' : (i % 2 === 0 ? '' : 'background:#fafaf8;');
+    const fontW     = isToday ? 'font-weight:700;' : '';
+
+    const netColor  = colorNet(r.netFlow);
+    const profColor = colorProfit(r.profitLoss);
+
+    return `<tr style="${rowBg}${isToday ? 'border-left:3px solid #F5A800;' : ''}">
+      <td style="padding:12px 16px;font-family:'Kanit',sans-serif;font-size:13px;${fontW}white-space:nowrap;">
+        <span style="margin-right:6px;">${r.icon}</span>${r.label}
+        ${isToday ? '<span style="font-size:10px;background:#fef9c3;color:#854d0e;padding:1px 6px;border-radius:4px;margin-left:4px;font-family:\'Kanit\',sans-serif;font-weight:700;">ปัจจุบัน</span>' : ''}
+      </td>
+      <td style="padding:12px 14px;text-align:right;font-family:'Kanit',sans-serif;${fontW}font-size:13px;color:#3b82f6;">
+        ${r.newMembers > 0 ? '+' : ''}${r.newMembers.toLocaleString()}
+      </td>
+      <td style="padding:12px 14px;text-align:right;font-family:'Kanit',sans-serif;${fontW}font-size:13px;color:#16a34a;">
+        ${r.depAmt > 0 ? '+' : ''}${fmtMoney(r.depAmt)}
+      </td>
+      <td style="padding:12px 14px;text-align:right;font-family:'Kanit',sans-serif;${fontW}font-size:13px;color:#dc2626;">
+        ${r.withAmt > 0 ? '−' : ''}${fmt(r.withAmt)}
+      </td>
+      <td style="padding:12px 14px;text-align:right;font-family:'Kanit',sans-serif;${fontW}font-size:13px;color:${netColor};">
+        ${r.netFlow >= 0 ? '+' : ''}${fmtMoney(r.netFlow)}
+      </td>
+      <td style="padding:12px 14px;text-align:right;font-family:'Kanit',sans-serif;${fontW}font-size:14px;color:${profColor};">
+        <span style="display:inline-flex;align-items:center;gap:3px;">
+          ${r.profitLoss > 0
+            ? `<span style="font-size:10px;">▲</span>`
+            : r.profitLoss < 0
+            ? `<span style="font-size:10px;">▼</span>`
+            : ''}
+          ${r.profitLoss >= 0 ? '+' : ''}${fmtMoney(r.profitLoss)}
+        </span>
+      </td>
+      <td style="padding:12px 14px;text-align:right;font-family:'Kanit',sans-serif;${fontW}font-size:13px;color:#854d0e;">
+        ${r.feeAmt > 0 ? '+' : ''}${fmtMoney(r.feeAmt)}
+      </td>
+    </tr>`;
+  }).join('');
+
+  // Total row
+  const totals = rows.reduce((acc, r) => ({
+    newMembers: acc.newMembers + r.newMembers,
+    depAmt:     acc.depAmt    + r.depAmt,
+    withAmt:    acc.withAmt   + r.withAmt,
+    netFlow:    acc.depAmt    + r.depAmt - (acc.withAmt + r.withAmt),
+    profitLoss: acc.profitLoss + r.profitLoss,
+    feeAmt:     acc.feeAmt    + r.feeAmt,
+  }), { newMembers:0, depAmt:0, withAmt:0, netFlow:0, profitLoss:0, feeAmt:0 });
+  // fix netFlow accumulation
+  totals.netFlow = totals.depAmt - totals.withAmt;
+
+  tbody.innerHTML += `<tr style="background:#f0f4f8;border-top:2px solid #e5e5e0;">
+    <td style="padding:12px 16px;font-family:'Kanit',sans-serif;font-weight:900;font-size:13px;">รวมทั้งหมด</td>
+    <td style="padding:12px 14px;text-align:right;font-family:'Kanit',sans-serif;font-weight:900;font-size:13px;color:#3b82f6;">+${totals.newMembers.toLocaleString()}</td>
+    <td style="padding:12px 14px;text-align:right;font-family:'Kanit',sans-serif;font-weight:900;font-size:13px;color:#16a34a;">+${fmtMoney(totals.depAmt)}</td>
+    <td style="padding:12px 14px;text-align:right;font-family:'Kanit',sans-serif;font-weight:900;font-size:13px;color:#dc2626;">−${fmt(totals.withAmt)}</td>
+    <td style="padding:12px 14px;text-align:right;font-family:'Kanit',sans-serif;font-weight:900;font-size:13px;color:${colorNet(totals.netFlow)};">${totals.netFlow>=0?'+':''}${fmtMoney(totals.netFlow)}</td>
+    <td style="padding:12px 14px;text-align:right;font-family:'Kanit',sans-serif;font-weight:900;font-size:14px;color:${colorProfit(totals.profitLoss)};">${totals.profitLoss>=0?'+':''}${fmtMoney(totals.profitLoss)}</td>
+    <td style="padding:12px 14px;text-align:right;font-family:'Kanit',sans-serif;font-weight:900;font-size:13px;color:#854d0e;">+${fmtMoney(totals.feeAmt)}</td>
+  </tr>`;
+}
 </script>
 
 <!-- MEMBER DETAIL MODAL -->
