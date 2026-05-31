@@ -3416,31 +3416,41 @@ fns.forEach(function(fn){
           <div style="font-family:'Kanit',sans-serif;font-weight:900;font-size:22px;color:var(--accent);" id="dep-confirm-amount">0 ฿</div>
         </div>
 
-        <!-- ข้อมูลบัญชีปลายทาง (ดึงจาก Firestore) -->
-        <div style="background:var(--dark3);border:1px solid rgba(245,200,66,0.2);border-radius:12px;overflow:hidden;margin-bottom:16px;">
-          <div style="background:rgba(245,200,66,0.08);padding:12px 16px;border-bottom:1px solid rgba(245,200,66,0.15);">
-            <div style="font-family:'Kanit',sans-serif;font-weight:700;font-size:13px;color:var(--gold);">บัญชีรับเงิน วัวชนไทย</div>
-          </div>
-          <div style="padding:16px;">
-            <div style="display:flex;align-items:center;gap:14px;">
-              <!-- QR Code -->
-              <div id="dep-qr-wrap" style="flex-shrink:0;width:100px;height:100px;background:#fff;border-radius:10px;display:flex;align-items:center;justify-content:center;overflow:hidden;">
-                <div id="dep-qr-placeholder" style="text-align:center;padding:8px;">
-                  <div style="font-size:28px;">📷</div>
-                  <div style="font-size:9px;color:#aaa;font-family:'Kanit',sans-serif;margin-top:3px;">QR Code</div>
+        <!-- ข้อมูลบัญชีปลายทาง — dynamic จาก Admin settings -->
+        <div style="margin-bottom:16px;">
+          <!-- Tab เลือกบัญชี (แสดงเมื่อมีหลายบัญชี) -->
+          <div id="dep-bank-tabs" style="display:none;gap:6px;flex-wrap:wrap;margin-bottom:10px;"></div>
+
+          <!-- กล่องแสดงบัญชีที่เลือก -->
+          <div style="background:var(--dark3);border:1px solid rgba(245,200,66,0.2);border-radius:12px;overflow:hidden;">
+            <div style="background:rgba(245,200,66,0.08);padding:12px 16px;border-bottom:1px solid rgba(245,200,66,0.15);display:flex;align-items:center;justify-content:space-between;">
+              <div style="font-family:'Kanit',sans-serif;font-weight:700;font-size:13px;color:var(--gold);" id="dep-bank-header">🏦 บัญชีรับเงิน</div>
+              <div id="dep-bank-badge" style="display:none;font-family:'Kanit',sans-serif;font-size:10px;font-weight:700;padding:2px 9px;border-radius:999px;background:rgba(74,222,128,.15);color:#4ade80;border:1px solid rgba(74,222,128,.3);">✅ เปิดใช้งาน</div>
+            </div>
+            <div style="padding:16px;">
+              <div style="display:flex;align-items:center;gap:14px;">
+                <!-- QR Code -->
+                <div id="dep-qr-wrap" style="flex-shrink:0;width:100px;height:100px;background:#fff;border-radius:10px;display:flex;align-items:center;justify-content:center;overflow:hidden;">
+                  <div id="dep-qr-placeholder" style="text-align:center;padding:8px;">
+                    <div style="font-size:28px;">📷</div>
+                    <div style="font-size:9px;color:#aaa;font-family:'Kanit',sans-serif;margin-top:3px;">QR Code</div>
+                  </div>
+                  <img id="dep-qr-img" src="" style="display:none;width:100%;height:100%;object-fit:contain;">
                 </div>
-                <img id="dep-qr-img" src="" style="display:none;width:100%;height:100%;object-fit:contain;">
-              </div>
-              <!-- ข้อมูลบัญชี -->
-              <div style="flex:1;">
-                <div style="font-size:11px;color:rgba(240,255,232,0.4);font-family:'Kanit',sans-serif;margin-bottom:4px;">ธนาคาร</div>
-                <div style="font-family:'Kanit',sans-serif;font-weight:700;font-size:15px;color:var(--cream);" id="dep-bank-name">กสิกรไทย (KBank)</div>
-                <div style="font-size:11px;color:rgba(240,255,232,0.4);font-family:'Kanit',sans-serif;margin-top:8px;margin-bottom:4px;">เลขบัญชี</div>
-                <div style="display:flex;align-items:center;gap:8px;">
-                  <div style="font-family:'Kanit',sans-serif;font-weight:900;font-size:18px;color:var(--gold);letter-spacing:1px;" id="dep-acc-no">123-4-56789-0</div>
-                  <button onclick="copyDepAccNo()" style="font-family:'Kanit',sans-serif;font-size:11px;font-weight:700;padding:4px 10px;border-radius:6px;border:1px solid rgba(245,200,66,0.3);background:transparent;color:var(--gold);cursor:pointer;">คัดลอก</button>
+                <!-- ข้อมูลบัญชี -->
+                <div style="flex:1;">
+                  <div style="font-size:11px;color:rgba(240,255,232,0.4);font-family:'Kanit',sans-serif;margin-bottom:4px;">ธนาคาร / ช่องทาง</div>
+                  <div style="font-family:'Kanit',sans-serif;font-weight:700;font-size:15px;color:var(--cream);" id="dep-bank-name">—</div>
+                  <div style="font-size:11px;color:rgba(240,255,232,0.4);font-family:'Kanit',sans-serif;margin-top:8px;margin-bottom:4px;">เลขบัญชี</div>
+                  <div style="display:flex;align-items:center;gap:8px;">
+                    <div style="font-family:'Kanit',sans-serif;font-weight:900;font-size:18px;color:var(--gold);letter-spacing:1px;" id="dep-acc-no">—</div>
+                    <button onclick="copyDepAccNo()" style="font-family:'Kanit',sans-serif;font-size:11px;font-weight:700;padding:4px 10px;border-radius:6px;border:1px solid rgba(245,200,66,0.3);background:transparent;color:var(--gold);cursor:pointer;">📋 คัดลอก</button>
+                  </div>
+                  <div style="font-size:11px;color:rgba(240,255,232,0.4);font-family:'Kanit',sans-serif;margin-top:6px;">
+                    ชื่อบัญชี: <span style="color:var(--cream);font-family:'Kanit',sans-serif;font-weight:500;" id="dep-acc-name">—</span>
+                  </div>
+                  <div id="dep-bank-note-wrap" style="display:none;font-size:11px;color:rgba(240,255,232,0.35);margin-top:4px;" id="dep-acc-note"></div>
                 </div>
-                <div style="font-size:11px;color:rgba(240,255,232,0.4);font-family:'Kanit',sans-serif;margin-top:6px;">ชื่อบัญชี: <span style="color:var(--cream);font-family:'Kanit',sans-serif;font-weight:500;" id="dep-acc-name">วัวชนไทย</span></div>
               </div>
             </div>
           </div>
@@ -5405,26 +5415,28 @@ fns.forEach(function(fn){
   let _depBanks = [], _depBankIdx = 0;
 
   function _renderDepBankAccounts(banks) {
-    _depBanks = banks; _depBankIdx = 0;
-    if (banks.length === 0) return;
-    // เพิ่ม tab selector ถ้ามีหลายบัญชี
-    const tabAnchor = document.getElementById('dep-step2');
-    if (!tabAnchor) { _showDepBank(0); return; }
-    let tabWrap = document.getElementById('dep-bank-tabs');
-    if (!tabWrap) {
-      tabWrap = document.createElement('div');
-      tabWrap.id = 'dep-bank-tabs';
-      tabWrap.style.cssText = 'display:flex;gap:6px;flex-wrap:wrap;padding:0 0 12px;';
-      const anchor = tabAnchor.querySelector('[style*="border-radius:12px"]');
-      if (anchor) anchor.parentNode.insertBefore(tabWrap, anchor);
-    }
+    _depBanks = banks;
+    _depBankIdx = 0;
+    if (!banks.length) return;
+
+    const tabWrap = document.getElementById('dep-bank-tabs');
+
     if (banks.length > 1) {
-      tabWrap.innerHTML = banks.map((b,i) => `
-        <button id="dep-btab-${i}" onclick="_selectDepBank(${i})"
-          style="font-family:'Kanit',sans-serif;font-size:12px;font-weight:700;padding:6px 14px;border-radius:8px;cursor:pointer;transition:all .15s;
-          ${i===0?'background:var(--gold);color:#1a1a1a;border:1px solid var(--gold);':'background:transparent;color:rgba(240,255,232,.6);border:1px solid rgba(240,255,232,.2);'}">
-          🏦 ${b.bankName}</button>`).join('');
+      // มีหลายบัญชี → แสดง tabs
+      if (tabWrap) {
+        tabWrap.style.display = 'flex';
+        tabWrap.innerHTML = banks.map((b,i) => `
+          <button id="dep-btab-${i}" onclick="_selectDepBank(${i})"
+            style="font-family:'Kanit',sans-serif;font-size:12px;font-weight:700;padding:6px 14px;border-radius:8px;cursor:pointer;transition:all .2s;
+            ${i===0 ? 'background:var(--gold);color:#1a1a1a;border:2px solid var(--gold);' : 'background:transparent;color:rgba(240,255,232,.6);border:1.5px solid rgba(240,255,232,.2);'}">
+            🏦 ${b.bankName}
+          </button>`).join('');
+      }
+    } else {
+      // บัญชีเดียว — ซ่อน tab bar
+      if (tabWrap) tabWrap.style.display = 'none';
     }
+
     _showDepBank(0);
   }
 
@@ -5433,18 +5445,39 @@ fns.forEach(function(fn){
     _depBanks.forEach((_,i) => {
       const btn = document.getElementById(`dep-btab-${i}`);
       if (!btn) return;
-      if (i===idx) { btn.style.background='var(--gold)'; btn.style.color='#1a1a1a'; btn.style.border='1px solid var(--gold)'; }
-      else { btn.style.background='transparent'; btn.style.color='rgba(240,255,232,.6)'; btn.style.border='1px solid rgba(240,255,232,.2)'; }
+      if (i === idx) {
+        btn.style.background = 'var(--gold)'; btn.style.color = '#1a1a1a'; btn.style.border = '2px solid var(--gold)';
+      } else {
+        btn.style.background = 'transparent'; btn.style.color = 'rgba(240,255,232,.6)'; btn.style.border = '1.5px solid rgba(240,255,232,.2)';
+      }
     });
     _showDepBank(idx);
   };
 
   function _showDepBank(idx) {
-    const b = _depBanks[idx]; if (!b) return;
-    const setTxt = (id,v) => { const el=document.getElementById(id); if(el) el.textContent=v||'—'; };
+    const b = _depBanks[idx];
+    if (!b) return;
+
+    const setTxt = (id, v) => { const el = document.getElementById(id); if (el) el.textContent = v || '—'; };
     setTxt('dep-bank-name', b.bankName);
     setTxt('dep-acc-no',    b.accNo);
     setTxt('dep-acc-name',  b.accName);
+
+    // header
+    const hdr = document.getElementById('dep-bank-header');
+    if (hdr) hdr.textContent = `🏦 ${b.bankName}`;
+
+    // badge (แสดงถ้ามีหลายบัญชี)
+    const badge = document.getElementById('dep-bank-badge');
+    if (badge) badge.style.display = _depBanks.length > 1 ? 'block' : 'none';
+
+    // หมายเหตุ
+    const noteWrap = document.getElementById('dep-bank-note-wrap');
+    const noteEl   = document.getElementById('dep-acc-note');
+    if (noteWrap && noteEl) {
+      if (b.note) { noteEl.textContent = `📌 ${b.note}`; noteWrap.style.display = 'block'; }
+      else         { noteWrap.style.display = 'none'; }
+    }
   }
 
   function copyDepAccNo() {
