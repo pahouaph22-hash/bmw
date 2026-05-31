@@ -702,56 +702,14 @@ function renderBetsList() {
     const remainAmt  = Number(b.remaining_amount ?? orderAmt - matchedAmt);
     const pct        = orderAmt > 0 ? Math.round((matchedAmt / orderAmt) * 100) : 0;
 
-    const statusLabel = isFull     ? '🟢 จับคู่แล้ว'
-                      : mStatus === 'partial' ? '🟡 จับบางส่วน'
-                      : isTimeout  ? '⏰ หมดเวลา'
-                      : b.status === 'won' ? '🏆 ชนะ'
-                      : b.status === 'lost' ? '❌ แพ้'
-                      : '⏳ รอคู่';
-    const statusClass = isFull ? 'bs-matched' : b.status === 'won' ? 'bs-matched' : '';
-
-    const canJoin = isWaiting
-      && currentUser
-      && currentUser.nick !== b.nick
-      && normalizeStatus(matchData?.status) === 'upcoming'
-      && !b.parent_bet_id; // แสดงเฉพาะ order หลัก
-
-    // Progress Bar
-    const progressBar = (orderAmt > 0 && (matchedAmt > 0 || isWaiting)) ? `
-      <div style="margin:6px 0 4px;">
-        <div style="display:flex;justify-content:space-between;font-size:10px;color:rgba(255,255,255,.45);margin-bottom:3px;">
-          <span>จับแล้ว ${matchedAmt.toLocaleString()} ฿ (${pct}%)</span>
-          <span>เหลือ ${remainAmt.toLocaleString()} ฿</span>
-        </div>
-        <div style="width:100%;height:5px;background:rgba(255,255,255,.12);border-radius:999px;overflow:hidden;">
-          <div style="height:100%;width:${pct}%;background:linear-gradient(90deg,#4ade80,#22c55e);border-radius:999px;transition:width .5s;"></div>
-        </div>
-      </div>` : '';
-
-    // Custom Join Input
-    const joinInput = canJoin ? `
-      <div style="display:flex;gap:6px;align-items:center;margin-top:8px;flex-wrap:wrap;">
-        <div style="position:relative;flex:1;min-width:90px;">
-          <input type="number" id="join-amt-${b.id}"
-            value="${Math.min(remainAmt, currentUser?.balance||0).toFixed(0)}"
-            min="10" max="${remainAmt}"
-            style="width:100%;padding:6px 28px 6px 8px;border:1px solid rgba(245,200,66,.4);border-radius:8px;background:rgba(255,255,255,.08);color:#fff;font-family:'Kanit',sans-serif;font-size:13px;box-sizing:border-box;">
-          <span style="position:absolute;right:7px;top:50%;transform:translateY(-50%);font-size:10px;color:rgba(255,255,255,.4);">฿</span>
-        </div>
-        <button onclick="_setJoinMax('${b.id}',${remainAmt})"
-          style="font-size:11px;font-weight:700;padding:6px 11px;border-radius:7px;border:1px solid rgba(245,200,66,.4);background:rgba(245,200,66,.1);color:#F5C842;cursor:pointer;font-family:'Kanit',sans-serif;white-space:nowrap;">Max</button>
-        <button class="btn-join" onclick="joinBet('${b.id}','${b.nick}','${b.side}',${b.odds})"
-          style="white-space:nowrap;">🎯 จับคู่</button>
-      </div>` : '';
-
     // status vars
+    const isPartial  = mStatus==='partial';
+    const isJoinBet  = !!b.parent_bet_id;
     const sideEmoji  = b.side==='red' ? '🔴' : '🔵';
     const sideName   = b.side_name || (b.side==='red' ? nameA : nameB);
     const cardClass  = `bet-card ${b.side==='red'?'side-red':'side-blue'}${isPartial?' partial':''}${isFull&&b.status!=='won'&&b.status!=='lost'?' full':''}`;
     const potential  = (orderAmt * b.odds).toLocaleString('th-TH',{maximumFractionDigits:0});
     const timeStr    = new Date(b.created_at).toLocaleTimeString('th-TH',{hour:'2-digit',minute:'2-digit'});
-    const isPartial  = mStatus==='partial';
-    const isJoinBet  = !!b.parent_bet_id;
 
     const [statusCls, statusTxt] =
       b.status==='won'  ? ['bcs-won',  '🏆 ชนะ'] :
