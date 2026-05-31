@@ -4253,19 +4253,16 @@ fns.forEach(function(fn){
   }
 
   // ── Real-time listener สำหรับ txn status ──
-  // ── เก็บ reference channel ไว้ unsubscribe ซ้ำได้ ──
+  // ── Channel registry — ป้องกัน subscribe ซ้ำ ──
   const _activeChannels = {};
 
-  function _removeChannel(name) {
-    if (_activeChannels[name]) {
-      try { sb.removeChannel(_activeChannels[name]); } catch(_) {}
+  function _cleanupChannel(name) {
+    const existing = _activeChannels[name];
+    if (existing) {
+      try { existing.unsubscribe(); } catch(_) {}
+      try { sb.removeChannel(existing); } catch(_) {}
       delete _activeChannels[name];
     }
-    // fallback: ลอง removeAllChannels ที่มีชื่อตรงกัน
-    try {
-      const existing = sb.getChannels().find(c => c.topic === 'realtime:' + name || c.subTopic === name);
-      if (existing) sb.removeChannel(existing);
-    } catch(_) {}
   }
 
   function subscribeTxnStatus() {
@@ -4273,15 +4270,15 @@ fns.forEach(function(fn){
     const nick = currentUser.nick;
     const channelName = 'txn-status-' + nick;
 
-    // ลบ channel เก่าก่อนเสมอ
-    _removeChannel(channelName);
+    // cleanup ก่อนทุกครั้ง
+    _cleanupChannel(channelName);
 
     const ch = sb.channel(channelName)
       .on('postgres_changes', {
         event: 'UPDATE', schema: 'public', table: 'deposits'
       }, payload => {
         const d = payload.new;
-        if (d.nick !== nick) return; // กรอง nick เอง
+        if (d.nick !== nick) return;
         if (d.status === 'approved') {
           refreshBalance();
           addNotification('💰', 'เติมเงินสำเร็จ!', `+${Number(d.amount).toLocaleString()} ฿ เข้าบัญชีแล้วครับ`, 'success');
@@ -4351,7 +4348,7 @@ fns.forEach(function(fn){
   // ── Real-time Match Results + Notification ──
   function subscribeMatchResults() {
     const channelName = 'match-results-fe';
-    _removeChannel(channelName);
+    _cleanupChannel(channelName);
     const ch = sb.channel(channelName)
       .on('postgres_changes', {
         event: 'UPDATE', schema: 'public', table: 'matches'
@@ -5064,6 +5061,10 @@ fns.forEach(function(fn){
 
   // ── Logout ──
   window.logout = window._real_logout = function logout() {
+    // cleanup realtime channels
+    Object.keys(_activeChannels).forEach(n => _cleanupChannel(n));
+    // remove flag CSS classes
+    document.body.classList.remove('flag-no-game','flag-no-deposit','flag-no-withdraw','flag-no-reward','flag-blacklist');
     currentUser = null;
     sessionStorage.removeItem('bw_user');
     const navAcc = document.getElementById('nav-myaccount');
