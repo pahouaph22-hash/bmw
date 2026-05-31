@@ -684,7 +684,7 @@ async function changeAdminPass() {
   if (!p1 || p1.length < 6) { showToast('⚠️ รหัสผ่านต้องมีอย่างน้อย 6 ตัวอักษรครับ','error'); return; }
   if (p1 !== p2) { showToast('⚠️ รหัสผ่านไม่ตรงกันครับ','error'); return; }
   // บันทึกใน Supabase
-  await sb.from('settings').upsert({ key:'admin_password', value: p1 }, { onConflict: 'key' });
+  await safeUpsertSettings('admin_password', p1);
   ADMIN_PASS = p1;
   document.getElementById('new-pass').value = '';
   document.getElementById('new-pass2').value = '';
@@ -1667,6 +1667,17 @@ function clearHeroBull() {
   showToast('✅ รีเซ็ตเป็น Emoji แล้วครับ (กด "💾 บันทึก" เพื่อยืนยัน)');
 }
 
+// helper: UPDATE settings ก่อน ถ้าไม่มี row ค่อย INSERT
+async function safeUpsertSettings(key, value) {
+  const { error: eUpd } = await sb.from('settings').update({ value }).eq('key', key);
+  if (eUpd) {
+    // row ไม่มี — ลอง insert
+    const { error: eIns } = await sb.from('settings').insert({ key, value });
+    return eIns;
+  }
+  return null;
+}
+
 async function deleteNews(id) {
   if (!confirm('ลบข้อความนี้ใช่ไหมครับ?')) return;
   await sb.from('news').delete().eq('id',id);
@@ -1814,15 +1825,24 @@ async function saveSettings(type) {
     }
     const siteBtn = document.getElementById('btn-save-siteInfo');
     if (siteBtn) { siteBtn.disabled = true; siteBtn.textContent = '⏳ กำลังบันทึก...'; }
-    // บันทึก siteInfo รวมรูปวัว (compressed แล้วขนาดเล็ก ~30-50KB)
-    const { error: e1 } = await sb.from('settings').upsert({
-      key: 'siteInfo',
-      value: { name1, name2, logoTop, logoBottom, pageTitle, heroBull }
-    }, { onConflict: 'key' });
+    // บันทึก siteInfo — UPDATE ก่อน ถ้าไม่มี row ค่อย INSERT
+    const newVal = { name1, name2, logoTop, logoBottom, pageTitle, heroBull };
+    const { error: eUpd, count } = await sb.from('settings')
+      .update({ value: newVal })
+      .eq('key', 'siteInfo')
+      .select('key');
+
+    let finalError = null;
+    if (eUpd) {
+      // ถ้า update ล้มเหลว ลอง insert
+      const { error: eIns } = await sb.from('settings')
+        .insert({ key: 'siteInfo', value: newVal });
+      finalError = eIns;
+    }
 
     if (siteBtn) { siteBtn.disabled = false; siteBtn.textContent = '💾 ยืนยันการเปลี่ยนแปลง'; }
-    if (e1) {
-      showToast('❌ บันทึกไม่สำเร็จ: ' + e1.message, 'error');
+    if (finalError) {
+      showToast('❌ บันทึกไม่สำเร็จ: ' + finalError.message + ' — กรุณา run SQL ใน Supabase ก่อนครับ', 'error');
     } else {
       window._heroBullBase64 = heroBull;
       showToast('✅ บันทึกแล้วครับ! Reload เพื่อเห็นรูปใหม่');
@@ -1834,7 +1854,7 @@ async function saveSettings(type) {
     if (isNaN(rate) || rate < 0 || rate > 30) {
       showToast('⚠️ กรุณากรอก % ระหว่าง 0–30 ครับ', 'error'); return;
     }
-    await sb.from('settings').upsert({ key:'refRate', value:{ rate } }, { onConflict:'key' });
+    await safeUpsertSettings('refRate', { rate });
     showToast(`✅ บันทึกค่าคอมฯ แนะนำสมาชิก ${rate}% แล้วครับ!`);
     updateRefRatePreview(rate);
     return;
@@ -1849,7 +1869,7 @@ async function saveSettings(type) {
     }
     key = 'feeRate';
     value = { rate };
-    await sb.from('settings').upsert({ key, value }, { onConflict:'key' });
+    const _ue = await safeUpsertSettings(key, value);
     showToast(`✅ บันทึกค่าบริการ ${rate}% แล้วครับ!`);
     updateFeePreview(rate);
     return;
@@ -1857,7 +1877,7 @@ async function saveSettings(type) {
     key = 'contact';
     value = { phone1: document.getElementById('sf-phone').value, lineId: document.getElementById('sf-line').value, fbName: document.getElementById('sf-fb').value, hoursTime: document.getElementById('sf-hours').value };
   }
-  await sb.from('settings').upsert({ key, value }, { onConflict:'key' });
+  const _ue = await safeUpsertSettings(key, value);
   showToast('✅ บันทึกการตั้งค่าแล้วครับ!');
 }
 
