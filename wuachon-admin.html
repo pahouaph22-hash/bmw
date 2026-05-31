@@ -1842,6 +1842,36 @@ function buildFlagBadgeHtml(key) {
 
 // ===== FLAG COLUMN AUTO-INIT =====
 // เรียกครั้งเดียวตอน login เพื่อสร้าง column flags + admin_note ถ้ายังไม่มี
+function filterDownline() {
+  const q  = (document.getElementById('downline-search')?.value||'').toLowerCase();
+  const tb = document.getElementById('downline-tbody');
+  const countEl = document.getElementById('downline-count');
+  if (!tb) return;
+
+  const all = window._mdDownline || [];
+  const rows = all.filter(d => !q || d.nick.toLowerCase().includes(q));
+
+  if (countEl) countEl.textContent = q ? `${rows.length} / ${all.length} คน` : `${all.length} คน`;
+
+  if (!rows.length) {
+    tb.innerHTML = `<tr><td colspan="4" style="text-align:center;padding:20px;color:#aaa;font-family:'Kanit',sans-serif;">ไม่พบ "${q}"</td></tr>`;
+    return;
+  }
+
+  tb.innerHTML = rows.map((d,i) => `
+    <tr style="${i%2===1?'background:#f9fafb;':''}">
+      <td style="padding:8px 12px;font-size:12px;color:#aaa;">${i+1}</td>
+      <td style="padding:8px 12px;">
+        <div style="display:flex;align-items:center;gap:8px;">
+          <div style="width:26px;height:26px;border-radius:50%;background:linear-gradient(135deg,#3b82f6,#2563eb);display:flex;align-items:center;justify-content:center;font-family:'Kanit',sans-serif;font-weight:900;font-size:11px;color:#fff;flex-shrink:0;">${(d.nick||'?')[0].toUpperCase()}</div>
+          <strong style="cursor:pointer;color:var(--green);text-decoration:underline;font-size:13px;" onclick="closeMember();setTimeout(()=>openMember('${d.nick}'),100)">${d.nick}</strong>
+        </div>
+      </td>
+      <td style="padding:8px 12px;text-align:right;font-family:'Kanit',sans-serif;font-weight:700;font-size:12px;color:#15803d;">${Number(d.balance||0).toLocaleString()} ฿</td>
+      <td style="padding:8px 12px;text-align:right;font-size:11px;color:#aaa;">${fmtDate(d.created_at)}</td>
+    </tr>`).join('');
+}
+
 // ===== MEMBER TXN TIMELINE =====
 // เก็บข้อมูลไว้ใน window เพื่อ filter ซ้ำโดยไม่ต้อง fetch ใหม่
 window._mdTxnData = [];
@@ -3502,11 +3532,12 @@ function filterReferralSummary() {
         </div>
       </td>
       <td style="text-align:center;">
-        <span style="font-family:'Kanit',sans-serif;font-weight:900;font-size:18px;color:#1B6B2F;">${r.count}</span>
+        <span style="font-family:'Kanit',sans-serif;font-weight:900;font-size:18px;color:#1B6B2F;cursor:pointer;text-decoration:underline;border-bottom:2px dashed #1B6B2F;"
+          onclick="showDownlinePopup('${r.nick}')" title="คลิกดูรายชื่อ">${r.count}</span>
         <span style="font-size:10px;color:#aaa;margin-left:2px;">คน</span>
       </td>
       <td style="text-align:center;">
-        <span style="font-family:'Kanit',sans-serif;font-weight:700;font-size:14px;color:#0ea5e9;">${r.countL1}</span>
+        <span style="font-family:'Kanit',sans-serif;font-weight:700;font-size:14px;color:#0ea5e9;cursor:pointer;" onclick="showDownlinePopup('${r.nick}')">${r.countL1}</span>
       </td>
       <td style="text-align:center;">
         <span style="font-family:'Kanit',sans-serif;font-weight:700;font-size:14px;color:#8b5cf6;">${r.countL2plus}</span>
@@ -3519,6 +3550,130 @@ function filterReferralSummary() {
     </tr>`).join('');
 }
 
+async function showDownlinePopup(referrerNick) {
+  // ลบ popup เก่าก่อน
+  document.getElementById('downline-popup')?.remove();
+
+  // สร้าง popup skeleton ก่อน (แสดงทันที ข้อมูลโหลดทีหลัง)
+  const pop = document.createElement('div');
+  pop.id = 'downline-popup';
+  pop.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:10002;display:flex;align-items:center;justify-content:center;padding:16px;animation:fadeInBg .2s ease;';
+  pop.innerHTML = `
+    <div style="background:#fff;border-radius:16px;width:100%;max-width:560px;max-height:80vh;display:flex;flex-direction:column;box-shadow:0 20px 60px rgba(0,0,0,.25);overflow:hidden;">
+      <!-- header -->
+      <div style="padding:16px 20px;background:linear-gradient(135deg,#1B6B2F,#27943F);color:#fff;display:flex;align-items:center;justify-content:space-between;flex-shrink:0;">
+        <div>
+          <div style="font-family:'Kanit',sans-serif;font-weight:900;font-size:16px;">👥 ลูกทีมของ ${referrerNick}</div>
+          <div style="font-size:11px;opacity:.7;margin-top:2px;">สมาชิกชั้นที่ 1 ที่ ${referrerNick} แนะนำมาโดยตรง</div>
+        </div>
+        <button onclick="document.getElementById('downline-popup').remove()"
+          style="background:rgba(255,255,255,.2);border:none;color:#fff;font-size:18px;width:30px;height:30px;border-radius:50%;cursor:pointer;flex-shrink:0;">✕</button>
+      </div>
+
+      <!-- stats strip -->
+      <div id="dl-pop-stats" style="display:grid;grid-template-columns:repeat(3,1fr);border-bottom:1px solid #f0f0ee;flex-shrink:0;">
+        <div style="padding:10px;text-align:center;border-right:1px solid #f0f0ee;">
+          <div style="font-family:'Kanit',sans-serif;font-weight:900;font-size:18px;color:#1B6B2F;" id="dl-pop-count">—</div>
+          <div style="font-size:10px;color:#aaa;">ลูกทีมทั้งหมด</div>
+        </div>
+        <div style="padding:10px;text-align:center;border-right:1px solid #f0f0ee;">
+          <div style="font-family:'Kanit',sans-serif;font-weight:900;font-size:18px;color:#16a34a;" id="dl-pop-balance">—</div>
+          <div style="font-size:10px;color:#aaa;">ยอดเงินรวม (฿)</div>
+        </div>
+        <div style="padding:10px;text-align:center;">
+          <div style="font-family:'Kanit',sans-serif;font-weight:900;font-size:18px;color:#8b5cf6;" id="dl-pop-com">—</div>
+          <div style="font-size:10px;color:#aaa;">คอมฯ รวม (฿)</div>
+        </div>
+      </div>
+
+      <!-- search -->
+      <div style="padding:10px 14px;border-bottom:1px solid #f0f0ee;flex-shrink:0;">
+        <input id="dl-pop-search" placeholder="🔍 ค้นหาชื่อ Nick..." oninput="_filterDlPop()"
+          style="width:100%;padding:8px 12px;border:1px solid #e0e0e0;border-radius:8px;font-family:'Kanit',sans-serif;font-size:13px;box-sizing:border-box;">
+      </div>
+
+      <!-- list -->
+      <div style="overflow-y:auto;flex:1;" id="dl-pop-list">
+        <div style="text-align:center;padding:32px;color:#aaa;font-family:'Kanit',sans-serif;">กำลังโหลด...</div>
+      </div>
+
+      <!-- footer -->
+      <div id="dl-pop-footer" style="padding:8px 14px;border-top:1px solid #f0f0ee;font-size:11px;color:#aaa;flex-shrink:0;"></div>
+    </div>`;
+
+  pop.addEventListener('click', e => { if (e.target === pop) pop.remove(); });
+  document.body.appendChild(pop);
+  document.getElementById('dl-pop-search')?.focus();
+
+  // โหลดข้อมูลจริง
+  const [membersRes, comRes] = await Promise.all([
+    sb.from('members').select('nick,fname,lname,balance,created_at,flags').eq('referred_by', referrerNick).order('created_at',{ascending:false}),
+    sb.from('referral_logs').select('commission').eq('referrer_nick', referrerNick).eq('level', 1),
+  ]);
+  window._dlPopData = membersRes.data || [];
+  const totalCom = (comRes.data||[]).reduce((s,r)=>s+Number(r.commission||0),0);
+  const totalBal = window._dlPopData.reduce((s,m)=>s+Number(m.balance||0),0);
+
+  // stats
+  const setEl = (id,v) => { const e=document.getElementById(id); if(e) e.textContent=v; };
+  setEl('dl-pop-count',   window._dlPopData.length.toLocaleString());
+  setEl('dl-pop-balance', totalBal.toLocaleString());
+  setEl('dl-pop-com',     totalCom.toLocaleString());
+
+  _filterDlPop();
+}
+
+function _filterDlPop() {
+  const q    = (document.getElementById('dl-pop-search')?.value||'').toLowerCase();
+  const list = document.getElementById('dl-pop-list');
+  const footer = document.getElementById('dl-pop-footer');
+  if (!list) return;
+
+  const all  = window._dlPopData || [];
+  const rows = all.filter(m => !q || m.nick.toLowerCase().includes(q) || (m.fname||'').toLowerCase().includes(q) || (m.lname||'').toLowerCase().includes(q));
+
+  if (footer) footer.textContent = q ? `แสดง ${rows.length} / ${all.length} คน` : `ทั้งหมด ${all.length} คน`;
+
+  if (!rows.length) {
+    list.innerHTML = `<div style="text-align:center;padding:32px;color:#aaa;font-family:'Kanit',sans-serif;"><div style="font-size:28px;margin-bottom:8px;">🔍</div>ไม่พบ "${q}"</div>`;
+    return;
+  }
+
+  list.innerHTML = `<table style="width:100%;border-collapse:collapse;">
+    <thead>
+      <tr style="background:#fafaf8;position:sticky;top:0;">
+        <th style="padding:9px 12px;text-align:left;font-family:'Kanit',sans-serif;font-size:11px;color:#888;border-bottom:1px solid #f0f0ee;">#</th>
+        <th style="padding:9px 12px;text-align:left;font-family:'Kanit',sans-serif;font-size:11px;color:#888;border-bottom:1px solid #f0f0ee;">Nick / ชื่อ</th>
+        <th style="padding:9px 12px;text-align:right;font-family:'Kanit',sans-serif;font-size:11px;color:#888;border-bottom:1px solid #f0f0ee;">ยอดเงิน</th>
+        <th style="padding:9px 12px;text-align:right;font-family:'Kanit',sans-serif;font-size:11px;color:#888;border-bottom:1px solid #f0f0ee;">สมัครเมื่อ</th>
+        <th style="padding:9px 12px;border-bottom:1px solid #f0f0ee;"></th>
+      </tr>
+    </thead>
+    <tbody>
+      ${rows.map((m,i) => {
+        const hasFlags = (m.flags||[]).length > 0;
+        return `<tr style="${i%2===1?'background:#fafaf8;':''}${hasFlags?'border-left:3px solid #fca5a5;':''}">
+          <td style="padding:9px 12px;font-size:12px;color:#aaa;">${i+1}</td>
+          <td style="padding:9px 12px;">
+            <div style="display:flex;align-items:center;gap:8px;">
+              <div style="width:30px;height:30px;border-radius:50%;background:linear-gradient(135deg,#3b82f6,#2563eb);display:flex;align-items:center;justify-content:center;font-family:'Kanit',sans-serif;font-weight:900;font-size:12px;color:#fff;flex-shrink:0;">${(m.nick||'?')[0].toUpperCase()}</div>
+              <div>
+                <div style="font-family:'Kanit',sans-serif;font-weight:700;font-size:13px;">${m.nick}</div>
+                ${(m.fname||m.lname) ? `<div style="font-size:11px;color:#aaa;">${m.fname||''} ${m.lname||''}</div>` : ''}
+              </div>
+            </div>
+          </td>
+          <td style="padding:9px 12px;text-align:right;font-family:'Kanit',sans-serif;font-weight:700;font-size:13px;color:#15803d;">${Number(m.balance||0).toLocaleString()} ฿</td>
+          <td style="padding:9px 12px;text-align:right;font-size:11px;color:#aaa;white-space:nowrap;">${fmtDate(m.created_at)}</td>
+          <td style="padding:9px 12px;text-align:center;">
+            <button class="btn btn-gold" style="font-size:11px;padding:3px 9px;white-space:nowrap;"
+              onclick="document.getElementById('downline-popup').remove();openMember('${m.nick}')">👁</button>
+          </td>
+        </tr>`;
+      }).join('')}
+    </tbody>
+  </table>`;
+}
 function filterReferralLogs() {
   const q     = (document.getElementById('ref-log-search')?.value||'').toLowerCase();
   const from  = document.getElementById('ref-log-from2')?.value||'';
@@ -3566,7 +3721,7 @@ function filterReferralLogs() {
       <td style="text-align:right;font-size:11px;color:#aaa;">${fmtDate(l.created_at)}</td>
     </tr>`;
   }).join('');
-}
+} // end filterReferralLogs
 
 // แสดงรายละเอียดสายงานของ referrer
 function showReferralDetail(referrerNick) {
@@ -3774,19 +3929,21 @@ async function openMember(nick) {
   document.getElementById('md-content').style.display = 'none';
 
   // โหลดข้อมูลทั้งหมดพร้อมกัน
-  const [memRes, depRes, withRes, betRes, refRes] = await Promise.all([
+  const [memRes, depRes, withRes, betRes, refRes, downlineRes] = await Promise.all([
     sb.from('members').select('*').eq('nick', nick).maybeSingle(),
     sb.from('deposits').select('*').eq('nick', nick).order('created_at',{ascending:false}).limit(200),
     sb.from('withdrawals').select('*').eq('nick', nick).order('created_at',{ascending:false}).limit(200),
     sb.from('bets').select('*, matches(round,name_a,name_b,code)').eq('nick', nick).order('created_at',{ascending:false}).limit(200),
     sb.from('referral_logs').select('*').eq('referrer_nick', nick).order('created_at',{ascending:false}).limit(200),
+    sb.from('members').select('nick,created_at,balance,referred_by').eq('referred_by', nick).order('created_at',{ascending:false}),
   ]);
 
-  const m     = memRes.data;
-  const deps  = depRes.data  || [];
-  const withs = withRes.data || [];
-  const bets  = betRes.data  || [];
-  const refs  = refRes.data  || [];
+  const m        = memRes.data;
+  const deps     = depRes.data     || [];
+  const withs    = withRes.data    || [];
+  const bets     = betRes.data     || [];
+  const refs     = refRes.data     || [];
+  const downline = downlineRes.data || [];
 
   if (!m) { document.getElementById('md-overlay').style.display='none'; showToast('ไม่พบข้อมูลสมาชิก','error'); return; }
 
@@ -3803,6 +3960,10 @@ async function openMember(nick) {
 
   // สร้าง TXN rows ไว้ล่วงหน้า เพื่อ filter ต่อใน tab
   window._mdTxnData = _buildTxnRows(deps, withs, bets, refs);
+  // เก็บ downline ไว้สำหรับ search ใน info tab
+  window._mdDownline = downline;
+  // คอมฯ รวมที่ได้รับ (จาก referral_logs)
+  const totalRefCom = refs.reduce((s,r)=>s+Number(r.commission||0),0);
 
   // VIP คำนวณ
   const vip     = getVipLevel(totalDep);
@@ -4016,10 +4177,71 @@ async function openMember(nick) {
         </div>
 
         <!-- metadata -->
-        <div style="background:#f9f9f9;border-radius:8px;padding:12px;font-size:12px;color:#aaa;display:grid;grid-template-columns:1fr 1fr;gap:6px;">
+        <div style="background:#f9f9f9;border-radius:8px;padding:12px;font-size:12px;color:#aaa;display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:14px;">
           <div>🆔 ID: <span style="word-break:break-all;color:#bbb;">${m.id||'—'}</span></div>
           <div>📅 สมัครเมื่อ: <span style="color:#bbb;">${fmtDate(m.created_at)}</span></div>
           <div>🕐 แก้ไขล่าสุด: <span style="color:#bbb;">${fmtDate(m.updated_at)}</span></div>
+          <div>🎁 ผู้แนะนำ: <span style="color:var(--green);cursor:pointer;text-decoration:underline;font-weight:700;"
+            onclick="closeMember();setTimeout(()=>openMember('${m.referred_by||''}'),100)">${m.referred_by||'—'}</span></div>
+        </div>
+
+        <!-- ── สายงาน (Downline) ── -->
+        <div class="me-section-title" style="border-color:#60a5fa;color:#1d4ed8;background:#eff6ff;">🌐 สายงาน / ลูกทีม (ชั้นที่ 1)</div>
+
+        <!-- summary strip -->
+        <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:10px 0 12px;">
+          <div style="background:#eff6ff;border:1px solid #bfdbfe;border-radius:10px;padding:11px 14px;text-align:center;">
+            <div style="font-family:'Kanit',sans-serif;font-weight:900;font-size:22px;color:#1d4ed8;">${downline.length}</div>
+            <div style="font-size:11px;color:#60a5fa;margin-top:1px;">ลูกทีมทั้งหมด</div>
+          </div>
+          <div style="background:#f0fdf4;border:1px solid #bbf7d0;border-radius:10px;padding:11px 14px;text-align:center;">
+            <div style="font-family:'Kanit',sans-serif;font-weight:900;font-size:22px;color:#15803d;">${refs.filter(r=>r.commission_type==='bet'||!r.commission_type).length}</div>
+            <div style="font-size:11px;color:#16a34a;margin-top:1px;">รายการคอมฯ</div>
+          </div>
+          <div style="background:#fdf4ff;border:1px solid #e9d5ff;border-radius:10px;padding:11px 14px;text-align:center;">
+            <div style="font-family:'Kanit',sans-serif;font-weight:900;font-size:22px;color:#6b21a8;">${totalRefCom.toLocaleString()}</div>
+            <div style="font-size:11px;color:#9333ea;margin-top:1px;">คอมฯ รวม (฿)</div>
+          </div>
+        </div>
+
+        <!-- search downline -->
+        <div style="display:flex;gap:8px;margin-bottom:10px;">
+          <input id="downline-search" placeholder="🔍 ค้นหาชื่อลูกทีม..." oninput="filterDownline()"
+            style="flex:1;padding:8px 12px;border:1px solid #e0e0e0;border-radius:8px;font-family:'Kanit',sans-serif;font-size:13px;">
+          <span id="downline-count" style="font-size:11px;color:#aaa;align-self:center;white-space:nowrap;"></span>
+        </div>
+
+        <!-- downline table -->
+        <div style="max-height:260px;overflow-y:auto;border:1px solid #e5e5e0;border-radius:10px;" id="downline-wrap">
+          ${downline.length === 0 ? `
+            <div style="text-align:center;padding:28px;color:#aaa;font-family:'Kanit',sans-serif;">
+              <div style="font-size:28px;margin-bottom:6px;">🌱</div>
+              ยังไม่มีลูกทีมครับ
+            </div>` : `
+          <table style="width:100%;border-collapse:collapse;">
+            <thead>
+              <tr style="background:#f0f4ff;position:sticky;top:0;">
+                <th style="padding:8px 12px;text-align:left;font-family:'Kanit',sans-serif;font-size:12px;color:#1d4ed8;border-bottom:1px solid #dbeafe;">#</th>
+                <th style="padding:8px 12px;text-align:left;font-family:'Kanit',sans-serif;font-size:12px;color:#1d4ed8;border-bottom:1px solid #dbeafe;">Nick</th>
+                <th style="padding:8px 12px;text-align:right;font-family:'Kanit',sans-serif;font-size:12px;color:#1d4ed8;border-bottom:1px solid #dbeafe;">ยอดเงิน</th>
+                <th style="padding:8px 12px;text-align:right;font-family:'Kanit',sans-serif;font-size:12px;color:#1d4ed8;border-bottom:1px solid #dbeafe;">สมัครเมื่อ</th>
+              </tr>
+            </thead>
+            <tbody id="downline-tbody">
+              ${downline.map((d,i) => `
+                <tr style="${i%2===1?'background:#f9fafb;':''}" class="downline-row">
+                  <td style="padding:8px 12px;font-size:12px;color:#aaa;">${i+1}</td>
+                  <td style="padding:8px 12px;">
+                    <div style="display:flex;align-items:center;gap:8px;">
+                      <div style="width:26px;height:26px;border-radius:50%;background:linear-gradient(135deg,#3b82f6,#2563eb);display:flex;align-items:center;justify-content:center;font-family:'Kanit',sans-serif;font-weight:900;font-size:11px;color:#fff;flex-shrink:0;">${(d.nick||'?')[0].toUpperCase()}</div>
+                      <strong style="cursor:pointer;color:var(--green);text-decoration:underline;font-size:13px;" onclick="closeMember();setTimeout(()=>openMember('${d.nick}'),100)">${d.nick}</strong>
+                    </div>
+                  </td>
+                  <td style="padding:8px 12px;text-align:right;font-family:'Kanit',sans-serif;font-weight:700;font-size:12px;color:#15803d;">${Number(d.balance||0).toLocaleString()} ฿</td>
+                  <td style="padding:8px 12px;text-align:right;font-size:11px;color:#aaa;">${fmtDate(d.created_at)}</td>
+                </tr>`).join('')}
+            </tbody>
+          </table>`}
         </div>
       </div>
 
