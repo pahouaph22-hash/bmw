@@ -4381,22 +4381,23 @@ fns.forEach(function(fn){
       })
       .on('postgres_changes', {
         event: 'UPDATE', schema: 'public', table: 'withdrawals'
-      }, payload => {
+      }, async payload => {
         const w = payload.new;
         if (w.nick !== nick) return;
         if (w.status === 'approved') {
-          const slipUrl = w.slip_url || '';
-          const amtFmt  = Number(w.amount).toLocaleString();
+          // slip_url อาจไม่มาใน realtime payload — fetch ใหม่
+          let slipUrl = w.slip_url || '';
+          if (!slipUrl) {
+            const { data: wd } = await sb.from('withdrawals').select('slip_url').eq('id', w.id).maybeSingle();
+            slipUrl = wd?.slip_url || '';
+          }
+          const amtFmt = Number(w.amount).toLocaleString();
 
-          // Notification bell — แนบสลิปด้วยถ้ามี
           addNotification('🏧', 'โอนเงินสำเร็จแล้วครับ!',
             `−${amtFmt} ฿ โอนเข้าบัญชีของคุณแล้ว${slipUrl ? ' · มีสลิปแนบ' : ''}`,
             'success', slipUrl);
-
-          // Toast
           showFEToast(`✅ ถอนเงิน −${amtFmt} ฿ สำเร็จแล้วครับ!`);
 
-          // Popup สลิป (ถ้ามี)
           if (slipUrl) {
             _showWithdrawSlipPopup(amtFmt, slipUrl);
           } else {
@@ -4407,7 +4408,8 @@ fns.forEach(function(fn){
           loadTxnHistory(); loadWithHistory();
         } else if (w.status === 'rejected') {
           refreshBalance();
-          addNotification('❌', 'คำขอถอนเงินถูกปฏิเสธ', `ยอดเงิน ${Number(w.amount).toLocaleString()} ฿ คืนแล้วครับ`, 'error');
+          addNotification('❌', 'คำขอถอนเงินถูกปฏิเสธ',
+            `ยอดเงิน ${Number(w.amount).toLocaleString()} ฿ คืนแล้วครับ`, 'error');
           showFEToast(`❌ คำขอถอนเงินถูกปฏิเสธ คืนเงินให้แล้วครับ`);
           loadTxnHistory(); loadWithHistory();
         }
@@ -5150,10 +5152,10 @@ fns.forEach(function(fn){
   }
 
   function renderNotifs() {
-    const el = document.getElementById('notif-list');
-    if (!el) return;
-
     updateNotifBadge();
+
+    const el = document.getElementById('notif-list');
+    if (!el) return; // panel ยังไม่ได้ mount
 
     let items = notifications;
     if (_notifFilter === 'success') items = items.filter(n => n.type === 'success');
@@ -5205,6 +5207,87 @@ fns.forEach(function(fn){
   }
 
   
+
+  // ── โหลดประวัติการแจ้งเตือนจาก DB ──
+  async function _loadNotifHistory() {
+    if (!currentUser) return;
+    const nick = currentUser.nick;
+    const [depRes, withRes] = await Promise.all([
+      sb.from('deposits').select('amount,bank,status,slip_url,created_at,approved_at')
+        .eq('nick', nick).neq('status','pending')
+        .order('created_at',{ascending:false}).limit(20),
+      sb.from('withdrawals').select('amount,status,slip_url,created_at,approved_at')
+        .eq('nick', nick).neq('status','pending')
+        .order('created_at',{ascending:false}).limit(20),
+    ]);
+
+    const histNotifs = [];
+
+    // withdrawals
+    for (const w of (withRes.data||[])) {
+      const amt = Number(w.amount||0).toLocaleString();
+      if (w.status === 'approved') {
+        // fetch slip_url ถ้าไม่มีใน row
+        let slip = w.slip_url || '';
+        histNotifs.push({
+          id: 'hist-w-'+w.created_at,
+          icon: '🏧', title: 'โอนเงินสำเร็จ',
+          sub: `−${amt} ฿ โอนเข้าบัญชีของคุณแล้ว${slip?' · มีสลิปแนบ':''}`,
+          type: 'success', slip_url: slip,
+          time: new Date(w.approved_at||w.created_at), unread: false
+        });
+      } else if (w.status === 'rejected') {
+        histNotifs.push({
+          id: 'hist-wr-'+w.created_at,
+          icon: '❌', title: 'คำขอถอนเงินถูกปฏิเสธ',
+          sub: `ยอดเงิน ${amt} ฿ คืนแล้วครับ`,
+          type: 'error', slip_url: '',
+          time: new Date(w.created_at), unread: false
+        });
+      }
+    }
+
+    // deposits
+    for (const d of (depRes.data||[])) {
+      const amt = Number(d.amount||0).toLocaleString();
+      const bank = d.bank || '';
+      if (d.status === 'approved' && !bank.startsWith('กิจกรรม:') && !bank.startsWith('คอมฯ')) {
+        histNotifs.push({
+          id: 'hist-d-'+d.created_at,
+          icon: '💰', title: 'เติมเงินสำเร็จ',
+          sub: `+${amt} ฿ เข้าบัญชีแล้วครับ`,
+          type: 'success', slip_url: '',
+          time: new Date(d.approved_at||d.created_at), unread: false
+        });
+      } else if (d.status === 'approved' && bank.startsWith('กิจกรรม:')) {
+        histNotifs.push({
+          id: 'hist-act-'+d.created_at,
+          icon: '🎉', title: 'รางวัลกิจกรรม',
+          sub: `${bank.replace('กิจกรรม:','').trim()} · +${amt} ฿`,
+          type: 'success', slip_url: '',
+          time: new Date(d.approved_at||d.created_at), unread: false
+        });
+      } else if (d.status === 'rejected') {
+        histNotifs.push({
+          id: 'hist-dr-'+d.created_at,
+          icon: '❌', title: 'คำขอเติมเงินถูกปฏิเสธ',
+          sub: `จำนวน ${amt} ฿`,
+          type: 'error', slip_url: '',
+          time: new Date(d.created_at), unread: false
+        });
+      }
+    }
+
+    // เรียงและ merge กับ notifications ใน memory
+    histNotifs.sort((a,b) => b.time - a.time);
+    // เพิ่มเฉพาะที่ยังไม่มีใน memory
+    const existIds = new Set(notifications.map(n => String(n.id)));
+    for (const n of histNotifs) {
+      if (!existIds.has(String(n.id))) notifications.push(n);
+    }
+    notifications.sort((a,b) => new Date(b.time) - new Date(a.time));
+    renderNotifs();
+  }
 
   function _markNotifRead(id) {
     const n = notifications.find(n => n.id === id);
@@ -6117,6 +6200,18 @@ fns.forEach(function(fn){
     if (id === 'deposit')   loadDepHistory();
     if (id === 'withdraw')  { loadWithdrawPanel(); loadWithHistory(); }
     if (id === 'bet')       loadBetHistory();
+    if (id === 'notifications') {
+      renderNotifs();
+      // โหลดประวัติจาก DB ถ้ายังไม่มีการแจ้งเตือนในหน่วยความจำ
+      if (notifications.length === 0 && currentUser) {
+        _loadNotifHistory();
+      }
+      setTimeout(() => {
+        notifications.forEach(n => n.unread = false);
+        updateNotifBadge();
+        renderNotifs();
+      }, 300);
+    }
     // re-apply flags ทุกครั้งที่เปลี่ยน tab
     if (currentUser?.flags?.length) setTimeout(() => applyFlagUI(currentUser.flags), 50);
   }
