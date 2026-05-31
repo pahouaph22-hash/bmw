@@ -357,7 +357,9 @@ tr:hover td{background:#fafafa;}
 
         <!-- RECENT LIST -->
         <div class="card">
-          <div class="card-title">🕐 รายการล่าสุด</div>
+          <div class="card-title">🕐 รายการล่าสุด
+            <button onclick="loadOverview()" style="margin-left:auto;font-family:'Kanit',sans-serif;font-size:11px;font-weight:700;padding:5px 12px;border:1px solid #e0e0e0;border-radius:7px;background:#fff;color:#555;cursor:pointer;white-space:nowrap;">🔄 รีเฟรช</button>
+            <button onclick="loadOverview()" style="margin-left:auto;font-family:'Kanit',sans-serif;font-size:11px;font-weight:700;padding:5px 12px;border:1px solid #e0e0e0;border-radius:7px;background:#fff;color:#555;cursor:pointer;white-space:nowrap;">🔄 รีเฟรช</button></div>
           <div id="ov-recent"><div style="text-align:center;padding:20px;color:#aaa;">กำลังโหลด...</div></div>
         </div>
       </div>
@@ -399,6 +401,8 @@ tr:hover td{background:#fafafa;}
       <div class="panel" id="panel-members">
         <div class="card">
           <div class="card-title">👥 รายชื่อสมาชิก
+            <button onclick="loadMembers()" style="margin-left:auto;font-family:'Kanit',sans-serif;font-size:11px;font-weight:700;padding:5px 12px;border:1px solid #e0e0e0;border-radius:7px;background:#fff;color:#555;cursor:pointer;white-space:nowrap;">🔄 รีเฟรช</button>
+            <button onclick="loadMembers()" style="margin-left:auto;font-family:'Kanit',sans-serif;font-size:11px;font-weight:700;padding:5px 12px;border:1px solid #e0e0e0;border-radius:7px;background:#fff;color:#555;cursor:pointer;white-space:nowrap;">🔄 รีเฟรช</button>
             <span style="font-size:12px;color:#aaa;font-weight:400;" id="members-count"></span>
           </div>
           <div class="date-filter">
@@ -545,11 +549,15 @@ tr:hover td{background:#fafafa;}
       <!-- VERDICT -->
       <div class="panel" id="panel-verdict">
         <div class="card">
-          <div class="card-title">⚖️ รอตัดสินผล</div>
+          <div class="card-title">⚖️ รอตัดสินผล
+            <button onclick="loadVerdict()" style="margin-left:auto;font-family:'Kanit',sans-serif;font-size:11px;font-weight:700;padding:5px 12px;border:1px solid #e0e0e0;border-radius:7px;background:#fff;color:#555;cursor:pointer;white-space:nowrap;">🔄 รีเฟรช</button>
+            <button onclick="loadVerdict()" style="margin-left:auto;font-family:'Kanit',sans-serif;font-size:11px;font-weight:700;padding:5px 12px;border:1px solid #e0e0e0;border-radius:7px;background:#fff;color:#555;cursor:pointer;white-space:nowrap;">🔄 รีเฟรช</button></div>
           <div id="verdict-pending"><div style="text-align:center;padding:24px;color:#aaa;">กำลังโหลด...</div></div>
         </div>
         <div class="card">
-          <div class="card-title">✅ ตัดสินแล้ว</div>
+          <div class="card-title">✅ ตัดสินแล้ว
+            <button onclick="loadVerdict()" style="margin-left:auto;font-family:'Kanit',sans-serif;font-size:11px;font-weight:700;padding:5px 12px;border:1px solid #e0e0e0;border-radius:7px;background:#fff;color:#555;cursor:pointer;white-space:nowrap;">🔄 รีเฟรช</button>
+          </div>
           <div id="verdict-done"><div style="text-align:center;padding:24px;color:#aaa;">กำลังโหลด...</div></div>
         </div>
       </div>
@@ -559,6 +567,8 @@ tr:hover td{background:#fafafa;}
         <!-- รอดำเนินการ -->
         <div class="card">
           <div class="card-title">💰 คำขอเติมเงิน (รอดำเนินการ)
+            <button onclick="loadDeposits()" style="margin-left:auto;font-family:'Kanit',sans-serif;font-size:11px;font-weight:700;padding:5px 12px;border:1px solid #e0e0e0;border-radius:7px;background:#fff;color:#555;cursor:pointer;white-space:nowrap;">🔄 รีเฟรช</button>
+            <button onclick="filterDeposits()" style="margin-left:auto;font-family:'Kanit',sans-serif;font-size:11px;font-weight:700;padding:5px 12px;border:1px solid #e0e0e0;border-radius:7px;background:#fff;color:#555;cursor:pointer;white-space:nowrap;">🔄 รีเฟรช</button>
             <span style="font-size:12px;color:#aaa;font-weight:400;" id="dep-pending-count"></span>
           </div>
           <div class="date-filter">
@@ -580,7 +590,9 @@ tr:hover td{background:#fafafa;}
 
         <!-- เติมเงินสำเร็จ -->
         <div class="card">
-          <div class="card-title" style="color:var(--green);">✅ เติมเงินสำเร็จ
+          <div class="card-title" style="color:var(--green);">
+            ✅ เติมเงินสำเร็จ
+            <button onclick="filterDepDone()" style="margin-left:auto;font-family:'Kanit',sans-serif;font-size:11px;font-weight:700;padding:5px 12px;border:1px solid #e0e0e0;border-radius:7px;background:#fff;color:#555;cursor:pointer;white-space:nowrap;">🔄 รีเฟรช</button>
             <span style="font-size:12px;color:#aaa;font-weight:400;" id="dep-done-count"></span>
           </div>
           <div class="date-filter">
@@ -602,7 +614,9 @@ tr:hover td{background:#fafafa;}
 
         <!-- ถูกปฏิเสธ -->
         <div class="card">
-          <div class="card-title" style="color:#f87171;">❌ ถูกปฏิเสธ
+          <div class="card-title" style="color:#f87171;">
+            ❌ ถูกปฏิเสธ
+            <button onclick="filterDepReject()" style="margin-left:auto;font-family:'Kanit',sans-serif;font-size:11px;font-weight:700;padding:5px 12px;border:1px solid #e0e0e0;border-radius:7px;background:#fff;color:#555;cursor:pointer;white-space:nowrap;">🔄 รีเฟรช</button>
             <span style="font-size:12px;color:#aaa;font-weight:400;" id="dep-reject-count"></span>
           </div>
           <div class="date-filter">
@@ -628,6 +642,8 @@ tr:hover td{background:#fafafa;}
         <!-- คำขอรอดำเนินการ -->
         <div class="card">
           <div class="card-title">🏧 คำขอถอนเงิน (รอดำเนินการ)
+            <button onclick="loadWithdrawals()" style="margin-left:auto;font-family:'Kanit',sans-serif;font-size:11px;font-weight:700;padding:5px 12px;border:1px solid #e0e0e0;border-radius:7px;background:#fff;color:#555;cursor:pointer;white-space:nowrap;">🔄 รีเฟรช</button>
+            <button onclick="filterWithdrawals()" style="margin-left:auto;font-family:'Kanit',sans-serif;font-size:11px;font-weight:700;padding:5px 12px;border:1px solid #e0e0e0;border-radius:7px;background:#fff;color:#555;cursor:pointer;white-space:nowrap;">🔄 รีเฟรช</button>
             <span style="font-size:12px;color:#aaa;font-weight:400;" id="with-pending-count"></span>
           </div>
           <div class="date-filter">
@@ -649,7 +665,9 @@ tr:hover td{background:#fafafa;}
 
         <!-- ถอนเงินสำเร็จ -->
         <div class="card">
-          <div class="card-title" style="color:var(--green);">✅ ถอนเงินสำเร็จ
+          <div class="card-title" style="color:var(--green);">
+            ✅ ถอนเงินสำเร็จ
+            <button onclick="filterWithDone()" style="margin-left:auto;font-family:'Kanit',sans-serif;font-size:11px;font-weight:700;padding:5px 12px;border:1px solid #e0e0e0;border-radius:7px;background:#fff;color:#555;cursor:pointer;white-space:nowrap;">🔄 รีเฟรช</button>
             <span style="font-size:12px;color:#aaa;font-weight:400;" id="with-done-count"></span>
           </div>
           <div class="date-filter">
@@ -674,6 +692,8 @@ tr:hover td{background:#fafafa;}
       <div class="panel" id="panel-bets">
         <div class="card">
           <div class="card-title">🎯 รายการเดิมพัน P2P
+            <button onclick="loadBets()" style="margin-left:auto;font-family:'Kanit',sans-serif;font-size:11px;font-weight:700;padding:5px 12px;border:1px solid #e0e0e0;border-radius:7px;background:#fff;color:#555;cursor:pointer;white-space:nowrap;">🔄 รีเฟรช</button>
+            <button onclick="loadBets()" style="margin-left:auto;font-family:'Kanit',sans-serif;font-size:11px;font-weight:700;padding:5px 12px;border:1px solid #e0e0e0;border-radius:7px;background:#fff;color:#555;cursor:pointer;white-space:nowrap;">🔄 รีเฟรช</button>
             <span style="font-size:12px;color:#aaa;font-weight:400;" id="bets-count"></span>
           </div>
           <div class="date-filter">
@@ -718,7 +738,9 @@ tr:hover td{background:#fafafa;}
           </div>
         </div>
         <div class="card">
-          <div class="card-title">🏆 Top ผู้แนะนำสมาชิก</div>
+          <div class="card-title">🏆 Top ผู้แนะนำสมาชิก
+            <button onclick="loadReferralPanel()" style="margin-left:auto;font-family:'Kanit',sans-serif;font-size:11px;font-weight:700;padding:5px 12px;border:1px solid #e0e0e0;border-radius:7px;background:#fff;color:#555;cursor:pointer;white-space:nowrap;">🔄 รีเฟรช</button>
+            <button onclick="loadReferralPanel()" style="margin-left:auto;font-family:'Kanit',sans-serif;font-size:11px;font-weight:700;padding:5px 12px;border:1px solid #e0e0e0;border-radius:7px;background:#fff;color:#555;cursor:pointer;white-space:nowrap;">🔄 รีเฟรช</button></div>
           <div id="ref-top-list"><div style="text-align:center;padding:20px;color:#aaa;">กำลังโหลด...</div></div>
         </div>
       </div>
@@ -864,7 +886,9 @@ tr:hover td{background:#fafafa;}
           <button class="save-btn" onclick="addNews()" style="margin-top:16px;">📢 เพิ่มข้อความ</button>
         </div>
         <div class="card">
-          <div class="card-title">📋 ข้อความทั้งหมด <span id="news-count" style="font-size:12px;color:#888;font-weight:400;"></span></div>
+          <div class="card-title">📋 ข้อความทั้งหมด
+            <button onclick="loadNews()" style="margin-left:auto;font-family:'Kanit',sans-serif;font-size:11px;font-weight:700;padding:5px 12px;border:1px solid #e0e0e0;border-radius:7px;background:#fff;color:#555;cursor:pointer;white-space:nowrap;">🔄 รีเฟรช</button>
+            <button onclick="loadNews()" style="margin-left:auto;font-family:'Kanit',sans-serif;font-size:11px;font-weight:700;padding:5px 12px;border:1px solid #e0e0e0;border-radius:7px;background:#fff;color:#555;cursor:pointer;white-space:nowrap;">🔄 รีเฟรช</button> <span id="news-count" style="font-size:12px;color:#888;font-weight:400;"></span></div>
           <div id="news-list"><div style="text-align:center;padding:24px;color:#aaa;">กำลังโหลด...</div></div>
         </div>
       </div>

@@ -3228,6 +3228,11 @@ fns.forEach(function(fn){
 
     <!-- DASHBOARD TAB -->
     <div class="acc-panel active" id="acc-dashboard">
+      <!-- header bar with refresh -->
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
+        <div style="font-family:'Kanit',sans-serif;font-weight:700;font-size:13px;color:rgba(240,255,232,0.6);">📊 Dashboard</div>
+        <button onclick="loadDashboard();refreshBalance();" style="font-family:'Kanit',sans-serif;font-size:11px;font-weight:700;padding:5px 12px;border-radius:8px;border:1px solid rgba(74,222,128,0.3);background:transparent;color:rgba(74,222,128,0.7);cursor:pointer;">🔄 รีเฟรช</button>
+      </div>
       <!-- ยอดเงิน big display -->      <div style="background:linear-gradient(135deg,rgba(27,107,47,0.3),rgba(39,148,63,0.15));border:1px solid rgba(39,148,63,0.3);border-radius:16px;padding:20px;margin-bottom:14px;text-align:center;">
         <div style="font-family:'Kanit',sans-serif;font-size:12px;color:rgba(240,255,232,0.5);margin-bottom:4px;">ยอดเงินคงเหลือ</div>
         <div style="font-family:'Kanit',sans-serif;font-weight:900;font-size:36px;color:#4ade80;" id="dash-balance">0</div>
@@ -3365,6 +3370,10 @@ fns.forEach(function(fn){
 
     <!-- DEPOSIT TAB -->
     <div class="acc-panel" id="acc-deposit">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
+        <div></div>
+        <button onclick="loadDepHistory()" style="font-family:'Kanit',sans-serif;font-size:11px;font-weight:700;padding:5px 12px;border-radius:8px;border:1px solid rgba(74,222,128,0.3);background:transparent;color:rgba(74,222,128,0.7);cursor:pointer;">🔄 รีเฟรช</button>
+      </div>
 
       <!-- Step 1: ใส่จำนวนเงิน -->
       <div id="dep-step1" class="money-form">
@@ -3499,6 +3508,10 @@ fns.forEach(function(fn){
 
     <!-- WITHDRAW TAB -->
     <div class="acc-panel" id="acc-withdraw">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
+        <div></div>
+        <button onclick="loadWithdrawPanel();loadWithHistory()" style="font-family:'Kanit',sans-serif;font-size:11px;font-weight:700;padding:5px 12px;border-radius:8px;border:1px solid rgba(74,222,128,0.3);background:transparent;color:rgba(74,222,128,0.7);cursor:pointer;">🔄 รีเฟรช</button>
+      </div>
 
       <!-- ยอดเงินปัจจุบัน -->
       <div style="background:rgba(248,113,113,0.07);border:1px solid rgba(248,113,113,0.2);border-radius:10px;padding:14px 16px;margin-bottom:16px;display:flex;align-items:center;justify-content:space-between;">
@@ -3622,6 +3635,10 @@ fns.forEach(function(fn){
 
     <!-- TRANSACTION TAB -->
     <div class="acc-panel" id="acc-txn">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
+        <div style="font-family:'Kanit',sans-serif;font-weight:700;font-size:13px;color:rgba(240,255,232,0.6);">📋 ประวัติธุรกรรม</div>
+        <button onclick="loadTxnHistory()" style="font-family:'Kanit',sans-serif;font-size:11px;font-weight:700;padding:5px 12px;border-radius:8px;border:1px solid rgba(74,222,128,0.3);background:transparent;color:rgba(74,222,128,0.7);cursor:pointer;">🔄 รีเฟรช</button>
+      </div>
       <div class="txn-list" id="acc-txn-list">
         <div class="txn-item">
           <div class="txn-icon dep">💰</div>
@@ -3664,6 +3681,10 @@ fns.forEach(function(fn){
 
     <!-- SUPPORT TAB -->
     <div class="acc-panel" id="acc-referral">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
+        <div></div>
+        <button onclick="loadReferralTab()" style="font-family:'Kanit',sans-serif;font-size:11px;font-weight:700;padding:5px 12px;border-radius:8px;border:1px solid rgba(74,222,128,0.3);background:transparent;color:rgba(74,222,128,0.7);cursor:pointer;">🔄 รีเฟรช</button>
+      </div>
       <div style="padding:8px 0 20px;">
         <h3 style="font-family:'Kanit',sans-serif;font-weight:900;font-size:18px;color:var(--gold);margin-bottom:4px;">🎁 แนะนำเพื่อน</h3>
         <p style="font-size:13px;color:rgba(240,255,232,0.5);">แนะนำเพื่อนสมัครสมาชิก รับค่าคอมฯ จากการเติมเงินครั้งแรกของเพื่อน</p>
@@ -3704,6 +3725,10 @@ fns.forEach(function(fn){
     </div>
 
     <div class="acc-panel" id="acc-support">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
+        <div></div>
+        <button onclick="loadSupportHistory()" style="font-family:'Kanit',sans-serif;font-size:11px;font-weight:700;padding:5px 12px;border-radius:8px;border:1px solid rgba(74,222,128,0.3);background:transparent;color:rgba(74,222,128,0.7);cursor:pointer;">🔄 รีเฟรช</button>
+      </div>
 
       <!-- ช่องทางติดต่อ -->
       <div style="background:rgba(255,255,255,0.03);border:1px solid rgba(39,148,63,0.2);border-radius:14px;padding:20px;margin-bottom:16px;">
