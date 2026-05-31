@@ -3113,6 +3113,8 @@ async function confirmSlipUpload() {
 
   // เช็คป้ายเตือนก่อนโอน
   if (!(await checkFlagBeforeWithdraw(nick))) return;
+
+  const btn = document.getElementById('slip-confirm-btn');
   btn.disabled = true;
   btn.textContent = '⏳ กำลังดำเนินการ...';
   errEl.style.display = 'none';
