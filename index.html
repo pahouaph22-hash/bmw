@@ -4253,11 +4253,30 @@ fns.forEach(function(fn){
   }
 
   // ── Real-time listener สำหรับ txn status ──
+  // ── เก็บ reference channel ไว้ unsubscribe ซ้ำได้ ──
+  const _activeChannels = {};
+
+  function _removeChannel(name) {
+    if (_activeChannels[name]) {
+      try { sb.removeChannel(_activeChannels[name]); } catch(_) {}
+      delete _activeChannels[name];
+    }
+    // fallback: ลอง removeAllChannels ที่มีชื่อตรงกัน
+    try {
+      const existing = sb.getChannels().find(c => c.topic === 'realtime:' + name || c.subTopic === name);
+      if (existing) sb.removeChannel(existing);
+    } catch(_) {}
+  }
+
   function subscribeTxnStatus() {
     if (!currentUser) return;
     const nick = currentUser.nick;
+    const channelName = 'txn-status-' + nick;
 
-    sb.channel('txn-status-' + nick)
+    // ลบ channel เก่าก่อนเสมอ
+    _removeChannel(channelName);
+
+    const ch = sb.channel(channelName)
       .on('postgres_changes', {
         event: 'UPDATE', schema: 'public', table: 'deposits'
       }, payload => {
@@ -4326,11 +4345,14 @@ fns.forEach(function(fn){
         }
       })
       .subscribe();
+    _activeChannels[channelName] = ch;
   }
 
   // ── Real-time Match Results + Notification ──
   function subscribeMatchResults() {
-    sb.channel('match-results-fe')
+    const channelName = 'match-results-fe';
+    _removeChannel(channelName);
+    const ch = sb.channel(channelName)
       .on('postgres_changes', {
         event: 'UPDATE', schema: 'public', table: 'matches'
       }, payload => {
@@ -4358,6 +4380,7 @@ fns.forEach(function(fn){
         }
       })
       .subscribe();
+    _activeChannels[channelName] = ch;
   }
 
   // ── ดึงยอดเงินล่าสุดจาก Supabase ──
