@@ -336,10 +336,11 @@ tr:hover td{background:#fafafa;}
                   <th style="padding:11px 14px;text-align:right;font-family:'Kanit',sans-serif;font-size:12px;font-weight:700;color:#666;border-bottom:2px solid #e5e5e0;white-space:nowrap;">⇄ เติม−ถอน (฿)</th>
                   <th style="padding:11px 14px;text-align:right;font-family:'Kanit',sans-serif;font-size:12px;font-weight:700;color:#666;border-bottom:2px solid #e5e5e0;white-space:nowrap;">📊 กำไร/ขาดทุน (฿)</th>
                   <th style="padding:11px 14px;text-align:right;font-family:'Kanit',sans-serif;font-size:12px;font-weight:700;color:#854d0e;border-bottom:2px solid #e5e5e0;white-space:nowrap;">🏦 ค่าบริการ (฿)</th>
+                  <th style="padding:11px 14px;text-align:right;font-family:'Kanit',sans-serif;font-size:12px;font-weight:700;color:#dc2626;border-bottom:2px solid #e5e5e0;white-space:nowrap;">🎁 เงินรางวัลที่ให้ (฿)</th>
                 </tr>
               </thead>
               <tbody id="finance-tbody">
-                <tr><td colspan="7" style="text-align:center;padding:32px;color:#aaa;font-family:'Kanit',sans-serif;">กำลังโหลด...</td></tr>
+                <tr><td colspan="8" style="text-align:center;padding:32px;color:#aaa;font-family:'Kanit',sans-serif;">กำลังโหลด...</td></tr>
               </tbody>
             </table>
           </div>
@@ -349,6 +350,7 @@ tr:hover td{background:#fafafa;}
             <span>* เติม−ถอน = ยอดเติมเงินอนุมัติ − ยอดถอนเงินอนุมัติ</span>
             <span>* กำไร/ขาดทุน = (เติม − ถอน) จากเดิมพัน (ผู้ชนะรับ − ผู้แพ้หาย)</span>
             <span>* ค่าบริการ = หักจากยอด pool เดิมพันตามเปอร์เซ็นต์ที่ตั้งค่าไว้</span>
+            <span>* เงินรางวัลที่ให้ = กิจกรรม + ค่าคอมมิชชันแนะนำเพื่อน (deposits ที่มี bank = "กิจกรรม:" หรือ "คอมฯ")</span>
           </div>
         </div>
 
@@ -4525,7 +4527,7 @@ async function loadFinanceTable() {
   // โหลดข้อมูลทั้งหมดพร้อมกัน
   const [memRes, depRes, withRes, betRes, settRes] = await Promise.all([
     sb.from('members').select('created_at').order('created_at', { ascending: true }),
-    sb.from('deposits').select('created_at,amount,status').order('created_at', { ascending: true }),
+    sb.from('deposits').select('created_at,amount,status,bank').order('created_at', { ascending: true }),
     sb.from('withdrawals').select('created_at,amount,status').order('created_at', { ascending: true }),
     sb.from('bets').select('created_at,amount,status,odds').order('created_at', { ascending: true }),
     sb.from('settings').select('value').eq('key', 'feeRate').maybeSingle(),
@@ -4613,7 +4615,21 @@ async function loadFinanceTable() {
     // กำไร/ขาดทุน = เติม − ถอน (มุมมองสภาพคล่องระบบ)
     const profitLoss = netFlow;
 
-    return { ...p, newMembers, depAmt, withAmt, netFlow, profitLoss, feeAmt };
+    // เงินรางวัลที่ให้ = deposits approved ที่มี bank ขึ้นต้นด้วย "กิจกรรม:" หรือ "คอมฯ" / referral
+    const rewardAmt = deposits
+      .filter(r => r.status === 'approved'
+        && inRange(r.created_at, p.from, p.to)
+        && (
+          (r.bank || '').startsWith('กิจกรรม:') ||
+          (r.bank || '').includes('commission') ||
+          (r.bank || '').includes('referral') ||
+          (r.bank || '').startsWith('คอมฯ') ||
+          (r.bank || '').includes('แนะนำ')
+        )
+      )
+      .reduce((s, r) => s + Number(r.amount || 0), 0);
+
+    return { ...p, newMembers, depAmt, withAmt, netFlow, profitLoss, feeAmt, rewardAmt };
   });
 
   // Render
@@ -4669,6 +4685,9 @@ async function loadFinanceTable() {
       <td style="padding:12px 14px;text-align:right;font-family:'Kanit',sans-serif;${fontW}font-size:13px;color:#854d0e;">
         ${r.feeAmt > 0 ? '+' : ''}${fmtMoney(r.feeAmt)}
       </td>
+      <td style="padding:12px 14px;text-align:right;font-family:'Kanit',sans-serif;${fontW}font-size:13px;color:#dc2626;">
+        ${r.rewardAmt > 0 ? '−' : ''}${fmt(r.rewardAmt)}
+      </td>
     </tr>`;
   }).join('');
 
@@ -4680,7 +4699,8 @@ async function loadFinanceTable() {
     netFlow:    acc.depAmt    + r.depAmt - (acc.withAmt + r.withAmt),
     profitLoss: acc.profitLoss + r.profitLoss,
     feeAmt:     acc.feeAmt    + r.feeAmt,
-  }), { newMembers:0, depAmt:0, withAmt:0, netFlow:0, profitLoss:0, feeAmt:0 });
+    rewardAmt:  acc.rewardAmt + r.rewardAmt,
+  }), { newMembers:0, depAmt:0, withAmt:0, netFlow:0, profitLoss:0, feeAmt:0, rewardAmt:0 });
   // fix netFlow accumulation
   totals.netFlow = totals.depAmt - totals.withAmt;
 
@@ -4692,6 +4712,7 @@ async function loadFinanceTable() {
     <td style="padding:12px 14px;text-align:right;font-family:'Kanit',sans-serif;font-weight:900;font-size:13px;color:${colorNet(totals.netFlow)};">${totals.netFlow>=0?'+':''}${fmtMoney(totals.netFlow)}</td>
     <td style="padding:12px 14px;text-align:right;font-family:'Kanit',sans-serif;font-weight:900;font-size:14px;color:${colorProfit(totals.profitLoss)};">${totals.profitLoss>=0?'+':''}${fmtMoney(totals.profitLoss)}</td>
     <td style="padding:12px 14px;text-align:right;font-family:'Kanit',sans-serif;font-weight:900;font-size:13px;color:#854d0e;">+${fmtMoney(totals.feeAmt)}</td>
+    <td style="padding:12px 14px;text-align:right;font-family:'Kanit',sans-serif;font-weight:900;font-size:13px;color:#dc2626;">${totals.rewardAmt>0?'−':''}${fmt(totals.rewardAmt)}</td>
   </tr>`;
 }
 </script>
