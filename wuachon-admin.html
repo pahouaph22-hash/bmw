@@ -347,10 +347,11 @@ tr:hover td{background:#fafafa;}
 
           <!-- Footer note -->
           <div style="padding:10px 16px;background:#fafaf8;border-top:1px solid #f0f0ee;font-size:11px;color:#bbb;display:flex;gap:16px;flex-wrap:wrap;">
-            <span>* เติม−ถอน = ยอดเติมเงินอนุมัติ − ยอดถอนเงินอนุมัติ</span>
-            <span>* กำไร/ขาดทุน = (เติม − ถอน) จากเดิมพัน (ผู้ชนะรับ − ผู้แพ้หาย)</span>
-            <span>* ค่าบริการ = หักจากยอด pool เดิมพันตามเปอร์เซ็นต์ที่ตั้งค่าไว้</span>
-            <span>* เงินรางวัลที่ให้ = กิจกรรม + ค่าคอมมิชชันแนะนำเพื่อน (deposits ที่มี bank = "กิจกรรม:" หรือ "คอมฯ")</span>
+            <span>* เติมเงิน = deposits approved ที่ลูกค้าโอนเข้ามาจริง (ไม่รวมรางวัล/ค่าบริการ)</span>
+            <span>* เติม−ถอน = ยอดเติมเงินจริง − ยอดถอนเงินอนุมัติ</span>
+            <span>* กำไร/ขาดทุน = เติม − ถอน (มุมมองสภาพคล่องระบบ)</span>
+            <span>* ค่าบริการ = ดึงจากรายการ deposits ที่ bank = "ค่าบริการ X%" (บันทึกตอน Admin ตัดสินผล)</span>
+            <span>* เงินรางวัลที่ให้ = ดึงจากรายการ deposits ที่ bank = "กิจกรรม:" หรือ "คอมฯ/referral/แนะนำ"</span>
           </div>
         </div>
 
@@ -4587,9 +4588,19 @@ async function loadFinanceTable() {
     // สมาชิกใหม่
     const newMembers = members.filter(r => inRange(r.created_at, p.from, p.to)).length;
 
-    // เติมเงิน (อนุมัติเท่านั้น)
+    // เติมเงิน (อนุมัติเท่านั้น) — ไม่รวมรางวัล/คอมฯ ที่ระบบออกเอง
     const depAmt = deposits
-      .filter(r => r.status === 'approved' && inRange(r.created_at, p.from, p.to))
+      .filter(r => r.status === 'approved'
+        && inRange(r.created_at, p.from, p.to)
+        && !(
+          (r.bank || '').startsWith('กิจกรรม:') ||
+          (r.bank || '').includes('commission') ||
+          (r.bank || '').includes('referral') ||
+          (r.bank || '').startsWith('คอมฯ') ||
+          (r.bank || '').includes('แนะนำ') ||
+          (r.bank || '').startsWith('ค่าบริการ')
+        )
+      )
       .reduce((s, r) => s + Number(r.amount || 0), 0);
 
     // ถอนเงิน (อนุมัติเท่านั้น)
@@ -4600,8 +4611,7 @@ async function loadFinanceTable() {
     // เติม − ถอน
     const netFlow = depAmt - withAmt;
 
-    // เดิมพันในช่วง: คำนวณกำไร/ขาดทุนของระบบ
-    // กำไรระบบ = ยอดแพ้ทั้งหมด − ยอดชนะทั้งหมด (เฉพาะ won/lost)
+    // เดิมพันในช่วง
     const betsInRange = bets.filter(r => inRange(r.created_at, p.from, p.to));
     const betLost = betsInRange
       .filter(r => r.status === 'lost')
@@ -4609,13 +4619,21 @@ async function loadFinanceTable() {
     const betWon = betsInRange
       .filter(r => r.status === 'won')
       .reduce((s, r) => s + Number(r.amount || 0), 0);
-    // pool = lost+won, ค่าบริการหักจาก pool ก่อนจ่าย
-    const poolTotal = betLost + betWon;
-    const feeAmt    = Math.floor(poolTotal * feeRate);
+
+    // ค่าบริการจริง = ดึงจาก deposits ที่ bank ขึ้นต้นด้วย "ค่าบริการ"
+    // (บันทึกตอน Admin ตัดสินผล — ตรงที่สุด)
+    const feeAmt = deposits
+      .filter(r => r.status === 'approved'
+        && inRange(r.created_at, p.from, p.to)
+        && (r.bank || '').startsWith('ค่าบริการ')
+      )
+      .reduce((s, r) => s + Number(r.amount || 0), 0);
+
     // กำไร/ขาดทุน = เติม − ถอน (มุมมองสภาพคล่องระบบ)
     const profitLoss = netFlow;
 
-    // เงินรางวัลที่ให้ = deposits approved ที่มี bank ขึ้นต้นด้วย "กิจกรรม:" หรือ "คอมฯ" / referral
+    // เงินรางวัลที่ให้ = กิจกรรม + ค่าคอมมิชชันแนะนำเพื่อน
+    // ดึงจาก deposits approved ที่ bank บ่งชี้ว่าระบบออกรางวัลเอง
     const rewardAmt = deposits
       .filter(r => r.status === 'approved'
         && inRange(r.created_at, p.from, p.to)
