@@ -4298,7 +4298,22 @@ fns.forEach(function(fn){
         // ยอดเงินเปลี่ยนแปลง → อัปเดตทันที
         updateAccBalance(Number(m.balance || 0));
         currentUser.balance = Number(m.balance || 0);
+        // ── FLAGS เปลี่ยน → apply ทันที (realtime จาก admin) ──
+        const newFlags = Array.isArray(m.flags) ? m.flags : (currentUser.flags || []);
+        const oldFlags = currentUser.flags || [];
+        currentUser.flags = newFlags;
         sessionStorage.setItem('bw_user', JSON.stringify(currentUser));
+        applyFlagUI(newFlags);
+        // แจ้งเตือนถ้ามีป้ายใหม่ถูกติด
+        const added = newFlags.filter(f => !oldFlags.includes(f));
+        if (added.length) {
+          const flagLabels = { no_game:'ห้ามเข้าเกม', no_reward:'ห้ามรับรางวัล', no_withdraw:'ห้ามถอนเงิน', no_deposit:'ห้ามเติมเงิน', blacklist:'บัญชีดำ', watch:'ต้องระวัง', cheater:'ขี้โกง', chg_pass:'เปลี่ยนรหัสผ่าน', chg_bank:'เปลี่ยนบัญชีธนาคาร' };
+          added.forEach(f => {
+            if (['no_game','no_withdraw','no_deposit','blacklist'].includes(f)) {
+              showFEToast(`⚠️ บัญชีของคุณถูกติดป้าย "${flagLabels[f]||f}" — กรุณาติดต่อ Admin ครับ`);
+            }
+          });
+        }
       })
       .subscribe();
   }
@@ -4339,13 +4354,100 @@ fns.forEach(function(fn){
   async function refreshBalance() {
     if (!currentUser) return;
     const { data } = await sb.from('members')
-      .select('balance')
+      .select('balance,flags,admin_note')
       .eq('nick', currentUser.nick)
       .maybeSingle();
     if (data) {
       updateAccBalance(Number(data.balance || 0));
-      currentUser.balance = Number(data.balance || 0);
+      currentUser.balance    = Number(data.balance || 0);
+      currentUser.flags      = Array.isArray(data.flags) ? data.flags : [];
+      currentUser.admin_note = data.admin_note || '';
       sessionStorage.setItem('bw_user', JSON.stringify(currentUser));
+      applyFlagUI(currentUser.flags);
+    }
+  }
+
+  // ── applyFlagUI: ซ่อน/แสดง UI ตามป้ายเตือน ──
+  function applyFlagUI(flags) {
+    if (!flags || !flags.length) {
+      // ไม่มีป้าย → คืนสถานะปกติทุกอย่าง
+      _setDepositEnabled(true);
+      _setWithdrawEnabled(true);
+      _setBetEnabled(true);
+      return;
+    }
+    const blocked   = flags.includes('blacklist');
+    const noDeposit = flags.includes('no_deposit')  || blocked;
+    const noWith    = flags.includes('no_withdraw') || blocked;
+    const noGame    = flags.includes('no_game')     || blocked;
+    _setDepositEnabled(!noDeposit);
+    _setWithdrawEnabled(!noWith);
+    _setBetEnabled(!noGame);
+  }
+
+  // ── helper: block/unblock เติมเงิน ──
+  function _setDepositEnabled(enabled) {
+    // ปุ่มยืนยันส่งคำขอ (step 3)
+    const btn = document.querySelector('[onclick="submitDeposit()"]');
+    if (btn) {
+      btn.disabled = !enabled;
+      btn.style.opacity = enabled ? '1' : '0.4';
+      btn.style.cursor  = enabled ? 'pointer' : 'not-allowed';
+    }
+    // ซ่อน/แสดง banner แจ้งเตือน
+    _flagBanner('dep-flag-banner', !enabled,
+      '🚫 บัญชีของคุณถูกระงับสิทธิ์การเติมเงิน — กรุณาติดต่อ Admin ครับ');
+  }
+
+  // ── helper: block/unblock ถอนเงิน ──
+  function _setWithdrawEnabled(enabled) {
+    const btn = document.querySelector('[onclick="submitWithdraw()"]');
+    if (btn) {
+      btn.disabled = !enabled;
+      btn.style.opacity = enabled ? '1' : '0.4';
+      btn.style.cursor  = enabled ? 'pointer' : 'not-allowed';
+    }
+    _flagBanner('with-flag-banner', !enabled,
+      '🚫 บัญชีของคุณถูกระงับสิทธิ์การถอนเงิน — กรุณาติดต่อ Admin ครับ');
+  }
+
+  // ── helper: block/unblock เดิมพัน ──
+  function _setBetEnabled(enabled) {
+    document.querySelectorAll('.bet-submit-btn, .bet-join-btn').forEach(btn => {
+      btn.disabled = !enabled;
+      btn.style.opacity = enabled ? '1' : '0.4';
+      btn.style.cursor  = enabled ? 'pointer' : 'not-allowed';
+    });
+    _flagBanner('bet-flag-banner', !enabled,
+      '🚫 บัญชีของคุณถูกระงับสิทธิ์การเดิมพัน — กรุณาติดต่อ Admin ครับ');
+  }
+
+  // ── helper: แสดง/ซ่อน banner เตือนในแต่ละ panel ──
+  function _flagBanner(bannerId, show, msg) {
+    let el = document.getElementById(bannerId);
+    if (show) {
+      if (!el) {
+        el = document.createElement('div');
+        el.id = bannerId;
+        el.style.cssText = [
+          'background:#fee2e2','border:1px solid #fca5a5','border-radius:10px',
+          'padding:12px 16px','margin-bottom:14px',
+          'font-family:Kanit,sans-serif','font-weight:700','font-size:13px',
+          'color:#b91c1c','display:flex','align-items:center','gap:8px'
+        ].join(';');
+        // หา parent panel เหมาะสม
+        const targets = {
+          'dep-flag-banner':  () => document.getElementById('dep-step1'),
+          'with-flag-banner': () => document.getElementById('with-has-bank') || document.getElementById('with-no-bank'),
+          'bet-flag-banner':  () => document.querySelector('.bet-panel'),
+        };
+        const parent = targets[bannerId]?.();
+        if (parent) parent.insertBefore(el, parent.firstChild);
+      }
+      el.textContent = msg;
+      el.style.display = 'flex';
+    } else {
+      if (el) el.style.display = 'none';
     }
   }
 
@@ -4831,12 +4933,15 @@ fns.forEach(function(fn){
       currentUser = JSON.parse(savedUser);
       if (currentUser?.nick) {
         setLoggedIn(currentUser.nick);
-        // ดึงยอดเงินล่าสุดจาก Supabase ทันที
-        sb.from('members').select('balance').eq('nick', currentUser.nick).maybeSingle().then(({ data }) => {
+        // ดึงยอดเงิน + flags ล่าสุดจาก Supabase ทันที
+        sb.from('members').select('balance,flags,admin_note').eq('nick', currentUser.nick).maybeSingle().then(({ data }) => {
           if (data) {
-            currentUser.balance = Number(data.balance || 0);
+            currentUser.balance    = Number(data.balance || 0);
+            currentUser.flags      = Array.isArray(data.flags) ? data.flags : [];
+            currentUser.admin_note = data.admin_note || '';
             sessionStorage.setItem('bw_user', JSON.stringify(currentUser));
             updateAccBalance(currentUser.balance);
+            applyFlagUI(currentUser.flags);
           }
         });
         subscribeTxnStatus();
@@ -4913,12 +5018,15 @@ fns.forEach(function(fn){
     const { data } = await sb.from('members').select('*').eq('nick', currentUser.nick).maybeSingle();
     if (data) {
       currentUser = { ...currentUser, ...data };
+      currentUser.flags = Array.isArray(data.flags) ? data.flags : [];
       sessionStorage.setItem('bw_user', JSON.stringify(currentUser));
     }
 
     const nick = currentUser.nick || '';
     // แสดง avatar
     renderAvatar(currentUser);
+    // apply flag UI ทุกครั้งที่เข้าหน้า My Account
+    applyFlagUI(currentUser.flags || []);
     document.getElementById('acc-nick').textContent          = nick;
     document.getElementById('acc-fullname').textContent      = `${currentUser.fname||''} ${currentUser.lname||''} · ${currentUser.phone||''}`;
     document.getElementById('acc-id').textContent            = currentUser.id || '—';
@@ -5138,6 +5246,12 @@ fns.forEach(function(fn){
     const balance = currentUser?.balance || 0;
 
     if (!currentUser) { alert('กรุณา Login ก่อนครับ'); return; }
+    // ── FLAG CHECK ──
+    const flags = currentUser.flags || [];
+    if (flags.includes('no_withdraw') || flags.includes('blacklist')) {
+      showFEToast('🚫 บัญชีของคุณถูกระงับสิทธิ์การถอนเงินครับ — กรุณาติดต่อ Admin');
+      return;
+    }
     if (!currentUser.bank_accno) { showFEToast('⚠️ กรุณาผูกบัญชีธนาคารก่อนครับ'); return; }
     if (!amount || amount < 100) { showFEToast('⚠️ กรุณาใส่จำนวนเงินขั้นต่ำ 100 บาทครับ'); return; }
     if (amount > balance) { showFEToast(`❌ ยอดเงินไม่เพียงพอครับ (คงเหลือ: ${balance.toLocaleString()} ฿)`); return; }
@@ -5432,6 +5546,12 @@ fns.forEach(function(fn){
     if (!bank)    { alert('กรุณาเลือกธนาคารที่โอนจากครับ'); return; }
     if (!hasSlip) { alert('กรุณาแนบสลิปการโอนเงินครับ'); return; }
     if (!currentUser) { alert('กรุณา Login ก่อนครับ'); return; }
+    // ── FLAG CHECK ──
+    const flags = currentUser.flags || [];
+    if (flags.includes('no_deposit') || flags.includes('blacklist')) {
+      alert('🚫 บัญชีของคุณถูกระงับสิทธิ์การเติมเงินครับ — กรุณาติดต่อ Admin');
+      return;
+    }
 
     const txn  = genTxnFE(4);
     const nick = currentUser.nick || '';
@@ -5629,6 +5749,12 @@ fns.forEach(function(fn){
     const bal    = currentUser?.balance || 0;
 
     if (!currentUser) { alert('กรุณาสมัครสมาชิกก่อนวางเดิมพันครับ'); return; }
+    // ── FLAG CHECK ──
+    const _bflags = currentUser.flags || [];
+    if (_bflags.includes('no_game') || _bflags.includes('blacklist')) {
+      showFEToast('🚫 บัญชีของคุณถูกระงับสิทธิ์การเดิมพันครับ — กรุณาติดต่อ Admin');
+      return;
+    }
     if (!side)  { alert('กรุณาเลือกวัวที่ต้องการเดิมพันก่อนครับ'); return; }
     if (amount < 100) { alert('จำนวนเงินขั้นต่ำ 100 บาทครับ'); return; }
     if (amount > bal) { alert(`ยอดเงินไม่เพียงพอครับ\nยอดคงเหลือ: ${bal.toLocaleString()} บาท`); return; }
@@ -5682,6 +5808,12 @@ fns.forEach(function(fn){
   function joinBet(btn, itemId, matchId, opponentNick, opponentSide, amount, odds) {
     const bal = currentUser?.balance || 0;
     if (!currentUser) { alert('กรุณาสมัครสมาชิกก่อนครับ'); return; }
+    // ── FLAG CHECK ──
+    const _jflags = currentUser.flags || [];
+    if (_jflags.includes('no_game') || _jflags.includes('blacklist')) {
+      showFEToast('🚫 บัญชีของคุณถูกระงับสิทธิ์การเดิมพันครับ — กรุณาติดต่อ Admin');
+      return;
+    }
     if (amount > bal) { alert(`ยอดเงินไม่เพียงพอครับ\nยอดคงเหลือ: ${bal.toLocaleString()} บาท`); return; }
 
     const nick      = currentUser.nick || 'คุณ';
