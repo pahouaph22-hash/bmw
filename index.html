@@ -4311,16 +4311,23 @@ fns.forEach(function(fn){
       }, payload => {
         const m = payload.new;
         if (m.nick !== nick) return;
-        // ยอดเงินเปลี่ยนแปลง → อัปเดตทันที
-        updateAccBalance(Number(m.balance || 0));
-        currentUser.balance = Number(m.balance || 0);
-        // ── FLAGS เปลี่ยน → apply ทันที (realtime จาก admin) ──
+
+        const oldBal  = currentUser.balance || 0;
+        const newBal  = Number(m.balance || 0);
+        const diff    = newBal - oldBal;
+
+        // อัปเดตยอดเงิน
+        updateAccBalance(newBal);
+        currentUser.balance = newBal;
+
+        // ── FLAGS เปลี่ยน → apply ทันที ──
         const newFlags = Array.isArray(m.flags) ? m.flags : (currentUser.flags || []);
         const oldFlags = currentUser.flags || [];
         currentUser.flags = newFlags;
         sessionStorage.setItem('bw_user', JSON.stringify(currentUser));
         applyFlagUI(newFlags);
-        // แจ้งเตือนถ้ามีป้ายใหม่ถูกติด
+
+        // แจ้งเตือนป้าย
         const added = newFlags.filter(f => !oldFlags.includes(f));
         if (added.length) {
           const _allFlagMsgs = {
@@ -4336,10 +4343,40 @@ fns.forEach(function(fn){
           };
           added.forEach(f => {
             if (_allFlagMsgs[f]) showFEToast(_allFlagMsgs[f]);
-            // ถ้า chg_pass → เปิด modal บังคับทันที
             if (f === 'chg_pass') setTimeout(() => _setChgPassForced(true), 800);
           });
         }
+      })
+      // ── deposits INSERT → แจ้งเตือนรางวัล/คอมฯ ทันที ──
+      .on('postgres_changes', {
+        event: 'INSERT', schema: 'public', table: 'deposits'
+      }, payload => {
+        const d = payload.new;
+        if (d.nick !== nick) return;
+        if (d.status !== 'approved') return; // ไม่แจ้งถ้าเป็น pending ปกติ
+
+        const amt   = Number(d.amount || 0);
+        const bank  = d.bank || '';
+        const amtFmt = amt.toLocaleString();
+
+        // ─ กิจกรรม (Activity Event) ─
+        if (bank.startsWith('กิจกรรม:')) {
+          const actName = bank.replace('กิจกรรม:', '').trim();
+          addNotification('🎉', `ได้รับรางวัลกิจกรรม!`, `${actName} · +${amtFmt} ฿ เข้าบัญชีแล้วครับ`, 'success');
+          showFEToast(`🎉 ได้รับรางวัล "${actName}" +${amtFmt} ฿ แล้วครับ!`);
+          _showRewardPopup('🎉', 'รางวัลกิจกรรม', actName, amt);
+        }
+        // ─ ค่าคอมมิชชันแนะนำเพื่อน ─
+        else if (bank.startsWith('คอมฯ') || bank.includes('commission') || bank.includes('referral') || bank.includes('แนะนำ')) {
+          addNotification('🎁', `ค่าคอมมิชชันแนะนำเพื่อน`, `+${amtFmt} ฿ เข้าบัญชีแล้วครับ`, 'success');
+          showFEToast(`🎁 ได้รับค่าคอมมิชชัน +${amtFmt} ฿ ครับ!`);
+          _showRewardPopup('🎁', 'ค่าคอมมิชชัน', 'แนะนำเพื่อนลงเดิมพัน', amt);
+        }
+        // ─ ค่าบริการ SYSTEM (ไม่แจ้ง) ─
+        else if (d.nick === 'SYSTEM') {
+          // skip
+        }
+        // ─ อื่น ๆ (เติมเงิน approved มีอยู่แล้วใน deposits UPDATE) ─
       })
       .subscribe();
     _activeChannels[channelName] = ch;
@@ -4583,15 +4620,86 @@ fns.forEach(function(fn){
   function _setCheaterBanner(s)   { applyFlagUI(currentUser?.flags||[]); }
   function _setChgBankForced(f)   { applyFlagUI(currentUser?.flags||[]); }
 
-  function showFEToast(msg) {
+  function showFEToast(msg, duration = 4000) {
     const existing = document.getElementById('toast-fe');
     if (existing) existing.remove();
     const t = document.createElement('div');
     t.id = 'toast-fe';
-    t.style.cssText = 'position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:#1a1a1a;color:#fff;font-family:Kanit,sans-serif;font-size:13px;padding:12px 22px;border-radius:10px;z-index:9999;box-shadow:0 8px 24px rgba(0,0,0,0.4);';
+    t.style.cssText = 'position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:#1a1a1a;color:#fff;font-family:Kanit,sans-serif;font-size:13px;padding:12px 22px;border-radius:10px;z-index:9999;box-shadow:0 8px 24px rgba(0,0,0,0.4);max-width:90vw;text-align:center;';
     t.textContent = msg;
     document.body.appendChild(t);
-    setTimeout(() => t.remove(), 4000);
+    setTimeout(() => t.remove(), duration);
+  }
+
+  // ── popup รางวัล — แสดงตรงกลางหน้าจอ พร้อม animation ──
+  function _showRewardPopup(icon, type, detail, amount) {
+    // ลบอันเก่าก่อน
+    document.getElementById('reward-popup')?.remove();
+    const pop = document.createElement('div');
+    pop.id = 'reward-popup';
+    pop.style.cssText = [
+      'position:fixed','inset:0','z-index:10001',
+      'display:flex','align-items:center','justify-content:center',
+      'padding:20px','background:rgba(0,0,0,0.65)',
+      'animation:fadeInBg .3s ease',
+    ].join(';');
+    pop.innerHTML = `
+      <style>
+        @keyframes fadeInBg { from{opacity:0} to{opacity:1} }
+        @keyframes popIn { from{transform:scale(.7) translateY(30px);opacity:0} to{transform:scale(1) translateY(0);opacity:1} }
+        @keyframes coinSpin { 0%{transform:rotateY(0)} 100%{transform:rotateY(720deg)} }
+        @keyframes shimmer { 0%,100%{opacity:.7} 50%{opacity:1} }
+      </style>
+      <div style="
+        background:linear-gradient(160deg,#0f2e18,#1a4a28);
+        border:2px solid #F5C842;
+        border-radius:22px;
+        padding:32px 28px;
+        width:100%;max-width:320px;
+        text-align:center;
+        box-shadow:0 0 60px rgba(245,200,66,.25);
+        animation:popIn .4s cubic-bezier(.34,1.56,.64,1);
+        position:relative;
+      ">
+        <!-- ปุ่มปิด -->
+        <button onclick="document.getElementById('reward-popup').remove()"
+          style="position:absolute;top:12px;right:14px;background:rgba(255,255,255,.1);border:none;color:#fff;font-size:16px;width:28px;height:28px;border-radius:50%;cursor:pointer;line-height:1;">✕</button>
+
+        <!-- ไอคอน -->
+        <div style="font-size:56px;margin-bottom:8px;animation:coinSpin .8s .2s ease both;">${icon}</div>
+
+        <!-- ประเภท -->
+        <div style="font-family:Kanit,sans-serif;font-size:13px;color:rgba(255,220,100,.7);letter-spacing:1px;margin-bottom:4px;text-transform:uppercase;">${type}</div>
+
+        <!-- รายละเอียด -->
+        <div style="font-family:Kanit,sans-serif;font-weight:700;font-size:15px;color:#fff;margin-bottom:16px;">${detail}</div>
+
+        <!-- ยอดเงิน -->
+        <div style="
+          background:linear-gradient(135deg,#F5C842,#f0a500);
+          border-radius:12px;padding:14px;margin-bottom:20px;
+          animation:shimmer 2s infinite;
+        ">
+          <div style="font-size:11px;color:rgba(0,0,0,.6);font-family:Kanit,sans-serif;margin-bottom:2px;">ยอดรางวัล</div>
+          <div style="font-family:Kanit,sans-serif;font-weight:900;font-size:30px;color:#1a1a1a;">+${Number(amount).toLocaleString()}</div>
+          <div style="font-size:13px;color:rgba(0,0,0,.6);font-family:Kanit,sans-serif;">บาท เข้าบัญชีแล้วครับ!</div>
+        </div>
+
+        <!-- ปุ่ม -->
+        <button onclick="document.getElementById('reward-popup').remove()"
+          style="width:100%;background:linear-gradient(135deg,#1B6B2F,#27943F);color:#fff;font-family:Kanit,sans-serif;font-weight:900;font-size:15px;padding:13px;border:none;border-radius:10px;cursor:pointer;letter-spacing:.5px;">
+          รับทราบ ✓
+        </button>
+      </div>`;
+
+    // ปิดเมื่อคลิกนอก popup
+    pop.addEventListener('click', e => {
+      if (e.target === pop) pop.remove();
+    });
+    document.body.appendChild(pop);
+
+    // ปิดอัตโนมัติหลัง 8 วินาที
+    setTimeout(() => pop?.remove(), 8000);
   }
 
   // ── เปลี่ยนรหัสผ่าน (ลูกค้าทำเอง) ──
