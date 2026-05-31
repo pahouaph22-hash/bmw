@@ -5730,6 +5730,8 @@ fns.forEach(function(fn){
     const navReg = document.getElementById('nav-register');
     if (navAcc) { navAcc.style.display = 'inline'; navAcc.textContent = `👤 ${nick}`; }
     if (navReg) navReg.style.display = 'none';
+    // expose currentUser ให้ functions นอก IIFE เข้าถึงได้
+    window._currentUser = currentUser;
   }
 
   // ── Logout ──
@@ -5739,6 +5741,7 @@ fns.forEach(function(fn){
     // remove flag CSS classes
     document.body.classList.remove('flag-no-game','flag-no-deposit','flag-no-withdraw','flag-no-reward','flag-blacklist');
     currentUser = null;
+    window._currentUser = null;
     sessionStorage.removeItem('bw_user');
     const navAcc = document.getElementById('nav-myaccount');
     const navReg = document.getElementById('nav-register');
@@ -6919,7 +6922,7 @@ fns.forEach(function(fn){
   }
   window.showSchedule = window._real_showSchedule = async function showSchedule() {
     // ── FLAG: no_game / blacklist → redirect ออกจาก schedule ──
-    const _sf = currentUser?.flags || [];
+    const _sf = (window.currentUser || window._currentUser)?.flags || [];
     if (_sf.includes('no_game') || _sf.includes('blacklist') || _sf.includes('cheater')) {
       showFEToast('🚫 บัญชีของคุณถูกระงับสิทธิ์การเดิมพัน — กรุณาติดต่อ Admin ครับ');
       return;
