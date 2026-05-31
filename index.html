@@ -5363,7 +5363,6 @@ fns.forEach(function(fn){
         provider: 'facebook',
         options: {
           redirectTo: window.location.href.split('?')[0],
-          scopes: 'email,public_profile',
         }
       });
       if (error) showFEToast('❌ เข้าสู่ระบบ Facebook ไม่สำเร็จ: ' + error.message);
