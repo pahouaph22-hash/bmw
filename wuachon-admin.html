@@ -562,6 +562,15 @@ tr:hover td{background:#fafafa;}
           <div class="card-title" style="color:var(--green);">✅ เติมเงินสำเร็จ
             <span style="font-size:12px;color:#aaa;font-weight:400;" id="dep-done-count"></span>
           </div>
+          <div class="date-filter">
+            <label>📅 ตั้งแต่</label>
+            <input type="date" class="date-input" id="dep-done-from" onchange="filterDepDone()">
+            <label>ถึง</label>
+            <input type="date" class="date-input" id="dep-done-to" onchange="filterDepDone()">
+            <button class="btn-date-today" onclick="setDateSection('dep-done')">วันนี้</button>
+            <button class="btn-date-today" style="background:#f0f4ff;border-color:#3b82f6;color:#3b82f6;" onclick="setMonthSection('dep-done')">เดือนนี้</button>
+            <button class="btn-date-clear" onclick="clearDateSection('dep-done')">✕ ล้าง</button>
+          </div>
           <div style="overflow-x:auto;">
             <table>
               <thead><tr><th>Nick</th><th>จำนวน</th><th>ธนาคาร</th><th>TXN</th><th>อนุมัติเมื่อ</th></tr></thead>
@@ -574,6 +583,15 @@ tr:hover td{background:#fafafa;}
         <div class="card">
           <div class="card-title" style="color:#f87171;">❌ ถูกปฏิเสธ
             <span style="font-size:12px;color:#aaa;font-weight:400;" id="dep-reject-count"></span>
+          </div>
+          <div class="date-filter">
+            <label>📅 ตั้งแต่</label>
+            <input type="date" class="date-input" id="dep-reject-from" onchange="filterDepReject()">
+            <label>ถึง</label>
+            <input type="date" class="date-input" id="dep-reject-to" onchange="filterDepReject()">
+            <button class="btn-date-today" onclick="setDateSection('dep-reject')">วันนี้</button>
+            <button class="btn-date-today" style="background:#f0f4ff;border-color:#3b82f6;color:#3b82f6;" onclick="setMonthSection('dep-reject')">เดือนนี้</button>
+            <button class="btn-date-clear" onclick="clearDateSection('dep-reject')">✕ ล้าง</button>
           </div>
           <div style="overflow-x:auto;">
             <table>
@@ -612,6 +630,15 @@ tr:hover td{background:#fafafa;}
         <div class="card">
           <div class="card-title" style="color:var(--green);">✅ ถอนเงินสำเร็จ
             <span style="font-size:12px;color:#aaa;font-weight:400;" id="with-done-count"></span>
+          </div>
+          <div class="date-filter">
+            <label>📅 ตั้งแต่</label>
+            <input type="date" class="date-input" id="with-done-from" onchange="filterWithDone()">
+            <label>ถึง</label>
+            <input type="date" class="date-input" id="with-done-to" onchange="filterWithDone()">
+            <button class="btn-date-today" onclick="setDateSection('with-done')">วันนี้</button>
+            <button class="btn-date-today" style="background:#f0f4ff;border-color:#3b82f6;color:#3b82f6;" onclick="setMonthSection('with-done')">เดือนนี้</button>
+            <button class="btn-date-clear" onclick="clearDateSection('with-done')">✕ ล้าง</button>
           </div>
           <div style="overflow-x:auto;">
             <table>
@@ -1065,6 +1092,45 @@ function clearDate(prefix) {
   updateDateTag(prefix);
   const filterFns = { mem: filterMembers, match: filterMatches_, dep: filterDeposits, with: filterWithdrawals, bet: filterBets };
   if (filterFns[prefix]) filterFns[prefix]();
+}
+
+// ── helper สำหรับ section filter (dep-done, dep-reject, with-done) ──
+function setDateSection(section) {
+  const today = todayStr();
+  const from = document.getElementById(`${section}-from`);
+  const to   = document.getElementById(`${section}-to`);
+  if (from) from.value = today;
+  if (to)   to.value   = today;
+  _callSectionFilter(section);
+}
+
+function setMonthSection(section) {
+  const now   = new Date();
+  const y     = now.getFullYear();
+  const m     = String(now.getMonth()+1).padStart(2,'0');
+  const last  = new Date(y, now.getMonth()+1, 0).getDate();
+  const from  = document.getElementById(`${section}-from`);
+  const to    = document.getElementById(`${section}-to`);
+  if (from) from.value = `${y}-${m}-01`;
+  if (to)   to.value   = `${y}-${m}-${String(last).padStart(2,'0')}`;
+  _callSectionFilter(section);
+}
+
+function clearDateSection(section) {
+  const from = document.getElementById(`${section}-from`);
+  const to   = document.getElementById(`${section}-to`);
+  if (from) from.value = '';
+  if (to)   to.value   = '';
+  _callSectionFilter(section);
+}
+
+function _callSectionFilter(section) {
+  const map = {
+    'dep-done':    filterDepDone,
+    'dep-reject':  filterDepReject,
+    'with-done':   filterWithDone,
+  };
+  if (map[section]) map[section]();
 }
 
 function updateDateTag(prefix) {
@@ -2128,20 +2194,49 @@ function filterDeposits() {
   updateDateTag('dep');
 
   const pending  = filtered.filter(d => d.status === 'pending');
-  const approved = allDeposits.filter(d => d.status === 'approved');
-  const rejected = allDeposits.filter(d => d.status === 'rejected');
 
-  // อัปเดต count badge
   const pdEl = document.getElementById('dep-pending-count');
-  const dnEl = document.getElementById('dep-done-count');
-  const rjEl = document.getElementById('dep-reject-count');
   if (pdEl) pdEl.textContent = `(${pending.length} รายการ)`;
-  if (dnEl) dnEl.textContent = `(${approved.length} รายการ)`;
-  if (rjEl) rjEl.textContent = `(${rejected.length} รายการ)`;
 
   renderDepositsPending(pending);
-  renderDepositsDone(approved);
-  renderDepositsRejected(rejected);
+  filterDepDone();
+  filterDepReject();
+}
+
+// ── filter เติมเงินสำเร็จ แยกช่วงเวลา ──
+function filterDepDone() {
+  const from = document.getElementById('dep-done-from')?.value || '';
+  const to   = document.getElementById('dep-done-to')?.value   || '';
+  let rows = allDeposits.filter(d => d.status === 'approved');
+  if (from || to) {
+    rows = rows.filter(d => {
+      const dt = (d.approved_at || d.created_at || '').slice(0,10);
+      if (from && dt < from) return false;
+      if (to   && dt > to)   return false;
+      return true;
+    });
+  }
+  const el = document.getElementById('dep-done-count');
+  if (el) el.textContent = `(${rows.length} รายการ)`;
+  renderDepositsDone(rows);
+}
+
+// ── filter ถูกปฏิเสธ แยกช่วงเวลา ──
+function filterDepReject() {
+  const from = document.getElementById('dep-reject-from')?.value || '';
+  const to   = document.getElementById('dep-reject-to')?.value   || '';
+  let rows = allDeposits.filter(d => d.status === 'rejected');
+  if (from || to) {
+    rows = rows.filter(d => {
+      const dt = (d.created_at || '').slice(0,10);
+      if (from && dt < from) return false;
+      if (to   && dt > to)   return false;
+      return true;
+    });
+  }
+  const el = document.getElementById('dep-reject-count');
+  if (el) el.textContent = `(${rows.length} รายการ)`;
+  renderDepositsRejected(rows);
 }
 
 function renderDepositsPending(rows) {
@@ -2288,14 +2383,29 @@ async function loadWithdrawals() {
 function filterWithdrawals() {
   const filtered = allWithdrawals.filter(w => inDateRange(w, 'with', 'created_at'));
   updateDateTag('with');
-  const pending  = filtered.filter(w => w.status === 'pending');
-  const approved = allWithdrawals.filter(w => w.status === 'approved');
+  const pending = filtered.filter(w => w.status === 'pending');
   const pdEl = document.getElementById('with-pending-count');
-  const dnEl = document.getElementById('with-done-count');
   if (pdEl) pdEl.textContent = `(${pending.length} รายการ)`;
-  if (dnEl) dnEl.textContent = `(${approved.length} รายการ)`;
   renderWithdrawalsPending(pending);
-  renderWithdrawalsDone(approved);
+  filterWithDone();
+}
+
+// ── filter ถอนเงินสำเร็จ แยกช่วงเวลา ──
+function filterWithDone() {
+  const from = document.getElementById('with-done-from')?.value || '';
+  const to   = document.getElementById('with-done-to')?.value   || '';
+  let rows = allWithdrawals.filter(w => w.status === 'approved');
+  if (from || to) {
+    rows = rows.filter(w => {
+      const dt = (w.approved_at || w.created_at || '').slice(0,10);
+      if (from && dt < from) return false;
+      if (to   && dt > to)   return false;
+      return true;
+    });
+  }
+  const el = document.getElementById('with-done-count');
+  if (el) el.textContent = `(${rows.length} รายการ)`;
+  renderWithdrawalsDone(rows);
 }
 
 function renderWithdrawalsPending(rows) {
