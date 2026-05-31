@@ -1714,10 +1714,12 @@ async function loadSettings() {
     if (bigPrev) bigPrev.textContent = lt || n1;
   };
   window.updateSitePreview();
-  // โหลดรูปวัว hero
-  if (siteInfo.heroBull) {
+  // โหลดรูปวัว hero จาก key 'heroBull'
+  const heroBullVal = data.find(s=>s.key==='heroBull')?.value?.img || siteInfo.heroBull || null;
+  if (heroBullVal) {
+    window._heroBullBase64 = heroBullVal;
     const prev = document.getElementById('hero-bull-preview');
-    if (prev) prev.innerHTML = `<img src="${siteInfo.heroBull}" style="width:100%;height:100%;object-fit:contain;">`;
+    if (prev) prev.innerHTML = `<img src="${heroBullVal}" style="width:100%;height:100%;object-fit:contain;">`;
   }
 
   const setVal = (id, val) => { const el = document.getElementById(id); if (el && val) el.value = val; };
@@ -1791,13 +1793,25 @@ async function saveSettings(type) {
     }
     const siteBtn = document.getElementById('btn-save-siteInfo');
     if (siteBtn) { siteBtn.disabled = true; siteBtn.textContent = '⏳ กำลังบันทึก...'; }
-    await sb.from('settings').upsert({
+    // บันทึก siteInfo (ไม่รวมรูป)
+    const { error: e1 } = await sb.from('settings').upsert({
       key: 'siteInfo',
-      value: { name1, name2, logoTop, logoBottom, pageTitle, heroBull }
+      value: { name1, name2, logoTop, logoBottom, pageTitle }
     }, { onConflict: 'key' });
-    if (siteBtn) { siteBtn.disabled = false; siteBtn.textContent = '💾 บันทึกชื่อเว็บ & โลโก้'; }
-    window._heroBullBase64 = heroBull;
-    showToast('✅ บันทึกแล้วครับ! (Reload หน้าเว็บเพื่อเห็นผล)');
+    if (e1) { showToast('❌ บันทึกชื่อเว็บไม่สำเร็จ: ' + e1.message, 'error'); if (siteBtn) { siteBtn.disabled=false; siteBtn.textContent='💾 ยืนยันการเปลี่ยนแปลง'; } return; }
+
+    // บันทึกรูปวัวแยก key (เพราะ base64 ใหญ่)
+    if (heroBull !== null) {
+      const { error: e2 } = await sb.from('settings').upsert({
+        key: 'heroBull',
+        value: { img: heroBull }
+      }, { onConflict: 'key' });
+      if (e2) { showToast('⚠️ บันทึกรูปวัวไม่สำเร็จ: ' + e2.message, 'error'); }
+      else { window._heroBullBase64 = heroBull; }
+    }
+
+    if (siteBtn) { siteBtn.disabled = false; siteBtn.textContent = '💾 ยืนยันการเปลี่ยนแปลง'; }
+    showToast('✅ บันทึกแล้วครับ! กด Reload เพื่อเห็นรูปใหม่');
     return;
   }
   if (type === 'refRate') {
