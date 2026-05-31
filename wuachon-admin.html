@@ -510,6 +510,23 @@ tr:hover td{background:#fafafa;}
               <div style="font-size:11px;color:#aaa;margin-top:4px;">แสดงที่แท็บบราวเซอร์</div>
             </div>
           </div>
+
+          <!-- รูปวัว Hero -->
+          <div class="form-row">
+            <div class="fg">
+              <label>🐂 รูปวัวหน้าหลัก (Hero Image)</label>
+              <div style="display:flex;align-items:center;gap:16px;margin-top:8px;">
+                <div id="hero-bull-preview" style="width:90px;height:90px;border-radius:16px;border:2px dashed #F5A800;background:#1a0a00;display:flex;align-items:center;justify-content:center;font-size:48px;overflow:hidden;flex-shrink:0;">🐂</div>
+                <div style="flex:1;">
+                  <input type="file" id="sf-hero-bull-file" accept="image/*" style="display:none;" onchange="previewHeroBull(this)">
+                  <button type="button" onclick="document.getElementById('sf-hero-bull-file').click()" style="font-family:'Kanit',sans-serif;font-size:13px;font-weight:700;padding:9px 18px;border-radius:8px;border:1px solid rgba(245,200,66,0.4);background:rgba(245,200,66,0.08);color:#F5A800;cursor:pointer;width:100%;margin-bottom:6px;">📁 เลือกรูปวัว</button>
+                  <button type="button" onclick="clearHeroBull()" style="font-family:'Kanit',sans-serif;font-size:12px;padding:7px 18px;border-radius:8px;border:1px solid #e5e5e0;background:#f9f9f9;color:#888;cursor:pointer;width:100%;">✕ ใช้ Emoji 🐂 แทน</button>
+                  <div style="font-size:11px;color:#aaa;margin-top:6px;">แนะนำ PNG พื้นหลังโปร่งใส · ไม่เกิน 2MB</div>
+                </div>
+              </div>
+            </div>
+          </div>
+
           <!-- Preview -->
           <div style="background:#f9f9f9;border:1px solid #e5e5e0;border-radius:10px;padding:14px;margin:12px 0;">
             <div style="font-size:11px;color:#888;margin-bottom:8px;font-weight:700;">👁️ Preview Navbar:</div>
@@ -1584,6 +1601,32 @@ async function addNews() {
   loadNews();
 }
 
+function previewHeroBull(input) {
+  const file = input.files[0];
+  if (!file) return;
+  if (file.size > 2 * 1024 * 1024) {
+    showToast('⚠️ รูปต้องไม่เกิน 2MB ครับ', 'error');
+    input.value = '';
+    return;
+  }
+  const reader = new FileReader();
+  reader.onload = e => {
+    window._heroBullBase64 = e.target.result;
+    const prev = document.getElementById('hero-bull-preview');
+    if (prev) prev.innerHTML = `<img src="${e.target.result}" style="width:100%;height:100%;object-fit:contain;">`;
+  };
+  reader.readAsDataURL(file);
+}
+
+function clearHeroBull() {
+  window._heroBullBase64 = null;
+  const input = document.getElementById('sf-hero-bull-file');
+  if (input) input.value = '';
+  const prev = document.getElementById('hero-bull-preview');
+  if (prev) prev.innerHTML = '🐂';
+  showToast('✅ รีเซ็ตเป็น Emoji แล้วครับ (กด "💾 บันทึก" เพื่อยืนยัน)');
+}
+
 async function deleteNews(id) {
   if (!confirm('ลบข้อความนี้ใช่ไหมครับ?')) return;
   await sb.from('news').delete().eq('id',id);
@@ -1648,6 +1691,11 @@ async function loadSettings() {
   if (n1El) n1El.addEventListener('input', updatePreview);
   if (n2El) n2El.addEventListener('input', updatePreview);
   updatePreview();
+  // โหลดรูปวัว hero
+  if (siteInfo.heroBull) {
+    const prev = document.getElementById('hero-bull-preview');
+    if (prev) prev.innerHTML = `<img src="${siteInfo.heroBull}" style="width:100%;height:100%;object-fit:contain;">`;
+  }
 
   if (bank.bankName) document.getElementById('sf-bank').value    = bank.bankName;
   if (bank.accNo)    document.getElementById('sf-accno').value   = bank.accNo;
@@ -1706,11 +1754,26 @@ async function saveSettings(type) {
     const logoTop   = document.getElementById('sf-logo-top')?.value.trim() || 'วัวชนไทย';
     const logoBottom= document.getElementById('sf-logo-bottom')?.value.trim() || 'BULL FIGHT THAI';
     const pageTitle = document.getElementById('sf-pagetitle')?.value.trim() || '';
+    // อ่านรูปวัว hero
+    const heroBullFile = document.getElementById('sf-hero-bull-file')?.files[0] || null;
+    let heroBull = window._heroBullBase64 || null; // ใช้ค่าที่เก็บไว้
+    if (heroBullFile) {
+      heroBull = await new Promise((res, rej) => {
+        const r = new FileReader();
+        r.onload = e => res(e.target.result);
+        r.onerror = () => rej();
+        r.readAsDataURL(heroBullFile);
+      });
+    }
+    const siteBtn = document.querySelector('[onclick="saveSettings('siteInfo')"]');
+    if (siteBtn) { siteBtn.disabled = true; siteBtn.textContent = '⏳ กำลังบันทึก...'; }
     await sb.from('settings').upsert({
       key: 'siteInfo',
-      value: { name1, name2, logoTop, logoBottom, pageTitle }
+      value: { name1, name2, logoTop, logoBottom, pageTitle, heroBull }
     }, { onConflict: 'key' });
-    showToast('✅ บันทึกชื่อเว็บ & โลโก้แล้วครับ! (Reload หน้าเว็บเพื่อเห็นผล)');
+    if (siteBtn) { siteBtn.disabled = false; siteBtn.textContent = '💾 บันทึกชื่อเว็บ & โลโก้'; }
+    window._heroBullBase64 = heroBull;
+    showToast('✅ บันทึกแล้วครับ! (Reload หน้าเว็บเพื่อเห็นผล)');
     return;
   }
   if (type === 'refRate') {
