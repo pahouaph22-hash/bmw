@@ -5673,6 +5673,9 @@ async function loadFinanceTable() {
     ? (v/1000).toFixed(1) + 'K'
     : v.toLocaleString();
 
+  // แสดงตัวเลขเต็มพร้อม comma (ไม่ย่อ K/M)
+  const fmtFull = v => Number(v).toLocaleString('th-TH');
+
   const fmtMoney = v => {
     const sign = v < 0 ? '−' : '';
     return sign + fmt(Math.abs(v));
@@ -5698,7 +5701,7 @@ async function loadFinanceTable() {
         ${r.newMembers > 0 ? '+' : ''}${r.newMembers.toLocaleString()}
       </td>
       <td style="padding:12px 14px;text-align:right;font-family:'Kanit',sans-serif;${fontW}font-size:13px;color:#16a34a;">
-        ${r.depAmt > 0 ? '+' : ''}${fmtMoney(r.depAmt)}
+        ${r.depAmt > 0 ? '+' : ''}${fmtFull(r.depAmt)}
       </td>
       <td style="padding:12px 14px;text-align:right;font-family:'Kanit',sans-serif;${fontW}font-size:13px;color:#dc2626;">
         ${r.withAmt > 0 ? '−' : ''}${fmt(r.withAmt)}
@@ -5741,7 +5744,7 @@ async function loadFinanceTable() {
   tbody.innerHTML += `<tr style="background:#f0f4f8;border-top:2px solid #e5e5e0;">
     <td style="padding:12px 16px;font-family:'Kanit',sans-serif;font-weight:900;font-size:13px;">รวมทั้งหมด</td>
     <td style="padding:12px 14px;text-align:right;font-family:'Kanit',sans-serif;font-weight:900;font-size:13px;color:#3b82f6;">+${totals.newMembers.toLocaleString()}</td>
-    <td style="padding:12px 14px;text-align:right;font-family:'Kanit',sans-serif;font-weight:900;font-size:13px;color:#16a34a;">+${fmtMoney(totals.depAmt)}</td>
+    <td style="padding:12px 14px;text-align:right;font-family:'Kanit',sans-serif;font-weight:900;font-size:13px;color:#16a34a;">+${fmtFull(totals.depAmt)}</td>
     <td style="padding:12px 14px;text-align:right;font-family:'Kanit',sans-serif;font-weight:900;font-size:13px;color:#dc2626;">−${fmt(totals.withAmt)}</td>
     <td style="padding:12px 14px;text-align:right;font-family:'Kanit',sans-serif;font-weight:900;font-size:13px;color:${colorNet(totals.netFlow)};">${totals.netFlow>=0?'+':''}${fmtMoney(totals.netFlow)}</td>
     <td style="padding:12px 14px;text-align:right;font-family:'Kanit',sans-serif;font-weight:900;font-size:14px;color:${colorProfit(totals.profitLoss)};">${totals.profitLoss>=0?'+':''}${fmtMoney(totals.profitLoss)}</td>
