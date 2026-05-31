@@ -598,6 +598,7 @@ tr:hover td{background:#fafafa;}
         <div class="card">
           <div class="card-title">🏦 บัญชีรับเงิน</div>
           <div class="form-row">
+            <div class="fg"><label>ธนาคาร</label><input id="sf-bank" placeholder="เช่น กสิกรไทย, ธนาคารลาว..."></div>
             <div class="fg"><label>เลขบัญชี</label><input id="sf-accno" placeholder="XXX-X-XXXXX-X"></div>
           </div>
           <div class="form-row">
@@ -1719,13 +1720,14 @@ async function loadSettings() {
     if (prev) prev.innerHTML = `<img src="${siteInfo.heroBull}" style="width:100%;height:100%;object-fit:contain;">`;
   }
 
-  if (bank.bankName) document.getElementById('sf-bank').value    = bank.bankName;
-  if (bank.accNo)    document.getElementById('sf-accno').value   = bank.accNo;
-  if (bank.accName)  document.getElementById('sf-accname').value = bank.accName;
-  if (contact.phone1)    document.getElementById('sf-phone').value = contact.phone1;
-  if (contact.lineId)    document.getElementById('sf-line').value  = contact.lineId;
-  if (contact.fbName)    document.getElementById('sf-fb').value    = contact.fbName;
-  if (contact.hoursTime) document.getElementById('sf-hours').value = contact.hoursTime;
+  const setVal = (id, val) => { const el = document.getElementById(id); if (el && val) el.value = val; };
+  setVal('sf-bank',    bank.bankName);
+  setVal('sf-accno',   bank.accNo);
+  setVal('sf-accname', bank.accName);
+  setVal('sf-phone',   contact.phone1);
+  setVal('sf-line',    contact.lineId);
+  setVal('sf-fb',      contact.fbName);
+  setVal('sf-hours',   contact.hoursTime);
 
   // โหลดค่า fee rate
   const feeEl = document.getElementById('sf-fee-rate');
