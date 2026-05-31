@@ -3870,13 +3870,11 @@ fns.forEach(function(fn){
 
       // ===== SITE INFO =====
       const siteInfo = data.find(s => s.key === 'siteInfo')?.value || {};
-      // รูปวัว hero — โหลดจาก key 'heroBull' แยกต่างหาก
-      const heroBullData = data.find(s => s.key === 'heroBull')?.value || {};
-      const heroBullImg = heroBullData.img || siteInfo.heroBull || null;
+      // รูปวัว hero — โหลดจาก siteInfo.heroBull
+      const heroBullImg = siteInfo.heroBull || null;
       if (heroBullImg) {
         const wrap = document.getElementById('hero-bull-wrap');
         if (wrap) {
-          // ล้าง emoji เดิม แล้วใส่รูปจริง
           wrap.innerHTML = `<img src="${heroBullImg}" alt="hero bull" id="hero-bull-img" style="width:120px;height:120px;object-fit:contain;filter:drop-shadow(0 8px 24px rgba(245,200,66,0.4));">`;
         }
       }
