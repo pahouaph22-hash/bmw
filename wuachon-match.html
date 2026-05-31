@@ -500,18 +500,13 @@ function updatePreview() {
 async function placeBet() {
   if (!currentUser) { showToast('กรุณาเข้าสู่ระบบก่อนครับ'); return; }
 
-  // ตรวจสอบ status ปัจจุบัน
   const currentStatus = normalizeStatus(matchData?.status);
-  if (currentStatus === 'live') {
-    showToast('🔴 ปิดรับเดิมพันแล้ว — การแข่งขันเริ่มขึ้นแล้วครับ'); return;
-  }
-  if (currentStatus === 'done') {
-    showToast('✅ การแข่งขันจบแล้วครับ'); return;
-  }
-
+  if (currentStatus === 'live') { showToast('🔴 ปิดรับเดิมพันแล้ว'); return; }
+  if (currentStatus === 'done') { showToast('✅ การแข่งขันจบแล้วครับ'); return; }
   if (!selectedSide) { showToast('กรุณาเลือกฝั่งก่อนครับ'); return; }
+
   const amount = parseFloat(document.getElementById('bet-amount')?.value);
-  const odds = parseFloat(document.getElementById('bet-odds')?.value) || 1.9;
+  const odds   = parseFloat(document.getElementById('bet-odds')?.value) || 1.9;
   if (!amount || amount < 10) { showToast('จำนวนเงินขั้นต่ำ 10 บาทครับ'); return; }
   if (currentUser.balance < amount) { showToast('ยอดเงินไม่พอครับ'); return; }
 
@@ -520,16 +515,17 @@ async function placeBet() {
 
   const sideName = selectedSide === 'red' ? (matchData?.name_a || 'เจ้าบ้าน') : (matchData?.name_b || 'ทีมเยือน');
   const txn = 'BET-' + Date.now() + '-' + Math.random().toString(36).slice(2,6).toUpperCase();
+  const expiresAt = new Date(Date.now() + 2 * 60 * 60 * 1000).toISOString();
 
   const { error } = await sb.from('bets').insert({
-    match_id: matchId,
-    nick: currentUser.nick,
-    side: selectedSide,
-    side_name: sideName,
-    amount,
-    odds,
-    txn,
-    status: 'waiting'
+    match_id: matchId, nick: currentUser.nick,
+    side: selectedSide, side_name: sideName,
+    amount, odds, txn, status: 'waiting',
+    match_status: 'waiting',
+    order_amount: amount,
+    matched_amount: 0,
+    remaining_amount: amount,
+    expires_at: expiresAt,
   });
 
   if (error) {
@@ -544,86 +540,147 @@ async function placeBet() {
   currentUser.balance = newBalance;
   sessionStorage.setItem('bw_user', JSON.stringify(currentUser));
 
-  showToast('✅ วางเดิมพันสำเร็จ!');
+  showToast('✅ วางเดิมพันสำเร็จ! รอคนมาจับคู่ครับ');
   selectedSide = null;
   if (document.getElementById('bet-amount')) document.getElementById('bet-amount').value = '';
-  await loadBets();
-  renderBetsList();
+  await loadBets(); renderBetsList();
   if (btn) { btn.disabled = false; btn.textContent = 'วางเดิมพัน'; }
 }
 
-// ===== JOIN BET =====
-async function joinBet(betId, oppNick, oppSide, oppAmount, oppOdds) {
+// ===== JOIN BET — PARTIAL MATCH =====
+async function joinBet(betId, oppNick, oppSide, oppOdds) {
   if (!currentUser) { showToast('กรุณาเข้าสู่ระบบก่อนครับ'); return; }
-
-  // ตรวจสอบ status ปัจจุบัน
-  const currentStatus = normalizeStatus(matchData?.status);
-  if (currentStatus === 'live') {
-    showToast('🔴 ปิดรับเดิมพันแล้ว — การแข่งขันเริ่มขึ้นแล้วครับ'); return;
-  }
-  if (currentStatus === 'done') {
-    showToast('✅ การแข่งขันจบแล้วครับ'); return;
-  }
-
   if (currentUser.nick === oppNick) { showToast('ไม่สามารถรับคู่ของตัวเองได้ครับ'); return; }
 
-  const mySide = oppSide === 'red' ? 'blue' : 'red';
+  const currentStatus = normalizeStatus(matchData?.status);
+  if (currentStatus !== 'upcoming') { showToast('ปิดรับเดิมพันแล้วครับ'); return; }
+
+  // ดึงข้อมูล order ล่าสุด
+  const { data: order } = await sb.from('bets').select('*').eq('id', betId).maybeSingle();
+  if (!order || order.remaining_amount <= 0) { showToast('รายการนี้จับคู่ครบแล้วครับ'); await loadBets(); renderBetsList(); return; }
+
+  // อ่าน custom amount จาก input
+  const inp = document.getElementById('join-amt-' + betId);
+  let joinAmt = parseFloat(inp?.value || 0);
+  if (!joinAmt || joinAmt < 10) { showToast('กรุณากรอกจำนวนเงินที่ต้องการจับครับ'); return; }
+  joinAmt = Math.min(joinAmt, order.remaining_amount); // ไม่เกิน remaining
+  if (currentUser.balance < joinAmt) { showToast(`ยอดไม่พอครับ (ต้องการ ${joinAmt.toLocaleString()} ฿)`); return; }
+
+  const mySide     = oppSide === 'red' ? 'blue' : 'red';
   const mySideName = mySide === 'red' ? (matchData?.name_a || 'เจ้าบ้าน') : (matchData?.name_b || 'ทีมเยือน');
-  const myAmount = oppAmount / oppOdds;
-
-  if (currentUser.balance < myAmount) { showToast(`ต้องการ ${myAmount.toFixed(0)} ฿ (ยอดไม่พอ)`); return; }
-
-  // อัปเดต bet เก่า → matched
-  const { error } = await sb.from('bets').update({ status: 'matched', matched_with: currentUser.nick }).eq('id', betId);
-  if (error) { showToast('เกิดข้อผิดพลาด'); return; }
-
-  // สร้าง bet ของตัวเอง
   const txn = 'BET-' + Date.now() + '-' + Math.random().toString(36).slice(2,6).toUpperCase();
+
+  // อัปเดต order หลัก
+  const newMatched   = Number(order.matched_amount || 0) + joinAmt;
+  const newRemaining = Number(order.order_amount) - newMatched;
+  const newStatus    = newRemaining <= 0 ? 'full' : 'partial';
+
+  await sb.from('bets').update({
+    matched_amount: newMatched,
+    remaining_amount: Math.max(0, newRemaining),
+    match_status: newStatus,
+    status: newRemaining <= 0 ? 'matched' : 'waiting',
+  }).eq('id', betId);
+
+  // สร้าง bet ของผู้จับ
   await sb.from('bets').insert({
-    match_id: matchId, nick: currentUser.nick, side: mySide, side_name: mySideName,
-    amount: myAmount, odds: oppOdds, txn, status: 'matched', matched_with: oppNick
+    match_id: matchId, nick: currentUser.nick,
+    side: mySide, side_name: mySideName,
+    amount: joinAmt, odds: oppOdds, txn,
+    status: 'matched', match_status: 'full',
+    order_amount: joinAmt, matched_amount: joinAmt, remaining_amount: 0,
+    parent_bet_id: betId,
   });
 
-  const newBal = (currentUser.balance || 0) - myAmount;
+  // หักเงิน
+  const newBal = (currentUser.balance || 0) - joinAmt;
   await sb.from('members').update({ balance: newBal }).eq('nick', currentUser.nick);
   currentUser.balance = newBal;
   sessionStorage.setItem('bw_user', JSON.stringify(currentUser));
 
-  showToast('✅ จับคู่เดิมพันสำเร็จ!');
+  const potential = (joinAmt * oppOdds).toLocaleString('th-TH', {maximumFractionDigits:0});
+  showToast(`✅ จับ ${joinAmt.toLocaleString()} ฿ สำเร็จ! · คาดได้รับ ${potential} ฿`);
   await loadBets(); renderBetsList();
+}
+
+function _setJoinMax(betId, remaining) {
+  const inp = document.getElementById('join-amt-' + betId);
+  if (inp) inp.value = Math.min(remaining, currentUser?.balance || 0);
 }
 
 // ===== RENDER BETS LIST =====
 function renderBetsList() {
-  const el = document.getElementById('bets-list-area');
+  const el      = document.getElementById('bets-list-area');
   const countEl = document.getElementById('bets-count');
   if (!el) return;
   if (countEl) countEl.textContent = allBets.length;
-
   if (!allBets.length) { el.innerHTML = '<div class="empty">ยังไม่มีรายการเดิมพัน</div>'; return; }
 
   el.innerHTML = allBets.map(b => {
-    const sideClass = b.side === 'red' ? 'bet-side-r' : 'bet-side-b';
-    const statusClass = b.status === 'matched' ? 'bs-matched' : b.status === 'won' ? 'bs-matched' : b.status === 'lost' ? '' : 'bs-waiting';
-    const statusLabel = b.status === 'matched' ? '🟢 จับคู่แล้ว' : b.status === 'won' ? '🏆 ชนะ' : b.status === 'lost' ? '❌ แพ้' : '⏳ รอคู่';
-    const canJoin = b.status === 'waiting'
+    const sideClass  = b.side === 'red' ? 'bet-side-r' : 'bet-side-b';
+    const mStatus    = b.match_status || (b.status === 'matched' ? 'full' : b.status === 'waiting' ? 'waiting' : b.status);
+    const isWaiting  = ['waiting','partial'].includes(mStatus);
+    const isFull     = mStatus === 'full' || b.status === 'matched';
+    const isTimeout  = mStatus === 'timeout';
+
+    const orderAmt   = Number(b.order_amount || b.amount || 0);
+    const matchedAmt = Number(b.matched_amount || 0);
+    const remainAmt  = Number(b.remaining_amount ?? orderAmt - matchedAmt);
+    const pct        = orderAmt > 0 ? Math.round((matchedAmt / orderAmt) * 100) : 0;
+
+    const statusLabel = isFull     ? '🟢 จับคู่แล้ว'
+                      : mStatus === 'partial' ? '🟡 จับบางส่วน'
+                      : isTimeout  ? '⏰ หมดเวลา'
+                      : b.status === 'won' ? '🏆 ชนะ'
+                      : b.status === 'lost' ? '❌ แพ้'
+                      : '⏳ รอคู่';
+    const statusClass = isFull ? 'bs-matched' : b.status === 'won' ? 'bs-matched' : '';
+
+    const canJoin = isWaiting
       && currentUser
       && currentUser.nick !== b.nick
-      && normalizeStatus(matchData?.status) === 'upcoming'; // รับได้เฉพาะตอน upcoming
-    const myAmount = (b.amount / b.odds).toFixed(0);
+      && normalizeStatus(matchData?.status) === 'upcoming'
+      && !b.parent_bet_id; // แสดงเฉพาะ order หลัก
+
+    // Progress Bar
+    const progressBar = (orderAmt > 0 && (matchedAmt > 0 || isWaiting)) ? `
+      <div style="margin:6px 0 4px;">
+        <div style="display:flex;justify-content:space-between;font-size:10px;color:rgba(255,255,255,.45);margin-bottom:3px;">
+          <span>จับแล้ว ${matchedAmt.toLocaleString()} ฿ (${pct}%)</span>
+          <span>เหลือ ${remainAmt.toLocaleString()} ฿</span>
+        </div>
+        <div style="width:100%;height:5px;background:rgba(255,255,255,.12);border-radius:999px;overflow:hidden;">
+          <div style="height:100%;width:${pct}%;background:linear-gradient(90deg,#4ade80,#22c55e);border-radius:999px;transition:width .5s;"></div>
+        </div>
+      </div>` : '';
+
+    // Custom Join Input
+    const joinInput = canJoin ? `
+      <div style="display:flex;gap:6px;align-items:center;margin-top:8px;flex-wrap:wrap;">
+        <div style="position:relative;flex:1;min-width:90px;">
+          <input type="number" id="join-amt-${b.id}"
+            value="${Math.min(remainAmt, currentUser?.balance||0).toFixed(0)}"
+            min="10" max="${remainAmt}"
+            style="width:100%;padding:6px 28px 6px 8px;border:1px solid rgba(245,200,66,.4);border-radius:8px;background:rgba(255,255,255,.08);color:#fff;font-family:'Kanit',sans-serif;font-size:13px;box-sizing:border-box;">
+          <span style="position:absolute;right:7px;top:50%;transform:translateY(-50%);font-size:10px;color:rgba(255,255,255,.4);">฿</span>
+        </div>
+        <button onclick="_setJoinMax('${b.id}',${remainAmt})"
+          style="font-size:11px;font-weight:700;padding:6px 11px;border-radius:7px;border:1px solid rgba(245,200,66,.4);background:rgba(245,200,66,.1);color:#F5C842;cursor:pointer;font-family:'Kanit',sans-serif;white-space:nowrap;">Max</button>
+        <button class="btn-join" onclick="joinBet('${b.id}','${b.nick}','${b.side}',${b.odds})"
+          style="white-space:nowrap;">🎯 จับคู่</button>
+      </div>` : '';
 
     return `
-    <div class="bet-row">
-      <div>
+    <div class="bet-row" style="${mStatus==='partial'?'border-left:3px solid #F5C842;':''}${isFull?'opacity:.7;':''}">
+      <div style="flex:1;min-width:0;">
         <div class="bet-nick ${sideClass}">${b.nick} <span style="font-size:11px;opacity:.6;">(${b.side_name || b.side})</span></div>
         <div class="bet-odds">อัตรา ${b.odds}x · เมื่อ ${new Date(b.created_at).toLocaleTimeString('th-TH',{hour:'2-digit',minute:'2-digit'})}</div>
+        ${progressBar}
+        ${joinInput}
       </div>
-      <div style="text-align:right;display:flex;align-items:center;gap:8px;flex-wrap:wrap;justify-content:flex-end;">
-        <div>
-          <div class="bet-amount">${Number(b.amount).toLocaleString('th-TH')} ฿</div>
-          <span class="bet-status ${statusClass}">${statusLabel}</span>
-        </div>
-        ${canJoin ? `<button class="btn-join" onclick="joinBet('${b.id}','${b.nick}','${b.side}',${b.amount},${b.odds})">รับ ${Number(myAmount).toLocaleString()} ฿</button>` : ''}
+      <div style="text-align:right;display:flex;flex-direction:column;align-items:flex-end;gap:4px;flex-shrink:0;">
+        <div class="bet-amount">${orderAmt.toLocaleString('th-TH')} ฿</div>
+        <span class="bet-status ${statusClass}">${statusLabel}</span>
       </div>
     </div>`;
   }).join('');
