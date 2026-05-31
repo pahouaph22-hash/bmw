@@ -4562,26 +4562,6 @@ fns.forEach(function(fn){
   function _setWatchBanner(s)     { applyFlagUI(currentUser?.flags||[]); }
   function _setCheaterBanner(s)   { applyFlagUI(currentUser?.flags||[]); }
   function _setChgBankForced(f)   { applyFlagUI(currentUser?.flags||[]); }
-    const f         = flags || [];
-    const blocked   = f.includes('blacklist');
-    const noDeposit = f.includes('no_deposit')   || blocked;
-    const noWith    = f.includes('no_withdraw')  || blocked;
-    const noGame    = f.includes('no_game')      || blocked;
-    const noReward  = f.includes('no_reward')    || blocked;
-    const mustChgPw = f.includes('chg_pass');
-    const mustChgBk = f.includes('chg_bank');
-    const isWatch   = f.includes('watch');
-    const isCheater = f.includes('cheater');
-
-    _setDepositEnabled(!noDeposit);
-    _setWithdrawEnabled(!noWith);
-    _setBetEnabled(!noGame);
-    _setRewardEnabled(!noReward);
-    _setChgPassForced(mustChgPw);
-    _setChgBankForced(mustChgBk);
-    _setWatchBanner(isWatch);
-    _setCheaterBanner(isCheater);
-  }
 
   function showFEToast(msg) {
     const existing = document.getElementById('toast-fe');
