@@ -535,7 +535,7 @@ tr:hover td{background:#fafafa;}
               <span style="font-family:'Kanit',sans-serif;font-weight:900;font-size:18px;color:#F5A800;" id="sf-preview-name1">วัวชน</span><span style="font-family:'Kanit',sans-serif;font-weight:900;font-size:18px;color:#C8102E;" id="sf-preview-name2">ลาว</span>
             </div>
           </div>
-          <button class="save-btn" onclick="saveSettings('siteInfo')" style="background:linear-gradient(135deg,#C8102E,#a50c24);">💾 บันทึกชื่อเว็บ & โลโก้</button>
+          <button id="btn-save-siteInfo" class="save-btn" onclick="saveSettings('siteInfo')" style="background:linear-gradient(135deg,#C8102E,#a50c24);">💾 บันทึกชื่อเว็บ & โลโก้</button>
         </div>
 
         <!-- ค่าบริการ P2P -->
@@ -1765,7 +1765,7 @@ async function saveSettings(type) {
         r.readAsDataURL(heroBullFile);
       });
     }
-    const siteBtn = document.querySelector('[onclick="saveSettings('siteInfo')"]');
+    const siteBtn = document.getElementById('btn-save-siteInfo');
     if (siteBtn) { siteBtn.disabled = true; siteBtn.textContent = '⏳ กำลังบันทึก...'; }
     await sb.from('settings').upsert({
       key: 'siteInfo',
