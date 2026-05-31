@@ -497,27 +497,45 @@ tr:hover td{background:#fafafa;}
         </div>
 
         <div class="card">
-          <div class="card-title">🏆 รายการแข่งขันทั้งหมด
-            <div class="search-bar" style="margin:0;">
-              <input class="search-input" id="match-search" placeholder="ค้นหา..." oninput="filterMatches_()">
-              <select class="filter-select" id="match-status-filter" onchange="filterMatches_()">
-                <option value="">ทุกสถานะ</option>
-                <option value="upcoming">รอแข่ง</option>
-                <option value="live">กำลังแข่ง</option>
-                <option value="done">จบแล้ว</option>
-              </select>
+          <!-- Tab header -->
+          <div style="display:flex;border-bottom:2px solid #e5e5e0;margin-bottom:0;gap:0;">
+            <button id="mtab-active" onclick="switchMatchTab('active')"
+              style="flex:1;padding:11px 16px;border:none;border-bottom:3px solid #1B6B2F;background:#fff;font-family:'Kanit',sans-serif;font-weight:700;font-size:13px;color:#1B6B2F;cursor:pointer;">
+              🏆 รายการแข่งขัน
+              <span id="mtab-active-count" style="font-size:11px;color:#aaa;font-weight:400;margin-left:4px;"></span>
+            </button>
+            <button id="mtab-done" onclick="switchMatchTab('done')"
+              style="flex:1;padding:11px 16px;border:none;border-bottom:3px solid transparent;background:#fff;font-family:'Kanit',sans-serif;font-weight:700;font-size:13px;color:#888;cursor:pointer;">
+              ✅ จบการแข่งขัน
+              <span id="mtab-done-count" style="font-size:11px;color:#aaa;font-weight:400;margin-left:4px;"></span>
+            </button>
+          </div>
+
+          <!-- Search + filter bar (shared) -->
+          <div style="padding:12px 0 8px;">
+            <div class="search-bar" style="margin:0 0 8px;">
+              <input class="search-input" id="match-search" placeholder="ค้นหาวัว / รุ่น / รหัส..." oninput="filterMatches_()">
+            </div>
+            <div class="date-filter">
+              <label>📅 วันที่แข่ง</label>
+              <input type="date" class="date-input" id="match-date-from" onchange="filterMatches_()">
+              <label>ถึง</label>
+              <input type="date" class="date-input" id="match-date-to" onchange="filterMatches_()">
+              <button class="btn-date-today" onclick="setDateToday('match')">วันนี้</button>
+              <button class="btn-date-clear" onclick="clearDate('match')">✕ ล้าง</button>
+              <span class="date-tag" id="match-date-tag" style="display:none;"></span>
             </div>
           </div>
-          <div class="date-filter">
-            <label>📅 วันที่แข่ง</label>
-            <input type="date" class="date-input" id="match-date-from" onchange="filterMatches_()">
-            <label>ถึง</label>
-            <input type="date" class="date-input" id="match-date-to" onchange="filterMatches_()">
-            <button class="btn-date-today" onclick="setDateToday('match')">วันนี้</button>
-            <button class="btn-date-clear" onclick="clearDate('match')">✕ ล้าง</button>
-            <span class="date-tag" id="match-date-tag" style="display:none;"></span>
+
+          <!-- Tab: รายการแข่งขัน (upcoming + live) -->
+          <div id="matches-tab-active" style="overflow-x:auto;">
+            <div style="text-align:center;padding:24px;color:#aaa;">กำลังโหลด...</div>
           </div>
-          <div style="overflow-x:auto;" id="matches-list"><div style="text-align:center;padding:24px;color:#aaa;">กำลังโหลด...</div></div>
+
+          <!-- Tab: จบการแข่งขัน (done) -->
+          <div id="matches-tab-done" style="display:none;overflow-x:auto;">
+            <div style="text-align:center;padding:24px;color:#aaa;">กำลังโหลด...</div>
+          </div>
         </div>
       </div>
 
@@ -2012,45 +2030,110 @@ async function loadMatches() {
   filterMatches_();
 }
 
+let _matchTab = 'active'; // 'active' | 'done'
+
+function switchMatchTab(tab) {
+  _matchTab = tab;
+  // tab button styles
+  const btnA = document.getElementById('mtab-active');
+  const btnD = document.getElementById('mtab-done');
+  if (btnA) {
+    btnA.style.borderBottomColor = tab === 'active' ? '#1B6B2F' : 'transparent';
+    btnA.style.color = tab === 'active' ? '#1B6B2F' : '#888';
+  }
+  if (btnD) {
+    btnD.style.borderBottomColor = tab === 'done' ? '#1B6B2F' : 'transparent';
+    btnD.style.color = tab === 'done' ? '#1B6B2F' : '#888';
+  }
+  // tab panels
+  const elA = document.getElementById('matches-tab-active');
+  const elD = document.getElementById('matches-tab-done');
+  if (elA) elA.style.display = tab === 'active' ? 'block' : 'none';
+  if (elD) elD.style.display = tab === 'done'   ? 'block' : 'none';
+  filterMatches_();
+}
+
 function filterMatches_() {
-  const q  = (document.getElementById('match-search')?.value || '').toLowerCase();
-  const sf = document.getElementById('match-status-filter')?.value || '';
-  let rows = allMatches;
-  if (q)  rows = rows.filter(m => m.round?.toLowerCase().includes(q) || m.name_a?.toLowerCase().includes(q) || m.name_b?.toLowerCase().includes(q) || m.code?.includes(q));
-  if (sf) rows = rows.filter(m => (m.status||'upcoming') === sf);
-  rows = rows.filter(m => inDateRange(m, 'match', 'date'));
+  const q = (document.getElementById('match-search')?.value || '').toLowerCase();
+  let rows = allMatches.filter(m => {
+    if (q && !(m.round?.toLowerCase().includes(q) || m.name_a?.toLowerCase().includes(q) || m.name_b?.toLowerCase().includes(q) || m.code?.includes(q))) return false;
+    return inDateRange(m, 'match', 'date');
+  });
   updateDateTag('match');
-  const el = document.getElementById('matches-list');
-  if (!rows.length) { el.innerHTML = '<div style="text-align:center;padding:24px;color:#aaa;">ไม่พบรายการ</div>'; return; }
-  el.innerHTML = `<table><thead><tr><th>รหัส</th><th>รุ่น/วันที่</th><th>🔴 เจ้าบ้าน</th><th>🔵 ทีมเยือน</th><th>รางวัล</th><th>สถานะ</th><th>🔴 Live</th><th>ตัดสิน</th><th>จัดการ</th></tr></thead><tbody>` +
-    rows.map(m => {
-      const s = m.status||'upcoming';
-      const streamBadge = m.stream_url
-        ? `<span style="background:#fee2e2;color:#c8102e;font-family:'Kanit',sans-serif;font-size:10px;font-weight:700;padding:2px 7px;border-radius:10px;">✓ มี URL</span>`
-        : `<span style="background:#f5f5f2;color:#aaa;font-family:'Kanit',sans-serif;font-size:10px;padding:2px 7px;border-radius:10px;">ยังไม่มี</span>`;
-      return `<tr>
-        <td>${m.code?`<span class="match-code">${m.code}</span>`:'—'}</td>
-        <td><strong>${m.round||'—'}</strong><br><span style="font-size:11px;color:#aaa;">${m.date||''} ${m.time||''}</span></td>
-        <td>${m.name_a||'—'}<br><span style="font-size:11px;color:#aaa;">${m.owner_a||''} ${m.weight_a?'·'+m.weight_a+'กก':''}</span></td>
-        <td>${m.name_b||'—'}<br><span style="font-size:11px;color:#aaa;">${m.owner_b||''} ${m.weight_b?'·'+m.weight_b+'กก':''}</span></td>
-        <td style="font-family:'Kanit',sans-serif;font-weight:700;">${Number(m.prize||0).toLocaleString()} ฿</td>
-        <td>
+
+  const activeRows = rows.filter(m => (m.status||'upcoming') !== 'done');
+  const doneRows   = rows.filter(m => (m.status||'upcoming') === 'done');
+
+  // count badges
+  const cntA = document.getElementById('mtab-active-count');
+  const cntD = document.getElementById('mtab-done-count');
+  if (cntA) cntA.textContent = `(${activeRows.length})`;
+  if (cntD) cntD.textContent = `(${doneRows.length})`;
+
+  // render active (upcoming + live)
+  const elA = document.getElementById('matches-tab-active');
+  if (elA) {
+    if (!activeRows.length) {
+      elA.innerHTML = '<div style="text-align:center;padding:32px;color:#aaa;"><div style="font-size:28px;margin-bottom:8px;">🐂</div>ไม่มีรายการแข่งขันที่กำลังจะมาถึงครับ</div>';
+    } else {
+      elA.innerHTML = renderMatchTable(activeRows, false);
+    }
+  }
+
+  // render done
+  const elD = document.getElementById('matches-tab-done');
+  if (elD) {
+    if (!doneRows.length) {
+      elD.innerHTML = '<div style="text-align:center;padding:32px;color:#aaa;"><div style="font-size:28px;margin-bottom:8px;">🏁</div>ยังไม่มีการแข่งขันที่จบแล้วครับ</div>';
+    } else {
+      elD.innerHTML = renderMatchTable(doneRows, true);
+    }
+  }
+}
+
+function renderMatchTable(rows, isDone) {
+  const headerExtra = isDone
+    ? '<th style="text-align:center;">🏆 ผู้ชนะ</th>'
+    : '<th>สถานะ</th><th>🔴 Live</th><th>ตัดสิน</th>';
+
+  return `<table><thead><tr>
+    <th>รหัส</th><th>รุ่น/วันที่</th><th>🔴 เจ้าบ้าน</th><th>🔵 ทีมเยือน</th><th>รางวัล</th>
+    ${headerExtra}
+    <th>จัดการ</th>
+  </tr></thead><tbody>` +
+  rows.map(m => {
+    const s = m.status || 'upcoming';
+    const streamBadge = m.stream_url
+      ? `<span style="background:#fee2e2;color:#c8102e;font-family:'Kanit',sans-serif;font-size:10px;font-weight:700;padding:2px 7px;border-radius:10px;">✓ มี URL</span>`
+      : `<span style="background:#f5f5f2;color:#aaa;font-family:'Kanit',sans-serif;font-size:10px;padding:2px 7px;border-radius:10px;">ยังไม่มี</span>`;
+
+    const extraCols = isDone
+      ? `<td style="text-align:center;">${m.winner
+          ? `<span style="font-family:'Kanit',sans-serif;font-weight:900;font-size:13px;color:#1B6B2F;">🏆 ${m.winner}</span>`
+          : '<span style="color:#aaa;font-size:12px;">—</span>'}</td>`
+      : `<td>
           <select class="status-select" onchange="updateMatchStatus('${m.id}',this.value)">
             <option value="upcoming" ${s==='upcoming'?'selected':''}>⏳ รอแข่ง</option>
-            <option value="live" ${s==='live'?'selected':''}>🔴 กำลังแข่ง</option>
-            <option value="done" ${s==='done'?'selected':''}>✅ จบแล้ว</option>
+            <option value="live"     ${s==='live'?'selected':''}>🔴 กำลังแข่ง</option>
+            <option value="done"     ${s==='done'?'selected':''}>✅ จบแล้ว</option>
           </select>
         </td>
         <td>
           ${streamBadge}
           <button class="btn btn-gold" style="margin-top:4px;font-size:11px;" onclick="editStreamUrl('${m.id}','${(m.stream_url||'').replace(/'/g,'')}')">✏️ URL</button>
         </td>
-        <td>${m.winner?`<span class="badge badge-approved">🏆 ${m.winner||'—'}</span>`:'—'}</td>
-        <td style="display:flex;gap:4px;flex-wrap:wrap;">
-          <button class="btn btn-red" onclick="deleteMatch('${m.id}')">ลบ</button>
-        </td>
-      </tr>`;
-    }).join('') + '</tbody></table>';
+        <td>${m.winner ? `<span class="badge badge-approved">🏆 ${m.winner}</span>` : '—'}</td>`;
+
+    return `<tr style="${isDone ? 'background:#fafaf8;' : ''}">
+      <td>${m.code ? `<span class="match-code">${m.code}</span>` : '—'}</td>
+      <td><strong>${m.round||'—'}</strong><br><span style="font-size:11px;color:#aaa;">${m.date||''} ${m.time||''}</span></td>
+      <td>${m.name_a||'—'}<br><span style="font-size:11px;color:#aaa;">${m.owner_a||''} ${m.weight_a?'·'+m.weight_a+'กก':''}</span></td>
+      <td>${m.name_b||'—'}<br><span style="font-size:11px;color:#aaa;">${m.owner_b||''} ${m.weight_b?'·'+m.weight_b+'กก':''}</span></td>
+      <td style="font-family:'Kanit',sans-serif;font-weight:700;">${Number(m.prize||0).toLocaleString()} ฿</td>
+      ${extraCols}
+      <td><button class="btn btn-red" onclick="deleteMatch('${m.id}')">ลบ</button></td>
+    </tr>`;
+  }).join('') + '</tbody></table>';
 }
 
 // Helper: อ่านไฟล์เป็น base64
@@ -2138,8 +2221,17 @@ async function addMatch() {
 
 async function updateMatchStatus(id, status) {
   await sb.from('matches').update({ status }).eq('id', id);
-  showToast('✅ อัปเดตสถานะแล้วครับ');
-  loadMatches(); loadVerdict();
+  showToast(status === 'done' ? '✅ ย้ายไปแท็บ "จบการแข่งขัน" แล้วครับ' : '✅ อัปเดตสถานะแล้วครับ');
+  // อัปเดต cache ทันที
+  const idx = allMatches.findIndex(m => m.id === id);
+  if (idx !== -1) allMatches[idx] = { ...allMatches[idx], status };
+  // ถ้าเปลี่ยนเป็น done ให้สลับ tab ไปเลย
+  if (status === 'done') {
+    switchMatchTab('done');
+  } else {
+    filterMatches_();
+  }
+  loadVerdict();
 }
 
 async function editStreamUrl(matchId, currentUrl) {
