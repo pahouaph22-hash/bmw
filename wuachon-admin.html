@@ -479,63 +479,81 @@ tr:hover td{background:#fafafa;}
         <!-- ชื่อเว็บ & โลโก้ -->
         <div class="card" style="border-left:4px solid #C8102E;">
           <div class="card-title">🐂 ชื่อเว็บไซต์ & โลโก้</div>
-          <div class="form-row">
-            <div class="fg">
-              <label>ชื่อเว็บไซต์ (ส่วนแรก)</label>
-              <input id="sf-sitename1" placeholder="เช่น วัวชน" style="font-family:'Kanit',sans-serif;font-weight:700;">
-              <div style="font-size:11px;color:#aaa;margin-top:4px;">แสดงใน Navbar ซ้ายมือ (ตัวสีทอง)</div>
-            </div>
-            <div class="fg">
-              <label>ชื่อเว็บไซต์ (ส่วนที่สอง)</label>
-              <input id="sf-sitename2" placeholder="เช่น ลาว" style="font-family:'Kanit',sans-serif;font-weight:700;">
-              <div style="font-size:11px;color:#aaa;margin-top:4px;">แสดงต่อจากส่วนแรก (ตัวสีแดง)</div>
-            </div>
-          </div>
-          <div class="form-row">
-            <div class="fg">
-              <label>คำบรรยายใต้โลโก้วนกลม</label>
-              <input id="sf-logo-top" placeholder="เช่น วัวชนไทย" style="font-family:'Kanit',sans-serif;">
-              <div style="font-size:11px;color:#aaa;margin-top:4px;">ข้อความด้านบนโลโก้วงกลม (สีทอง)</div>
-            </div>
-            <div class="fg">
-              <label>คำบรรยายล่างโลโก้วนกลม</label>
-              <input id="sf-logo-bottom" placeholder="เช่น BULL FIGHT LAO" style="font-family:'Kanit',sans-serif;">
-              <div style="font-size:11px;color:#aaa;margin-top:4px;">ข้อความด้านล่างโลโก้วงกลม (สีขาว)</div>
-            </div>
-          </div>
-          <div class="form-row">
-            <div class="fg">
-              <label>ชื่อในแถบเบราว์เซอร์ (Title)</label>
-              <input id="sf-pagetitle" placeholder="เช่น วัวชนลาว — ศึกชนโคทั่วประเทศ">
-              <div style="font-size:11px;color:#aaa;margin-top:4px;">แสดงที่แท็บบราวเซอร์</div>
-            </div>
-          </div>
 
-          <!-- รูปวัว Hero -->
-          <div class="form-row">
-            <div class="fg">
-              <label>🐂 รูปวัวหน้าหลัก (Hero Image)</label>
-              <div style="display:flex;align-items:center;gap:16px;margin-top:8px;">
-                <div id="hero-bull-preview" style="width:90px;height:90px;border-radius:16px;border:2px dashed #F5A800;background:#1a0a00;display:flex;align-items:center;justify-content:center;font-size:48px;overflow:hidden;flex-shrink:0;">🐂</div>
-                <div style="flex:1;">
-                  <input type="file" id="sf-hero-bull-file" accept="image/*" style="display:none;" onchange="previewHeroBull(this)">
-                  <button type="button" onclick="document.getElementById('sf-hero-bull-file').click()" style="font-family:'Kanit',sans-serif;font-size:13px;font-weight:700;padding:9px 18px;border-radius:8px;border:1px solid rgba(245,200,66,0.4);background:rgba(245,200,66,0.08);color:#F5A800;cursor:pointer;width:100%;margin-bottom:6px;">📁 เลือกรูปวัว</button>
-                  <button type="button" onclick="clearHeroBull()" style="font-family:'Kanit',sans-serif;font-size:12px;padding:7px 18px;border-radius:8px;border:1px solid #e5e5e0;background:#f9f9f9;color:#888;cursor:pointer;width:100%;">✕ ใช้ Emoji 🐂 แทน</button>
-                  <div style="font-size:11px;color:#aaa;margin-top:6px;">แนะนำ PNG พื้นหลังโปร่งใส · ไม่เกิน 2MB</div>
+          <!-- Diagram อธิบาย -->
+          <div style="background:#1a0a00;border-radius:10px;padding:12px 16px;margin-bottom:16px;font-family:'Kanit',sans-serif;">
+            <div style="font-size:11px;color:rgba(255,248,236,0.4);margin-bottom:8px;">📌 ตำแหน่งที่แสดงใน Navbar</div>
+            <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap;">
+              <div style="display:flex;align-items:center;gap:8px;">
+                <div style="position:relative;">
+                  <div id="sf-prev-logo-small" style="width:38px;height:38px;border-radius:50%;border:2px solid #F5A800;background:#2a1200;display:flex;align-items:center;justify-content:center;font-size:20px;overflow:hidden;">🐂</div>
+                  <div style="position:absolute;bottom:-16px;left:50%;transform:translateX(-50%);font-size:9px;color:#F5A800;white-space:nowrap;">① โลโก้ซ้าย</div>
                 </div>
+                <div style="margin-left:8px;">
+                  <span id="sf-preview-name1" style="font-weight:900;font-size:18px;color:#F5A800;">วัวชน</span><span id="sf-preview-name2" style="font-weight:900;font-size:18px;color:#C8102E;">ลาว</span>
+                  <div style="font-size:9px;color:rgba(255,248,236,0.4);margin-top:2px;">② ชื่อเว็บ</div>
+                </div>
+              </div>
+              <div style="position:relative;text-align:center;">
+                <div style="width:44px;height:44px;border-radius:50%;border:3px solid #F5A800;background:#2a1200;display:flex;align-items:center;justify-content:center;font-size:10px;color:#F5A800;font-weight:700;text-align:center;line-height:1.2;overflow:hidden;" id="sf-prev-logo-big">วัวชน</div>
+                <div style="position:absolute;bottom:-16px;right:0;font-size:9px;color:#F5A800;white-space:nowrap;">③ โลโก้ขวา</div>
               </div>
             </div>
           </div>
 
-          <!-- Preview -->
-          <div style="background:#f9f9f9;border:1px solid #e5e5e0;border-radius:10px;padding:14px;margin:12px 0;">
-            <div style="font-size:11px;color:#888;margin-bottom:8px;font-weight:700;">👁️ Preview Navbar:</div>
-            <div style="display:flex;align-items:center;gap:8px;">
-              <div style="width:32px;height:32px;background:#1A0A00;border-radius:50%;border:2px solid #F5A800;display:flex;align-items:center;justify-content:center;font-size:16px;">🐂</div>
-              <span style="font-family:'Kanit',sans-serif;font-weight:900;font-size:18px;color:#F5A800;" id="sf-preview-name1">วัวชน</span><span style="font-family:'Kanit',sans-serif;font-weight:900;font-size:18px;color:#C8102E;" id="sf-preview-name2">ลาว</span>
+          <!-- ① โลโก้ซ้าย (SVG วัวเล็ก) + ② ชื่อเว็บ -->
+          <div style="background:#f8f9fa;border:1px solid #e5e5e0;border-radius:10px;padding:14px;margin-bottom:12px;">
+            <div style="font-weight:700;font-size:13px;margin-bottom:10px;">① + ② ชื่อและโลโก้ฝั่งซ้าย Navbar</div>
+            <div class="form-row" style="margin:0;">
+              <div class="fg">
+                <label>ชื่อส่วนแรก <span style="color:#F5A800;font-weight:700;">■</span> สีทอง</label>
+                <input id="sf-sitename1" placeholder="เช่น วัวชน" style="font-family:'Kanit',sans-serif;font-weight:700;" oninput="updateSitePreview()">
+              </div>
+              <div class="fg">
+                <label>ชื่อส่วนที่สอง <span style="color:#C8102E;font-weight:700;">■</span> สีแดง</label>
+                <input id="sf-sitename2" placeholder="เช่น ลาว" style="font-family:'Kanit',sans-serif;font-weight:700;" oninput="updateSitePreview()">
+              </div>
             </div>
           </div>
-          <button id="btn-save-siteInfo" class="save-btn" onclick="saveSettings('siteInfo')" style="background:linear-gradient(135deg,#C8102E,#a50c24);">💾 บันทึกชื่อเว็บ & โลโก้</button>
+
+          <!-- ③ โลโก้วงกลมขวา -->
+          <div style="background:#f8f9fa;border:1px solid #e5e5e0;border-radius:10px;padding:14px;margin-bottom:12px;">
+            <div style="font-weight:700;font-size:13px;margin-bottom:10px;">③ ข้อความในโลโก้วงกลมขวา</div>
+            <div class="form-row" style="margin:0;">
+              <div class="fg">
+                <label>ข้อความบน <span style="color:#F5A800;">●</span> สีทอง</label>
+                <input id="sf-logo-top" placeholder="เช่น วัวชนลาว" style="font-family:'Kanit',sans-serif;" oninput="updateSitePreview()">
+              </div>
+              <div class="fg">
+                <label>ข้อความล่าง <span style="color:#fff;background:#555;padding:0 4px;border-radius:3px;">●</span> สีขาว</label>
+                <input id="sf-logo-bottom" placeholder="เช่น BULL FIGHT LAO" style="font-family:'Kanit',sans-serif;" oninput="updateSitePreview()">
+              </div>
+            </div>
+          </div>
+
+          <!-- รูปวัว Hero -->
+          <div style="background:#f8f9fa;border:1px solid #e5e5e0;border-radius:10px;padding:14px;margin-bottom:12px;">
+            <div style="font-weight:700;font-size:13px;margin-bottom:10px;">🐂 รูปวัวหน้าหลัก (Hero — กลางหน้าเว็บ)</div>
+            <div style="display:flex;align-items:center;gap:16px;">
+              <div id="hero-bull-preview" style="width:80px;height:80px;border-radius:12px;border:2px dashed #F5A800;background:#1a0a00;display:flex;align-items:center;justify-content:center;font-size:42px;overflow:hidden;flex-shrink:0;">🐂</div>
+              <div style="flex:1;display:flex;flex-direction:column;gap:6px;">
+                <input type="file" id="sf-hero-bull-file" accept="image/*" style="display:none;" onchange="previewHeroBull(this)">
+                <button type="button" onclick="document.getElementById('sf-hero-bull-file').click()" style="font-family:'Kanit',sans-serif;font-size:13px;font-weight:700;padding:10px;border-radius:8px;border:2px solid #C8102E;background:#C8102E;color:#fff;cursor:pointer;">📁 เลือกรูปวัว</button>
+                <button type="button" onclick="clearHeroBull()" style="font-family:'Kanit',sans-serif;font-size:12px;padding:7px;border-radius:8px;border:1px solid #ddd;background:#fff;color:#888;cursor:pointer;">✕ รีเซ็ตเป็น Emoji 🐂</button>
+                <div style="font-size:11px;color:#999;">PNG พื้นหลังโปร่งใส · ไม่เกิน 2MB</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Title แท็บ -->
+          <div class="form-row">
+            <div class="fg">
+              <label>🌐 ชื่อแท็บเบราว์เซอร์</label>
+              <input id="sf-pagetitle" placeholder="เช่น วัวชนลาว — ศึกชนโคทั่วประเทศ">
+            </div>
+          </div>
+
+          <button id="btn-save-siteInfo" class="save-btn" onclick="saveSettings('siteInfo')" style="background:linear-gradient(135deg,#C8102E,#a50c24);font-size:15px;padding:14px;margin-top:8px;">💾 ยืนยันการเปลี่ยนแปลง</button>
         </div>
 
         <!-- ค่าบริการ P2P -->
@@ -1682,15 +1700,19 @@ async function loadSettings() {
   if (lbEl) lbEl.value = siteInfo.logoBottom || 'BULL FIGHT THAI';
   if (ptEl) ptEl.value = siteInfo.pageTitle || '';
   // live preview
-  function updatePreview() {
+  window.updateSitePreview = function() {
+    const n1 = n1El?.value || 'วัวชน';
+    const n2 = n2El?.value || 'ลาว';
+    const lt = document.getElementById('sf-logo-top')?.value || '';
     const p1 = document.getElementById('sf-preview-name1');
     const p2 = document.getElementById('sf-preview-name2');
-    if (p1) p1.textContent = n1El?.value || 'วัวชน';
-    if (p2) p2.textContent = n2El?.value || 'ลาว';
-  }
-  if (n1El) n1El.addEventListener('input', updatePreview);
-  if (n2El) n2El.addEventListener('input', updatePreview);
-  updatePreview();
+    if (p1) p1.textContent = n1;
+    if (p2) p2.textContent = n2;
+    // update โลโก้วงกลม preview
+    const bigPrev = document.getElementById('sf-prev-logo-big');
+    if (bigPrev) bigPrev.textContent = lt || n1;
+  };
+  window.updateSitePreview();
   // โหลดรูปวัว hero
   if (siteInfo.heroBull) {
     const prev = document.getElementById('hero-bull-preview');
