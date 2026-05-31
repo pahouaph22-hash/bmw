@@ -118,13 +118,83 @@ nav{display:flex;align-items:center;justify-content:space-between;padding:13px 2
 .btn-bet-submit:hover{background:#2fa848;}
 .btn-bet-submit:disabled{background:#2a3a2a;color:rgba(255,255,255,.3);cursor:not-allowed;}
 
-/* BETS LIST */
-.bet-row{
-  display:flex;align-items:center;justify-content:space-between;
-  padding:10px 0;border-bottom:1px solid rgba(255,255,255,.05);
-  gap:8px;flex-wrap:wrap;
+/* BETS LIST — redesigned */
+.bets-grid{display:flex;flex-direction:column;gap:10px;}
+.bet-card{
+  background:rgba(255,255,255,.04);
+  border:1px solid rgba(255,255,255,.08);
+  border-radius:12px;padding:14px 16px;
+  transition:border-color .2s;
 }
-.bet-row:last-child{border-bottom:none;}
+.bet-card:hover{border-color:rgba(255,255,255,.15);}
+.bet-card.side-red{border-left:3px solid rgba(200,16,46,.7);}
+.bet-card.side-blue{border-left:3px solid rgba(30,80,200,.7);}
+.bet-card.partial{border-left:3px solid #F5A800;}
+.bet-card.full{opacity:.65;}
+
+/* header row */
+.bc-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;gap:8px;flex-wrap:wrap;}
+.bc-nick{font-family:'Kanit',sans-serif;font-weight:700;font-size:14px;display:flex;align-items:center;gap:6px;}
+.bc-side-badge{
+  font-family:'Kanit',sans-serif;font-size:11px;font-weight:700;
+  padding:2px 9px;border-radius:999px;
+}
+.bc-side-red{background:rgba(200,16,46,.15);color:#ff9090;border:1px solid rgba(200,16,46,.3);}
+.bc-side-blue{background:rgba(30,80,200,.15);color:#90b4ff;border:1px solid rgba(30,80,200,.3);}
+.bc-amount{font-family:'Kanit',sans-serif;font-weight:900;font-size:16px;color:var(--gold);}
+
+/* info row */
+.bc-info{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:8px;}
+.bc-odds{font-size:12px;color:rgba(255,248,236,.45);font-family:'Kanit',sans-serif;}
+.bc-time{font-size:11px;color:rgba(255,248,236,.3);}
+.bc-status{font-size:11px;font-weight:700;font-family:'Kanit',sans-serif;padding:2px 9px;border-radius:999px;}
+.bcs-waiting{background:rgba(245,168,0,.1);color:var(--gold);border:1px solid rgba(245,168,0,.25);}
+.bcs-partial{background:rgba(245,168,0,.15);color:#F5C842;border:1px solid rgba(245,168,0,.35);}
+.bcs-full{background:rgba(27,107,47,.15);color:#7ddc8e;border:1px solid rgba(27,107,47,.3);}
+.bcs-won{background:rgba(245,168,0,.15);color:#F5C842;border:1px solid rgba(245,168,0,.3);}
+.bcs-lost{background:rgba(200,16,46,.1);color:#ff9090;border:1px solid rgba(200,16,46,.25);}
+.bcs-timeout{background:rgba(255,255,255,.06);color:rgba(255,248,236,.4);border:1px solid rgba(255,255,255,.1);}
+
+/* progress */
+.bc-progress-wrap{margin:6px 0;}
+.bc-progress-labels{display:flex;justify-content:space-between;font-size:10px;color:rgba(255,248,236,.4);font-family:'Kanit',sans-serif;margin-bottom:3px;}
+.bc-progress-bar{height:5px;background:rgba(255,255,255,.1);border-radius:999px;overflow:hidden;}
+.bc-progress-fill{height:100%;background:linear-gradient(90deg,#4ade80,#22c55e);border-radius:999px;transition:width .5s ease;}
+
+/* join area */
+.bc-join{display:flex;gap:6px;align-items:center;margin-top:10px;flex-wrap:wrap;
+  border-top:1px solid rgba(255,255,255,.06);padding-top:10px;}
+.bc-join-label{font-family:'Kanit',sans-serif;font-size:11px;color:rgba(255,248,236,.4);white-space:nowrap;}
+.bc-join-input{
+  flex:1;min-width:90px;padding:7px 12px;
+  border:1px solid rgba(245,168,0,.35);border-radius:8px;
+  background:rgba(255,255,255,.06);color:#fff;
+  font-family:'Kanit',sans-serif;font-size:13px;
+}
+.bc-join-input:focus{outline:none;border-color:var(--gold);}
+.bc-btn-max{
+  font-family:'Kanit',sans-serif;font-size:11px;font-weight:700;
+  padding:7px 12px;border-radius:8px;
+  border:1px solid rgba(245,168,0,.4);background:rgba(245,168,0,.1);
+  color:#F5C842;cursor:pointer;white-space:nowrap;
+}
+.bc-btn-max:hover{background:rgba(245,168,0,.2);}
+.bc-btn-join{
+  font-family:'Kanit',sans-serif;font-size:12px;font-weight:700;
+  padding:7px 16px;border-radius:8px;border:none;
+  background:linear-gradient(135deg,#C8102E,#e02040);color:#fff;cursor:pointer;white-space:nowrap;
+  transition:opacity .15s;
+}
+.bc-btn-join:hover{opacity:.85;}
+
+/* potential win */
+.bc-potential{
+  display:flex;align-items:center;justify-content:space-between;
+  font-family:'Kanit',sans-serif;font-size:12px;
+  color:rgba(255,248,236,.45);margin-top:8px;
+}
+.bc-potential b{color:#4ade80;font-size:13px;}
+
 .bet-nick{font-family:'Kanit',sans-serif;font-size:14px;font-weight:600;}
 .bet-side-r{color:#ff9090;}
 .bet-side-b{color:#90b4ff;}
@@ -609,12 +679,16 @@ function _setJoinMax(betId, remaining) {
 }
 
 // ===== RENDER BETS LIST =====
+// ===== RENDER BETS LIST — redesigned card UI =====
 function renderBetsList() {
   const el      = document.getElementById('bets-list-area');
   const countEl = document.getElementById('bets-count');
   if (!el) return;
   if (countEl) countEl.textContent = allBets.length;
-  if (!allBets.length) { el.innerHTML = '<div class="empty">ยังไม่มีรายการเดิมพัน</div>'; return; }
+  if (!allBets.length) { el.innerHTML = '<div class="empty"><div style=\"font-size:36px;margin-bottom:10px;\">🎯</div>ยังไม่มีรายการเดิมพันครับ</div>'; return; }
+  const isUpcoming = normalizeStatus(matchData?.status) === 'upcoming';
+  const nameA = matchData?.name_a || 'เจ้าบ้าน';
+  const nameB = matchData?.name_b || 'ทีมเยือน';
 
   el.innerHTML = allBets.map(b => {
     const sideClass  = b.side === 'red' ? 'bet-side-r' : 'bet-side-b';
@@ -670,20 +744,67 @@ function renderBetsList() {
           style="white-space:nowrap;">🎯 จับคู่</button>
       </div>` : '';
 
-    return `
-    <div class="bet-row" style="${mStatus==='partial'?'border-left:3px solid #F5C842;':''}${isFull?'opacity:.7;':''}">
-      <div style="flex:1;min-width:0;">
-        <div class="bet-nick ${sideClass}">${b.nick} <span style="font-size:11px;opacity:.6;">(${b.side_name || b.side})</span></div>
-        <div class="bet-odds">อัตรา ${b.odds}x · เมื่อ ${new Date(b.created_at).toLocaleTimeString('th-TH',{hour:'2-digit',minute:'2-digit'})}</div>
-        ${progressBar}
-        ${joinInput}
+    // status vars
+    const sideEmoji  = b.side==='red' ? '🔴' : '🔵';
+    const sideName   = b.side_name || (b.side==='red' ? nameA : nameB);
+    const cardClass  = `bet-card ${b.side==='red'?'side-red':'side-blue'}${isPartial?' partial':''}${isFull&&b.status!=='won'&&b.status!=='lost'?' full':''}`;
+    const potential  = (orderAmt * b.odds).toLocaleString('th-TH',{maximumFractionDigits:0});
+    const timeStr    = new Date(b.created_at).toLocaleTimeString('th-TH',{hour:'2-digit',minute:'2-digit'});
+    const isPartial  = mStatus==='partial';
+    const isJoinBet  = !!b.parent_bet_id;
+
+    const [statusCls, statusTxt] =
+      b.status==='won'  ? ['bcs-won',  '🏆 ชนะ'] :
+      b.status==='lost' ? ['bcs-lost', '❌ แพ้'] :
+      isFull            ? ['bcs-full', '🟢 จับคู่ครบแล้ว'] :
+      isPartial         ? ['bcs-partial','🟡 จับบางส่วน'] :
+      mStatus==='timeout'?['bcs-timeout','⏰ หมดเวลา'] :
+                          ['bcs-waiting','⏳ รอจับคู่'];
+
+    const showProgress = !isJoinBet && orderAmt>0 && (matchedAmt>0||isWaiting||isPartial);
+    const progressHTML = showProgress ? `
+      <div class="bc-progress-wrap">
+        <div class="bc-progress-labels">
+          <span>จับแล้ว ${matchedAmt.toLocaleString()} ฿ (${pct}%)</span>
+          <span>เหลือ ${Math.max(0,remainAmt).toLocaleString()} ฿</span>
+        </div>
+        <div class="bc-progress-bar">
+          <div class="bc-progress-fill" style="width:${pct}%"></div>
+        </div>
+      </div>` : '';
+
+    const canJoin = !isJoinBet && (isWaiting||isPartial) && isUpcoming && currentUser && currentUser.nick!==b.nick;
+    const joinHTML = canJoin ? `
+      <div class="bc-join">
+        <span class="bc-join-label">จำนวนที่จะจับ:</span>
+        <input type="number" class="bc-join-input" id="join-amt-${b.id}"
+          value="${Math.min(remainAmt,currentUser?.balance||0).toFixed(0)}"
+          min="10" max="${remainAmt}" placeholder="ระบุจำนวน">
+        <button class="bc-btn-max" onclick="_setJoinMax('${b.id}',${remainAmt})">Max</button>
+        <button class="bc-btn-join" onclick="joinBet('${b.id}','${b.nick}','${b.side}',${b.odds})">🎯 จับคู่</button>
+      </div>` : '';
+
+    const potentialHTML = (b.status==='matched'||b.status==='won'||b.status==='lost') ? `
+      <div class="bc-potential"><span>คาดได้รับหากชนะ</span><b>+${potential} ฿</b></div>` : '';
+
+    return `<div class="${cardClass}">
+      <div class="bc-head">
+        <div class="bc-nick">
+          <span style="font-size:16px;">${sideEmoji}</span>
+          <span>${b.nick}</span>
+          <span class="bc-side-badge ${b.side==='red'?'bc-side-red':'bc-side-blue'}">${sideName}</span>
+        </div>
+        <div class="bc-amount">${orderAmt.toLocaleString()} ฿</div>
       </div>
-      <div style="text-align:right;display:flex;flex-direction:column;align-items:flex-end;gap:4px;flex-shrink:0;">
-        <div class="bet-amount">${orderAmt.toLocaleString('th-TH')} ฿</div>
-        <span class="bet-status ${statusClass}">${statusLabel}</span>
+      <div class="bc-info">
+        <span class="bc-odds">อัตรา ${b.odds}x</span>
+        <span class="bc-time">⏰ ${timeStr}</span>
+        <span class="bc-status ${statusCls}">${statusTxt}</span>
       </div>
+      ${progressHTML}${potentialHTML}${joinHTML}
     </div>`;
   }).join('');
+  el.innerHTML = '<div class="bets-grid">' + el.innerHTML + '</div>';
 }
 
 function showToast(msg) {
