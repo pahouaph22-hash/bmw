@@ -4217,27 +4217,19 @@ async function saveSettings(type) {
     }
     const siteBtn = document.getElementById('btn-save-siteInfo');
     if (siteBtn) { siteBtn.disabled = true; siteBtn.textContent = '⏳ กำลังบันทึก...'; }
-    // บันทึก siteInfo — UPDATE ก่อน ถ้าไม่มี row ค่อย INSERT
+    // บันทึก siteInfo — ใช้ upsert เสมอ
     const newVal = { name1, name2, logoTop, logoBottom, pageTitle, heroBull };
-    const { error: eUpd, count } = await sb.from('settings')
-      .update({ value: newVal })
-      .eq('key', 'siteInfo')
-      .select('key');
-
-    let finalError = null;
-    if (eUpd) {
-      // ถ้า update ล้มเหลว ลอง insert
-      const { error: eIns } = await sb.from('settings')
-        .insert({ key: 'siteInfo', value: newVal });
-      finalError = eIns;
-    }
+    const saveErr = await safeUpsertSettings('siteInfo', newVal);
 
     if (siteBtn) { siteBtn.disabled = false; siteBtn.textContent = '💾 ยืนยันการเปลี่ยนแปลง'; }
-    if (finalError) {
-      showToast('❌ บันทึกไม่สำเร็จ: ' + finalError.message + ' — กรุณา run SQL ใน Supabase ก่อนครับ', 'error');
+    if (saveErr) {
+      showToast('❌ บันทึกไม่สำเร็จ: ' + saveErr.message, 'error');
     } else {
       window._heroBullBase64 = heroBull;
-      showToast('✅ บันทึกแล้วครับ! Reload เพื่อเห็นรูปใหม่');
+      // อัปเดต topbar admin ทันที
+      const adminLogo = document.querySelector('.topbar-logo');
+      if (adminLogo) adminLogo.innerHTML = `🐂 <em>${name1}${name2}</em> <small style="font-size:11px;font-weight:400;color:rgba(255,248,236,.35);margin-left:6px;">Admin</small>`;
+      showToast(`✅ บันทึกชื่อ "${name1}${name2}" แล้วครับ! หน้าบ้านจะอัปเดตทันที`);
     }
     return;
   }

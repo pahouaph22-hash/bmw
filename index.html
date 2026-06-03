@@ -4125,15 +4125,31 @@ fns.forEach(function(fn){
       if (siteInfo.name1 || siteInfo.name2) {
         const n1 = siteInfo.name1 || 'วัวชน';
         const n2 = siteInfo.name2 || 'ไทย';
-        // Navbar
+
+        // ── Navbar ── (id="nav-site-name")
+        const navSiteName = document.getElementById('nav-site-name');
+        if (navSiteName) navSiteName.innerHTML = `${n1}<span style="color:#C8102E;">${n2}</span>`;
+
+        // ── nav-logo fallback ──
         const navSpan = document.querySelector('.nav-logo > span');
-        if (navSpan) navSpan.innerHTML = `${n1}<span style="color:#C8102E;">${n2}</span>`;
-        // Footer logo
+        if (navSpan && !navSiteName) navSpan.innerHTML = `${n1}<span style="color:#C8102E;">${n2}</span>`;
+
+        // ── Footer logo ──
         const fl = document.querySelector('.footer-logo');
         if (fl) fl.innerHTML = `${n1}<span>${n2}</span>`;
-        // Register logo
+
+        // ── Register / Login logo ──
         const rl = document.querySelector('.register-logo');
         if (rl) rl.innerHTML = `${n1}<span>${n2}</span>`;
+
+        // ── Account back header ──
+        document.querySelectorAll('.account-site-name').forEach(el => {
+          el.innerHTML = `${n1}<span>${n2}</span>`;
+        });
+
+        // ── Page title ──
+        if (siteInfo.pageTitle) document.title = siteInfo.pageTitle;
+        else document.title = `${n1}${n2}`;
       }
       if (siteInfo.logoTop) {
         const tp = document.querySelector('textPath[href="#nt"]');
@@ -4342,6 +4358,25 @@ fns.forEach(function(fn){
     sb.channel('home-news')
       .on('postgres_changes', { event: '*', schema: 'public', table: 'news' }, () => {
         loadNewsTicker();
+      })
+      .subscribe();
+
+    // Real-time settings — อัปเดตชื่อเว็บทันทีเมื่อ Admin เปลี่ยน
+    sb.channel('home-settings')
+      .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'settings' }, payload => {
+        if (payload.new?.key === 'siteInfo') {
+          const si = payload.new.value || {};
+          const n1 = si.name1 || 'วัวชน';
+          const n2 = si.name2 || 'ไทย';
+          const navEl = document.getElementById('nav-site-name');
+          if (navEl) navEl.innerHTML = `${n1}<span style="color:#C8102E;">${n2}</span>`;
+          const fl = document.querySelector('.footer-logo');
+          if (fl) fl.innerHTML = `${n1}<span>${n2}</span>`;
+          const rl = document.querySelector('.register-logo');
+          if (rl) rl.innerHTML = `${n1}<span>${n2}</span>`;
+          if (si.pageTitle) document.title = si.pageTitle;
+          else document.title = `${n1}${n2}`;
+        }
       })
       .subscribe();
 
