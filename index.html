@@ -7,25 +7,8 @@
 <!-- Phetsarath OT — ฟอนต์หลักลาว -->
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Phetsarath:wght@400;700&family=Noto+Sans+Lao:wght@400;500;700;900&family=Kanit:wght@400;500;700;900&display=swap" rel="stylesheet">
-<style>
-/* Phetsarath OT — ฟอนต์ลาวจาก woff2 */
-@font-face {
-  font-family: 'Phetsarath OT';
-  src: url('https://cdn.jsdelivr.net/gh/nicowillis/lao-fonts@master/PhetsarathOT.woff2') format('woff2'),
-       url('https://cdn.jsdelivr.net/gh/nicowillis/lao-fonts@master/PhetsarathOT.woff') format('woff'),
-       url('https://cdn.jsdelivr.net/gh/nicowillis/lao-fonts@master/PhetsarathOT.ttf') format('truetype');
-  font-weight: normal;
-  font-display: swap;
-}
-@font-face {
-  font-family: 'Phetsarath OT';
-  src: url('https://cdn.jsdelivr.net/gh/nicowillis/lao-fonts@master/PhetsarathOT-Bold.woff2') format('woff2'),
-       url('https://cdn.jsdelivr.net/gh/nicowillis/lao-fonts@master/PhetsarathOT-Bold.woff') format('woff');
-  font-weight: bold;
-  font-display: swap;
-}
-</style>
+<link href="https://fonts.googleapis.com/css2?family=Phetsarath:wght@400;700&family=Noto+Sans+Lao:wdth@100;400..900;wght@100..900&family=Kanit:wght@400;500;700;900&display=swap" rel="stylesheet">
+
 <script>
 // ── Global stubs ── รันก่อน CDN และ main script ──
 (function(){
@@ -56,7 +39,7 @@ fns.forEach(function(fn){
 <style>
   *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
   :root {
-    --font-main: 'Phetsarath OT', 'Phetsarath', 'Noto Sans Lao', 'Kanit', sans-serif;
+    --font-main: 'Phetsarath', 'Noto Sans Lao', 'Kanit', sans-serif;
     --green:  #1B6B2F;
     --green2: #27943F;
     --green3: #0d3d1a;
@@ -70,7 +53,7 @@ fns.forEach(function(fn){
   }
   html { scroll-behavior: smooth; }
   body {
-    font-family: 'Phetsarath OT', 'Phetsarath', 'Noto Sans Lao', 'Sarabun', sans-serif;
+    font-family: 'Phetsarath', 'Noto Sans Lao', 'Sarabun', sans-serif;
     background: var(--dark);
     color: var(--cream);
     overflow-x: hidden;
@@ -149,7 +132,7 @@ fns.forEach(function(fn){
     backdrop-filter: blur(12px);
   }
   .nav-logo {
-    font-family: 'Phetsarath OT', 'Phetsarath', 'Noto Sans Lao', 'Kanit', sans-serif;
+    font-family: 'Phetsarath', 'Noto Sans Lao', 'Kanit', sans-serif;
     font-weight: 900;
     font-size: 22px;
     color: var(--gold);
@@ -157,7 +140,7 @@ fns.forEach(function(fn){
   .nav-logo span { color: var(--accent); }
   .nav-links { display: flex; gap: 28px; }
   .nav-links a {
-    font-family: 'Phetsarath OT', 'Phetsarath', 'Noto Sans Lao', 'Kanit', sans-serif;
+    font-family: 'Phetsarath', 'Noto Sans Lao', 'Kanit', sans-serif;
     font-weight: 700;
     font-size: 14px;
     color: rgba(240,255,232,0.75);
@@ -223,7 +206,7 @@ fns.forEach(function(fn){
     display: inline-block;
     background: linear-gradient(135deg, var(--green), var(--green2));
     color: #fff;
-    font-family: 'Phetsarath OT', 'Phetsarath', 'Noto Sans Lao', 'Kanit', sans-serif;
+    font-family: 'Phetsarath', 'Noto Sans Lao', 'Kanit', sans-serif;
     font-weight: 700;
     font-size: 13px;
     padding: 6px 22px;
@@ -259,7 +242,7 @@ fns.forEach(function(fn){
     96% { transform: rotate(8deg); }
   }
   .hero-title {
-    font-family: 'Phetsarath OT', 'Phetsarath', 'Noto Sans Lao', 'Kanit', sans-serif;
+    font-family: 'Phetsarath', 'Noto Sans Lao', 'Kanit', sans-serif;
     font-weight: 900;
     font-size: clamp(56px, 10vw, 100px);
     line-height: 1.0;
@@ -294,7 +277,7 @@ fns.forEach(function(fn){
   .btn-main {
     background: linear-gradient(135deg, var(--green), var(--green2));
     color: #fff;
-    font-family: 'Phetsarath OT', 'Phetsarath', 'Noto Sans Lao', 'Kanit', sans-serif;
+    font-family: 'Phetsarath', 'Noto Sans Lao', 'Kanit', sans-serif;
     font-weight: 700;
     font-size: 15px;
     padding: 13px 36px;
@@ -309,7 +292,7 @@ fns.forEach(function(fn){
   .btn-outline {
     background: transparent;
     color: var(--gold);
-    font-family: 'Phetsarath OT', 'Phetsarath', 'Noto Sans Lao', 'Kanit', sans-serif;
+    font-family: 'Phetsarath', 'Noto Sans Lao', 'Kanit', sans-serif;
     font-weight: 700;
     font-size: 15px;
     padding: 13px 30px;
@@ -334,7 +317,7 @@ fns.forEach(function(fn){
   .ticker-label {
     background: linear-gradient(135deg, var(--green), var(--green2));
     color: #fff;
-    font-family: 'Phetsarath OT', 'Phetsarath', 'Noto Sans Lao', 'Kanit', sans-serif;
+    font-family: 'Phetsarath', 'Noto Sans Lao', 'Kanit', sans-serif;
     font-weight: 700;
     font-size: 12px;
     padding: 4px 16px;
@@ -350,7 +333,7 @@ fns.forEach(function(fn){
   }
   .ticker-track:hover { animation-play-state: paused; }
   .ticker-item {
-    font-family: 'Phetsarath OT', 'Phetsarath', 'Noto Sans Lao', 'Sarabun', sans-serif;
+    font-family: 'Phetsarath', 'Noto Sans Lao', 'Sarabun', sans-serif;
     font-size: 14px;
     color: rgba(240,255,232,0.75);
     padding-right: 60px;
@@ -374,7 +357,7 @@ fns.forEach(function(fn){
     flex-wrap: wrap;
   }
   .cd-label {
-    font-family: 'Phetsarath OT', 'Phetsarath', 'Noto Sans Lao', 'Kanit', sans-serif;
+    font-family: 'Phetsarath', 'Noto Sans Lao', 'Kanit', sans-serif;
     font-weight: 700;
     font-size: 14px;
     color: var(--cream);
@@ -383,7 +366,7 @@ fns.forEach(function(fn){
   .cd-timer { display: flex; gap: 14px; align-items: center; }
   .cd-unit { text-align: center; }
   .cd-num {
-    font-family: 'Phetsarath OT', 'Phetsarath', 'Noto Sans Lao', 'Kanit', sans-serif;
+    font-family: 'Phetsarath', 'Noto Sans Lao', 'Kanit', sans-serif;
     font-weight: 900;
     font-size: 32px;
     color: var(--gold);
@@ -395,10 +378,10 @@ fns.forEach(function(fn){
     font-size: 10px;
     color: rgba(240,255,232,0.5);
     letter-spacing: 2px;
-    font-family: 'Phetsarath OT', 'Phetsarath', 'Noto Sans Lao', 'Kanit', sans-serif;
+    font-family: 'Phetsarath', 'Noto Sans Lao', 'Kanit', sans-serif;
   }
   .cd-sep {
-    font-family: 'Phetsarath OT', 'Phetsarath', 'Noto Sans Lao', 'Kanit', sans-serif;
+    font-family: 'Phetsarath', 'Noto Sans Lao', 'Kanit', sans-serif;
     font-weight: 900;
     font-size: 26px;
     color: var(--gold);
@@ -424,7 +407,7 @@ fns.forEach(function(fn){
     to   { opacity: 1; transform: translateY(0); }
   }
   .stat-num {
-    font-family: 'Phetsarath OT', 'Phetsarath', 'Noto Sans Lao', 'Kanit', sans-serif;
+    font-family: 'Phetsarath', 'Noto Sans Lao', 'Kanit', sans-serif;
     font-weight: 900;
     font-size: 40px;
     color: var(--gold);
@@ -435,7 +418,7 @@ fns.forEach(function(fn){
     font-size: 13px;
     color: rgba(240,255,232,0.5);
     margin-top: 5px;
-    font-family: 'Phetsarath OT', 'Phetsarath', 'Noto Sans Lao', 'Sarabun', sans-serif;
+    font-family: 'Phetsarath', 'Noto Sans Lao', 'Sarabun', sans-serif;
   }
 
   /* EVENTS */
@@ -445,7 +428,7 @@ fns.forEach(function(fn){
     margin: 0 auto;
   }
   .section-title {
-    font-family: 'Phetsarath OT', 'Phetsarath', 'Noto Sans Lao', 'Kanit', sans-serif;
+    font-family: 'Phetsarath', 'Noto Sans Lao', 'Kanit', sans-serif;
     font-weight: 900;
     font-size: 36px;
     color: var(--gold);
@@ -500,7 +483,7 @@ fns.forEach(function(fn){
     gap: 6px;
   }
   .match-round {
-    font-family: 'Phetsarath OT', 'Phetsarath', 'Noto Sans Lao', 'Kanit', sans-serif;
+    font-family: 'Phetsarath', 'Noto Sans Lao', 'Kanit', sans-serif;
     font-weight: 900;
     font-size: 13px;
     color: var(--gold);
@@ -512,12 +495,12 @@ fns.forEach(function(fn){
     gap: 10px;
     font-size: 11px;
     color: rgba(240,255,232,0.4);
-    font-family: 'Phetsarath OT', 'Phetsarath', 'Noto Sans Lao', 'Kanit', sans-serif;
+    font-family: 'Phetsarath', 'Noto Sans Lao', 'Kanit', sans-serif;
     flex-wrap: wrap;
   }
   .match-meta span { display: flex; align-items: center; gap: 3px; }
   .match-status-badge {
-    font-family: 'Phetsarath OT', 'Phetsarath', 'Noto Sans Lao', 'Kanit', sans-serif;
+    font-family: 'Phetsarath', 'Noto Sans Lao', 'Kanit', sans-serif;
     font-weight: 700;
     font-size: 10px;
     padding: 3px 10px;
@@ -586,7 +569,7 @@ fns.forEach(function(fn){
   /* TEAM INFO */
   .team-info { text-align: center; }
   .team-name {
-    font-family: 'Phetsarath OT', 'Phetsarath', 'Noto Sans Lao', 'Kanit', sans-serif;
+    font-family: 'Phetsarath', 'Noto Sans Lao', 'Kanit', sans-serif;
     font-weight: 900;
     font-size: 16px;
     color: var(--cream);
@@ -604,7 +587,7 @@ fns.forEach(function(fn){
   }
   .team-weight {
     display: inline-block;
-    font-family: 'Phetsarath OT', 'Phetsarath', 'Noto Sans Lao', 'Kanit', sans-serif;
+    font-family: 'Phetsarath', 'Noto Sans Lao', 'Kanit', sans-serif;
     font-size: 10px;
     font-weight: 700;
     padding: 2px 8px;
@@ -632,7 +615,7 @@ fns.forEach(function(fn){
     border-right: 1px solid rgba(255,255,255,0.04);
   }
   .vs-text {
-    font-family: 'Phetsarath OT', 'Phetsarath', 'Noto Sans Lao', 'Kanit', sans-serif;
+    font-family: 'Phetsarath', 'Noto Sans Lao', 'Kanit', sans-serif;
     font-weight: 900;
     font-size: 18px;
     color: rgba(240,255,232,0.18);
@@ -648,7 +631,7 @@ fns.forEach(function(fn){
     padding: 10px 18px;
     background: linear-gradient(135deg, rgba(245,200,66,0.1), rgba(245,200,66,0.05));
     border-top: 1px solid rgba(245,200,66,0.2);
-    font-family: 'Phetsarath OT', 'Phetsarath', 'Noto Sans Lao', 'Kanit', sans-serif;
+    font-family: 'Phetsarath', 'Noto Sans Lao', 'Kanit', sans-serif;
     font-size: 13px;
     font-weight: 700;
     color: var(--gold);
@@ -665,7 +648,7 @@ fns.forEach(function(fn){
   }
   .match-detail-btn {
     flex: 1;
-    font-family: 'Phetsarath OT', 'Phetsarath', 'Noto Sans Lao', 'Kanit', sans-serif;
+    font-family: 'Phetsarath', 'Noto Sans Lao', 'Kanit', sans-serif;
     font-size: 12px;
     font-weight: 700;
     padding: 8px 12px;
@@ -708,7 +691,7 @@ fns.forEach(function(fn){
     gap: 16px;
   }
   .footer-logo {
-    font-family: 'Phetsarath OT', 'Phetsarath', 'Noto Sans Lao', 'Kanit', sans-serif;
+    font-family: 'Phetsarath', 'Noto Sans Lao', 'Kanit', sans-serif;
     font-weight: 900;
     font-size: 20px;
     color: var(--gold);
@@ -716,7 +699,7 @@ fns.forEach(function(fn){
   .footer-logo span { color: var(--accent); }
   .footer-links { display: flex; gap: 24px; }
   .footer-links a {
-    font-family: 'Phetsarath OT', 'Phetsarath', 'Noto Sans Lao', 'Kanit', sans-serif;
+    font-family: 'Phetsarath', 'Noto Sans Lao', 'Kanit', sans-serif;
     font-weight: 700;
     font-size: 13px;
     color: rgba(240,255,232,0.4);
@@ -778,7 +761,7 @@ fns.forEach(function(fn){
     gap: 8px;
   }
   .nav-logo {
-    font-family: 'Phetsarath OT', 'Phetsarath', 'Noto Sans Lao', 'Kanit', sans-serif;
+    font-family: 'Phetsarath', 'Noto Sans Lao', 'Kanit', sans-serif;
     font-weight: 900;
     font-size: 22px;
     color: var(--gold);
@@ -786,7 +769,7 @@ fns.forEach(function(fn){
   .nav-logo span { color: var(--red); }
   .nav-links { display: flex; gap: 28px; }
   .nav-links a {
-    font-family: 'Phetsarath OT', 'Phetsarath', 'Noto Sans Lao', 'Kanit', sans-serif;
+    font-family: 'Phetsarath', 'Noto Sans Lao', 'Kanit', sans-serif;
     font-weight: 700;
     font-size: 14px;
     color: rgba(255,248,236,0.8);
@@ -822,7 +805,7 @@ fns.forEach(function(fn){
     display: inline-block;
     background: var(--red);
     color: #fff;
-    font-family: 'Phetsarath OT', 'Phetsarath', 'Noto Sans Lao', 'Kanit', sans-serif;
+    font-family: 'Phetsarath', 'Noto Sans Lao', 'Kanit', sans-serif;
     font-weight: 700;
     font-size: 13px;
     padding: 6px 22px;
@@ -843,7 +826,7 @@ fns.forEach(function(fn){
     animation: fadeUp 0.5s ease both;
   }
   .hero-title {
-    font-family: 'Phetsarath OT', 'Phetsarath', 'Noto Sans Lao', 'Kanit', sans-serif;
+    font-family: 'Phetsarath', 'Noto Sans Lao', 'Kanit', sans-serif;
     font-weight: 900;
     font-size: clamp(56px, 10vw, 100px);
     line-height: 1.0;
@@ -877,7 +860,7 @@ fns.forEach(function(fn){
   .btn-main {
     background: var(--red);
     color: #fff;
-    font-family: 'Phetsarath OT', 'Phetsarath', 'Noto Sans Lao', 'Kanit', sans-serif;
+    font-family: 'Phetsarath', 'Noto Sans Lao', 'Kanit', sans-serif;
     font-weight: 700;
     font-size: 15px;
     padding: 13px 36px;
@@ -891,7 +874,7 @@ fns.forEach(function(fn){
   .btn-outline {
     background: transparent;
     color: var(--gold);
-    font-family: 'Phetsarath OT', 'Phetsarath', 'Noto Sans Lao', 'Kanit', sans-serif;
+    font-family: 'Phetsarath', 'Noto Sans Lao', 'Kanit', sans-serif;
     font-weight: 700;
     font-size: 15px;
     padding: 13px 30px;
@@ -916,7 +899,7 @@ fns.forEach(function(fn){
   .ticker-label {
     background: var(--red);
     color: #fff;
-    font-family: 'Phetsarath OT', 'Phetsarath', 'Noto Sans Lao', 'Kanit', sans-serif;
+    font-family: 'Phetsarath', 'Noto Sans Lao', 'Kanit', sans-serif;
     font-weight: 700;
     font-size: 12px;
     padding: 4px 16px;
@@ -933,7 +916,7 @@ fns.forEach(function(fn){
   }
   .ticker-track:hover { animation-play-state: paused; }
   .ticker-item {
-    font-family: 'Phetsarath OT', 'Phetsarath', 'Noto Sans Lao', 'Sarabun', sans-serif;
+    font-family: 'Phetsarath', 'Noto Sans Lao', 'Sarabun', sans-serif;
     font-size: 14px;
     color: rgba(255,248,236,0.75);
     padding-right: 60px;
@@ -955,7 +938,7 @@ fns.forEach(function(fn){
     flex-wrap: wrap;
   }
   .cd-label {
-    font-family: 'Phetsarath OT', 'Phetsarath', 'Noto Sans Lao', 'Kanit', sans-serif;
+    font-family: 'Phetsarath', 'Noto Sans Lao', 'Kanit', sans-serif;
     font-weight: 700;
     font-size: 14px;
     color: #fff;
@@ -964,7 +947,7 @@ fns.forEach(function(fn){
   .cd-timer { display: flex; gap: 14px; align-items: center; }
   .cd-unit { text-align: center; }
   .cd-num {
-    font-family: 'Phetsarath OT', 'Phetsarath', 'Noto Sans Lao', 'Kanit', sans-serif;
+    font-family: 'Phetsarath', 'Noto Sans Lao', 'Kanit', sans-serif;
     font-weight: 900;
     font-size: 32px;
     color: var(--gold);
@@ -975,10 +958,10 @@ fns.forEach(function(fn){
     font-size: 10px;
     color: rgba(255,255,255,0.7);
     letter-spacing: 2px;
-    font-family: 'Phetsarath OT', 'Phetsarath', 'Noto Sans Lao', 'Kanit', sans-serif;
+    font-family: 'Phetsarath', 'Noto Sans Lao', 'Kanit', sans-serif;
   }
   .cd-sep {
-    font-family: 'Phetsarath OT', 'Phetsarath', 'Noto Sans Lao', 'Kanit', sans-serif;
+    font-family: 'Phetsarath', 'Noto Sans Lao', 'Kanit', sans-serif;
     font-weight: 900;
     font-size: 26px;
     color: var(--gold);
@@ -997,7 +980,7 @@ fns.forEach(function(fn){
   }
   .stat-item { text-align: center; }
   .stat-num {
-    font-family: 'Phetsarath OT', 'Phetsarath', 'Noto Sans Lao', 'Kanit', sans-serif;
+    font-family: 'Phetsarath', 'Noto Sans Lao', 'Kanit', sans-serif;
     font-weight: 900;
     font-size: 40px;
     color: var(--gold);
@@ -1007,7 +990,7 @@ fns.forEach(function(fn){
     font-size: 13px;
     color: rgba(255,248,236,0.55);
     margin-top: 5px;
-    font-family: 'Phetsarath OT', 'Phetsarath', 'Noto Sans Lao', 'Sarabun', sans-serif;
+    font-family: 'Phetsarath', 'Noto Sans Lao', 'Sarabun', sans-serif;
   }
 
   /* EVENTS — Mobile */
@@ -1017,7 +1000,7 @@ fns.forEach(function(fn){
     margin: 0 auto;
   }
   .section-title {
-    font-family: 'Phetsarath OT', 'Phetsarath', 'Noto Sans Lao', 'Kanit', sans-serif;
+    font-family: 'Phetsarath', 'Noto Sans Lao', 'Kanit', sans-serif;
     font-weight: 900;
     font-size: 28px;
     color: var(--gold);
@@ -1066,7 +1049,7 @@ fns.forEach(function(fn){
     right: 12px;
     background: var(--gold);
     color: var(--dark);
-    font-family: 'Phetsarath OT', 'Phetsarath', 'Noto Sans Lao', 'Kanit', sans-serif;
+    font-family: 'Phetsarath', 'Noto Sans Lao', 'Kanit', sans-serif;
     font-weight: 700;
     font-size: 10px;
     padding: 3px 10px;
@@ -1074,7 +1057,7 @@ fns.forEach(function(fn){
   }
   .event-card-body { padding: 20px 22px 24px; }
   .ev-name {
-    font-family: 'Phetsarath OT', 'Phetsarath', 'Noto Sans Lao', 'Kanit', sans-serif;
+    font-family: 'Phetsarath', 'Noto Sans Lao', 'Kanit', sans-serif;
     font-weight: 900;
     font-size: 20px;
     color: var(--cream);
@@ -1085,14 +1068,14 @@ fns.forEach(function(fn){
     color: rgba(255,248,236,0.6);
     line-height: 1.7;
   }
-  .ev-detail strong { color: var(--gold); font-family: 'Phetsarath OT', 'Phetsarath', 'Noto Sans Lao', 'Kanit', sans-serif; }
+  .ev-detail strong { color: var(--gold); font-family: 'Phetsarath', 'Noto Sans Lao', 'Kanit', sans-serif; }
   .ev-btn {
     display: block;
     margin-top: 16px;
     background: var(--red);
     color: #fff;
     text-align: center;
-    font-family: 'Phetsarath OT', 'Phetsarath', 'Noto Sans Lao', 'Kanit', sans-serif;
+    font-family: 'Phetsarath', 'Noto Sans Lao', 'Kanit', sans-serif;
     font-weight: 700;
     font-size: 13px;
     padding: 11px;
@@ -1115,7 +1098,7 @@ fns.forEach(function(fn){
     display: inline-flex;
     align-items: center;
     gap: 8px;
-    font-family: 'Phetsarath OT', 'Phetsarath', 'Noto Sans Lao', 'Kanit', sans-serif;
+    font-family: 'Phetsarath', 'Noto Sans Lao', 'Kanit', sans-serif;
     font-weight: 700;
     font-size: 13px;
     color: rgba(240,255,232,0.5);
@@ -1142,7 +1125,7 @@ fns.forEach(function(fn){
     text-align: center;
   }
   .history-stat-num {
-    font-family: 'Phetsarath OT', 'Phetsarath', 'Noto Sans Lao', 'Kanit', sans-serif;
+    font-family: 'Phetsarath', 'Noto Sans Lao', 'Kanit', sans-serif;
     font-weight: 900;
     font-size: 32px;
     color: var(--gold);
@@ -1151,7 +1134,7 @@ fns.forEach(function(fn){
     font-size: 12px;
     color: rgba(240,255,232,0.5);
     margin-top: 4px;
-    font-family: 'Phetsarath OT', 'Phetsarath', 'Noto Sans Lao', 'Kanit', sans-serif;
+    font-family: 'Phetsarath', 'Noto Sans Lao', 'Kanit', sans-serif;
   }
 
   .history-card {
@@ -1204,7 +1187,7 @@ fns.forEach(function(fn){
   .history-bull-info { display: flex; flex-direction: column; }
   .history-bull.right .history-bull-info { align-items: flex-end; }
   .history-bull-name {
-    font-family: 'Phetsarath OT', 'Phetsarath', 'Noto Sans Lao', 'Kanit', sans-serif;
+    font-family: 'Phetsarath', 'Noto Sans Lao', 'Kanit', sans-serif;
     font-weight: 900;
     font-size: 17px;
     color: var(--cream);
@@ -1217,7 +1200,7 @@ fns.forEach(function(fn){
     display: inline-block;
     background: rgba(245,200,66,0.1);
     color: var(--gold);
-    font-family: 'Phetsarath OT', 'Phetsarath', 'Noto Sans Lao', 'Kanit', sans-serif;
+    font-family: 'Phetsarath', 'Noto Sans Lao', 'Kanit', sans-serif;
     font-size: 10px;
     font-weight: 700;
     padding: 2px 8px;
@@ -1237,13 +1220,13 @@ fns.forEach(function(fn){
     padding: 10px 0;
   }
   .history-vs {
-    font-family: 'Phetsarath OT', 'Phetsarath', 'Noto Sans Lao', 'Kanit', sans-serif;
+    font-family: 'Phetsarath', 'Noto Sans Lao', 'Kanit', sans-serif;
     font-weight: 900;
     font-size: 13px;
     color: rgba(240,255,232,0.3);
   }
-  .history-date { font-family: 'Phetsarath OT', 'Phetsarath', 'Noto Sans Lao', 'Kanit', sans-serif; font-size: 10px; color: rgba(240,255,232,0.4); text-align: center; }
-  .history-round { font-family: 'Phetsarath OT', 'Phetsarath', 'Noto Sans Lao', 'Kanit', sans-serif; font-size: 10px; color: var(--gold); opacity: 0.7; text-align: center; }
+  .history-date { font-family: 'Phetsarath', 'Noto Sans Lao', 'Kanit', sans-serif; font-size: 10px; color: rgba(240,255,232,0.4); text-align: center; }
+  .history-round { font-family: 'Phetsarath', 'Noto Sans Lao', 'Kanit', sans-serif; font-size: 10px; color: var(--gold); opacity: 0.7; text-align: center; }
 
   .history-winner-bar {
     background: linear-gradient(135deg, rgba(39,148,63,0.15), rgba(27,107,47,0.08));
@@ -1252,7 +1235,7 @@ fns.forEach(function(fn){
     display: flex;
     align-items: center;
     gap: 8px;
-    font-family: 'Phetsarath OT', 'Phetsarath', 'Noto Sans Lao', 'Kanit', sans-serif;
+    font-family: 'Phetsarath', 'Noto Sans Lao', 'Kanit', sans-serif;
     font-size: 13px;
     font-weight: 700;
     color: var(--gold);
@@ -1268,7 +1251,7 @@ fns.forEach(function(fn){
     text-align: center;
     padding: 60px 20px;
     color: rgba(240,255,232,0.35);
-    font-family: 'Phetsarath OT', 'Phetsarath', 'Noto Sans Lao', 'Kanit', sans-serif;
+    font-family: 'Phetsarath', 'Noto Sans Lao', 'Kanit', sans-serif;
   }
   .history-empty .icon { font-size: 48px; margin-bottom: 12px; }
 
@@ -1291,7 +1274,7 @@ fns.forEach(function(fn){
     gap: 8px;
   }
   .bet-round-label {
-    font-family: 'Phetsarath OT', 'Phetsarath', 'Noto Sans Lao', 'Kanit', sans-serif;
+    font-family: 'Phetsarath', 'Noto Sans Lao', 'Kanit', sans-serif;
     font-weight: 900;
     font-size: 15px;
     color: var(--gold);
@@ -1300,7 +1283,7 @@ fns.forEach(function(fn){
   .bet-match-info {
     font-size: 12px;
     color: rgba(240,255,232,0.4);
-    font-family: 'Phetsarath OT', 'Phetsarath', 'Noto Sans Lao', 'Kanit', sans-serif;
+    font-family: 'Phetsarath', 'Noto Sans Lao', 'Kanit', sans-serif;
   }
 
   /* ARENA */
@@ -1341,7 +1324,7 @@ fns.forEach(function(fn){
     box-shadow: 0 0 20px rgba(59,130,246,0.15);
   }
   .bet-team-name {
-    font-family: 'Phetsarath OT', 'Phetsarath', 'Noto Sans Lao', 'Kanit', sans-serif;
+    font-family: 'Phetsarath', 'Noto Sans Lao', 'Kanit', sans-serif;
     font-weight: 900;
     font-size: 18px;
     color: var(--cream);
@@ -1364,15 +1347,15 @@ fns.forEach(function(fn){
   }
   .red-odds { background: rgba(239,68,68,0.1); border: 1px solid rgba(239,68,68,0.25); }
   .blue-odds { background: rgba(59,130,246,0.1); border: 1px solid rgba(59,130,246,0.25); }
-  .bet-odds-label { font-size: 10px; color: rgba(240,255,232,0.4); font-family: 'Phetsarath OT', 'Phetsarath', 'Noto Sans Lao', 'Kanit', sans-serif; }
-  .bet-odds-val { font-family: 'Phetsarath OT', 'Phetsarath', 'Noto Sans Lao', 'Kanit', sans-serif; font-weight: 900; font-size: 20px; color: var(--gold); }
+  .bet-odds-label { font-size: 10px; color: rgba(240,255,232,0.4); font-family: 'Phetsarath', 'Noto Sans Lao', 'Kanit', sans-serif; }
+  .bet-odds-val { font-family: 'Phetsarath', 'Noto Sans Lao', 'Kanit', sans-serif; font-weight: 900; font-size: 20px; color: var(--gold); }
   .bet-pool-info {
     display: flex;
     align-items: center;
     gap: 5px;
     font-size: 11px;
     color: rgba(240,255,232,0.4);
-    font-family: 'Phetsarath OT', 'Phetsarath', 'Noto Sans Lao', 'Kanit', sans-serif;
+    font-family: 'Phetsarath', 'Noto Sans Lao', 'Kanit', sans-serif;
   }
   .bet-pool-dot { width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0; }
   .red-dot { background: #f87171; }
@@ -1394,7 +1377,7 @@ fns.forEach(function(fn){
     display: flex;
     align-items: center;
     justify-content: center;
-    font-family: 'Phetsarath OT', 'Phetsarath', 'Noto Sans Lao', 'Kanit', sans-serif;
+    font-family: 'Phetsarath', 'Noto Sans Lao', 'Kanit', sans-serif;
     font-weight: 900;
     font-size: 14px;
     color: rgba(240,255,232,0.3);
@@ -1405,7 +1388,7 @@ fns.forEach(function(fn){
     border-radius: 8px;
     padding: 6px 10px;
     text-align: center;
-    font-family: 'Phetsarath OT', 'Phetsarath', 'Noto Sans Lao', 'Kanit', sans-serif;
+    font-family: 'Phetsarath', 'Noto Sans Lao', 'Kanit', sans-serif;
   }
 
   /* BET PANEL */
@@ -1425,7 +1408,7 @@ fns.forEach(function(fn){
     border-radius: 10px;
     text-align: center;
     cursor: pointer;
-    font-family: 'Phetsarath OT', 'Phetsarath', 'Noto Sans Lao', 'Kanit', sans-serif;
+    font-family: 'Phetsarath', 'Noto Sans Lao', 'Kanit', sans-serif;
     font-weight: 700;
     font-size: 14px;
     border: 2px solid transparent;
@@ -1455,7 +1438,7 @@ fns.forEach(function(fn){
     box-shadow: 0 0 16px rgba(59,130,246,0.2);
   }
   .bet-amount-label {
-    font-family: 'Phetsarath OT', 'Phetsarath', 'Noto Sans Lao', 'Kanit', sans-serif;
+    font-family: 'Phetsarath', 'Noto Sans Lao', 'Kanit', sans-serif;
     font-size: 12px;
     font-weight: 700;
     color: rgba(240,255,232,0.5);
@@ -1469,7 +1452,7 @@ fns.forEach(function(fn){
     flex-wrap: wrap;
   }
   .bet-quick-btns button {
-    font-family: 'Phetsarath OT', 'Phetsarath', 'Noto Sans Lao', 'Kanit', sans-serif;
+    font-family: 'Phetsarath', 'Noto Sans Lao', 'Kanit', sans-serif;
     font-size: 12px;
     font-weight: 700;
     padding: 6px 14px;
@@ -1490,7 +1473,7 @@ fns.forEach(function(fn){
     margin-bottom: 8px;
   }
   .bet-input {
-    font-family: 'Phetsarath OT', 'Phetsarath', 'Noto Sans Lao', 'Sarabun', sans-serif;
+    font-family: 'Phetsarath', 'Noto Sans Lao', 'Sarabun', sans-serif;
     font-size: 15px;
     padding: 11px 40px 11px 14px;
     border: 1px solid rgba(255,255,255,0.12);
@@ -1507,7 +1490,7 @@ fns.forEach(function(fn){
     right: 12px;
     top: 50%;
     transform: translateY(-50%);
-    font-family: 'Phetsarath OT', 'Phetsarath', 'Noto Sans Lao', 'Kanit', sans-serif;
+    font-family: 'Phetsarath', 'Noto Sans Lao', 'Kanit', sans-serif;
     font-weight: 700;
     color: rgba(240,255,232,0.3);
     font-size: 13px;
@@ -1515,7 +1498,7 @@ fns.forEach(function(fn){
   .bet-balance-hint {
     font-size: 12px;
     color: rgba(240,255,232,0.4);
-    font-family: 'Phetsarath OT', 'Phetsarath', 'Noto Sans Lao', 'Kanit', sans-serif;
+    font-family: 'Phetsarath', 'Noto Sans Lao', 'Kanit', sans-serif;
     margin-bottom: 10px;
   }
   .bet-expect-row {
@@ -1529,13 +1512,13 @@ fns.forEach(function(fn){
     justify-content: space-between;
     font-size: 13px;
     color: rgba(240,255,232,0.6);
-    font-family: 'Phetsarath OT', 'Phetsarath', 'Noto Sans Lao', 'Kanit', sans-serif;
+    font-family: 'Phetsarath', 'Noto Sans Lao', 'Kanit', sans-serif;
   }
   .bet-submit-btn {
     width: 100%;
     background: linear-gradient(135deg, var(--green), var(--green2));
     color: #fff;
-    font-family: 'Phetsarath OT', 'Phetsarath', 'Noto Sans Lao', 'Kanit', sans-serif;
+    font-family: 'Phetsarath', 'Noto Sans Lao', 'Kanit', sans-serif;
     font-weight: 900;
     font-size: 15px;
     padding: 13px;
@@ -1551,7 +1534,7 @@ fns.forEach(function(fn){
     margin-top: 12px;
     padding: 11px 14px;
     border-radius: 9px;
-    font-family: 'Phetsarath OT', 'Phetsarath', 'Noto Sans Lao', 'Kanit', sans-serif;
+    font-family: 'Phetsarath', 'Noto Sans Lao', 'Kanit', sans-serif;
     font-size: 13px;
     text-align: center;
     animation: fadeUp .3s ease;
@@ -1572,7 +1555,7 @@ fns.forEach(function(fn){
     padding: 16px 20px;
   }
   .bet-queue-title {
-    font-family: 'Phetsarath OT', 'Phetsarath', 'Noto Sans Lao', 'Kanit', sans-serif;
+    font-family: 'Phetsarath', 'Noto Sans Lao', 'Kanit', sans-serif;
     font-weight: 700;
     font-size: 13px;
     color: rgba(240,255,232,0.5);
@@ -1592,11 +1575,11 @@ fns.forEach(function(fn){
   }
   .red-queue { border-left: 3px solid rgba(239,68,68,0.5); }
   .blue-queue { border-left: 3px solid rgba(59,130,246,0.5); }
-  .bet-queue-name { font-family: 'Phetsarath OT', 'Phetsarath', 'Noto Sans Lao', 'Kanit', sans-serif; font-weight: 700; color: var(--cream); min-width: 60px; }
+  .bet-queue-name { font-family: 'Phetsarath', 'Noto Sans Lao', 'Kanit', sans-serif; font-weight: 700; color: var(--cream); min-width: 60px; }
   .bet-queue-side { color: rgba(240,255,232,0.45); flex: 1; font-size: 12px; }
-  .bet-queue-amount { font-family: 'Phetsarath OT', 'Phetsarath', 'Noto Sans Lao', 'Kanit', sans-serif; font-weight: 700; color: var(--gold); min-width: 60px; text-align: right; }
+  .bet-queue-amount { font-family: 'Phetsarath', 'Noto Sans Lao', 'Kanit', sans-serif; font-weight: 700; color: var(--gold); min-width: 60px; text-align: right; }
   .bet-queue-badge {
-    font-family: 'Phetsarath OT', 'Phetsarath', 'Noto Sans Lao', 'Kanit', sans-serif;
+    font-family: 'Phetsarath', 'Noto Sans Lao', 'Kanit', sans-serif;
     font-size: 10px;
     font-weight: 700;
     padding: 3px 9px;
@@ -1607,7 +1590,7 @@ fns.forEach(function(fn){
   .matched { background: rgba(74,222,128,0.1); color: var(--accent); border: 1px solid rgba(74,222,128,0.2); }
 
   .bet-step-label {
-    font-family: 'Phetsarath OT', 'Phetsarath', 'Noto Sans Lao', 'Kanit', sans-serif;
+    font-family: 'Phetsarath', 'Noto Sans Lao', 'Kanit', sans-serif;
     font-size: 12px;
     font-weight: 700;
     color: rgba(240,255,232,0.45);
@@ -1624,7 +1607,7 @@ fns.forEach(function(fn){
     margin-bottom: 8px;
   }
   .bet-odds-preset {
-    font-family: 'Phetsarath OT', 'Phetsarath', 'Noto Sans Lao', 'Kanit', sans-serif;
+    font-family: 'Phetsarath', 'Noto Sans Lao', 'Kanit', sans-serif;
     font-size: 12px;
     font-weight: 700;
     padding: 6px 13px;
@@ -1643,7 +1626,7 @@ fns.forEach(function(fn){
     gap: 8px;
   }
   .bet-odds-input {
-    font-family: 'Phetsarath OT', 'Phetsarath', 'Noto Sans Lao', 'Kanit', sans-serif;
+    font-family: 'Phetsarath', 'Noto Sans Lao', 'Kanit', sans-serif;
     font-size: 14px;
     font-weight: 700;
     padding: 7px 10px;
@@ -1668,13 +1651,13 @@ fns.forEach(function(fn){
   }
   .bet-queue-item:hover { background: rgba(255,255,255,0.05); }
   .bet-queue-odds {
-    font-family: 'Phetsarath OT', 'Phetsarath', 'Noto Sans Lao', 'Kanit', sans-serif;
+    font-family: 'Phetsarath', 'Noto Sans Lao', 'Kanit', sans-serif;
     font-size: 12px;
     font-weight: 700;
     color: var(--gold);
   }
   .bet-join-btn {
-    font-family: 'Phetsarath OT', 'Phetsarath', 'Noto Sans Lao', 'Kanit', sans-serif;
+    font-family: 'Phetsarath', 'Noto Sans Lao', 'Kanit', sans-serif;
     font-size: 11px;
     font-weight: 700;
     padding: 5px 10px;
@@ -1728,14 +1711,14 @@ fns.forEach(function(fn){
     border: 2px solid transparent;
   }
   .sched-name {
-    font-family: 'Phetsarath OT', 'Phetsarath', 'Noto Sans Lao', 'Kanit', sans-serif;
+    font-family: 'Phetsarath', 'Noto Sans Lao', 'Kanit', sans-serif;
     font-weight: 900;
     font-size: 16px;
     color: var(--cream);
   }
   .sched-owner { font-size: 11px; color: rgba(240,255,232,0.4); }
   .sched-tag {
-    font-family: 'Phetsarath OT', 'Phetsarath', 'Noto Sans Lao', 'Kanit', sans-serif;
+    font-family: 'Phetsarath', 'Noto Sans Lao', 'Kanit', sans-serif;
     font-size: 10px;
     font-weight: 700;
     padding: 2px 8px;
@@ -1751,19 +1734,19 @@ fns.forEach(function(fn){
     gap: 6px;
   }
   .sched-vs {
-    font-family: 'Phetsarath OT', 'Phetsarath', 'Noto Sans Lao', 'Kanit', sans-serif;
+    font-family: 'Phetsarath', 'Noto Sans Lao', 'Kanit', sans-serif;
     font-weight: 900;
     font-size: 16px;
     color: rgba(240,255,232,0.2);
   }
   .sched-prize {
-    font-family: 'Phetsarath OT', 'Phetsarath', 'Noto Sans Lao', 'Kanit', sans-serif;
+    font-family: 'Phetsarath', 'Noto Sans Lao', 'Kanit', sans-serif;
     font-size: 11px;
     font-weight: 700;
     color: var(--gold);
   }
   .sched-pool {
-    font-family: 'Phetsarath OT', 'Phetsarath', 'Noto Sans Lao', 'Kanit', sans-serif;
+    font-family: 'Phetsarath', 'Noto Sans Lao', 'Kanit', sans-serif;
     font-size: 11px;
     color: rgba(240,255,232,0.4);
   }
@@ -1776,7 +1759,7 @@ fns.forEach(function(fn){
     background: rgba(0,0,0,0.1);
   }
   .sched-enter-btn {
-    font-family: 'Phetsarath OT', 'Phetsarath', 'Noto Sans Lao', 'Kanit', sans-serif;
+    font-family: 'Phetsarath', 'Noto Sans Lao', 'Kanit', sans-serif;
     font-size: 12px;
     font-weight: 700;
     color: var(--gold);
@@ -1799,7 +1782,7 @@ fns.forEach(function(fn){
     display: inline-flex;
     align-items: center;
     gap: 8px;
-    font-family: 'Phetsarath OT', 'Phetsarath', 'Noto Sans Lao', 'Kanit', sans-serif;
+    font-family: 'Phetsarath', 'Noto Sans Lao', 'Kanit', sans-serif;
     font-weight: 700;
     font-size: 13px;
     color: rgba(255,248,236,0.5);
@@ -1817,7 +1800,7 @@ fns.forEach(function(fn){
     display: flex;
     align-items: center;
     gap: 10px;
-    font-family: 'Phetsarath OT', 'Phetsarath', 'Noto Sans Lao', 'Kanit', sans-serif;
+    font-family: 'Phetsarath', 'Noto Sans Lao', 'Kanit', sans-serif;
     font-weight: 900;
     font-size: 13px;
     color: var(--cream);
@@ -1884,12 +1867,12 @@ fns.forEach(function(fn){
   .bull-number {
     font-size: 10px;
     color: rgba(255,248,236,0.3);
-    font-family: 'Phetsarath OT', 'Phetsarath', 'Noto Sans Lao', 'Kanit', sans-serif;
+    font-family: 'Phetsarath', 'Noto Sans Lao', 'Kanit', sans-serif;
     letter-spacing: 1.5px;
     margin-bottom: 5px;
   }
   .bull-name {
-    font-family: 'Phetsarath OT', 'Phetsarath', 'Noto Sans Lao', 'Kanit', sans-serif;
+    font-family: 'Phetsarath', 'Noto Sans Lao', 'Kanit', sans-serif;
     font-weight: 900;
     font-size: 20px;
     color: var(--cream);
@@ -1900,13 +1883,13 @@ fns.forEach(function(fn){
     font-size: 12px;
     color: rgba(255,248,236,0.4);
     margin-top: 4px;
-    font-family: 'Phetsarath OT', 'Phetsarath', 'Noto Sans Lao', 'Sarabun', sans-serif;
+    font-family: 'Phetsarath', 'Noto Sans Lao', 'Sarabun', sans-serif;
   }
   .bull-weight {
     display: inline-block;
     background: rgba(245,168,0,0.12);
     color: var(--gold);
-    font-family: 'Phetsarath OT', 'Phetsarath', 'Noto Sans Lao', 'Kanit', sans-serif;
+    font-family: 'Phetsarath', 'Noto Sans Lao', 'Kanit', sans-serif;
     font-size: 11px;
     font-weight: 700;
     padding: 3px 9px;
@@ -1937,7 +1920,7 @@ fns.forEach(function(fn){
     display: flex;
     align-items: center;
     justify-content: center;
-    font-family: 'Phetsarath OT', 'Phetsarath', 'Noto Sans Lao', 'Kanit', sans-serif;
+    font-family: 'Phetsarath', 'Noto Sans Lao', 'Kanit', sans-serif;
     font-weight: 900;
     font-size: 15px;
     color: var(--gold);
@@ -1948,7 +1931,7 @@ fns.forEach(function(fn){
     background: rgba(255,255,255,0.1);
   }
   .match-time {
-    font-family: 'Phetsarath OT', 'Phetsarath', 'Noto Sans Lao', 'Kanit', sans-serif;
+    font-family: 'Phetsarath', 'Noto Sans Lao', 'Kanit', sans-serif;
     font-size: 11px;
     color: rgba(255,248,236,0.6);
   }
@@ -1958,7 +1941,7 @@ fns.forEach(function(fn){
     display: inline-flex;
     align-items: center;
     gap: 4px;
-    font-family: 'Phetsarath OT', 'Phetsarath', 'Noto Sans Lao', 'Kanit', sans-serif;
+    font-family: 'Phetsarath', 'Noto Sans Lao', 'Kanit', sans-serif;
     font-size: 10px;
     font-weight: 700;
     padding: 3px 10px;
@@ -2011,7 +1994,7 @@ fns.forEach(function(fn){
     flex-direction: column;
     align-items: center;
     gap: 4px;
-    font-family: 'Phetsarath OT', 'Phetsarath', 'Noto Sans Lao', 'Kanit', sans-serif;
+    font-family: 'Phetsarath', 'Noto Sans Lao', 'Kanit', sans-serif;
     font-size: 9px;
     color: rgba(255,248,236,0.3);
     text-align: center;
@@ -2055,7 +2038,7 @@ fns.forEach(function(fn){
     display: flex;
     align-items: center;
     gap: 8px;
-    font-family: 'Phetsarath OT', 'Phetsarath', 'Noto Sans Lao', 'Kanit', sans-serif;
+    font-family: 'Phetsarath', 'Noto Sans Lao', 'Kanit', sans-serif;
     font-size: 12px;
     color: var(--gold);
     font-weight: 700;
@@ -2065,7 +2048,7 @@ fns.forEach(function(fn){
 
   .match-status {
     display: inline-block;
-    font-family: 'Phetsarath OT', 'Phetsarath', 'Noto Sans Lao', 'Kanit', sans-serif;
+    font-family: 'Phetsarath', 'Noto Sans Lao', 'Kanit', sans-serif;
     font-size: 10px;
     font-weight: 700;
     padding: 3px 10px;
@@ -2108,7 +2091,7 @@ fns.forEach(function(fn){
     align-items: center;
   }
   .modal-round {
-    font-family: 'Phetsarath OT', 'Phetsarath', 'Noto Sans Lao', 'Kanit', sans-serif;
+    font-family: 'Phetsarath', 'Noto Sans Lao', 'Kanit', sans-serif;
     font-size: 11px;
     font-weight: 700;
     color: var(--gold);
@@ -2135,7 +2118,7 @@ fns.forEach(function(fn){
   .modal-bull { text-align: center; }
   .modal-bull-icon { font-size: 40px; margin-bottom: 8px; }
   .modal-bull-name {
-    font-family: 'Phetsarath OT', 'Phetsarath', 'Noto Sans Lao', 'Kanit', sans-serif;
+    font-family: 'Phetsarath', 'Noto Sans Lao', 'Kanit', sans-serif;
     font-weight: 900;
     font-size: 20px;
     color: var(--cream);
@@ -2147,7 +2130,7 @@ fns.forEach(function(fn){
     display: inline-block;
     background: rgba(245,168,0,0.12);
     color: var(--gold);
-    font-family: 'Phetsarath OT', 'Phetsarath', 'Noto Sans Lao', 'Kanit', sans-serif;
+    font-family: 'Phetsarath', 'Noto Sans Lao', 'Kanit', sans-serif;
     font-size: 11px;
     font-weight: 700;
     padding: 3px 10px;
@@ -2162,7 +2145,7 @@ fns.forEach(function(fn){
     display: flex;
     align-items: center;
     justify-content: center;
-    font-family: 'Phetsarath OT', 'Phetsarath', 'Noto Sans Lao', 'Kanit', sans-serif;
+    font-family: 'Phetsarath', 'Noto Sans Lao', 'Kanit', sans-serif;
     font-weight: 900;
     font-size: 16px;
     color: var(--gold);
@@ -2179,12 +2162,12 @@ fns.forEach(function(fn){
   .modal-info-label {
     font-size: 10px;
     color: rgba(255,248,236,0.4);
-    font-family: 'Phetsarath OT', 'Phetsarath', 'Noto Sans Lao', 'Kanit', sans-serif;
+    font-family: 'Phetsarath', 'Noto Sans Lao', 'Kanit', sans-serif;
     letter-spacing: 1.5px;
     margin-bottom: 4px;
   }
   .modal-info-val {
-    font-family: 'Phetsarath OT', 'Phetsarath', 'Noto Sans Lao', 'Kanit', sans-serif;
+    font-family: 'Phetsarath', 'Noto Sans Lao', 'Kanit', sans-serif;
     font-weight: 700;
     font-size: 15px;
     color: var(--cream);
@@ -2200,12 +2183,12 @@ fns.forEach(function(fn){
   .modal-winner-label {
     font-size: 10px;
     color: var(--gold);
-    font-family: 'Phetsarath OT', 'Phetsarath', 'Noto Sans Lao', 'Kanit', sans-serif;
+    font-family: 'Phetsarath', 'Noto Sans Lao', 'Kanit', sans-serif;
     letter-spacing: 2px;
     margin-bottom: 4px;
   }
   .modal-winner-name {
-    font-family: 'Phetsarath OT', 'Phetsarath', 'Noto Sans Lao', 'Kanit', sans-serif;
+    font-family: 'Phetsarath', 'Noto Sans Lao', 'Kanit', sans-serif;
     font-weight: 900;
     font-size: 20px;
     color: var(--gold);
@@ -2235,7 +2218,7 @@ fns.forEach(function(fn){
     text-align: center;
   }
   .register-logo {
-    font-family: 'Phetsarath OT', 'Phetsarath', 'Noto Sans Lao', 'Kanit', sans-serif;
+    font-family: 'Phetsarath', 'Noto Sans Lao', 'Kanit', sans-serif;
     font-weight: 900;
     font-size: 20px;
     color: var(--gold);
@@ -2243,7 +2226,7 @@ fns.forEach(function(fn){
   }
   .register-logo span { color: var(--red); }
   .register-title {
-    font-family: 'Phetsarath OT', 'Phetsarath', 'Noto Sans Lao', 'Kanit', sans-serif;
+    font-family: 'Phetsarath', 'Noto Sans Lao', 'Kanit', sans-serif;
     font-weight: 900;
     font-size: 26px;
     color: var(--cream);
@@ -2259,7 +2242,7 @@ fns.forEach(function(fn){
   .reg-group { margin-bottom: 20px; }
   .reg-label {
     display: block;
-    font-family: 'Phetsarath OT', 'Phetsarath', 'Noto Sans Lao', 'Kanit', sans-serif;
+    font-family: 'Phetsarath', 'Noto Sans Lao', 'Kanit', sans-serif;
     font-weight: 700;
     font-size: 12px;
     color: var(--gold);
@@ -2280,7 +2263,7 @@ fns.forEach(function(fn){
     border: 1px solid rgba(245,168,0,0.2);
     border-radius: 10px;
     padding: 12px 16px;
-    font-family: 'Phetsarath OT', 'Phetsarath', 'Noto Sans Lao', 'Sarabun', sans-serif;
+    font-family: 'Phetsarath', 'Noto Sans Lao', 'Sarabun', sans-serif;
     font-size: 15px;
     color: var(--cream);
     transition: border-color 0.2s, background 0.2s;
@@ -2297,7 +2280,7 @@ fns.forEach(function(fn){
     font-size: 11px;
     color: rgba(255,248,236,0.35);
     margin-top: 5px;
-    font-family: 'Phetsarath OT', 'Phetsarath', 'Noto Sans Lao', 'Sarabun', sans-serif;
+    font-family: 'Phetsarath', 'Noto Sans Lao', 'Sarabun', sans-serif;
   }
   .reg-divider {
     height: 1px;
@@ -2305,7 +2288,7 @@ fns.forEach(function(fn){
     margin: 24px 0;
   }
   .reg-section-label {
-    font-family: 'Phetsarath OT', 'Phetsarath', 'Noto Sans Lao', 'Kanit', sans-serif;
+    font-family: 'Phetsarath', 'Noto Sans Lao', 'Kanit', sans-serif;
     font-size: 11px;
     font-weight: 700;
     color: rgba(255,248,236,0.35);
@@ -2316,7 +2299,7 @@ fns.forEach(function(fn){
     width: 100%;
     background: var(--red);
     color: #fff;
-    font-family: 'Phetsarath OT', 'Phetsarath', 'Noto Sans Lao', 'Kanit', sans-serif;
+    font-family: 'Phetsarath', 'Noto Sans Lao', 'Kanit', sans-serif;
     font-weight: 900;
     font-size: 16px;
     padding: 14px;
@@ -2333,12 +2316,12 @@ fns.forEach(function(fn){
     margin-top: 16px;
     font-size: 13px;
     color: rgba(255,248,236,0.4);
-    font-family: 'Phetsarath OT', 'Phetsarath', 'Noto Sans Lao', 'Sarabun', sans-serif;
+    font-family: 'Phetsarath', 'Noto Sans Lao', 'Sarabun', sans-serif;
   }
   .reg-login a {
     color: var(--gold);
     text-decoration: none;
-    font-family: 'Phetsarath OT', 'Phetsarath', 'Noto Sans Lao', 'Kanit', sans-serif;
+    font-family: 'Phetsarath', 'Noto Sans Lao', 'Kanit', sans-serif;
     font-weight: 700;
   }
   .reg-success {
@@ -2348,7 +2331,7 @@ fns.forEach(function(fn){
   }
   .reg-success-icon { font-size: 56px; margin-bottom: 16px; }
   .reg-success-title {
-    font-family: 'Phetsarath OT', 'Phetsarath', 'Noto Sans Lao', 'Kanit', sans-serif;
+    font-family: 'Phetsarath', 'Noto Sans Lao', 'Kanit', sans-serif;
     font-weight: 900;
     font-size: 24px;
     color: var(--gold);
@@ -2480,7 +2463,7 @@ fns.forEach(function(fn){
     gap: 16px;
   }
   .footer-logo {
-    font-family: 'Phetsarath OT', 'Phetsarath', 'Noto Sans Lao', 'Kanit', sans-serif;
+    font-family: 'Phetsarath', 'Noto Sans Lao', 'Kanit', sans-serif;
     font-weight: 900;
     font-size: 20px;
     color: var(--gold);
@@ -2488,7 +2471,7 @@ fns.forEach(function(fn){
   .footer-logo span { color: var(--red); }
   .footer-links { display: flex; gap: 24px; }
   .footer-links a {
-    font-family: 'Phetsarath OT', 'Phetsarath', 'Noto Sans Lao', 'Kanit', sans-serif;
+    font-family: 'Phetsarath', 'Noto Sans Lao', 'Kanit', sans-serif;
     font-weight: 700;
     font-size: 13px;
     color: rgba(255,248,236,0.45);
@@ -2544,7 +2527,7 @@ fns.forEach(function(fn){
     border: 1px solid rgba(255,255,255,0.1);
     background: rgba(255,255,255,0.05);
     color: var(--cream);
-    font-family: 'Phetsarath OT', 'Phetsarath', 'Noto Sans Lao', 'Kanit', sans-serif;
+    font-family: 'Phetsarath', 'Noto Sans Lao', 'Kanit', sans-serif;
     font-size: 13px;
     outline: none;
     transition: border-color 0.2s;
@@ -2558,7 +2541,7 @@ fns.forEach(function(fn){
     flex-wrap: wrap;
   }
   .results-date-label {
-    font-family: 'Phetsarath OT', 'Phetsarath', 'Noto Sans Lao', 'Kanit', sans-serif;
+    font-family: 'Phetsarath', 'Noto Sans Lao', 'Kanit', sans-serif;
     font-size: 12px;
     color: rgba(240,255,232,0.4);
     white-space: nowrap;
@@ -2569,7 +2552,7 @@ fns.forEach(function(fn){
     border: 1px solid rgba(255,255,255,0.1);
     background: rgba(255,255,255,0.05);
     color: var(--cream);
-    font-family: 'Phetsarath OT', 'Phetsarath', 'Noto Sans Lao', 'Kanit', sans-serif;
+    font-family: 'Phetsarath', 'Noto Sans Lao', 'Kanit', sans-serif;
     font-size: 12px;
     outline: none;
     cursor: pointer;
@@ -2583,7 +2566,7 @@ fns.forEach(function(fn){
     border: 1px solid rgba(248,113,113,0.25);
     background: transparent;
     color: rgba(248,113,113,0.7);
-    font-family: 'Phetsarath OT', 'Phetsarath', 'Noto Sans Lao', 'Kanit', sans-serif;
+    font-family: 'Phetsarath', 'Noto Sans Lao', 'Kanit', sans-serif;
     font-size: 12px;
     font-weight: 700;
     cursor: pointer;
@@ -2715,10 +2698,10 @@ fns.forEach(function(fn){
 <style>
 /* ── Phetsarath OT — Global Font Override ── */
 *, *::before, *::after {
-  font-family: 'Phetsarath OT', 'Phetsarath', 'Noto Sans Lao', 'Kanit', sans-serif !important;
+  font-family: 'Phetsarath', 'Noto Sans Lao', 'Kanit', sans-serif !important;
 }
 input, textarea, select, button {
-  font-family: 'Phetsarath OT', 'Phetsarath', 'Noto Sans Lao', 'Kanit', sans-serif !important;
+  font-family: 'Phetsarath', 'Noto Sans Lao', 'Kanit', sans-serif !important;
 }
 </style>
 </head>
@@ -4209,7 +4192,8 @@ input, textarea, select, button {
 
 <script>
 // ===== i18n — MULTI LANGUAGE SYSTEM =====
-const I18N = {
+var _lang = localStorage.getItem('bw_lang') || 'th';
+var I18N = {
   th: {
     // NAV
     'nav.home': 'หน้าแรก',
@@ -4677,10 +4661,10 @@ const I18N = {
   }
 };
 
-let _lang = localStorage.getItem('bw_lang') || 'th';
 
 function t(key) {
-  return I18N[_lang]?.[key] || I18N['th']?.[key] || key;
+  if (!I18N || !_lang) return key;
+  return (I18N[_lang] && I18N[_lang][key]) || (I18N['th'] && I18N['th'][key]) || key;
 }
 
 function setLang(lang) {
