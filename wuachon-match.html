@@ -416,7 +416,7 @@ function renderPage() {
 
   const sLabel = isLive ? '🔴 กำลังแข่ง' : isDone ? '✅ จบแล้ว' : '⏳ รอแข่ง';
   const sCls = isLive ? 's-live' : isDone ? 's-done' : 's-upcoming';
-  const prize = m.prize ? Number(m.prize).toLocaleString('th-TH') + ' ฿' : '—';
+  const prize = m.prize ? Number(m.prize).toLocaleString('th-TH') + ' ₭' : '—';
 
   const winnerHTML = (isDone && m.winner) ? `
     <div class="winner-banner">
@@ -535,7 +535,7 @@ function betFormHTML(m) {
   </div>
   <div class="input-row">
     <div class="form-group">
-      <label>จำนวนเงิน (฿)</label>
+      <label>จำนวนเงิน (₭)</label>
       <input type="number" id="bet-amount" placeholder="เช่น 1000" min="10" oninput="updatePreview()">
     </div>
     <div class="form-group">
@@ -563,7 +563,7 @@ function updatePreview() {
   if (!selectedSide || !amount) { el.innerHTML = 'เลือกฝั่ง + ใส่จำนวนเงิน เพื่อดูตัวอย่าง'; return; }
   const sideName = selectedSide === 'red' ? (matchData?.name_a || 'เจ้าบ้าน') : (matchData?.name_b || 'ทีมเยือน');
   const win = (amount * odds).toFixed(0);
-  el.innerHTML = `เดิมพัน <b>${sideName}</b> จำนวน <b>${amount.toLocaleString('th-TH')} ฿</b> × ${odds} = ถ้าชนะได้รับ <b style="color:var(--gold);">${Number(win).toLocaleString('th-TH')} ฿</b>`;
+  el.innerHTML = `เดิมพัน <b>${sideName}</b> จำนวน <b>${amount.toLocaleString('th-TH')} ₭</b> × ${odds} = ถ้าชนะได้รับ <b style="color:var(--gold);">${Number(win).toLocaleString('th-TH')} ₭</b>`;
 }
 
 // ===== PLACE BET =====
@@ -577,7 +577,7 @@ async function placeBet() {
 
   const amount = parseFloat(document.getElementById('bet-amount')?.value);
   const odds   = parseFloat(document.getElementById('bet-odds')?.value) || 1.9;
-  if (!amount || amount < 10) { showToast('จำนวนเงินขั้นต่ำ 10 บาทครับ'); return; }
+  if (!amount || amount < 10) { showToast('จำนวนเงินขั้นต่ำ 10 ₭ครับ'); return; }
   if (currentUser.balance < amount) { showToast('ยอดเงินไม่พอครับ'); return; }
 
   const btn = document.getElementById('btn-submit');
@@ -634,7 +634,7 @@ async function joinBet(betId, oppNick, oppSide, oppOdds) {
   let joinAmt = parseFloat(inp?.value || 0);
   if (!joinAmt || joinAmt < 10) { showToast('กรุณากรอกจำนวนเงินที่ต้องการจับครับ'); return; }
   joinAmt = Math.min(joinAmt, order.remaining_amount); // ไม่เกิน remaining
-  if (currentUser.balance < joinAmt) { showToast(`ยอดไม่พอครับ (ต้องการ ${joinAmt.toLocaleString()} ฿)`); return; }
+  if (currentUser.balance < joinAmt) { showToast(`ยอดไม่พอครับ (ต้องการ ${joinAmt.toLocaleString()} ₭)`); return; }
 
   const mySide     = oppSide === 'red' ? 'blue' : 'red';
   const mySideName = mySide === 'red' ? (matchData?.name_a || 'เจ้าบ้าน') : (matchData?.name_b || 'ทีมเยือน');
@@ -669,7 +669,7 @@ async function joinBet(betId, oppNick, oppSide, oppOdds) {
   sessionStorage.setItem('bw_user', JSON.stringify(currentUser));
 
   const potential = (joinAmt * oppOdds).toLocaleString('th-TH', {maximumFractionDigits:0});
-  showToast(`✅ จับ ${joinAmt.toLocaleString()} ฿ สำเร็จ! · คาดได้รับ ${potential} ฿`);
+  showToast(`✅ จับ ${joinAmt.toLocaleString()} ₭ สำเร็จ! · คาดได้รับ ${potential} ₭`);
   await loadBets(); renderBetsList();
 }
 
@@ -723,8 +723,8 @@ function renderBetsList() {
     const progressHTML = showProgress ? `
       <div class="bc-progress-wrap">
         <div class="bc-progress-labels">
-          <span>จับแล้ว ${matchedAmt.toLocaleString()} ฿ (${pct}%)</span>
-          <span>เหลือ ${Math.max(0,remainAmt).toLocaleString()} ฿</span>
+          <span>จับแล้ว ${matchedAmt.toLocaleString()} ₭ (${pct}%)</span>
+          <span>เหลือ ${Math.max(0,remainAmt).toLocaleString()} ₭</span>
         </div>
         <div class="bc-progress-bar">
           <div class="bc-progress-fill" style="width:${pct}%"></div>
@@ -743,7 +743,7 @@ function renderBetsList() {
       </div>` : '';
 
     const potentialHTML = (b.status==='matched'||b.status==='won'||b.status==='lost') ? `
-      <div class="bc-potential"><span>คาดได้รับหากชนะ</span><b>+${potential} ฿</b></div>` : '';
+      <div class="bc-potential"><span>คาดได้รับหากชนะ</span><b>+${potential} ₭</b></div>` : '';
 
     return `<div class="${cardClass}">
       <div class="bc-head">
@@ -752,7 +752,7 @@ function renderBetsList() {
           <span>${b.nick}</span>
           <span class="bc-side-badge ${b.side==='red'?'bc-side-red':'bc-side-blue'}">${sideName}</span>
         </div>
-        <div class="bc-amount">${orderAmt.toLocaleString()} ฿</div>
+        <div class="bc-amount">${orderAmt.toLocaleString()} ₭</div>
       </div>
       <div class="bc-info">
         <span class="bc-odds">อัตรา ${b.odds}x</span>

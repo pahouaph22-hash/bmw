@@ -426,12 +426,12 @@ tr:hover td{background:#fafafa;}
                   <th style="padding:11px 14px;text-align:right;font-family:'Kanit',sans-serif;font-size:12px;font-weight:700;color:#3b82f6;border-bottom:2px solid #e5e5e0;white-space:nowrap;">
                     <span style="display:inline-flex;align-items:center;gap:4px;justify-content:flex-end;">👥 สมาชิก</span>
                   </th>
-                  <th style="padding:11px 14px;text-align:right;font-family:'Kanit',sans-serif;font-size:12px;font-weight:700;color:#16a34a;border-bottom:2px solid #e5e5e0;white-space:nowrap;">💰 เติมเงิน (฿)</th>
-                  <th style="padding:11px 14px;text-align:right;font-family:'Kanit',sans-serif;font-size:12px;font-weight:700;color:#dc2626;border-bottom:2px solid #e5e5e0;white-space:nowrap;">🏧 ถอนเงิน (฿)</th>
-                  <th style="padding:11px 14px;text-align:right;font-family:'Kanit',sans-serif;font-size:12px;font-weight:700;color:#666;border-bottom:2px solid #e5e5e0;white-space:nowrap;">⇄ เติม−ถอน (฿)</th>
-                  <th style="padding:11px 14px;text-align:right;font-family:'Kanit',sans-serif;font-size:12px;font-weight:700;color:#666;border-bottom:2px solid #e5e5e0;white-space:nowrap;">📊 กำไร/ขาดทุน (฿)</th>
-                  <th style="padding:11px 14px;text-align:right;font-family:'Kanit',sans-serif;font-size:12px;font-weight:700;color:#854d0e;border-bottom:2px solid #e5e5e0;white-space:nowrap;">🏦 ค่าบริการ (฿)</th>
-                  <th style="padding:11px 14px;text-align:right;font-family:'Kanit',sans-serif;font-size:12px;font-weight:700;color:#dc2626;border-bottom:2px solid #e5e5e0;white-space:nowrap;">🎁 เงินรางวัลที่ให้ (฿)</th>
+                  <th style="padding:11px 14px;text-align:right;font-family:'Kanit',sans-serif;font-size:12px;font-weight:700;color:#16a34a;border-bottom:2px solid #e5e5e0;white-space:nowrap;">💰 เติมเงิน (₭)</th>
+                  <th style="padding:11px 14px;text-align:right;font-family:'Kanit',sans-serif;font-size:12px;font-weight:700;color:#dc2626;border-bottom:2px solid #e5e5e0;white-space:nowrap;">🏧 ถอนเงิน (₭)</th>
+                  <th style="padding:11px 14px;text-align:right;font-family:'Kanit',sans-serif;font-size:12px;font-weight:700;color:#666;border-bottom:2px solid #e5e5e0;white-space:nowrap;">⇄ เติม−ถอน (₭)</th>
+                  <th style="padding:11px 14px;text-align:right;font-family:'Kanit',sans-serif;font-size:12px;font-weight:700;color:#666;border-bottom:2px solid #e5e5e0;white-space:nowrap;">📊 กำไร/ขาดทุน (₭)</th>
+                  <th style="padding:11px 14px;text-align:right;font-family:'Kanit',sans-serif;font-size:12px;font-weight:700;color:#854d0e;border-bottom:2px solid #e5e5e0;white-space:nowrap;">🏦 ค่าบริการ (₭)</th>
+                  <th style="padding:11px 14px;text-align:right;font-family:'Kanit',sans-serif;font-size:12px;font-weight:700;color:#dc2626;border-bottom:2px solid #e5e5e0;white-space:nowrap;">🎁 เงินรางวัลที่ให้ (₭)</th>
                 </tr>
               </thead>
               <tbody id="finance-tbody">
@@ -583,7 +583,7 @@ tr:hover td{background:#fafafa;}
             <div class="fg"><label>น้ำหนัก B (กก.)</label><input id="m-weight-b" type="number" placeholder="510"></div>
           </div>
           <div class="form-row">
-            <div class="fg"><label>รางวัล (บาท)</label><input id="m-prize" type="number" placeholder="500000"></div>
+            <div class="fg"><label>รางวัล (₭)</label><input id="m-prize" type="number" placeholder="500000"></div>
           </div>
 
           <!-- รูปวัวทั้ง 2 ฝ่าย -->
@@ -701,7 +701,7 @@ tr:hover td{background:#fafafa;}
           </div>
           <div style="overflow-x:auto;">
             <table>
-              <thead><tr><th>Nick</th><th style="text-align:right;">จำนวน (฿)</th><th>ธนาคาร</th><th>TXN</th><th style="text-align:center;">🧾 สลิป</th><th>เวลา</th><th>จัดการ</th></tr></thead>
+              <thead><tr><th>Nick</th><th style="text-align:right;">จำนวน (₭)</th><th>ธนาคาร</th><th>TXN</th><th style="text-align:center;">🧾 สลิป</th><th>เวลา</th><th>จัดการ</th></tr></thead>
               <tbody id="dep-tbody"><tr><td colspan="7" style="text-align:center;padding:24px;color:#aaa;">กำลังโหลด...</td></tr></tbody>
             </table>
           </div>
@@ -843,7 +843,7 @@ tr:hover td{background:#fafafa;}
         <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:0;">
           <div class="stat-card"><div class="ico">🤝</div><div class="val" id="ref-total-referrers">—</div><div class="lbl">ผู้แนะนำทั้งหมด</div></div>
           <div class="stat-card"><div class="ico">👥</div><div class="val" id="ref-total-members">—</div><div class="lbl">สมาชิกที่ถูกแนะนำ</div></div>
-          <div class="stat-card"><div class="ico">💰</div><div class="val" id="ref-total-commission">—</div><div class="lbl">คอมฯ จ่ายรวม (฿)</div></div>
+          <div class="stat-card"><div class="ico">💰</div><div class="val" id="ref-total-commission">—</div><div class="lbl">คอมฯ จ่ายรวม (₭)</div></div>
           <div class="stat-card"><div class="ico">📋</div><div class="val" id="ref-total-logs">—</div><div class="lbl">รายการทั้งหมด</div></div>
         </div>
 
@@ -874,7 +874,7 @@ tr:hover td{background:#fafafa;}
                   <th style="text-align:center;">สมาชิกที่แนะนำ</th>
                   <th style="text-align:center;">ชั้น 1</th>
                   <th style="text-align:center;">ชั้น 2+</th>
-                  <th style="text-align:right;">คอมฯ รวม (฿)</th>
+                  <th style="text-align:right;">คอมฯ รวม (₭)</th>
                   <th style="text-align:right;">ล่าสุด</th>
                   <th></th>
                 </tr>
@@ -929,8 +929,8 @@ tr:hover td{background:#fafafa;}
                   <th style="text-align:center;">ชั้น</th>
                   <th>ผู้แนะนำ</th>
                   <th>สมาชิก</th>
-                  <th style="text-align:right;">ยอดเดิมพัน/เติม (฿)</th>
-                  <th style="text-align:right;">คอมฯ (฿)</th>
+                  <th style="text-align:right;">ยอดเดิมพัน/เติม (₭)</th>
+                  <th style="text-align:right;">คอมฯ (₭)</th>
                   <th style="text-align:center;">อัตรา</th>
                   <th style="text-align:right;">เวลา</th>
                 </tr>
@@ -1009,7 +1009,7 @@ tr:hover td{background:#fafafa;}
           <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:16px;" id="act-stats-row">
             <div class="stat-card"><div class="ico">🎉</div><div class="val" id="act-stat-total">—</div><div class="lbl">กิจกรรมทั้งหมด</div></div>
             <div class="stat-card"><div class="ico">👥</div><div class="val" id="act-stat-members">—</div><div class="lbl">สมาชิกที่ได้รับ</div></div>
-            <div class="stat-card"><div class="ico">💰</div><div class="val" id="act-stat-amount">—</div><div class="lbl">รางวัลรวม (฿)</div></div>
+            <div class="stat-card"><div class="ico">💰</div><div class="val" id="act-stat-amount">—</div><div class="lbl">รางวัลรวม (₭)</div></div>
           </div>
           <div id="act-logs-list">
             <div style="text-align:center;padding:32px;color:#aaa;font-family:'Kanit',sans-serif;">กำลังโหลด...</div>
@@ -1025,8 +1025,8 @@ tr:hover td{background:#fafafa;}
           <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:14px;">
             <div class="stat-card"><div class="ico">🧾</div><div class="val" id="ref-stat-total">—</div><div class="lbl">รายการทั้งหมด</div></div>
             <div class="stat-card"><div class="ico">👥</div><div class="val" id="ref-stat-referrers">—</div><div class="lbl">ผู้รับค่าคอมฯ</div></div>
-            <div class="stat-card"><div class="ico">💰</div><div class="val" id="ref-stat-amount">—</div><div class="lbl">รวมค่าคอมฯ (฿)</div></div>
-            <div class="stat-card"><div class="ico">📊</div><div class="val" id="ref-stat-today">—</div><div class="lbl">วันนี้ (฿)</div></div>
+            <div class="stat-card"><div class="ico">💰</div><div class="val" id="ref-stat-amount">—</div><div class="lbl">รวมค่าคอมฯ (₭)</div></div>
+            <div class="stat-card"><div class="ico">📊</div><div class="val" id="ref-stat-today">—</div><div class="lbl">วันนี้ (₭)</div></div>
           </div>
           <!-- filter -->
           <div class="date-filter" style="margin-bottom:12px;">
@@ -1054,8 +1054,8 @@ tr:hover td{background:#fafafa;}
               </colgroup>
               <thead><tr>
                 <th>#</th><th>ชั้น</th><th>ผู้รับ</th><th>จากสมาชิก</th>
-                <th style="text-align:right;">เดิมพัน (฿)</th>
-                <th style="text-align:right;">คอมฯ (฿)</th>
+                <th style="text-align:right;">เดิมพัน (₭)</th>
+                <th style="text-align:right;">คอมฯ (₭)</th>
                 <th style="text-align:right;">เวลา</th>
               </tr></thead>
               <tbody id="ref-logs-tbody">
@@ -1250,7 +1250,7 @@ tr:hover td{background:#fafafa;}
           </div>
 
           <div style="background:#f9f9f7;border:1px solid #e5e5e0;border-radius:8px;padding:11px 14px;font-size:12px;color:#666;margin-bottom:14px;">
-            💡 ตัวอย่าง: A แนะนำ B แนะนำ C → C เดิมพัน 1,000 ฿ → B ได้ชั้น 1, A ได้ชั้น 2
+            💡 ตัวอย่าง: A แนะนำ B แนะนำ C → C เดิมพัน 1,000 ₭ → B ได้ชั้น 1, A ได้ชั้น 2
             <br>ใส่ <b>0</b> เพื่อปิดชั้นนั้น · คอมมิชชันคำนวณจากยอดเดิมพัน ทุกครั้งที่สมาชิกลงเดิมพัน
           </div>
 
@@ -1303,7 +1303,7 @@ tr:hover td{background:#fafafa;}
         </div>
         <div class="card" style="border-left:4px solid #8b5cf6;">
           <div class="card-title">👑 ระดับ VIP สมาชิก</div>
-          <div style="font-size:12px;color:#888;margin-bottom:16px;">กำหนดเกณฑ์ยอดเติมเงินสะสม (฿) เพื่อขึ้นระดับ VIP — ระดับสูงขึ้นต้องมียอดมากกว่า</div>
+          <div style="font-size:12px;color:#888;margin-bottom:16px;">กำหนดเกณฑ์ยอดเติมเงินสะสม (₭) เพื่อขึ้นระดับ VIP — ระดับสูงขึ้นต้องมียอดมากกว่า</div>
 
           <!-- Preview badges -->
           <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:18px;padding:12px;background:#f9f9f7;border-radius:8px;border:1px solid #e5e5e0;">
@@ -1841,7 +1841,7 @@ async function loadOverview() {
           <span style="font-size:11px;color:#aaa;">${isDep?'เติมเงิน':'ถอนเงิน'}</span>
         </div>
         <div style="display:flex;align-items:center;gap:8px;">
-          <span style="font-family:'Kanit',sans-serif;font-weight:700;font-size:14px;color:${isDep?'var(--green)':'var(--red)'};">${isDep?'+':'-'}${Number(r.amount).toLocaleString()} ฿</span>
+          <span style="font-family:'Kanit',sans-serif;font-weight:700;font-size:14px;color:${isDep?'var(--green)':'var(--red)'};">${isDep?'+':'-'}${Number(r.amount).toLocaleString()} ₭</span>
           <span class="badge badge-${r.status}">${r.status==='pending'?'⏳ รอ':r.status==='approved'?'✅ อนุมัติ':'❌ ปฏิเสธ'}</span>
           <span style="font-size:11px;color:#aaa;">${fmtDate(r.created_at)}</span>
         </div>
@@ -1939,7 +1939,7 @@ function renderOvDetail() {
 
   if (type === 'members') {
     el.innerHTML = `<table><thead><tr>
-      <th>#</th><th>Nick</th><th>ชื่อ-นามสกุล</th><th>เบอร์</th><th>ยอดเงิน (฿)</th><th>สมัครเมื่อ</th>
+      <th>#</th><th>Nick</th><th>ชื่อ-นามสกุล</th><th>เบอร์</th><th>ยอดเงิน (₭)</th><th>สมัครเมื่อ</th>
     </tr></thead><tbody>` + rows.map((r,i) => `<tr>
       <td style="color:#aaa;font-size:12px;">${i+1}</td>
       <td><strong style="cursor:pointer;color:var(--green);text-decoration:underline;" onclick="closeOvDetail();openMember('${r.nick}')">${r.nick||'—'}</strong></td>
@@ -1951,7 +1951,7 @@ function renderOvDetail() {
 
   } else if (type === 'matches') {
     el.innerHTML = `<table><thead><tr>
-      <th>#</th><th>รหัส</th><th>รุ่น</th><th>🔴 เจ้าบ้าน</th><th>🔵 ทีมเยือน</th><th>วันที่แข่ง</th><th>รางวัล (฿)</th><th>สถานะ</th>
+      <th>#</th><th>รหัส</th><th>รุ่น</th><th>🔴 เจ้าบ้าน</th><th>🔵 ทีมเยือน</th><th>วันที่แข่ง</th><th>รางวัล (₭)</th><th>สถานะ</th>
     </tr></thead><tbody>` + rows.map((r,i) => `<tr>
       <td style="color:#aaa;font-size:12px;">${i+1}</td>
       <td>${r.code?`<span class="match-code">${r.code}</span>`:'—'}</td>
@@ -1973,7 +1973,7 @@ function renderOvDetail() {
       <div style="display:flex;gap:10px;margin-bottom:16px;flex-wrap:wrap;">
         <div style="flex:1;min-width:130px;background:#f0fdf4;border:1px solid #bbf7d0;border-radius:10px;padding:12px 16px;">
           <div style="font-size:11px;color:#15803d;font-family:'Kanit',sans-serif;font-weight:700;letter-spacing:.3px;margin-bottom:4px;">✅ ยอดรวมทั้งหมด</div>
-          <div style="font-family:'Kanit',sans-serif;font-weight:900;font-size:22px;color:#15803d;">+${totalAmt.toLocaleString()} <span style="font-size:13px;font-weight:500;">฿</span></div>
+          <div style="font-family:'Kanit',sans-serif;font-weight:900;font-size:22px;color:#15803d;">+${totalAmt.toLocaleString()} <span style="font-size:13px;font-weight:500;">₭</span></div>
         </div>
         <div style="min-width:120px;background:#fafaf8;border:1px solid #e5e5e0;border-radius:10px;padding:12px 16px;">
           <div style="font-size:11px;color:#888;font-family:'Kanit',sans-serif;margin-bottom:4px;">จำนวนรายการ</div>
@@ -1981,7 +1981,7 @@ function renderOvDetail() {
         </div>
         <div style="min-width:120px;background:#fafaf8;border:1px solid #e5e5e0;border-radius:10px;padding:12px 16px;">
           <div style="font-size:11px;color:#888;font-family:'Kanit',sans-serif;margin-bottom:4px;">เฉลี่ยต่อรายการ</div>
-          <div style="font-family:'Kanit',sans-serif;font-weight:900;font-size:20px;">${avgAmt.toLocaleString()} <span style="font-size:12px;font-weight:400;color:#aaa;">฿</span></div>
+          <div style="font-family:'Kanit',sans-serif;font-weight:900;font-size:20px;">${avgAmt.toLocaleString()} <span style="font-size:12px;font-weight:400;color:#aaa;">₭</span></div>
         </div>
       </div>
       <!-- Table -->
@@ -1993,7 +1993,7 @@ function renderOvDetail() {
         <thead><tr>
           <th>#</th>
           <th>Nick</th>
-          <th style="text-align:right;">จำนวน (฿)</th>
+          <th style="text-align:right;">จำนวน (₭)</th>
           <th>ธนาคาร</th>
           <th>TXN</th>
           <th style="text-align:right;">อนุมัติเมื่อ</th>
@@ -2009,7 +2009,7 @@ function renderOvDetail() {
         </tr>`).join('') +
         `<tr style="background:#f0fdf4;border-top:2px solid #86efac;">
           <td colspan="2" style="padding:11px 12px;font-family:'Kanit',sans-serif;font-weight:900;font-size:13px;color:#15803d;">รวม ${rows.length.toLocaleString()} รายการ</td>
-          <td style="text-align:right;font-family:'Kanit',sans-serif;font-weight:900;font-size:15px;color:#15803d;">+${totalAmt.toLocaleString()} ฿</td>
+          <td style="text-align:right;font-family:'Kanit',sans-serif;font-weight:900;font-size:15px;color:#15803d;">+${totalAmt.toLocaleString()} ₭</td>
           <td colspan="3"></td>
         </tr>
         </tbody>
@@ -2024,7 +2024,7 @@ function renderOvDetail() {
       <div style="display:flex;gap:10px;margin-bottom:16px;flex-wrap:wrap;">
         <div style="flex:1;min-width:130px;background:#fff5f5;border:1px solid #fecaca;border-radius:10px;padding:12px 16px;">
           <div style="font-size:11px;color:#991b1b;font-family:'Kanit',sans-serif;font-weight:700;letter-spacing:.3px;margin-bottom:4px;">✅ ยอดรวมทั้งหมด</div>
-          <div style="font-family:'Kanit',sans-serif;font-weight:900;font-size:22px;color:#dc2626;">−${totalAmt.toLocaleString()} <span style="font-size:13px;font-weight:500;">฿</span></div>
+          <div style="font-family:'Kanit',sans-serif;font-weight:900;font-size:22px;color:#dc2626;">−${totalAmt.toLocaleString()} <span style="font-size:13px;font-weight:500;">₭</span></div>
         </div>
         <div style="min-width:120px;background:#fafaf8;border:1px solid #e5e5e0;border-radius:10px;padding:12px 16px;">
           <div style="font-size:11px;color:#888;font-family:'Kanit',sans-serif;margin-bottom:4px;">จำนวนรายการ</div>
@@ -2032,7 +2032,7 @@ function renderOvDetail() {
         </div>
         <div style="min-width:120px;background:#fafaf8;border:1px solid #e5e5e0;border-radius:10px;padding:12px 16px;">
           <div style="font-size:11px;color:#888;font-family:'Kanit',sans-serif;margin-bottom:4px;">เฉลี่ยต่อรายการ</div>
-          <div style="font-family:'Kanit',sans-serif;font-weight:900;font-size:20px;">${avgAmt.toLocaleString()} <span style="font-size:12px;font-weight:400;color:#aaa;">฿</span></div>
+          <div style="font-family:'Kanit',sans-serif;font-weight:900;font-size:20px;">${avgAmt.toLocaleString()} <span style="font-size:12px;font-weight:400;color:#aaa;">₭</span></div>
         </div>
       </div>
       <!-- Table -->
@@ -2044,7 +2044,7 @@ function renderOvDetail() {
         <thead><tr>
           <th>#</th>
           <th>Nick</th>
-          <th style="text-align:right;">จำนวน (฿)</th>
+          <th style="text-align:right;">จำนวน (₭)</th>
           <th>ธนาคาร</th>
           <th>เลขบัญชี</th>
           <th style="text-align:right;">โอนเมื่อ</th>
@@ -2060,7 +2060,7 @@ function renderOvDetail() {
         </tr>`).join('') +
         `<tr style="background:#fff5f5;border-top:2px solid #fca5a5;">
           <td colspan="2" style="padding:11px 12px;font-family:'Kanit',sans-serif;font-weight:900;font-size:13px;color:#dc2626;">รวม ${rows.length.toLocaleString()} รายการ</td>
-          <td style="text-align:right;font-family:'Kanit',sans-serif;font-weight:900;font-size:15px;color:#dc2626;">−${totalAmt.toLocaleString()} ฿</td>
+          <td style="text-align:right;font-family:'Kanit',sans-serif;font-weight:900;font-size:15px;color:#dc2626;">−${totalAmt.toLocaleString()} ₭</td>
           <td colspan="3"></td>
         </tr>
         </tbody>
@@ -2117,7 +2117,7 @@ function renderVipSettingsUI() {
           min="0" step="100"
           style="flex:1;padding:7px 10px;border:1px solid #e0e0e0;border-radius:7px;font-family:'Kanit',sans-serif;font-size:13px;font-weight:700;color:#1a1a1a;">
       </div>
-      <div style="font-size:11px;color:#aaa;text-align:right;">${Number(lv.min).toLocaleString()} ฿</div>
+      <div style="font-size:11px;color:#aaa;text-align:right;">${Number(lv.min).toLocaleString()} ₭</div>
     </div>`).join('');
 
   // live preview ตัวเลข
@@ -2125,7 +2125,7 @@ function renderVipSettingsUI() {
     const inp = document.getElementById(`vip-min-${lv.tier}`);
     if (inp) inp.addEventListener('input', function() {
       const next = this.closest('div[style]').querySelector('div:last-child');
-      if (next) next.textContent = Number(this.value||0).toLocaleString() + ' ฿';
+      if (next) next.textContent = Number(this.value||0).toLocaleString() + ' ₭';
     });
   });
 }
@@ -2196,7 +2196,7 @@ function filterDownline() {
           <strong style="cursor:pointer;color:var(--green);text-decoration:underline;font-size:13px;" onclick="closeMember();setTimeout(()=>openMember('${d.nick}'),100)">${d.nick}</strong>
         </div>
       </td>
-      <td style="padding:8px 12px;text-align:right;font-family:'Kanit',sans-serif;font-weight:700;font-size:12px;color:#15803d;">${Number(d.balance||0).toLocaleString()} ฿</td>
+      <td style="padding:8px 12px;text-align:right;font-family:'Kanit',sans-serif;font-weight:700;font-size:12px;color:#15803d;">${Number(d.balance||0).toLocaleString()} ₭</td>
       <td style="padding:8px 12px;text-align:right;font-size:11px;color:#aaa;">${fmtDate(d.created_at)}</td>
     </tr>`).join('');
 }
@@ -2264,7 +2264,7 @@ function _buildTxnRows(deps, withs, bets, refs) {
       amount: Number(r.commission||0),
       sign: '+', color: '#0ea5e9',
       status: 'approved',
-      detail: `เดิมพัน ${Number(r.deposit_amount||0).toLocaleString()} ฿ · ${r.ref_rate||0}%`,
+      detail: `เดิมพัน ${Number(r.deposit_amount||0).toLocaleString()} ₭ · ${r.ref_rate||0}%`,
       txn: '',
     });
   });
@@ -2333,7 +2333,7 @@ function renderTxnTimeline() {
       <!-- amount + time -->
       <div style="text-align:right;flex-shrink:0;">
         <div style="font-family:'Kanit',sans-serif;font-weight:900;font-size:14px;color:${r.color};">
-          ${r.sign}${r.amount.toLocaleString()} ฿
+          ${r.sign}${r.amount.toLocaleString()} ₭
         </div>
         <div style="font-size:10px;color:#bbb;white-space:nowrap;">${fmtDate(r.ts)}</div>
       </div>
@@ -2658,23 +2658,23 @@ function filterMembers() {
       <!-- ยอดเงินคงเหลือ -->
       <td style="padding:10px 12px;text-align:right;font-family:'Kanit',sans-serif;font-weight:700;font-size:13px;color:var(--green);">
         ${Number(m.balance||0).toLocaleString()}
-        <span style="font-size:10px;font-weight:400;color:#aaa;">฿</span>
+        <span style="font-size:10px;font-weight:400;color:#aaa;">₭</span>
       </td>
       <!-- เติมสะสม -->
       <td style="padding:10px 12px;text-align:right;font-family:'Kanit',sans-serif;font-weight:700;font-size:13px;color:#16a34a;">
         ${dep > 0 ? '+' : ''}${dep.toLocaleString()}
-        <span style="font-size:10px;font-weight:400;color:#aaa;">฿</span>
+        <span style="font-size:10px;font-weight:400;color:#aaa;">₭</span>
       </td>
       <!-- ถอนสะสม -->
       <td style="padding:10px 12px;text-align:right;font-family:'Kanit',sans-serif;font-weight:700;font-size:13px;color:#dc2626;">
         ${wit > 0 ? '−' : ''}${wit.toLocaleString()}
-        <span style="font-size:10px;font-weight:400;color:#aaa;">฿</span>
+        <span style="font-size:10px;font-weight:400;color:#aaa;">₭</span>
       </td>
       <!-- เติม − ถอน -->
       <td style="padding:10px 12px;text-align:right;font-family:'Kanit',sans-serif;font-weight:900;font-size:13px;color:${netColor};
         ${Math.abs(net) > 0 ? `background:${net>0?'#eff6ff':'#fff5f5'};border-radius:6px;` : ''}">
         ${netSign}${net.toLocaleString()}
-        <span style="font-size:10px;font-weight:400;color:#aaa;">฿</span>
+        <span style="font-size:10px;font-weight:400;color:#aaa;">₭</span>
       </td>
       <!-- สมัครเมื่อ -->
       <td style="padding:10px 12px;text-align:right;font-size:11px;color:#aaa;">${fmtDate(m.created_at)}</td>
@@ -2802,7 +2802,7 @@ function renderMatchTable(rows, isDone) {
       <td><strong>${m.round||'—'}</strong><br><span style="font-size:11px;color:#aaa;">${m.date||''} ${m.time||''}</span></td>
       <td>${m.name_a||'—'}<br><span style="font-size:11px;color:#aaa;">${m.owner_a||''} ${m.weight_a?'·'+m.weight_a+'กก':''}</span></td>
       <td>${m.name_b||'—'}<br><span style="font-size:11px;color:#aaa;">${m.owner_b||''} ${m.weight_b?'·'+m.weight_b+'กก':''}</span></td>
-      <td style="font-family:'Kanit',sans-serif;font-weight:700;">${Number(m.prize||0).toLocaleString()} ฿</td>
+      <td style="font-family:'Kanit',sans-serif;font-weight:700;">${Number(m.prize||0).toLocaleString()} ₭</td>
       ${extraCols}
       <td><button class="btn btn-red" onclick="deleteMatch('${m.id}')">ลบ</button></td>
     </tr>`;
@@ -2971,7 +2971,7 @@ function renderVerdictDone(rows) {
       <td>${m.code?`<span class="match-code">${m.code}</span>`:'—'}</td>
       <td>${m.round||'—'}</td>
       <td><span class="badge badge-approved">🏆 ${m.winner||'—'}</span></td>
-      <td>${Number(m.prize||0).toLocaleString()} ฿</td>
+      <td>${Number(m.prize||0).toLocaleString()} ₭</td>
       <td><button class="btn btn-gold" onclick="resetVerdict('${m.id}')">รีเซ็ต</button></td>
     </tr>`).join('') + '</tbody></table>';
 }
@@ -2982,7 +2982,7 @@ async function doVerdict(matchId, winner, winnerName) {
   if (!confirm(`ยืนยัน: "${winnerName}" ชนะ ใช่ไหมครับ?\n\nระบบจะ:\n• รวมเงินเดิมพันทั้งหมด\n• หัก ${feePercent}% ค่าบริการ\n• โอนเงินที่เหลือให้ผู้ชนะทุกคนตามสัดส่วน`)) return;
   await sb.from('matches').update({ winner, status: 'done' }).eq('id', matchId);
   const result = await payoutBets(matchId, winner, FEE_RATE);
-  showToast(`✅ ${winnerName} ชนะ! รวม ${result.totalPool.toLocaleString()} ฿ หัก ${feePercent}% = ${result.fee.toLocaleString()} ฿ จ่ายผู้ชนะ ${result.totalPaid.toLocaleString()} ฿`);
+  showToast(`✅ ${winnerName} ชนะ! รวม ${result.totalPool.toLocaleString()} ₭ หัก ${feePercent}% = ${result.fee.toLocaleString()} ₭ จ่ายผู้ชนะ ${result.totalPaid.toLocaleString()} ₭`);
   loadVerdict(); loadMatches(); loadBets(); loadOverview(); loadMembers();
 }
 
@@ -3169,7 +3169,7 @@ function renderDepositsDone(rows) {
   }
   tb.innerHTML = rows.map(d => `<tr>
     <td><strong style="cursor:pointer;color:var(--green);text-decoration:underline;" onclick="openMember('${d.nick}')">${d.nick}</strong></td>
-    <td style="font-family:'Kanit',sans-serif;font-weight:700;color:var(--green);">+${Number(d.amount).toLocaleString()} ฿</td>
+    <td style="font-family:'Kanit',sans-serif;font-weight:700;color:var(--green);">+${Number(d.amount).toLocaleString()} ₭</td>
     <td>${d.bank||'—'}</td>
     <td style="font-size:11px;color:#aaa;">${d.txn||'—'}</td>
     <td style="font-size:12px;color:#aaa;">${fmtDate(d.approved_at||d.created_at)}</td>
@@ -3185,14 +3185,14 @@ function renderDepositsRejected(rows) {
   }
   tb.innerHTML = rows.map(d => `<tr>
     <td><strong style="cursor:pointer;color:var(--green);text-decoration:underline;" onclick="openMember('${d.nick}')">${d.nick}</strong></td>
-    <td style="font-family:'Kanit',sans-serif;font-weight:700;color:#f87171;">-${Number(d.amount).toLocaleString()} ฿</td>
+    <td style="font-family:'Kanit',sans-serif;font-weight:700;color:#f87171;">-${Number(d.amount).toLocaleString()} ₭</td>
     <td style="font-size:12px;color:#f87171;">${d.reason||'—'}</td>
     <td style="font-size:12px;color:#aaa;">${fmtDate(d.created_at)}</td>
   </tr>`).join('');
 }
 
 async function approveDeposit(id, nick, amount) {
-  if (!confirm(`อนุมัติเติมเงิน ${Number(amount).toLocaleString()} ฿ ให้ ${nick} ใช่ไหมครับ?`)) return;
+  if (!confirm(`อนุมัติเติมเงิน ${Number(amount).toLocaleString()} ₭ ให้ ${nick} ใช่ไหมครับ?`)) return;
   // เช็คป้ายเตือนก่อน
   if (!(await checkFlagBeforeDeposit(nick))) return;
 
@@ -3255,8 +3255,8 @@ async function approveDeposit(id, nick, amount) {
     }
   }
 
-  showToast(`✅ อนุมัติแล้ว! ${nick} ได้รับ +${Number(amount).toLocaleString()} ฿ ยอดใหม่: ${newBal.toLocaleString()} ฿`);
-  if (currentStaff) await logStaffAction(currentStaff.username, 'approve_deposit', `อนุมัติเติมเงิน +${Number(amount).toLocaleString()} ฿ ให้ ${nick}`);
+  showToast(`✅ อนุมัติแล้ว! ${nick} ได้รับ +${Number(amount).toLocaleString()} ₭ ยอดใหม่: ${newBal.toLocaleString()} ₭`);
+  if (currentStaff) await logStaffAction(currentStaff.username, 'approve_deposit', `อนุมัติเติมเงิน +${Number(amount).toLocaleString()} ₭ ให้ ${nick}`);
   setTimeout(() => { filterDeposits(); loadDeposits(); loadOverview(); loadMembers(); }, 450);
 }
 
@@ -3319,7 +3319,7 @@ function renderWithdrawalsPending(rows) {
   }
   tb.innerHTML = rows.map(w => `<tr id="with-row-${w.id}">
     <td><strong style="cursor:pointer;color:var(--green);text-decoration:underline;" onclick="openMember('${w.nick}')">${w.nick}</strong></td>
-    <td style="font-family:'Kanit',sans-serif;font-weight:700;color:var(--red);">${Number(w.amount).toLocaleString()} ฿</td>
+    <td style="font-family:'Kanit',sans-serif;font-weight:700;color:var(--red);">${Number(w.amount).toLocaleString()} ₭</td>
     <td>${w.bank||'—'}</td>
     <td style="font-size:12px;">${w.acc_no||w.bank_acc_no||'—'}<br><span style="color:#aaa;font-size:11px;">${w.acc_name||w.bank_acc_name||''}</span></td>
     <td style="font-size:12px;color:#aaa;">${fmtDate(w.created_at)}</td>
@@ -3339,7 +3339,7 @@ function renderWithdrawalsDone(rows) {
   }
   tb.innerHTML = rows.map(w => `<tr>
     <td><strong style="cursor:pointer;color:var(--green);text-decoration:underline;" onclick="openMember('${w.nick}')">${w.nick}</strong></td>
-    <td style="font-family:'Kanit',sans-serif;font-weight:700;color:var(--green);">-${Number(w.amount).toLocaleString()} ฿</td>
+    <td style="font-family:'Kanit',sans-serif;font-weight:700;color:var(--green);">-${Number(w.amount).toLocaleString()} ₭</td>
     <td>${w.bank||'—'}</td>
     <td style="font-size:12px;">${w.acc_no||w.bank_acc_no||'—'}<br><span style="color:#aaa;font-size:11px;">${w.acc_name||w.bank_acc_name||''}</span></td>
     <td style="text-align:center;">
@@ -3359,7 +3359,7 @@ function openSlipModal(wid, nick, amount) {
   document.getElementById('slip-preview').style.display = 'none';
   document.getElementById('slip-preview-wrap').style.display = 'none';
   document.getElementById('slip-file').value  = '';
-  document.getElementById('slip-modal-amount').textContent = `${Number(amount).toLocaleString()} ฿ → ${nick}`;
+  document.getElementById('slip-modal-amount').textContent = `${Number(amount).toLocaleString()} ₭ → ${nick}`;
   document.getElementById('slip-err').style.display = 'none';
   document.getElementById('slip-modal').style.display = 'flex';
 }
@@ -3479,8 +3479,8 @@ async function confirmSlipUpload() {
     }
 
     closeSlipModal();
-    showToast(`✅ โอนเงิน ${Number(amount).toLocaleString()} ฿ ให้ ${nick} สำเร็จ!`);
-    if (currentStaff) await logStaffAction(currentStaff.username, 'approve_withdrawal', `อนุมัติถอนเงิน ${Number(amount).toLocaleString()} ฿ ให้ ${nick}`);
+    showToast(`✅ โอนเงิน ${Number(amount).toLocaleString()} ₭ ให้ ${nick} สำเร็จ!`);
+    if (currentStaff) await logStaffAction(currentStaff.username, 'approve_withdrawal', `อนุมัติถอนเงิน ${Number(amount).toLocaleString()} ₭ ให้ ${nick}`);
 
     // ---- STEP 6: re-render จาก memory ก่อน แล้ว sync DB ----
     setTimeout(() => {
@@ -3500,14 +3500,14 @@ async function confirmSlipUpload() {
 }
 
 async function rejectWithdrawal(id, nick, amount) {
-  const reason = prompt(`เหตุผลที่ปฏิเสธการถอนเงินของ "${nick}" (${Number(amount).toLocaleString()} ฿):`);
+  const reason = prompt(`เหตุผลที่ปฏิเสธการถอนเงินของ "${nick}" (${Number(amount).toLocaleString()} ₭):`);
   if (reason === null) return;
   const row = document.getElementById('with-row-' + id);
   if (row) { row.style.transition = 'opacity .4s,transform .4s'; row.style.opacity = '0'; row.style.transform = 'translateX(30px)'; }
   const {data:mem} = await sb.from('members').select('balance').eq('nick',nick).maybeSingle();
   if (mem) await sb.from('members').update({ balance: (mem.balance||0)+Number(amount) }).eq('nick',nick);
   await sb.from('withdrawals').update({ status:'rejected', reason: reason||'' }).eq('id',id);
-  showToast(`❌ ปฏิเสธ + คืนเงิน ${Number(amount).toLocaleString()} ฿ ให้ ${nick} แล้วครับ`);
+  showToast(`❌ ปฏิเสธ + คืนเงิน ${Number(amount).toLocaleString()} ₭ ให้ ${nick} แล้วครับ`);
   setTimeout(() => { loadWithdrawals(); loadOverview(); loadMembers(); }, 450);
 }
 
@@ -3533,7 +3533,7 @@ function filterBets() {
     <td><strong style="cursor:pointer;color:var(--green);text-decoration:underline;" onclick="openMember('${b.nick}')">${b.nick}</strong></td>
     <td>${b.side==='red'?'🔴':'🔵'} ${b.side_name||'—'}<br><span style="font-size:11px;color:#aaa;">${b.matches?.round||''} ${b.matches?.code?'#'+b.matches.code:''}</span></td>
     <td>×${b.odds}</td>
-    <td style="font-family:'Kanit',sans-serif;font-weight:700;">${Number(b.amount).toLocaleString()} ฿</td>
+    <td style="font-family:'Kanit',sans-serif;font-weight:700;">${Number(b.amount).toLocaleString()} ₭</td>
     <td><span class="badge badge-${b.status==='won'?'approved':b.status==='lost'?'rejected':b.status==='matched'?'approved':'pending'}">${b.status==='won'?'🏆 ชนะ':b.status==='lost'?'❌ แพ้':b.status==='matched'?'✅ จับคู่':'⏳ รอ'}</span></td>
     <td style="font-size:12px;">${b.matched_with||'—'}</td>
     <td style="font-size:11px;color:#aaa;">${fmtDate(b.created_at)}</td>
@@ -4181,9 +4181,9 @@ function updateFeePreview(rate) {
   const fee  = Math.floor(pool * rate / 100);
   const net  = pool - fee;
   el.innerHTML = `
-    <div style="color:#555;">ตัวอย่าง pool รวม <b>10,000 ฿</b></div>
-    <div style="color:#f87171;margin-top:3px;">หัก ${rate}% = <b>${fee.toLocaleString()} ฿</b></div>
-    <div style="color:var(--green);margin-top:3px;">จ่ายผู้ชนะ = <b>${net.toLocaleString()} ฿</b></div>`;
+    <div style="color:#555;">ตัวอย่าง pool รวม <b>10,000 ₭</b></div>
+    <div style="color:#f87171;margin-top:3px;">หัก ${rate}% = <b>${fee.toLocaleString()} ₭</b></div>
+    <div style="color:var(--green);margin-top:3px;">จ่ายผู้ชนะ = <b>${net.toLocaleString()} ₭</b></div>`;
 }
 
 function updateRefRatePreview(rate) {
@@ -4191,8 +4191,8 @@ function updateRefRatePreview(rate) {
   if (!el) return;
   const dep = 1000;
   const com = Math.floor(dep * rate / 100);
-  el.innerHTML = `<div>ตัวอย่างเติมเงิน <b>1,000 ฿</b></div>
-    <div style="color:#60a5fa;margin-top:3px;">คอมฯ ผู้แนะนำ = <b>+${com.toLocaleString()} ฿</b></div>
+  el.innerHTML = `<div>ตัวอย่างเติมเงิน <b>1,000 ₭</b></div>
+    <div style="color:#60a5fa;margin-top:3px;">คอมฯ ผู้แนะนำ = <b>+${com.toLocaleString()} ₭</b></div>
     <div style="font-size:11px;color:#aaa;margin-top:2px;">จ่ายทันทีตอน Admin อนุมัติ</div>`;
 }
 
@@ -4413,11 +4413,11 @@ async function showDownlinePopup(referrerNick) {
         </div>
         <div style="padding:10px;text-align:center;border-right:1px solid #f0f0ee;">
           <div style="font-family:'Kanit',sans-serif;font-weight:900;font-size:18px;color:#16a34a;" id="dl-pop-balance">—</div>
-          <div style="font-size:10px;color:#aaa;">ยอดเงินรวม (฿)</div>
+          <div style="font-size:10px;color:#aaa;">ยอดเงินรวม (₭)</div>
         </div>
         <div style="padding:10px;text-align:center;">
           <div style="font-family:'Kanit',sans-serif;font-weight:900;font-size:18px;color:#8b5cf6;" id="dl-pop-com">—</div>
-          <div style="font-size:10px;color:#aaa;">คอมฯ รวม (฿)</div>
+          <div style="font-size:10px;color:#aaa;">คอมฯ รวม (₭)</div>
         </div>
       </div>
 
@@ -4498,7 +4498,7 @@ function _filterDlPop() {
               </div>
             </div>
           </td>
-          <td style="padding:9px 12px;text-align:right;font-family:'Kanit',sans-serif;font-weight:700;font-size:13px;color:#15803d;">${Number(m.balance||0).toLocaleString()} ฿</td>
+          <td style="padding:9px 12px;text-align:right;font-family:'Kanit',sans-serif;font-weight:700;font-size:13px;color:#15803d;">${Number(m.balance||0).toLocaleString()} ₭</td>
           <td style="padding:9px 12px;text-align:right;font-size:11px;color:#aaa;white-space:nowrap;">${fmtDate(m.created_at)}</td>
           <td style="padding:9px 12px;text-align:center;">
             <button class="btn btn-gold" style="font-size:11px;padding:3px 9px;white-space:nowrap;"
@@ -4529,7 +4529,7 @@ function filterReferralLogs() {
   const totalCom = rows.reduce((s,l)=>s+Number(l.commission||0),0);
   const footer = document.getElementById('ref-logs-footer2');
   const countEl = document.getElementById('ref-log-count');
-  if (footer) footer.textContent = `แสดง ${rows.length} รายการ · คอมฯ รวม ${totalCom.toLocaleString()} ฿`;
+  if (footer) footer.textContent = `แสดง ${rows.length} รายการ · คอมฯ รวม ${totalCom.toLocaleString()} ₭`;
   if (countEl) countEl.textContent = `${rows.length} รายการ`;
 
   if (!rows.length) {
@@ -4565,7 +4565,7 @@ function showReferralDetail(referrerNick) {
   const logs = (_allRefLogs||[]).filter(l=>l.referrer_nick===referrerNick);
   const total = logs.reduce((s,l)=>s+Number(l.commission||0),0);
 
-  showToast(`👥 ${referrerNick} แนะนำ ${r.count} คน — คอมฯ รวม ${total.toLocaleString()} ฿`);
+  showToast(`👥 ${referrerNick} แนะนำ ${r.count} คน — คอมฯ รวม ${total.toLocaleString()} ₭`);
   // ตั้ง filter ให้แสดงเฉพาะ nick นี้
   const searchEl = document.getElementById('ref-log-search');
   if (searchEl) { searchEl.value = referrerNick; filterReferralLogs(); }
@@ -4675,17 +4675,17 @@ function previewRefExample() {
     const comm = Math.floor(bet * r / 100);
     return `<div style="display:flex;justify-content:space-between;padding:3px 0;border-bottom:1px solid #e5f5e8;">
       <span>ชั้นที่ ${i+1} (${r}%)</span>
-      <span style="font-family:'Kanit',sans-serif;font-weight:700;color:#15803d;">+${comm.toLocaleString()} ฿</span>
+      <span style="font-family:'Kanit',sans-serif;font-weight:700;color:#15803d;">+${comm.toLocaleString()} ₭</span>
     </div>`;
   });
   const total = levels.reduce((s,r) => s + Math.floor(bet*r/100), 0);
   const el = document.getElementById('ref-preview-result');
   if (el) {
     el.style.display = 'block';
-    el.innerHTML = `<div style="font-family:'Kanit',sans-serif;font-weight:700;margin-bottom:8px;">🎯 ตัวอย่าง: สมาชิกเดิมพัน ${bet.toLocaleString()} ฿</div>
+    el.innerHTML = `<div style="font-family:'Kanit',sans-serif;font-weight:700;margin-bottom:8px;">🎯 ตัวอย่าง: สมาชิกเดิมพัน ${bet.toLocaleString()} ₭</div>
     ${lines.join('')}
     <div style="display:flex;justify-content:space-between;margin-top:6px;font-family:'Kanit',sans-serif;font-weight:900;font-size:13px;">
-      <span>รวมทุกชั้น</span><span style="color:#15803d;">+${total.toLocaleString()} ฿</span>
+      <span>รวมทุกชั้น</span><span style="color:#15803d;">+${total.toLocaleString()} ₭</span>
     </div>`;
   }
 }
@@ -4747,8 +4747,8 @@ async function payBetCommission(betterNick, betAmount) {
     currentNick = referrerNick; // ขึ้นไปชั้นถัดไป
   }
   if (paid.length) {
-    const summary = paid.map(p => `${p.nick}(ชั้น${p.level})+${p.commission}฿`).join(', ');
-    showToast(`🎁 คอมฯ เดิมพัน ${Number(betAmount).toLocaleString()} ฿ → ${summary}`);
+    const summary = paid.map(p => `${p.nick}(ชั้น${p.level})+${p.commission}₭`).join(', ');
+    showToast(`🎁 คอมฯ เดิมพัน ${Number(betAmount).toLocaleString()} ₭ → ${summary}`);
   }
 }
 
@@ -4775,7 +4775,7 @@ async function payReferralCommission(nick, depositAmount, isFirstDeposit) {
       level:           1,
     });
   } catch(_) {}
-  showToast(`🎁 คอมฯ เติมเงินครั้งแรก ${commission.toLocaleString()} ฿ → ${mem.referred_by}`);
+  showToast(`🎁 คอมฯ เติมเงินครั้งแรก ${commission.toLocaleString()} ₭ → ${mem.referred_by}`);
 }
 
 // ===== REALTIME NOTIFICATIONS =====
@@ -4787,12 +4787,12 @@ function subscribeNotifications() {
       const badge = document.getElementById('notif-badge');
       badge.textContent = notifCount;
       badge.style.display = 'inline';
-      showToast(`🔔 ${d.nick} ขอเติมเงิน ${Number(d.amount).toLocaleString()} ฿`);
+      showToast(`🔔 ${d.nick} ขอเติมเงิน ${Number(d.amount).toLocaleString()} ₭`);
       loadDeposits(); loadOverview();
     })
     .on('postgres_changes',{event:'INSERT',schema:'public',table:'withdrawals'}, payload => {
       const w = payload.new;
-      showToast(`🏧 ${w.nick} ขอถอนเงิน ${Number(w.amount).toLocaleString()} ฿`);
+      showToast(`🏧 ${w.nick} ขอถอนเงิน ${Number(w.amount).toLocaleString()} ₭`);
       loadWithdrawals(); loadOverview();
     })
     .on('postgres_changes',{event:'INSERT',schema:'public',table:'members'}, payload => {
@@ -4858,7 +4858,7 @@ async function openMember(nick) {
   const vip     = getVipLevel(totalDep);
   const vipNext = getVipNext(totalDep);
   const vipPct  = vipNext ? Math.min(100, Math.round((totalDep - vip.min) / (vipNext - vip.min) * 100)) : 100;
-  const vipNextFmt = vipNext ? `${vipNext.toLocaleString()} ฿` : 'ระดับสูงสุด';
+  const vipNextFmt = vipNext ? `${vipNext.toLocaleString()} ₭` : 'ระดับสูงสุด';
 
   document.getElementById('md-content').innerHTML = `
     <!-- HEADER -->
@@ -4873,7 +4873,7 @@ async function openMember(nick) {
         <div style="font-size:12px;opacity:.8;margin-top:2px;">${m.fname||''} ${m.lname||''} · ${m.phone||'—'}</div>
         <div style="margin-top:6px;">
           <div style="display:flex;justify-content:space-between;font-size:10px;opacity:.65;margin-bottom:3px;">
-            <span>เติมสะสม ${totalDep.toLocaleString()} ฿</span>
+            <span>เติมสะสม ${totalDep.toLocaleString()} ₭</span>
             <span>${vipNext ? `ถัดไป ${vipNextFmt}` : '👑 Crown — ระดับสูงสุด'}</span>
           </div>
           <div style="background:rgba(255,255,255,.2);border-radius:999px;height:5px;width:100%;overflow:hidden;">
@@ -4882,7 +4882,7 @@ async function openMember(nick) {
         </div>
       </div>
       <div style="text-align:right;flex-shrink:0;">
-        <div style="font-family:'Kanit',sans-serif;font-weight:900;font-size:22px;">${Number(m.balance||0).toLocaleString()} ฿</div>
+        <div style="font-family:'Kanit',sans-serif;font-weight:900;font-size:22px;">${Number(m.balance||0).toLocaleString()} ₭</div>
         <div style="font-size:11px;opacity:.7;">ยอดคงเหลือ</div>
         <div style="font-size:11px;opacity:.5;margin-top:2px;">สมัคร ${fmtDate(m.created_at)}</div>
       </div>
@@ -4893,11 +4893,11 @@ async function openMember(nick) {
     <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:1px;background:#e5e5e0;">
       <div style="background:#fff;padding:14px;text-align:center;">
         <div style="font-family:'Kanit',sans-serif;font-weight:900;font-size:18px;color:#1B6B2F;">+${totalDep.toLocaleString()}</div>
-        <div style="font-size:11px;color:#aaa;">เติมเงินรวม (฿)</div>
+        <div style="font-size:11px;color:#aaa;">เติมเงินรวม (₭)</div>
       </div>
       <div style="background:#fff;padding:14px;text-align:center;">
         <div style="font-family:'Kanit',sans-serif;font-weight:900;font-size:18px;color:#C8102E;">-${totalWith.toLocaleString()}</div>
-        <div style="font-size:11px;color:#aaa;">ถอนเงินรวม (฿)</div>
+        <div style="font-size:11px;color:#aaa;">ถอนเงินรวม (₭)</div>
       </div>
       <div style="background:#fff;padding:14px;text-align:center;">
         <div style="font-family:'Kanit',sans-serif;font-weight:900;font-size:18px;color:#1a1a1a;">${bets.length}</div>
@@ -4931,7 +4931,7 @@ async function openMember(nick) {
             <th style="padding:8px 12px;text-align:left;font-family:'Kanit',sans-serif;font-size:11px;color:#999;border-bottom:1px solid #eee;">เวลา</th>
           </tr></thead>
           <tbody>${deps.map(d=>`<tr style="border-bottom:1px solid #f5f5f5;">
-            <td style="padding:9px 12px;font-family:'Kanit',sans-serif;font-weight:700;color:#1B6B2F;">+${Number(d.amount).toLocaleString()} ฿</td>
+            <td style="padding:9px 12px;font-family:'Kanit',sans-serif;font-weight:700;color:#1B6B2F;">+${Number(d.amount).toLocaleString()} ₭</td>
             <td style="padding:9px 12px;font-size:12px;">${d.bank||'—'}</td>
             <td style="padding:9px 12px;"><span class="badge badge-${d.status}">${d.status==='approved'?'✅ อนุมัติ':d.status==='rejected'?'❌ ปฏิเสธ':'⏳ รอ'}</span>${d.reason?`<div style="font-size:10px;color:#f87171;">${d.reason}</div>`:''}</td>
             <td style="padding:9px 12px;font-size:11px;color:#aaa;">${fmtDate(d.created_at)}</td>
@@ -4948,7 +4948,7 @@ async function openMember(nick) {
             <th style="padding:8px 12px;text-align:left;font-family:'Kanit',sans-serif;font-size:11px;color:#999;border-bottom:1px solid #eee;">เวลา</th>
           </tr></thead>
           <tbody>${withs.map(w=>`<tr style="border-bottom:1px solid #f5f5f5;">
-            <td style="padding:9px 12px;font-family:'Kanit',sans-serif;font-weight:700;color:#C8102E;">-${Number(w.amount).toLocaleString()} ฿</td>
+            <td style="padding:9px 12px;font-family:'Kanit',sans-serif;font-weight:700;color:#C8102E;">-${Number(w.amount).toLocaleString()} ₭</td>
             <td style="padding:9px 12px;font-size:12px;">${w.bank||'—'}<br><span style="color:#aaa;font-size:11px;">${w.acc_no||''} ${w.acc_name?'· '+w.acc_name:''}</span></td>
             <td style="padding:9px 12px;"><span class="badge badge-${w.status}">${w.status==='approved'?'✅ โอนแล้ว':w.status==='rejected'?'❌ ปฏิเสธ':'⏳ รอ'}</span>${w.reason?`<div style="font-size:10px;color:#f87171;">${w.reason}</div>`:''}</td>
             <td style="padding:9px 12px;font-size:11px;color:#aaa;">${fmtDate(w.created_at)}</td>
@@ -4961,7 +4961,7 @@ async function openMember(nick) {
         <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;padding:12px;background:#fafafa;border-bottom:1px solid #eee;">
           <div style="text-align:center;"><div style="font-family:'Kanit',sans-serif;font-weight:900;font-size:16px;color:#1B6B2F;">${wonBets}</div><div style="font-size:11px;color:#aaa;">ชนะ</div></div>
           <div style="text-align:center;"><div style="font-family:'Kanit',sans-serif;font-weight:900;font-size:16px;color:#C8102E;">${lostBets}</div><div style="font-size:11px;color:#aaa;">แพ้</div></div>
-          <div style="text-align:center;"><div style="font-family:'Kanit',sans-serif;font-weight:900;font-size:16px;">${totalBetAmt.toLocaleString()}</div><div style="font-size:11px;color:#aaa;">วางรวม (฿)</div></div>
+          <div style="text-align:center;"><div style="font-family:'Kanit',sans-serif;font-weight:900;font-size:16px;">${totalBetAmt.toLocaleString()}</div><div style="font-size:11px;color:#aaa;">วางรวม (₭)</div></div>
         </div>
         <table style="width:100%;border-collapse:collapse;">
           <thead><tr style="background:#fafafa;">
@@ -4974,7 +4974,7 @@ async function openMember(nick) {
           <tbody>${bets.map(b=>`<tr style="border-bottom:1px solid #f5f5f5;">
             <td style="padding:9px 12px;font-size:12px;">${b.matches?.round||'—'}<br><span style="color:#aaa;font-size:10px;">${b.matches?.code?'#'+b.matches.code:''}</span></td>
             <td style="padding:9px 12px;">${b.side==='red'?'🔴':'🔵'} <span style="font-size:12px;">${b.side_name||b.side}</span></td>
-            <td style="padding:9px 12px;font-family:'Kanit',sans-serif;font-weight:700;font-size:12px;">${Number(b.amount).toLocaleString()} ฿ × ${b.odds}</td>
+            <td style="padding:9px 12px;font-family:'Kanit',sans-serif;font-weight:700;font-size:12px;">${Number(b.amount).toLocaleString()} ₭ × ${b.odds}</td>
             <td style="padding:9px 12px;"><span class="badge badge-${b.status==='won'?'approved':b.status==='lost'?'rejected':b.status==='matched'?'approved':'pending'}">${b.status==='won'?'🏆 ชนะ':b.status==='lost'?'❌ แพ้':b.status==='matched'?'✅ จับคู่':'⏳ รอ'}</span></td>
             <td style="padding:9px 12px;font-size:11px;color:#aaa;">${fmtDate(b.created_at)}</td>
           </tr>`).join('')}</tbody>
@@ -5050,7 +5050,7 @@ async function openMember(nick) {
         <div class="me-section-title">💰 แก้ไขยอดเงิน</div>
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:16px;">
           <div class="fg">
-            <label>ยอดเงินคงเหลือ (฿)</label>
+            <label>ยอดเงินคงเหลือ (₭)</label>
             <input id="me-balance" type="number" value="${m.balance||0}" min="0">
           </div>
           <div class="fg">
@@ -5089,7 +5089,7 @@ async function openMember(nick) {
           </div>
           <div style="background:#fdf4ff;border:1px solid #e9d5ff;border-radius:10px;padding:11px 14px;text-align:center;">
             <div style="font-family:'Kanit',sans-serif;font-weight:900;font-size:22px;color:#6b21a8;">${totalRefCom.toLocaleString()}</div>
-            <div style="font-size:11px;color:#9333ea;margin-top:1px;">คอมฯ รวม (฿)</div>
+            <div style="font-size:11px;color:#9333ea;margin-top:1px;">คอมฯ รวม (₭)</div>
           </div>
         </div>
 
@@ -5126,7 +5126,7 @@ async function openMember(nick) {
                       <strong style="cursor:pointer;color:var(--green);text-decoration:underline;font-size:13px;" onclick="closeMember();setTimeout(()=>openMember('${d.nick}'),100)">${d.nick}</strong>
                     </div>
                   </td>
-                  <td style="padding:8px 12px;text-align:right;font-family:'Kanit',sans-serif;font-weight:700;font-size:12px;color:#15803d;">${Number(d.balance||0).toLocaleString()} ฿</td>
+                  <td style="padding:8px 12px;text-align:right;font-family:'Kanit',sans-serif;font-weight:700;font-size:12px;color:#15803d;">${Number(d.balance||0).toLocaleString()} ₭</td>
                   <td style="padding:8px 12px;text-align:right;font-size:11px;color:#aaa;">${fmtDate(d.created_at)}</td>
                 </tr>`).join('')}
             </tbody>
@@ -5161,19 +5161,19 @@ async function openMember(nick) {
         <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:0;border-bottom:1px solid #f0f0ee;">
           <div style="padding:10px 14px;text-align:center;border-right:1px solid #f0f0ee;">
             <div style="font-family:'Kanit',sans-serif;font-weight:900;font-size:16px;color:#16a34a;" id="txn-sum-dep">—</div>
-            <div style="font-size:10px;color:#aaa;margin-top:1px;">เติมรวม (฿)</div>
+            <div style="font-size:10px;color:#aaa;margin-top:1px;">เติมรวม (₭)</div>
           </div>
           <div style="padding:10px 14px;text-align:center;border-right:1px solid #f0f0ee;">
             <div style="font-family:'Kanit',sans-serif;font-weight:900;font-size:16px;color:#dc2626;" id="txn-sum-with">—</div>
-            <div style="font-size:10px;color:#aaa;margin-top:1px;">ถอนรวม (฿)</div>
+            <div style="font-size:10px;color:#aaa;margin-top:1px;">ถอนรวม (₭)</div>
           </div>
           <div style="padding:10px 14px;text-align:center;border-right:1px solid #f0f0ee;">
             <div style="font-family:'Kanit',sans-serif;font-weight:900;font-size:16px;color:#f59e0b;" id="txn-sum-bet">—</div>
-            <div style="font-size:10px;color:#aaa;margin-top:1px;">เดิมพันรวม (฿)</div>
+            <div style="font-size:10px;color:#aaa;margin-top:1px;">เดิมพันรวม (₭)</div>
           </div>
           <div style="padding:10px 14px;text-align:center;">
             <div style="font-family:'Kanit',sans-serif;font-weight:900;font-size:16px;color:#8b5cf6;" id="txn-sum-reward">—</div>
-            <div style="font-size:10px;color:#aaa;margin-top:1px;">รางวัล/คอมฯ (฿)</div>
+            <div style="font-size:10px;color:#aaa;margin-top:1px;">รางวัล/คอมฯ (₭)</div>
           </div>
         </div>
 
@@ -5571,7 +5571,7 @@ function renderGrowthChart() {
   const sumEl = document.getElementById('chart-summary-row');
   if (sumEl) {
     const isAmt = _chartType === 'deposits' || _chartType === 'withdrawals';
-    const fmt = (v, isA) => isA ? `${v.toLocaleString()} ฿` : v.toLocaleString();
+    const fmt = (v, isA) => isA ? `${v.toLocaleString()} ₭` : v.toLocaleString();
     sumEl.innerHTML = summaryItems.map(s => `
       <div class="chart-stat-mini">
         <div class="csm-val">${fmt(s.cur, s.isAmount)}</div>
@@ -5627,7 +5627,7 @@ function renderGrowthChart() {
           callbacks: {
             label: (item) => {
               const v = Math.round(item.raw ?? 0);
-              return ` ${item.dataset.label}: ${isAmountChart ? v.toLocaleString()+' ฿' : v.toLocaleString()}`;
+              return ` ${item.dataset.label}: ${isAmountChart ? v.toLocaleString()+' ₭' : v.toLocaleString()}`;
             }
           }
         }
@@ -5788,7 +5788,7 @@ function renderActVipRows() {
           value="0"
           oninput="updateActPreview()"
           style="width:100%;padding:9px 42px 9px 12px;border:1px solid #e0e0e0;border-radius:8px;font-family:'Kanit',sans-serif;font-size:14px;font-weight:700;color:#1a1a1a;text-align:right;">
-        <span style="position:absolute;right:12px;top:50%;transform:translateY(-50%);font-size:12px;color:#aaa;pointer-events:none;">฿</span>
+        <span style="position:absolute;right:12px;top:50%;transform:translateY(-50%);font-size:12px;color:#aaa;pointer-events:none;">₭</span>
       </div>
       <div style="font-size:11px;color:#aaa;font-family:'Kanit',sans-serif;" id="act-count-${v.tier}">— สมาชิก</div>
     </div>`).join('');
@@ -5836,8 +5836,8 @@ function updateActPreview() {
     totalAmt += subtotal;
     totalMem += memCount;
     lines.push(`<div style="display:flex;justify-content:space-between;padding:4px 0;border-bottom:1px solid #f0f0ee;">
-      <span>${v.icon} ${v.name} (${memCount} คน × ${amt.toLocaleString()} ฿)</span>
-      <span style="font-family:'Kanit',sans-serif;font-weight:700;color:#15803d;">${subtotal.toLocaleString()} ฿</span>
+      <span>${v.icon} ${v.name} (${memCount} คน × ${amt.toLocaleString()} ₭)</span>
+      <span style="font-family:'Kanit',sans-serif;font-weight:700;color:#15803d;">${subtotal.toLocaleString()} ₭</span>
     </div>`);
   });
 
@@ -5850,7 +5850,7 @@ function updateActPreview() {
       ${lines.join('')}
       <div style="display:flex;justify-content:space-between;margin-top:8px;font-family:'Kanit',sans-serif;font-weight:900;font-size:14px;">
         <span>รวมทั้งหมด (${totalMem} คน)</span>
-        <span style="color:#15803d;">${totalAmt.toLocaleString()} ฿</span>
+        <span style="color:#15803d;">${totalAmt.toLocaleString()} ₭</span>
       </div>`;
   } else {
     if (box) box.style.display = 'none';
@@ -5976,7 +5976,7 @@ async function sendActivity() {
       });
     } catch(_) {}
 
-    showToast(`✅ ส่งรางวัล "${actName}" ให้ ${successCount} คน รวม ${totalSent.toLocaleString()} ฿ สำเร็จแล้วครับ!`);
+    showToast(`✅ ส่งรางวัล "${actName}" ให้ ${successCount} คน รวม ${totalSent.toLocaleString()} ₭ สำเร็จแล้วครับ!`);
 
     // reset form
     document.getElementById('act-name').value = '';
@@ -6050,7 +6050,7 @@ async function loadActivityLogs() {
             </div>
           </div>
           <div style="text-align:right;flex-shrink:0;">
-            <div style="font-family:'Kanit',sans-serif;font-weight:900;font-size:16px;color:#15803d;">+${total.toLocaleString()} ฿</div>
+            <div style="font-family:'Kanit',sans-serif;font-weight:900;font-size:16px;color:#15803d;">+${total.toLocaleString()} ₭</div>
             <div style="font-size:11px;color:#aaa;" id="${gId}-arrow">${isOpen?'▲':'▼'}</div>
           </div>
         </div>
@@ -6059,7 +6059,7 @@ async function loadActivityLogs() {
           <table style="width:100%;border-collapse:collapse;font-size:12px;">
             <thead><tr style="background:#f5f5f2;">
               <th style="padding:7px 12px;text-align:left;font-family:'Kanit',sans-serif;font-size:11px;color:#888;">Nick</th>
-              <th style="padding:7px 12px;text-align:right;font-family:'Kanit',sans-serif;font-size:11px;color:#888;">รางวัล (฿)</th>
+              <th style="padding:7px 12px;text-align:right;font-family:'Kanit',sans-serif;font-size:11px;color:#888;">รางวัล (₭)</th>
               <th style="padding:7px 12px;text-align:right;font-family:'Kanit',sans-serif;font-size:11px;color:#888;">เวลา</th>
             </tr></thead>
             <tbody>
@@ -6070,7 +6070,7 @@ async function loadActivityLogs() {
               </tr>`).join('')}
               <tr style="background:#f0fdf4;border-top:1px solid #86efac;">
                 <td style="padding:8px 12px;font-family:'Kanit',sans-serif;font-weight:900;font-size:12px;color:#15803d;">รวม ${g.rows.length} คน</td>
-                <td style="padding:8px 12px;text-align:right;font-family:'Kanit',sans-serif;font-weight:900;font-size:13px;color:#15803d;">+${total.toLocaleString()} ฿</td>
+                <td style="padding:8px 12px;text-align:right;font-family:'Kanit',sans-serif;font-weight:900;font-size:13px;color:#15803d;">+${total.toLocaleString()} ₭</td>
                 <td></td>
               </tr>
             </tbody>
