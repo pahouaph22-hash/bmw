@@ -3,6 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<!-- KAWCAI-VERSION-20260604-FIX -->
 <title>วัวชนไทย — ศึกชนโคทั่วประเทศลาว</title>
 <!-- Phetsarath OT — ฟอนต์หลักลาว -->
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -2373,7 +2374,7 @@ fns.forEach(function(fn){
   .acc-tab{flex-shrink:0;font-family:'Phetsarath OT','Phetsarath','Noto Sans Lao','Kanit',sans-serif;font-weight:700;font-size:12px;padding:9px 14px;border-radius:7px;border:none;background:transparent;color:rgba(240,255,232,0.5);cursor:pointer;transition:all .2s;text-align:center;white-space:nowrap;}
   .acc-tab.active{background:var(--green);color:#fff;box-shadow:0 4px 12px rgba(27,107,47,0.3);}
   .acc-tab:hover:not(.active){color:var(--cream);background:rgba(255,255,255,0.05);}
-  .acc-panel{display:none;}.acc-panel.active{display:block;animation:fadeUp .25s ease forwards;opacity:1;}
+  .acc-panel{display:none;}.acc-panel.active{display:block;}
   /* Mobile scrollbar hide */
   .account-tabs::-webkit-scrollbar{display:none;}
   .account-tabs{-ms-overflow-style:none;scrollbar-width:none;}
@@ -2403,9 +2404,11 @@ fns.forEach(function(fn){
   .money-card-val{font-family:'Phetsarath OT','Phetsarath','Noto Sans Lao','Kanit',sans-serif;font-weight:900;font-size:22px;color:var(--cream);}
   .money-card-val.dep{color:var(--accent);}.money-card-val.with{color:#f87171;}.money-card-val.bal{color:var(--gold);}
   .money-form{background:rgba(255,255,255,0.03);border:1px solid rgba(39,148,63,0.2);border-radius:12px;padding:20px;margin-bottom:14px;}
-  /* ── Deposit Steps — ควบคุมด้วย CSS class เท่านั้น ── */
+  /* ── Deposit Steps ── */
   .dep-step-hidden { display: none !important; }
   #dep-step1 { display: block; }
+  /* Force show step1 เมื่อ acc-deposit active และ step1 ไม่ได้ถูก hide ด้วย class */
+  #acc-deposit.active #dep-step1:not(.dep-step-hidden) { display: block !important; }
   .money-form-title{font-family:'Phetsarath OT','Phetsarath','Noto Sans Lao','Kanit',sans-serif;font-weight:700;font-size:15px;color:var(--cream);margin-bottom:14px;display:flex;align-items:center;gap:8px;}
   .acc-input{font-family:'Phetsarath OT','Phetsarath','Noto Sans Lao','Sarabun',sans-serif;font-size:14px;padding:11px 14px;border:1px solid rgba(39,148,63,0.3);border-radius:9px;background:rgba(255,255,255,0.05);color:var(--cream);width:100%;margin-bottom:10px;transition:border-color .2s;}
   .acc-input:focus{outline:none;border-color:var(--accent);}
@@ -6733,6 +6736,8 @@ function applyLang() {
 
   // ── Login ──
 
+
+
 // ===== SECURITY SYSTEM — Frontend =====
 
 // ── Brute Force Protection (Login) ──
@@ -7713,6 +7718,13 @@ setInterval(() => {
         reader.readAsDataURL(file);
       });
     }
+    // ── reset dep-steps ให้ step1 แสดงเสมอตอน page load ──
+    const _ds1 = document.getElementById('dep-step1');
+    const _ds2 = document.getElementById('dep-step2');
+    const _ds3 = document.getElementById('dep-step3');
+    if (_ds1) _ds1.classList.remove('dep-step-hidden');
+    if (_ds2) _ds2.classList.add('dep-step-hidden');
+    if (_ds3) _ds3.classList.add('dep-step-hidden');
   });
 
   function genTxnFE(prefix) {
