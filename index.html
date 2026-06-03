@@ -2774,7 +2774,7 @@ input, textarea, select, button {
         </div>
       </div>
       <div class="modal-winner-bar" id="m-winner-bar" style="display:none">
-        <div class="modal-winner-label">🏆 ผู้ชนะ</div>
+        <div class="modal-winner-label"><span class='hist-winner-label'>🏆 ผู้ชนะ</span></div>
         <div class="modal-winner-name" id="m-winner-name"></div>
       </div>
     </div>
@@ -2914,7 +2914,7 @@ input, textarea, select, button {
 
 <!-- EVENTS -->
 <div class="events-section">
-  <h2 class="section-title">ผล<span class="red">การแข่งขัน</span></h2>
+  <h2 class="section-title" id="hist-title-2916"><span data-i18n="hist.title.prefix">ผล</span><span class="red" data-i18n="hist.title.suffix">การแข่งขัน</span></h2>
   <div class="section-line"></div>
 
   <!-- Search Bar -->
@@ -2926,11 +2926,11 @@ input, textarea, select, button {
         oninput="filterResults()">
     </div>
     <div class="results-date-wrap">
-      <label class="results-date-label">ตั้งแต่</label>
+      <label class="results-date-label"><span data-i18n="hist.from">ตั้งแต่</span></label>
       <input type="date" id="results-date-from" class="results-date-input" onchange="filterResults()">
-      <label class="results-date-label">ถึง</label>
+      <label class="results-date-label"><span data-i18n="hist.to">ถึง</span></label>
       <input type="date" id="results-date-to" class="results-date-input" onchange="filterResults()">
-      <button class="results-clear-btn" onclick="clearResultsFilter()">✕ ล้าง</button>
+      <button class="results-clear-btn" onclick="clearResultsFilter()"><span data-i18n="hist.clear">✕ ล้าง</span></button>
     </div>
   </div>
 
@@ -2946,7 +2946,7 @@ input, textarea, select, button {
   </div>
 
   <div class="event-grid" id="events-grid-fb">
-    <div style="text-align:center;padding:48px 20px;color:rgba(240,255,232,0.3);font-family:'Phetsarath OT','Phetsarath','Noto Sans Lao','Kanit',sans-serif;"><div style="font-size:32px;margin-bottom:10px;">⏳</div>กำลังโหลดผลการแข่งขัน...</div>
+    <div style="text-align:center;padding:48px 20px;color:rgba(240,255,232,0.3);font-family:'Phetsarath OT','Phetsarath','Noto Sans Lao','Kanit',sans-serif;"><div style="font-size:32px;margin-bottom:10px;">⏳</div><span data-i18n="hist.loading">กำลังโหลดผลการแข่งขัน...</span></div>
   </div>
 </div>
 
@@ -3308,7 +3308,7 @@ input, textarea, select, button {
 <div id="page-history" style="display:none">
   <div class="history-section">
     <button class="history-back" onclick="hideHistory()">← กลับหน้าแรก</button>
-    <h2 class="section-title">ผล<span class="red">การแข่งขัน</span></h2>
+    <h2 class="section-title" id="hist-title-3310"><span data-i18n="hist.title.prefix">ผล</span><span class="red" data-i18n="hist.title.suffix">การแข่งขัน</span></h2>
     <div class="section-line"></div>
 
     <!-- Notification Banner (ซ่อนไว้ก่อน แสดงเมื่อมีผลใหม่) -->
@@ -4355,7 +4355,7 @@ input, textarea, select, button {
         const isLive   = m.status === 'live';
         const isDone   = m.status === 'done';
         const statusClass = isLive ? 'status-live' : isDone ? 'status-done' : 'status-upcoming';
-        const statusLabel = isLive ? '● LIVE' : isDone ? 'จบแล้ว' : 'รอแข่ง';
+        const statusLabel = isLive ? '● LIVE' : isDone ? t('hist.done') : 'รอแข่ง';
         const prizeNum = Number(m.prize || 0);
         const card = document.createElement('div');
         card.className = `match-card-fe${isLive ? ' live' : ''}`;
@@ -4419,7 +4419,7 @@ input, textarea, select, button {
           </div>
 
           <!-- Winner bar -->
-          ${isDone&&m.winner?`<div class="match-footer-done">🏆 ผู้ชนะ: <strong>${m.winner}</strong>${m.location?` &nbsp;·&nbsp; 📍 ${m.location}`:''}</div>`:''}
+          ${isDone&&m.winner?`<div class="match-footer-done"><span class='hist-winner-label'>🏆 ผู้ชนะ</span>: <strong>${m.winner}</strong>${m.location?` &nbsp;·&nbsp; 📍 ${m.location}`:''}</div>`:''}
 
           <!-- Actions -->
           <div class="match-actions">
@@ -4573,6 +4573,7 @@ input, textarea, select, button {
     document.getElementById('page-history').style.display = 'block';
     window.scrollTo(0, 0);
     loadHistory();
+    setTimeout(applyLang, 150);
   }
 
   let allHistoryMatches = [];
@@ -4636,7 +4637,7 @@ input, textarea, select, button {
             </div>
           </div>
         </div>
-        <div class="history-winner-bar">🏆 ผู้ชนะ: <strong style="color:var(--gold);margin-left:4px;">${m.winner||'—'}</strong>
+        <div class="history-winner-bar"><span class='hist-winner-label'>🏆 ผู้ชนะ</span>: <strong style="color:var(--gold);margin-left:4px;">${m.winner||'—'}</strong>
           <span class="loc">📍 ${m.location||'—'} · 💰 ${Number(m.prize||0).toLocaleString()} ₭</span>
         </div>`;
       list.appendChild(card);
@@ -5700,6 +5701,24 @@ const I18N = {
     'ref.copy': 'คัดลอก', 'ref.code': 'รหัสแนะนำของคุณ',
     'nav.about': 'เกี่ยวกับเรา',
     // ABOUT
+    'hist.title': 'ผลการแข่งขัน',
+'hist.title.prefix': 'ผล',
+    'hist.title.suffix': 'การแข่งขัน',
+    'hist.back': '← กลับหน้าแรก',
+    'hist.from': 'ตั้งแต่',
+    'hist.to': 'ถึง',
+    'hist.clear': '✕ ล้าง',
+    'hist.showing': 'แสดง',
+    'hist.items': 'รายการ',
+    'hist.realtime': 'อัปเดตอัตโนมัติ',
+    'hist.loading': '<span data-i18n="hist.loading">กำลังโหลดผลการแข่งขัน...</span>',
+    'hist.empty': 'ยังไม่มีผลการแข่งขัน',
+    'hist.done': t('hist.done'),
+    'hist.done.all': 'จบแล้วทั้งหมด',
+    'hist.winner': 'ผู้ชนะ',
+    'hist.new': 'มีผลการแข่งขันใหม่!',
+    'hist.search': 'ค้นหาชื่อวัว / รุ่น...',
+    'hist.vs': 'VS',
     'about.back': '← กลับหน้าแรก',
     'about.title': 'เกี่ยวกับเรา',
     'about.subtitle': 'แพลตฟอร์มวัวชน P2P ที่ได้รับความไว้วางใจจากสมาชิกทั่วประเทศลาว',
@@ -5837,6 +5856,24 @@ const I18N = {
     'ref.copy': 'ສຳເນົາ', 'ref.code': 'ລະຫັດແນະນຳຂອງທ່ານ',
     'nav.about': 'ກ່ຽວກັບເຮົາ',
     // ABOUT
+    'hist.title': 'ຜົນການແຂ່ງ',
+'hist.title.prefix': 'ຜົນ',
+    'hist.title.suffix': 'ການແຂ່ງ',
+    'hist.back': '← ກັບໜ້າຫຼັກ',
+    'hist.from': 'ຕັ້ງແຕ່',
+    'hist.to': 'ຫາ',
+    'hist.clear': '✕ ລ້າງ',
+    'hist.showing': 'ສະແດງ',
+    'hist.items': 'ລາຍການ',
+    'hist.realtime': 'ອັບເດດອັດຕະໂນມັດ',
+    'hist.loading': 'ກຳລັງໂຫຼດຜົນການແຂ່ງ...',
+    'hist.empty': 'ຍັງບໍ່ມີຜົນການແຂ່ງ',
+    'hist.done': 'ຈົບແລ້ວ',
+    'hist.done.all': 'ຈົບແລ້ວທັງໝົດ',
+    'hist.winner': 'ຜູ້ຊະນະ',
+    'hist.new': 'ມີຜົນການແຂ່ງໃໝ່!',
+    'hist.search': 'ຄົ້ນຫາຊື່ງົວ / ຮຸ່ນ...',
+    'hist.vs': 'VS',
     'about.back': '← ກັບໜ້າຫຼັກ',
     'about.title': 'ກ່ຽວກັບເຮົາ',
     'about.subtitle': 'ແພລດຟອມງົວຊົນ P2P ທີ່ໄດ້ຮັບຄວາມໄວ້ວາງໃຈຈາກສະມາຊິກທົ່ວລາວ',
@@ -5974,6 +6011,24 @@ const I18N = {
     'ref.copy': 'Copy', 'ref.code': 'Your referral code',
     'nav.about': 'About Us',
     // ABOUT
+    'hist.title': 'Match Results',
+'hist.title.prefix': 'Match ',
+    'hist.title.suffix': 'Results',
+    'hist.back': '← Back to Home',
+    'hist.from': 'From',
+    'hist.to': 'To',
+    'hist.clear': '✕ Clear',
+    'hist.showing': 'Showing',
+    'hist.items': 'results',
+    'hist.realtime': 'Auto-update',
+    'hist.loading': 'Loading match results...',
+    'hist.empty': 'No match results yet',
+    'hist.done': 'Finished',
+    'hist.done.all': 'Finished',
+    'hist.winner': 'Winner',
+    'hist.new': 'New match results!',
+    'hist.search': 'Search bull name / round...',
+    'hist.vs': 'VS',
     'about.back': '← Back to Home',
     'about.title': 'About Us',
     'about.subtitle': 'Trusted P2P Bull Fight Platform across Laos',
@@ -6246,11 +6301,33 @@ function applyLang() {
   const schedBack = document.querySelector('.schedule-back');
   if (schedBack) schedBack.textContent = t('schedule.back');
 
-  // ── 11. History back ──
-  const histBack = document.querySelector('.history-back:not(#page-about .history-back)');
-  if (histBack) histBack.textContent = t('schedule.back');
+  // ── 11. History page ──
+  document.querySelectorAll('.history-back').forEach(e => {
+    if (!e.closest('#page-about')) e.textContent = t('hist.back');
+  });
+  // search placeholder
+  const hSearch = document.getElementById('hist-search');
+  if (hSearch) hSearch.placeholder = t('hist.search');
+  // filter labels
+  document.querySelectorAll('[data-i18n="hist.from"]').forEach(e => e.textContent = t('hist.from'));
+  document.querySelectorAll('[data-i18n="hist.to"]').forEach(e => e.textContent = t('hist.to'));
+  document.querySelectorAll('[data-i18n="hist.clear"]').forEach(e => e.textContent = t('hist.clear'));
+  document.querySelectorAll('[data-i18n="hist.showing"]').forEach(e => e.textContent = t('hist.showing'));
+  document.querySelectorAll('[data-i18n="hist.realtime"]').forEach(e => e.textContent = t('hist.realtime'));
+  document.querySelectorAll('[data-i18n="hist.loading"]').forEach(e => e.textContent = t('hist.loading'));
+  // title spans
+  document.querySelectorAll('[data-i18n="hist.title.prefix"]').forEach(e => e.textContent = t('hist.title.prefix'));
+  document.querySelectorAll('[data-i18n="hist.title.suffix"]').forEach(e => e.textContent = t('hist.title.suffix'));
+  // stat label
+  setQS('.history-stat-label', t('hist.done.all'));
+  // notif title
+  const rNotif = document.getElementById('result-notif-title');
+  if (rNotif) rNotif.textContent = t('hist.new');
+  // done badges & winner labels (rendered by JS)
+  document.querySelectorAll('.hist-done-badge').forEach(e => e.textContent = t('hist.done'));
+  document.querySelectorAll('.hist-winner-label').forEach(e => e.textContent = `🏆 ${t('hist.winner')}`);
 
-  // ── 12. html lang attr ──
+  // ── 12. html lang ──
   document.documentElement.lang = L === 'th' ? 'th' : L === 'la' ? 'lo' : 'en';
 }
 
@@ -8044,7 +8121,7 @@ function applyLang() {
     wrap.innerHTML = '';
     data.forEach(m => {
       const isLive = m.status==='live', isDone = m.status==='done';
-      const statusLabel = isLive?'<span class="live-dot"></span>● LIVE':isDone?'จบแล้ว':'⏳ รอแข่ง';
+      const statusLabel = isLive?'<span class="live-dot"></span>● LIVE':isDone?t('hist.done'):'⏳ รอแข่ง';
       const statusClass = isLive?'status-live':isDone?'status-done':'status-upcoming';
       const prizeNum = Number(m.prize||0);
       const card = document.createElement('div');
