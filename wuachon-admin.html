@@ -3844,6 +3844,14 @@ const ADMIN_I18N = {
     'withdraw.done': 'ประวัติถอนเงิน',
     'confirm.upload': '✅ ดำเนินการโอนสลิป / ยืนยันการโอนเงิน',
     'cancel': 'ยกเลิก',
+    'cancel': 'ยกเลิก',
+    'deposit.pending': 'คำขอเติมเงิน รอดำเนินการ',
+    'withdraw.pending': 'คำขอถอนเงิน รอดำเนินการ',
+    'deposit.done': 'ประวัติเติมเงิน (สำเร็จ/ปฏิเสธ)',
+    'withdraw.done': 'ประวัติถอนเงิน',
+    'staff.list': '👥 รายชื่อพนักงาน',
+    'add.staff': '➕ เพิ่มพนักงานใหม่',
+    'activity.log': '📋 Activity Log',
     'logout': 'ออกจากระบบ',
     'panel.overview': '📊 ภาพรวม',
     'panel.members': '👥 สมาชิก',
@@ -3892,6 +3900,14 @@ const ADMIN_I18N = {
     'withdraw.done': 'ປະຫວັດຖອນເງິນ',
     'confirm.upload': '✅ ດຳເນີນການໂອນ / ຢືນຢັນ',
     'cancel': 'ຍົກເລີກ',
+    'cancel': 'ຍົກເລີກ',
+    'deposit.pending': 'ຄຳຂໍເຕີມເງິນ ລໍຖ້າ',
+    'withdraw.pending': 'ຄຳຂໍຖອນເງິນ ລໍຖ້າ',
+    'deposit.done': 'ປະຫວັດເຕີມເງິນ',
+    'withdraw.done': 'ປະຫວັດຖອນເງິນ',
+    'staff.list': '👥 ລາຍຊື່ພະນັກງານ',
+    'add.staff': '➕ ເພີ່ມພະນັກງານໃໝ່',
+    'activity.log': '📋 Activity Log',
     'logout': 'ອອກຈາກລະບົບ',
     'panel.overview': '📊 ພາບລວມ',
     'panel.members': '👥 ສະມາຊິກ',
@@ -3940,6 +3956,14 @@ const ADMIN_I18N = {
     'withdraw.done': 'Withdrawal History',
     'confirm.upload': '✅ Upload Slip / Confirm Transfer',
     'cancel': 'Cancel',
+    'cancel': 'Cancel',
+    'deposit.pending': 'Pending Deposits',
+    'withdraw.pending': 'Pending Withdrawals',
+    'deposit.done': 'Deposit History',
+    'withdraw.done': 'Withdrawal History',
+    'staff.list': 'Staff List',
+    'add.staff': 'Add New Staff',
+    'activity.log': 'Activity Log',
     'logout': 'Logout',
     'panel.overview': '📊 Overview',
     'panel.members': '👥 Members',
@@ -3981,16 +4005,36 @@ function ta(key) {
 function setAdminLang(lang) {
   _adminLang = lang;
   localStorage.setItem('admin_lang', lang);
-  applyAdminLang();
+  // อัปเดต dropdown
   const sel = document.getElementById('admin-lang-selector');
   if (sel) sel.value = lang;
+  // apply ทันที
+  applyAdminLang();
+  // re-render panel ปัจจุบัน เพื่อให้ข้อความใน dynamic content เปลี่ยนด้วย
+  _reRenderCurrentPanel();
+}
+
+function _reRenderCurrentPanel() {
+  // render panel ที่กำลังแสดงอยู่ใหม่
+  switch(currentPanel) {
+    case 'overview':    loadOverview(); break;
+    case 'members':     loadMembers(); break;
+    case 'matches':     loadMatches(); break;
+    case 'deposits':    loadDeposits(); break;
+    case 'withdrawals': loadWithdrawals(); break;
+    case 'bets':        loadBets(); break;
+    case 'referral':    loadReferral?.(); break;
+    case 'activity':    loadActivity?.(); break;
+    case 'news':        loadNews(); break;
+    case 'verdict':     loadVerdict(); break;
+    case 'staff':       loadStaffPanel?.(); break;
+  }
+  // apply lang อีกครั้งหลัง render
+  setTimeout(applyAdminLang, 300);
 }
 
 function applyAdminLang() {
-  const setText = (id, txt) => { const e = document.getElementById(id); if (e) e.textContent = txt; };
-  const setQS   = (sel, txt) => { const e = document.querySelector(sel); if (e) e.textContent = txt; };
-
-  // ── Sidebar menus ──
+  // ── 1. Sidebar menus ──
   const menuMap = {
     overview: ta('panel.overview'), members: ta('panel.members'),
     matches: ta('panel.matches'),   verdict: ta('panel.verdict'),
@@ -4004,64 +4048,103 @@ function applyAdminLang() {
     if (menuMap[panel]) el.textContent = menuMap[panel];
   });
 
-  // ── Logout / Login ──
+  // ── 2. Logout / Login ──
   const logoutBtn = document.querySelector('.logout-btn');
   if (logoutBtn) logoutBtn.textContent = ta('logout');
   const loginBtn = document.querySelector('.btn-login');
   if (loginBtn) loginBtn.textContent = ta('login');
 
-  // ── Approve / Reject buttons ──
-  document.querySelectorAll('.btn-green[onclick*="approve"], .btn-green[onclick*="Approve"]').forEach(b => {
-    if (!b.getAttribute('data-preserve')) b.textContent = ta('approve');
-  });
-  document.querySelectorAll('.btn-red[onclick*="reject"], .btn-red[onclick*="Reject"]').forEach(b => {
-    if (!b.getAttribute('data-preserve')) b.textContent = ta('reject');
+  // ── 3. Table headers (เทียบจาก text) ──
+  const thMap = {
+    'จำนวน (₭)': ta('amount'), 'จำนวน': ta('amount'),
+    'ธนาคาร': ta('bank'), 'เวลา': ta('time'), 'วันที่': ta('date'),
+    'สถานะ': ta('status'), 'จัดการ': ta('action'),
+    'ชื่อ': ta('name'), 'เบอร์': ta('phone'),
+    // LA
+    'ຈຳນວນ (₭)': ta('amount'), 'ຈຳນວນ': ta('amount'),
+    'ທະນາຄານ': ta('bank'), 'ເວລາ': ta('time'), 'ວັນທີ': ta('date'),
+    'ສະຖານະ': ta('status'), 'ຈັດການ': ta('action'),
+    'ຊື່': ta('name'), 'ເບີ': ta('phone'),
+    // EN
+    'Amount': ta('amount'), 'Bank': ta('bank'), 'Time': ta('time'),
+    'Date': ta('date'), 'Status': ta('status'), 'Action': ta('action'),
+    'Name': ta('name'), 'Phone': ta('phone'),
+  };
+  document.querySelectorAll('th').forEach(th => {
+    const txt = th.textContent.trim();
+    if (thMap[txt] !== undefined) th.textContent = thMap[txt];
   });
 
-  // ── Save buttons ──
-  document.querySelectorAll('.save-btn').forEach(b => {
-    if (!b.textContent.includes('🔑') && !b.textContent.includes('เปลี่ยน') && !b.getAttribute('data-preserve'))
-      b.textContent = ta('save');
+  // ── 4. Approve/Reject buttons (text-based) ──
+  document.querySelectorAll('button.btn-green, button.btn-red, button.btn').forEach(btn => {
+    const txt = btn.textContent.trim();
+    if (['✅ อนุมัติ','✅ Approve','✅ ອະນຸມັດ'].includes(txt)) btn.textContent = ta('approve');
+    else if (['❌ ปฏิเสธ','❌ Reject','❌ ປະຕິເສດ'].includes(txt)) btn.textContent = ta('reject');
+    else if (['ยกเลิก','Cancel','ຍົກເລີກ'].includes(txt)) btn.textContent = ta('cancel');
   });
 
-  // ── Table headers — common ──
-  document.querySelectorAll('th[data-i18n-admin]').forEach(th => {
-    th.textContent = ta(th.getAttribute('data-i18n-admin'));
+  // ── 5. Save buttons ──
+  document.querySelectorAll('.save-btn').forEach(btn => {
+    const txt = btn.textContent.trim();
+    if (['💾 บันทึก','💾 Save','💾 ບັນທຶກ'].includes(txt))
+      btn.textContent = ta('save');
   });
 
-  // ── Search placeholders ──
-  document.querySelectorAll('.search-input').forEach(inp => {
+  // ── 6. Status badges ──
+  document.querySelectorAll('.badge-pending').forEach(el => { el.textContent = ta('pending'); });
+  document.querySelectorAll('.badge-approved').forEach(el => { el.textContent = ta('approved'); });
+  document.querySelectorAll('.badge-rejected').forEach(el => { el.textContent = ta('rejected'); });
+
+  // ── 7. Search placeholders ──
+  document.querySelectorAll('.search-input, input.search-input').forEach(inp => {
     inp.placeholder = ta('search');
   });
 
-  // ── Loading/empty states ──
+  // ── 8. Loading/empty td ──
   document.querySelectorAll('td[colspan]').forEach(td => {
-    if (td.textContent.trim() === 'กำลังโหลด...' || td.textContent.trim() === 'Loading...' || td.textContent.trim() === 'ກຳລັງໂຫຼດ...')
+    const txt = td.textContent.trim();
+    if (['กำลังโหลด...','Loading...','ກຳລັງໂຫຼດ...'].includes(txt))
       td.textContent = ta('loading');
   });
 
-  // ── Stat labels ──
-  const statLbls = {
-    'stat-members': ta('member.count'), 'stat-balance': ta('balance'),
+  // ── 9. Card titles (map ทุกภาษา → ภาษาปัจจุบัน) ──
+  const cardMap = {
+    // TH
+    'คำขอเติมเงิน รอดำเนินการ': ta('deposit.pending'),
+    'คำขอถอนเงิน รอดำเนินการ': ta('withdraw.pending'),
+    'ประวัติเติมเงิน (สำเร็จ/ปฏิเสธ)': ta('deposit.done'),
+    'ประวัติถอนเงิน': ta('withdraw.done'),
+    '👥 รายชื่อพนักงาน': ta('staff.list'),
+    '➕ เพิ่มพนักงานใหม่': ta('add.staff'),
+    '📋 Activity Log — ประวัติการทำงาน': ta('activity.log'),
+    // LA
+    'ຄຳຂໍເຕີມເງິນ ລໍຖ້າ': ta('deposit.pending'),
+    'ຄຳຂໍຖອນເງິນ ລໍຖ້າ': ta('withdraw.pending'),
+    'ປະຫວັດເຕີມເງິນ': ta('deposit.done'),
+    'ປະຫວັດຖອນເງິນ': ta('withdraw.done'),
+    '👥 ລາຍຊື່ພະນັກງານ': ta('staff.list'),
+    '➕ ເພີ່ມພະນັກງານໃໝ່': ta('add.staff'),
+    '📋 Activity Log': ta('activity.log'),
+    // EN
+    'Pending Deposits': ta('deposit.pending'),
+    'Pending Withdrawals': ta('withdraw.pending'),
+    'Deposit History': ta('deposit.done'),
+    'Withdrawal History': ta('withdraw.done'),
+    'Staff List': ta('staff.list'),
+    'Add New Staff': ta('add.staff'),
   };
-  Object.entries(statLbls).forEach(([id, lbl]) => setText(id, lbl));
-
-  // ── Common column headers ──
-  document.querySelectorAll('th').forEach(th => {
-    const txt = th.textContent.trim();
-    if (['จำนวน','ຈຳນວນ','Amount'].includes(txt))    th.textContent = ta('amount');
-    if (['วันที่','ວັນທີ','Date'].includes(txt))       th.textContent = ta('date');
-    if (['สถานะ','ສະຖານະ','Status'].includes(txt))   th.textContent = ta('status');
-    if (['จัดการ','ຈັດການ','Action'].includes(txt))  th.textContent = ta('action');
+  document.querySelectorAll('.card-title').forEach(el => {
+    // เอาเฉพาะ text node แรก (ไม่รวม child elements เช่น ปุ่ม)
+    const tn = [...el.childNodes].find(n => n.nodeType===3 && n.textContent.trim());
+    const txt = (tn?.textContent || el.textContent).trim();
+    if (cardMap[txt]) {
+      if (tn) tn.textContent = cardMap[txt] + ' ';
+      else el.firstChild && (el.firstChild.textContent = cardMap[txt]);
+    }
   });
 
-  // ── html lang ──
+  // ── 10. html lang ──
   document.documentElement.lang = _adminLang === 'th' ? 'th' : _adminLang === 'la' ? 'lo' : 'en';
-
-  // ── Admin-specific additional keys ──
-  const _more = {
-    'panel.overview': ta('panel.overview'),
-  };
 }
 
 // ── Init lang on load ──
