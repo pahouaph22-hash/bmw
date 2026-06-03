@@ -7175,6 +7175,10 @@ setInterval(() => {
     document.getElementById('dep-step1').style.display = 'none';
     document.getElementById('dep-step2').style.display = 'none';
     document.getElementById('dep-step3').style.display = 'block';
+    // อัปเดตจำนวนเงินใน step3
+    const amt = document.getElementById('dep-confirm-amount')?.textContent || '0 ₭';
+    const s3amt = document.getElementById('dep-step3-amount');
+    if (s3amt) s3amt.textContent = amt;
   }
 
   // ── _renderDepBankAccounts + copyDepAccNo defined below ──
@@ -7716,7 +7720,8 @@ setInterval(() => {
   window.submitDeposit = window._real_submitDeposit = async function submitDeposit() {
     const amount  = parseInt(document.getElementById('dep-amount').value);
     const bank    = document.getElementById('dep-bank-from').value;
-    const hasSlip = document.getElementById('dep-slip-preview').style.display !== 'none';
+    const slipImg = document.getElementById('dep-slip-preview');
+    const hasSlip = slipImg && slipImg.src && slipImg.src !== window.location.href && slipImg.style.display !== 'none' && slipImg.src.length > 10;
     if (!amount || amount < 100) { showFEToast('⚠️ กรุณาระบุจำนวนเงินขั้นต่ำ 100 ₭ครับ'); return; }
     if (!bank)    { showFEToast('⚠️ กรุณาเลือกธนาคารที่โอนจากครับ'); return; }
     if (!hasSlip) { showFEToast('⚠️ กรุณาแนบสลิปการโอนเงินครับ'); return; }
