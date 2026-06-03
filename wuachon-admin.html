@@ -282,7 +282,7 @@ input, textarea, select, button {
     <div class="fg"><label>USERNAME</label><input type="text" id="admin-user" value="admin" placeholder="admin"></div>
     <div class="fg"><label>PASSWORD</label><input type="password" id="admin-pass" placeholder="รหัสผ่าน" onkeydown="if(event.key==='Enter')adminLogin()"></div>
     <button class="btn-login" onclick="adminLogin()">เข้าสู่ระบบ</button>
-    <div style="font-size:11px;color:#ccc;margin-top:12px;">default: admin / wuachon2568</div>
+    <div id="default-pass-warn" style="display:none;font-size:11px;color:#f87171;margin-top:8px;background:rgba(200,16,46,0.1);border:1px solid rgba(200,16,46,0.2);border-radius:6px;padding:6px 10px;">⚠️ กำลังใช้รหัสผ่าน default — กรุณาเปลี่ยนใน Settings ทันที</div>
   </div>
 </div>
 
@@ -1348,6 +1348,28 @@ input, textarea, select, button {
         </div>
       </div>
 
+      <!-- Security Card -->
+      <div class="card" style="border-left:4px solid #e24b4a;">
+        <div class="card-title">🛡️ ความปลอดภัย (Security)
+          <span style="font-size:11px;font-weight:400;color:#aaa;">ตั้งค่า Supabase</span>
+        </div>
+        <div style="background:#fff8f8;border:1px solid #fde8e8;border-radius:8px;padding:12px 14px;margin-bottom:12px;font-size:12px;color:#c0392b;font-family:'Phetsarath','Noto Sans Lao','Kanit',sans-serif;line-height:1.7;">
+          ⚠️ <strong>table staff และ staff_logs ยังไม่มี RLS</strong> — กรุณารัน SQL ด้านล่างใน Supabase SQL Editor ทันที
+        </div>
+        <div style="background:#1e1e2e;border-radius:8px;padding:14px;font-family:monospace;font-size:11px;color:#a6e3a1;overflow-x:auto;margin-bottom:10px;line-height:1.9;white-space:pre;">
+<span style="color:#89b4fa;">-- เปิด RLS</span>
+ALTER TABLE staff ENABLE ROW LEVEL SECURITY;
+ALTER TABLE staff_logs ENABLE ROW LEVEL SECURITY;
+
+<span style="color:#89b4fa;">-- บล็อก client โดยตรง</span>
+CREATE POLICY "block_direct" ON staff USING (false);
+CREATE POLICY "block_direct" ON staff_logs USING (false);</div>
+        <button onclick="navigator.clipboard?.writeText('ALTER TABLE staff ENABLE ROW LEVEL SECURITY;\nALTER TABLE staff_logs ENABLE ROW LEVEL SECURITY;\nCREATE POLICY \"block_direct\" ON staff USING (false);\nCREATE POLICY \"block_direct\" ON staff_logs USING (false);').then(()=>showToast('✅ คัดลอก SQL แล้วครับ'))"
+          style="font-family:'Phetsarath','Noto Sans Lao','Kanit',sans-serif;font-size:12px;font-weight:700;padding:7px 16px;border-radius:7px;border:1px solid #e0e0e0;background:#fff;color:#555;cursor:pointer;">
+          📋 คัดลอก SQL
+        </button>
+      </div>
+
       <!-- STAFF PANEL -->
       <div class="panel" id="panel-staff">
 
@@ -1432,7 +1454,89 @@ const SUPA_URL = 'https://xzlpdeqlfczjkospfqqi.supabase.co';
 const SUPA_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inh6bHBkZXFsZmN6amtvc3BmcXFpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzk2NzgyMjAsImV4cCI6MjA5NTI1NDIyMH0.W0pDFJy3lFeO4ht9DpNzeDgVdGvSz94p0KWGfzc0Igw';
 const sb = supabase.createClient(SUPA_URL, SUPA_KEY);
 
-// ===== ADMIN AUTH — ไม่ใช้ localStorage เลย =====
+// ===== SECURITY SYSTEM =====
+
+// ── Brute Force Protection ──
+const _loginAttempts = {};
+const MAX_ATTEMPTS  = 5;
+const LOCKOUT_MS    = 15 * 60 * 1000; // 15 นาที
+
+function _checkLoginAttempts(user) {
+  const now = Date.now();
+  if (!_loginAttempts[user]) return true;
+  const { count, lockUntil } = _loginAttempts[user];
+  if (lockUntil && now < lockUntil) {
+    const rem = Math.ceil((lockUntil - now) / 60000);
+    return `🔒 บัญชีถูกล็อค กรุณารอ ${rem} นาทีครับ`;
+  }
+  return true;
+}
+
+function _recordFailedLogin(user) {
+  const now = Date.now();
+  if (!_loginAttempts[user]) _loginAttempts[user] = { count: 0, lockUntil: null };
+  _loginAttempts[user].count++;
+  if (_loginAttempts[user].count >= MAX_ATTEMPTS) {
+    _loginAttempts[user].lockUntil = now + LOCKOUT_MS;
+    _loginAttempts[user].count = 0;
+  }
+}
+
+function _clearLoginAttempts(user) {
+  delete _loginAttempts[user];
+}
+
+// ── Session Timeout (30 min idle) ──
+let _sessionTimer = null;
+const SESSION_TIMEOUT_MS = 30 * 60 * 1000;
+
+function _resetSessionTimer() {
+  clearTimeout(_sessionTimer);
+  _sessionTimer = setTimeout(() => {
+    showToast('⏰ หมดเวลาเซสชัน — กรุณา Login ใหม่ครับ', 'error');
+    setTimeout(() => adminLogout(), 2000);
+  }, SESSION_TIMEOUT_MS);
+}
+
+function _startSessionTimer() {
+  _resetSessionTimer();
+  ['click','keydown','mousemove','touchstart'].forEach(evt =>
+    document.addEventListener(evt, _resetSessionTimer, { passive: true })
+  );
+}
+
+function _stopSessionTimer() {
+  clearTimeout(_sessionTimer);
+  ['click','keydown','mousemove','touchstart'].forEach(evt =>
+    document.removeEventListener(evt, _resetSessionTimer)
+  );
+}
+
+// ── Input Sanitization ──
+function sanitizeInput(str) {
+  if (typeof str !== 'string') return str;
+  return str
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#x27;')
+    .replace(/\//g, '&#x2F;')
+    .trim();
+}
+
+// ── SHA-256 Password Hash (Web Crypto API) ──
+async function hashPassword(password) {
+  try {
+    const msgBuffer = new TextEncoder().encode(password);
+    const hashBuffer = await crypto.subtle.digest('SHA-256', msgBuffer);
+    const hashArray  = Array.from(new Uint8Array(hashBuffer));
+    return hashArray.map(b => b.toString(16).padStart(2,'0')).join('');
+  } catch {
+    // fallback ถ้า crypto ไม่รองรับ
+    return btoa(unescape(encodeURIComponent(password)));
+  }
+}
 // รหัสผ่านเก็บใน Supabase table 'settings' key='admin_password'
 // fallback เป็น 'wuachon2568' ถ้าไม่มี
 let ADMIN_PASS = 'wuachon2568';
@@ -1538,21 +1642,34 @@ async function loadAdminPass() {
 }
 
 async function adminLogin() {
-  const user = document.getElementById('admin-user').value.trim();
+  const user = sanitizeInput(document.getElementById('admin-user').value.trim());
   const pass = document.getElementById('admin-pass').value.trim();
   const err  = document.getElementById('login-err');
   err.style.display = 'none';
   if (!user || !pass) { err.style.display = 'block'; err.textContent = '❌ กรุณากรอก Username และรหัสผ่านครับ'; return; }
 
+  // ── Brute Force Check ──
+  const bruteCheck = _checkLoginAttempts(user);
+  if (bruteCheck !== true) {
+    err.style.display = 'block';
+    err.textContent = bruteCheck;
+    return;
+  }
+
   await loadAdminPass();
 
-  // ── ตรวจ Super Admin ก่อน ──
+  // ── ตรวจ Super Admin ──
   if (user === 'admin' && pass === ADMIN_PASS) {
+    _clearLoginAttempts(user);
     currentStaff = null;
     document.getElementById('login-page').style.display = 'none';
     document.getElementById('dashboard').style.display  = 'flex';
     document.getElementById('sb-staff').style.display   = '';
     showStaffBadge();
+    _startSessionTimer();
+    if (ADMIN_PASS === 'wuachon2568') {
+      setTimeout(() => showToast('⚠️ คุณกำลังใช้รหัสผ่าน default — กรุณาเปลี่ยนใน ⚙️ ตั้งค่า ทันทีครับ', 'error'), 1000);
+    }
     loadAll();
     return;
   }
@@ -1562,31 +1679,36 @@ async function adminLogin() {
     .select('*').eq('username', user).eq('is_active', true).maybeSingle();
 
   if (staffRow && staffRow.password === pass) {
+    _clearLoginAttempts(user);
     currentStaff = staffRow;
     await sb.from('staff').update({ last_login: new Date().toISOString() }).eq('id', staffRow.id);
     await logStaffAction(staffRow.username, 'login', 'เข้าสู่ระบบ');
-
     document.getElementById('login-page').style.display = 'none';
     document.getElementById('dashboard').style.display  = 'flex';
     showStaffBadge();
-    // โหลดข้อมูลทั้งหมดเหมือน super admin
+    _startSessionTimer();
     loadAll();
-    // apply permission หลัง DOM โหลดเสร็จ
     applyStaffPermissions(staffRow.role);
     return;
   }
 
+  // ── Login ผิด → บันทึก attempt ──
+  _recordFailedLogin(user);
+  const attempts = _loginAttempts[user]?.count || 0;
+  const remaining = MAX_ATTEMPTS - attempts;
   err.style.display = 'block';
-  err.textContent = '❌ Username หรือรหัสผ่านไม่ถูกต้องครับ';
+  err.textContent = remaining > 0
+    ? `❌ Username หรือรหัสผ่านไม่ถูกต้อง (เหลืออีก ${remaining} ครั้ง)`
+    : `🔒 Login ผิดเกินกำหนด — ถูกล็อค 15 นาทีครับ`;
 }
 
 function adminLogout() {
   if (currentStaff) logStaffAction(currentStaff.username, 'logout', 'ออกจากระบบ');
+  _stopSessionTimer();
   currentStaff = null;
   document.getElementById('dashboard').style.display = 'none';
   document.getElementById('login-page').style.display = 'flex';
   document.getElementById('admin-pass').value = '';
-  // reset sidebar
   document.querySelectorAll('.sb-item[data-panel]').forEach(el => el.style.display = '');
 }
 
@@ -3408,6 +3530,11 @@ async function confirmSlipUpload() {
 
   if (!file) {
     errEl.textContent = '⚠️ กรุณาแนบสลิปการโอนเงินก่อนยืนยันครับ';
+    errEl.style.display = 'block';
+    return;
+  }
+  if (file.size > 5 * 1024 * 1024) {
+    errEl.textContent = '⚠️ ไฟล์ใหญ่เกิน 5MB กรุณาเลือกไฟล์ใหม่ครับ';
     errEl.style.display = 'block';
     return;
   }
