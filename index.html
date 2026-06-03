@@ -5047,27 +5047,13 @@ function applyLang() {
       if (contact.hoursTime) { const el = document.getElementById('contact-phone-hours'); if(el) el.textContent = contact.hoursTime; }
 
       // ── Bank accounts — แสดงเฉพาะที่ active=true เท่านั้น ──
-      const banksData  = data.find(s => s.key === 'bankAccounts')?.value?.accounts || [];
+      // (จะโหลดซ้ำเมื่อเปิด deposit tab ผ่าน loadDepBanks())
+      const banksData   = data.find(s => s.key === 'bankAccounts')?.value?.accounts || [];
       const activeBanks = banksData.filter(b => b.active === true);
-
       if (activeBanks.length > 0) {
-        // มีบัญชีที่เปิดอยู่ → แสดง
         _renderDepBankAccounts(activeBanks);
-      } else {
-        // ไม่มีบัญชีที่ active → ซ่อน bank section และแสดงข้อความ
-        _renderDepBankAccounts([]);
-        const bankWrap = document.getElementById('dep-bank-info-wrap');
-        if (bankWrap) {
-          bankWrap.innerHTML = `
-            <div style="text-align:center;padding:20px;background:rgba(255,255,255,0.04);border-radius:12px;border:1px solid rgba(255,255,255,0.08);">
-              <div style="font-size:28px;margin-bottom:8px;">🔒</div>
-              <div style="font-family:'Phetsarath','Noto Sans Lao','Kanit',sans-serif;font-size:13px;color:rgba(240,255,232,0.5);">ขณะนี้ยังไม่มีบัญชีรับเงินที่เปิดใช้งาน<br>กรุณาติดต่อ Admin ครับ</div>
-            </div>`;
-        }
-        // ปิดปุ่มยืนยัน
-        const confirmBtn = document.querySelector('#dep-step2 button[onclick="goDepStep3()"]');
-        if (confirmBtn) { confirmBtn.disabled = true; confirmBtn.style.opacity = '0.4'; }
       }
+      // ถ้าไม่มีบัญชี active ไม่ต้องแตะ UI ตรงนี้ — loadDepBanks() จะจัดการตอนเปิด tab
     }
     loadSettings();
 
@@ -7003,18 +6989,10 @@ setInterval(() => {
   window.goToMyAccount = window._real_goToMyAccount = async function goToMyAccount() {
     if (!currentUser) return;
 
-    // ดึงข้อมูลล่าสุดจาก Supabase
-    const { data } = await sb.from('members').select('*').eq('nick', currentUser.nick).maybeSingle();
-    if (data) {
-      currentUser = { ...currentUser, ...data };
-      currentUser.flags = Array.isArray(data.flags) ? data.flags : [];
-      sessionStorage.setItem('bw_user', JSON.stringify(currentUser));
-    }
-
     const nick = currentUser.nick || '';
-    // แสดง avatar
+
+    // ── แสดงหน้า Account ทันทีจากข้อมูลที่มีอยู่ใน session ──
     renderAvatar(currentUser);
-    // apply flag UI ทุกครั้งที่เข้าหน้า My Account
     applyFlagUI(currentUser.flags || []);
     document.getElementById('acc-nick').textContent          = nick;
     document.getElementById('acc-fullname').textContent      = `${currentUser.fname||''} ${currentUser.lname||''} · ${currentUser.phone||''}`;
@@ -7025,26 +7003,51 @@ setInterval(() => {
     document.getElementById('acc-info-id').textContent       = currentUser.id || '—';
     const addrEl = document.getElementById('acc-info-addr'); if(addrEl) addrEl.textContent = '—';
     updateAccBalance(currentUser.balance || 0);
-    // สร้าง referral_code ถ้ายังไม่มี (สมาชิกเก่า)
-    if (!currentUser.referral_code) {
-      const autoCode = currentUser.nick.toUpperCase().slice(0,4) + Math.floor(1000+Math.random()*9000);
-      await sb.from('members').update({ referral_code: autoCode }).eq('nick', currentUser.nick);
-      currentUser.referral_code = autoCode;
-      sessionStorage.setItem('bw_user', JSON.stringify(currentUser));
+    if (currentUser.referral_code) {
+      const refCodeEl = document.getElementById('my-ref-code');
+      if (refCodeEl) {
+        refCodeEl.textContent = currentUser.referral_code;
+        const refLinkEl = document.getElementById('my-ref-link');
+        if (refLinkEl) refLinkEl.textContent = location.origin + location.pathname + '?ref=' + currentUser.referral_code;
+      }
     }
-    // แสดง referral code
-    const refCodeEl = document.getElementById('my-ref-code');
-    if (refCodeEl) {
-      refCodeEl.textContent = currentUser.referral_code;
-      const refLinkEl = document.getElementById('my-ref-link');
-      if (refLinkEl) refLinkEl.textContent = location.origin + location.pathname + '?ref=' + currentUser.referral_code;
-    }
+
+    // แสดงหน้าก่อน
+    showMyAccount();
     loadDashboard();
+    loadDepBanks();
+
+    // ── โหลดข้อมูลล่าสุดจาก Supabase ใน background ──
+    try {
+      const { data } = await sb.from('members').select('*').eq('nick', currentUser.nick).maybeSingle();
+      if (data) {
+        currentUser = { ...currentUser, ...data };
+        currentUser.flags = Array.isArray(data.flags) ? data.flags : [];
+        sessionStorage.setItem('bw_user', JSON.stringify(currentUser));
+        updateAccBalance(currentUser.balance || 0);
+        applyFlagUI(currentUser.flags);
+        renderAvatar(currentUser);
+        // สร้าง referral_code ถ้ายังไม่มี
+        if (!currentUser.referral_code) {
+          const autoCode = currentUser.nick.toUpperCase().slice(0,4) + Math.floor(1000+Math.random()*9000);
+          await sb.from('members').update({ referral_code: autoCode }).eq('nick', currentUser.nick);
+          currentUser.referral_code = autoCode;
+          sessionStorage.setItem('bw_user', JSON.stringify(currentUser));
+        }
+        const refCodeEl = document.getElementById('my-ref-code');
+        if (refCodeEl) {
+          refCodeEl.textContent = currentUser.referral_code || '';
+          const refLinkEl = document.getElementById('my-ref-link');
+          if (refLinkEl) refLinkEl.textContent = location.origin + location.pathname + '?ref=' + (currentUser.referral_code||'');
+        }
+      }
+    } catch(_) {}
+
+    // โหลด history ทั้งหมดใน background
     loadTxnHistory();
     loadDepHistory();
     loadWithHistory();
     loadWithdrawPanel();
-    showMyAccount();
   }
 
   function updateAccBalance(amount) {
@@ -7072,6 +7075,36 @@ setInterval(() => {
       show.textContent = amt.toLocaleString() + ' ₭';
     } else {
       preview.style.display = 'none';
+    }
+  }
+
+  // ── โหลด Bank Accounts เมื่อเปิด deposit tab ──
+  async function loadDepBanks() {
+    try {
+      const { data, error } = await sb.from('settings').select('value').eq('key','bankAccounts').maybeSingle();
+      if (error || !data) return; // ถ้าโหลดไม่ได้ ไม่ต้องทำอะไร (ไม่ทำลาย UI)
+
+      const banksData   = data.value?.accounts || [];
+      const activeBanks = banksData.filter(b => b.active === true);
+
+      if (activeBanks.length > 0) {
+        _renderDepBankAccounts(activeBanks);
+      } else {
+        // ไม่มีบัญชี active — แสดงข้อความใน dep-bank-info-wrap เท่านั้น ไม่แตะ step1/step3
+        _depBanks = [];
+        const wrap = document.getElementById('dep-bank-info-wrap');
+        if (wrap) {
+          wrap.innerHTML = `
+            <div style="text-align:center;padding:20px;background:rgba(255,255,255,0.04);border-radius:12px;border:1px solid rgba(255,255,255,0.08);">
+              <div style="font-size:28px;margin-bottom:8px;">🔒</div>
+              <div style="font-family:'Phetsarath','Noto Sans Lao','Kanit',sans-serif;font-size:13px;color:rgba(240,255,232,0.5);">
+                ขณะนี้ยังไม่มีบัญชีรับเงินที่เปิดใช้งาน<br>กรุณาติดต่อ Admin ครับ
+              </div>
+            </div>`;
+        }
+      }
+    } catch(_) {
+      // ถ้า error ใดๆ ไม่กระทบ UI
     }
   }
 
@@ -7579,7 +7612,7 @@ setInterval(() => {
     }
     if (id === 'dashboard') loadDashboard();
     if (id === 'txn')       loadTxnHistory();
-    if (id === 'deposit')   loadDepHistory();
+    if (id === 'deposit')   { loadDepHistory(); loadDepBanks(); }
     if (id === 'withdraw')  { loadWithdrawPanel(); loadWithHistory(); }
     if (id === 'bet')       loadBetHistory();
     if (id === 'notifications') {
