@@ -4198,7 +4198,35 @@ input, textarea, select, button {
 
 <script>
 // ===== i18n — MULTI LANGUAGE SYSTEM =====
-var _lang = localStorage.getItem('bw_lang') || 'th';
+
+// ===== SAFE STORAGE WRAPPER =====
+// รองรับ browser ที่บล็อก localStorage/sessionStorage (Edge Tracking Prevention)
+const _safeStorage = {
+  _mem: {},
+  getItem(k) {
+    try { return sessionStorage.getItem(k); } catch(_) { return this._mem[k] ?? null; }
+  },
+  setItem(k, v) {
+    try { sessionStorage.setItem(k, v); } catch(_) { this._mem[k] = v; }
+  },
+  removeItem(k) {
+    try { sessionStorage.removeItem(k); } catch(_) { delete this._mem[k]; }
+  }
+};
+const _safeLocal = {
+  _mem: {},
+  getItem(k) {
+    try { return localStorage.getItem(k); } catch(_) { return this._mem[k] ?? null; }
+  },
+  setItem(k, v) {
+    try { localStorage.setItem(k, v); } catch(_) { this._mem[k] = v; }
+  },
+  removeItem(k) {
+    try { localStorage.removeItem(k); } catch(_) { delete this._mem[k]; }
+  }
+};
+
+var _lang = _safeLocal.getItem('bw_lang') || 'th';
 var I18N = {
   th: {
     // NAV
@@ -4726,7 +4754,7 @@ function t(key) {
 
 function setLang(lang) {
   _lang = lang;
-  localStorage.setItem('bw_lang', lang);
+  _safeLocal.setItem('bw_lang', lang);
   applyLang();
   // อัปเดต dropdown
   const sel = document.getElementById('lang-selector');
@@ -5531,7 +5559,7 @@ function applyLang() {
         const newFlags = Array.isArray(m.flags) ? m.flags : (currentUser.flags || []);
         const oldFlags = currentUser.flags || [];
         currentUser.flags = newFlags;
-        sessionStorage.setItem('bw_user', JSON.stringify(currentUser));
+        _safeStorage.setItem('bw_user', JSON.stringify(currentUser));
         applyFlagUI(newFlags);
 
         // แจ้งเตือนป้าย
@@ -5636,7 +5664,7 @@ function applyLang() {
       currentUser.balance    = Number(data.balance || 0);
       currentUser.flags      = Array.isArray(data.flags) ? data.flags : [];
       currentUser.admin_note = data.admin_note || '';
-      sessionStorage.setItem('bw_user', JSON.stringify(currentUser));
+      _safeStorage.setItem('bw_user', JSON.stringify(currentUser));
       applyFlagUI(currentUser.flags);
     }
   }
@@ -6516,7 +6544,7 @@ function applyLang() {
         await sb.from('members').update(updates).eq('id', existing.id);
       }
       currentUser = { ...existing, ...updates };
-      sessionStorage.setItem('bw_user', JSON.stringify(currentUser));
+      _safeStorage.setItem('bw_user', JSON.stringify(currentUser));
       if (document.getElementById('l-remember')?.checked || _getRemembered()) {
         _saveRemembered(currentUser.nick);
       }
@@ -6535,20 +6563,20 @@ function applyLang() {
         const ln = document.getElementById('r-lname'); if(ln) ln.value = parts.slice(1).join(' ')||'';
       }
       // บันทึก oauth_pending เพื่อเชื่อมทีหลัง
-      sessionStorage.setItem('oauth_pending', JSON.stringify({ email, fbId, provider, fullName }));
+      _safeStorage.setItem('oauth_pending', JSON.stringify({ email, fbId, provider, fullName }));
       showFEToast('📝 กรุณากรอกข้อมูลเพิ่มเติมเพื่อสมัครสมาชิกครับ');
     }
   }
 
   // ── Remember Me ──
   function _saveRemembered(nick) {
-    try { localStorage.setItem('bw_remembered_nick', nick); } catch(_) {}
+    try { _safeLocal.setItem('bw_remembered_nick', nick); } catch(_) {}
   }
   function _getRemembered() {
-    try { return localStorage.getItem('bw_remembered_nick') || ''; } catch(_) { return ''; }
+    try { return _safeLocal.getItem('bw_remembered_nick') || ''; } catch(_) { return ''; }
   }
   function _clearRemembered() {
-    try { localStorage.removeItem('bw_remembered_nick'); } catch(_) {}
+    try { _safeLocal.removeItem('bw_remembered_nick'); } catch(_) {}
   }
 
   // auto-fill login จาก remember
@@ -6569,7 +6597,7 @@ function applyLang() {
   // auto-fill remember
   _autoFillLogin();
   // apply saved language
-  const _savedLang = localStorage.getItem('bw_lang') || 'th';
+  const _savedLang = _safeLocal.getItem('bw_lang') || 'th';
   const _langSel = document.getElementById('lang-selector');
   if (_langSel) _langSel.value = _savedLang;
   if (_savedLang !== 'th') applyLang();
@@ -6660,7 +6688,7 @@ function applyLang() {
     }
 
     // เช็ค oauth_pending เพื่อเชื่อมบัญชี OAuth
-    const oauthPending = JSON.parse(sessionStorage.getItem('oauth_pending') || 'null');
+    const oauthPending = JSON.parse(_safeStorage.getItem('oauth_pending') || 'null');
 
     // สร้าง referral_code ของตัวเอง
     const myRefCode = nick.toUpperCase().slice(0,4) + Math.floor(1000 + Math.random() * 9000);
@@ -6688,11 +6716,11 @@ function applyLang() {
     }
 
     // ล้าง oauth_pending
-    sessionStorage.removeItem('oauth_pending');
+    _safeStorage.removeItem('oauth_pending');
 
     // บันทึก session
     currentUser = { ...data, id: data.id };
-    sessionStorage.setItem('bw_user', JSON.stringify(currentUser));
+    _safeStorage.setItem('bw_user', JSON.stringify(currentUser));
     // Remember me ถ้ากด checkbox
     if (document.getElementById('l-remember')?.checked) _saveRemembered(phone);
     setLoggedIn(nick);
@@ -6734,10 +6762,10 @@ function _feClearAttempts(id) { delete _feLoginAttempts[id]; }
 const FE_SESSION_MS = 8 * 60 * 60 * 1000;
 
 function _setSessionExpiry() {
-  sessionStorage.setItem('bw_session_exp', Date.now() + FE_SESSION_MS);
+  _safeStorage.setItem('bw_session_exp', Date.now() + FE_SESSION_MS);
 }
 function _checkSessionExpiry() {
-  const exp = parseInt(sessionStorage.getItem('bw_session_exp') || '0');
+  const exp = parseInt(_safeStorage.getItem('bw_session_exp') || '0');
   if (exp && Date.now() > exp) {
     logout();
     showFEToast('⏰ เซสชันหมดอายุ กรุณา Login ใหม่ครับ');
@@ -6845,12 +6873,12 @@ setInterval(() => {
     // บันทึก session
     currentUser = data;
     currentUser.flags = Array.isArray(data.flags) ? data.flags : [];
-    sessionStorage.setItem('bw_user', JSON.stringify(currentUser));
+    _safeStorage.setItem('bw_user', JSON.stringify(currentUser));
 
     // ── FLAG: blacklist → block login ──
     if (currentUser.flags.includes('blacklist')) {
       currentUser = null;
-      sessionStorage.removeItem('bw_user');
+      _safeStorage.removeItem('bw_user');
       errEl.style.display = 'block';
       errEl.textContent = '⛔ บัญชีของคุณถูกระงับการใช้งาน — กรุณาติดต่อ Admin ครับ';
       btn.disabled = false; btn.textContent = '🔑 เข้าสู่ระบบ →';
@@ -6891,7 +6919,7 @@ setInterval(() => {
     document.body.classList.remove('flag-no-game','flag-no-deposit','flag-no-withdraw','flag-no-reward','flag-blacklist');
     currentUser = null;
     window._currentUser = null;
-    sessionStorage.removeItem('bw_user');
+    _safeStorage.removeItem('bw_user');
     const navAcc = document.getElementById('nav-myaccount');
     const navReg = document.getElementById('nav-register');
     if (navAcc) { navAcc.style.display = 'none'; }
@@ -6902,7 +6930,7 @@ setInterval(() => {
   }
 
   // ── โหลด session เมื่อเปิดเว็บ ──
-  const savedUser = sessionStorage.getItem('bw_user');
+  const savedUser = _safeStorage.getItem('bw_user');
   if (savedUser) {
     try {
       currentUser = JSON.parse(savedUser);
@@ -6914,7 +6942,7 @@ setInterval(() => {
             currentUser.balance    = Number(data.balance || 0);
             currentUser.flags      = Array.isArray(data.flags) ? data.flags : [];
             currentUser.admin_note = data.admin_note || '';
-            sessionStorage.setItem('bw_user', JSON.stringify(currentUser));
+            _safeStorage.setItem('bw_user', JSON.stringify(currentUser));
             updateAccBalance(currentUser.balance);
             applyFlagUI(currentUser.flags);
           }
@@ -7040,7 +7068,7 @@ setInterval(() => {
       if (data) {
         currentUser = { ...currentUser, ...data };
         currentUser.flags = Array.isArray(data.flags) ? data.flags : [];
-        sessionStorage.setItem('bw_user', JSON.stringify(currentUser));
+        _safeStorage.setItem('bw_user', JSON.stringify(currentUser));
         updateAccBalance(currentUser.balance || 0);
         applyFlagUI(currentUser.flags);
         renderAvatar(currentUser);
@@ -7049,7 +7077,7 @@ setInterval(() => {
           const autoCode = currentUser.nick.toUpperCase().slice(0,4) + Math.floor(1000+Math.random()*9000);
           await sb.from('members').update({ referral_code: autoCode }).eq('nick', currentUser.nick);
           currentUser.referral_code = autoCode;
-          sessionStorage.setItem('bw_user', JSON.stringify(currentUser));
+          _safeStorage.setItem('bw_user', JSON.stringify(currentUser));
         }
         const refCodeEl = document.getElementById('my-ref-code');
         if (refCodeEl) {
@@ -7352,7 +7380,7 @@ setInterval(() => {
     currentUser.bank_name    = bankName;
     currentUser.bank_accno   = accNo;
     currentUser.bank_accname = accName;
-    sessionStorage.setItem('bw_user', JSON.stringify(currentUser));
+    _safeStorage.setItem('bw_user', JSON.stringify(currentUser));
 
     showFEToast('✅ ผูกบัญชีธนาคารสำเร็จแล้วครับ!');
     loadWithdrawPanel();
@@ -7535,7 +7563,7 @@ setInterval(() => {
     await sb.from('members').update({ avatar_type: 'emoji', avatar_value: emoji }).eq('nick', currentUser.nick);
     currentUser.avatar_type = 'emoji';
     currentUser.avatar_value = emoji;
-    sessionStorage.setItem('bw_user', JSON.stringify(currentUser));
+    _safeStorage.setItem('bw_user', JSON.stringify(currentUser));
     showFEToast('✅ เปลี่ยนรูปโปรไฟล์แล้วครับ');
   }
 
@@ -7554,7 +7582,7 @@ setInterval(() => {
     await sb.from('members').update({ avatar_type: 'auto', avatar_value: letter }).eq('nick', currentUser.nick);
     currentUser.avatar_type = 'auto';
     currentUser.avatar_value = letter;
-    sessionStorage.setItem('bw_user', JSON.stringify(currentUser));
+    _safeStorage.setItem('bw_user', JSON.stringify(currentUser));
     showFEToast('✅ ตั้งรูปโปรไฟล์อัตโนมัติแล้วครับ');
   }
 
@@ -7584,7 +7612,7 @@ setInterval(() => {
       } else {
         currentUser.avatar_type = 'image';
         currentUser.avatar_value = base64;
-        sessionStorage.setItem('bw_user', JSON.stringify(currentUser));
+        _safeStorage.setItem('bw_user', JSON.stringify(currentUser));
         showFEToast('✅ เปลี่ยนรูปโปรไฟล์แล้วครับ');
       }
     };
