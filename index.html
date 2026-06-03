@@ -2373,7 +2373,7 @@ fns.forEach(function(fn){
   .acc-tab{flex-shrink:0;font-family:'Phetsarath OT','Phetsarath','Noto Sans Lao','Kanit',sans-serif;font-weight:700;font-size:12px;padding:9px 14px;border-radius:7px;border:none;background:transparent;color:rgba(240,255,232,0.5);cursor:pointer;transition:all .2s;text-align:center;white-space:nowrap;}
   .acc-tab.active{background:var(--green);color:#fff;box-shadow:0 4px 12px rgba(27,107,47,0.3);}
   .acc-tab:hover:not(.active){color:var(--cream);background:rgba(255,255,255,0.05);}
-  .acc-panel{display:none;}.acc-panel.active{display:block;animation:fadeUp .25s ease;}
+  .acc-panel{display:none;}.acc-panel.active{display:block;animation:fadeUp .25s ease forwards;opacity:1;}
   /* Mobile scrollbar hide */
   .account-tabs::-webkit-scrollbar{display:none;}
   .account-tabs{-ms-overflow-style:none;scrollbar-width:none;}
@@ -7014,6 +7014,15 @@ setInterval(() => {
 
     // แสดงหน้าก่อน
     showMyAccount();
+
+    // ── Force reset ทุก panel ── เปิดแค่ dashboard เสมอเมื่อเปิดหน้า account
+    document.querySelectorAll('.acc-panel').forEach(p => p.classList.remove('active'));
+    document.querySelectorAll('.acc-tab').forEach(t => t.classList.remove('active'));
+    const dashPanel = document.getElementById('acc-dashboard');
+    const dashTab   = document.querySelector('.acc-tab[onclick*="dashboard"]');
+    if (dashPanel) dashPanel.classList.add('active');
+    if (dashTab)   dashTab.classList.add('active');
+
     // reset deposit กลับ step1 เสมอ
     const _s1 = document.getElementById('dep-step1');
     const _s2 = document.getElementById('dep-step2');
@@ -7021,13 +7030,9 @@ setInterval(() => {
     if (_s1) _s1.style.display = 'block';
     if (_s2) _s2.style.display = 'none';
     if (_s3) _s3.style.display = 'none';
+
     loadDashboard();
     loadDepBanks();
-    // ยืนยันซ้ำหลัง async loadDepBanks เสร็จ
-    setTimeout(() => {
-      const chk = document.getElementById('dep-step1');
-      if (chk && chk.style.display !== 'block') chk.style.display = 'block';
-    }, 1000);
 
     // ── โหลดข้อมูลล่าสุดจาก Supabase ใน background ──
     try {
