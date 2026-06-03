@@ -3827,6 +3827,23 @@ function _syncLegacyBank() {
 // ===== ADMIN i18n =====
 const ADMIN_I18N = {
   th: {
+    'login': 'เข้าสู่ระบบ', 'total': 'รวมทั้งหมด',
+    'new.members': 'สมาชิกใหม่', 'nick': 'Nick', 'name': 'ชื่อ', 'phone': 'เบอร์',
+    'bank': 'ธนาคาร', 'txn': 'TXN', 'time': 'เวลา', 'slip': '🧾 สลิป',
+    'match': 'คู่แข่ง', 'odds': 'อัตรา', 'result': 'ผลการแข่ง',
+    'activity.name': 'ชื่อกิจกรรม', 'activity.reward': 'รางวัล',
+    'ref.nick': 'ผู้แนะนำ', 'ref.friends': 'จำนวนเพื่อน',
+    'staff.name': 'ชื่อ-นามสกุล', 'staff.username': 'Username',
+    'staff.role': 'ตำแหน่ง', 'staff.status': 'สถานะ', 'staff.lastlogin': 'Login ล่าสุด',
+    'add.staff': '➕ เพิ่มพนักงานใหม่', 'staff.list': '👥 รายชื่อพนักงาน',
+    'activity.log': '📋 Activity Log',
+    'overview.title': 'ภาพรวมระบบ', 'finance.title': 'สรุปการเงิน',
+    'deposit.pending': 'คำขอเติมเงิน รอดำเนินการ',
+    'withdraw.pending': 'คำขอถอนเงิน รอดำเนินการ',
+    'deposit.done': 'ประวัติเติมเงิน (สำเร็จ/ปฏิเสธ)',
+    'withdraw.done': 'ประวัติถอนเงิน',
+    'confirm.upload': '✅ ดำเนินการโอนสลิป / ยืนยันการโอนเงิน',
+    'cancel': 'ยกเลิก',
     'logout': 'ออกจากระบบ',
     'panel.overview': '📊 ภาพรวม',
     'panel.members': '👥 สมาชิก',
@@ -3858,6 +3875,23 @@ const ADMIN_I18N = {
     'rejected': '❌ ปฏิเสธ',
   },
   la: {
+    'login': 'ເຂົ້າສູ່ລະບົບ', 'total': 'ລວມທັງໝົດ',
+    'new.members': 'ສະມາຊິກໃໝ່', 'nick': 'Nick', 'name': 'ຊື່', 'phone': 'ເບີ',
+    'bank': 'ທະນາຄານ', 'txn': 'TXN', 'time': 'ເວລາ', 'slip': '🧾 ສລິບ',
+    'match': 'ຄູ່ແຂ່ງ', 'odds': 'ອັດຕາ', 'result': 'ຜົນການແຂ່ງ',
+    'activity.name': 'ຊື່ກິດຈະກຳ', 'activity.reward': 'ລາງວັນ',
+    'ref.nick': 'ຜູ້ແນະນຳ', 'ref.friends': 'ຈຳນວນໝູ່',
+    'staff.name': 'ຊື່-ນາມສະກຸນ', 'staff.username': 'Username',
+    'staff.role': 'ຕຳແໜ່ງ', 'staff.status': 'ສະຖານະ', 'staff.lastlogin': 'Login ຫຼ້າສຸດ',
+    'add.staff': '➕ ເພີ່ມພະນັກງານໃໝ່', 'staff.list': '👥 ລາຍຊື່ພະນັກງານ',
+    'activity.log': '📋 Activity Log',
+    'overview.title': 'ພາບລວມລະບົບ', 'finance.title': 'ສຸດການເງິນ',
+    'deposit.pending': 'ຄຳຂໍເຕີມເງິນ ລໍຖ້າ',
+    'withdraw.pending': 'ຄຳຂໍຖອນເງິນ ລໍຖ້າ',
+    'deposit.done': 'ປະຫວັດເຕີມເງິນ',
+    'withdraw.done': 'ປະຫວັດຖອນເງິນ',
+    'confirm.upload': '✅ ດຳເນີນການໂອນ / ຢືນຢັນ',
+    'cancel': 'ຍົກເລີກ',
     'logout': 'ອອກຈາກລະບົບ',
     'panel.overview': '📊 ພາບລວມ',
     'panel.members': '👥 ສະມາຊິກ',
@@ -3889,6 +3923,23 @@ const ADMIN_I18N = {
     'rejected': '❌ ປະຕິເສດ',
   },
   en: {
+    'login': 'Login', 'total': 'Total',
+    'new.members': 'New Members', 'nick': 'Nick', 'name': 'Name', 'phone': 'Phone',
+    'bank': 'Bank', 'txn': 'TXN', 'time': 'Time', 'slip': '🧾 Slip',
+    'match': 'Match', 'odds': 'Odds', 'result': 'Result',
+    'activity.name': 'Activity Name', 'activity.reward': 'Reward',
+    'ref.nick': 'Referrer', 'ref.friends': 'Friends Count',
+    'staff.name': 'Full Name', 'staff.username': 'Username',
+    'staff.role': 'Role', 'staff.status': 'Status', 'staff.lastlogin': 'Last Login',
+    'add.staff': '➕ Add New Staff', 'staff.list': '👥 Staff List',
+    'activity.log': '📋 Activity Log',
+    'overview.title': 'System Overview', 'finance.title': 'Finance Summary',
+    'deposit.pending': 'Pending Deposits',
+    'withdraw.pending': 'Pending Withdrawals',
+    'deposit.done': 'Deposit History',
+    'withdraw.done': 'Withdrawal History',
+    'confirm.upload': '✅ Upload Slip / Confirm Transfer',
+    'cancel': 'Cancel',
     'logout': 'Logout',
     'panel.overview': '📊 Overview',
     'panel.members': '👥 Members',
@@ -3936,35 +3987,81 @@ function setAdminLang(lang) {
 }
 
 function applyAdminLang() {
-  document.querySelectorAll('[data-i18n-admin]').forEach(el => {
-    const key = el.getAttribute('data-i18n-admin');
-    if (el.children.length === 0) {
-      el.textContent = ta(key);
-    }
-  });
-  // อัปเดต sidebar menu text
+  const setText = (id, txt) => { const e = document.getElementById(id); if (e) e.textContent = txt; };
+  const setQS   = (sel, txt) => { const e = document.querySelector(sel); if (e) e.textContent = txt; };
+
+  // ── Sidebar menus ──
   const menuMap = {
-    overview: ta('panel.overview'),
-    members: ta('panel.members'),
-    matches: ta('panel.matches'),
-    verdict: ta('panel.verdict'),
-    deposits: ta('panel.deposits'),
-    withdrawals: ta('panel.withdrawals'),
-    bets: ta('panel.bets'),
-    referral: ta('panel.referral'),
-    activity: ta('panel.activity'),
-    news: ta('panel.news'),
-    settings: ta('panel.settings'),
-    staff: ta('panel.staff'),
+    overview: ta('panel.overview'), members: ta('panel.members'),
+    matches: ta('panel.matches'),   verdict: ta('panel.verdict'),
+    deposits: ta('panel.deposits'), withdrawals: ta('panel.withdrawals'),
+    bets: ta('panel.bets'),         referral: ta('panel.referral'),
+    activity: ta('panel.activity'), news: ta('panel.news'),
+    settings: ta('panel.settings'), staff: ta('panel.staff'),
   };
   document.querySelectorAll('.sb-item[data-panel]').forEach(el => {
     const panel = el.getAttribute('data-panel');
     if (menuMap[panel]) el.textContent = menuMap[panel];
   });
-  // logout button
+
+  // ── Logout / Login ──
   const logoutBtn = document.querySelector('.logout-btn');
   if (logoutBtn) logoutBtn.textContent = ta('logout');
+  const loginBtn = document.querySelector('.btn-login');
+  if (loginBtn) loginBtn.textContent = ta('login');
+
+  // ── Approve / Reject buttons ──
+  document.querySelectorAll('.btn-green[onclick*="approve"], .btn-green[onclick*="Approve"]').forEach(b => {
+    if (!b.getAttribute('data-preserve')) b.textContent = ta('approve');
+  });
+  document.querySelectorAll('.btn-red[onclick*="reject"], .btn-red[onclick*="Reject"]').forEach(b => {
+    if (!b.getAttribute('data-preserve')) b.textContent = ta('reject');
+  });
+
+  // ── Save buttons ──
+  document.querySelectorAll('.save-btn').forEach(b => {
+    if (!b.textContent.includes('🔑') && !b.textContent.includes('เปลี่ยน') && !b.getAttribute('data-preserve'))
+      b.textContent = ta('save');
+  });
+
+  // ── Table headers — common ──
+  document.querySelectorAll('th[data-i18n-admin]').forEach(th => {
+    th.textContent = ta(th.getAttribute('data-i18n-admin'));
+  });
+
+  // ── Search placeholders ──
+  document.querySelectorAll('.search-input').forEach(inp => {
+    inp.placeholder = ta('search');
+  });
+
+  // ── Loading/empty states ──
+  document.querySelectorAll('td[colspan]').forEach(td => {
+    if (td.textContent.trim() === 'กำลังโหลด...' || td.textContent.trim() === 'Loading...' || td.textContent.trim() === 'ກຳລັງໂຫຼດ...')
+      td.textContent = ta('loading');
+  });
+
+  // ── Stat labels ──
+  const statLbls = {
+    'stat-members': ta('member.count'), 'stat-balance': ta('balance'),
+  };
+  Object.entries(statLbls).forEach(([id, lbl]) => setText(id, lbl));
+
+  // ── Common column headers ──
+  document.querySelectorAll('th').forEach(th => {
+    const txt = th.textContent.trim();
+    if (['จำนวน','ຈຳນວນ','Amount'].includes(txt))    th.textContent = ta('amount');
+    if (['วันที่','ວັນທີ','Date'].includes(txt))       th.textContent = ta('date');
+    if (['สถานะ','ສະຖານະ','Status'].includes(txt))   th.textContent = ta('status');
+    if (['จัดการ','ຈັດການ','Action'].includes(txt))  th.textContent = ta('action');
+  });
+
+  // ── html lang ──
   document.documentElement.lang = _adminLang === 'th' ? 'th' : _adminLang === 'la' ? 'lo' : 'en';
+
+  // ── Admin-specific additional keys ──
+  const _more = {
+    'panel.overview': ta('panel.overview'),
+  };
 }
 
 // ── Init lang on load ──

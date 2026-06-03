@@ -5653,6 +5653,18 @@ const I18N = {
     'stat.viewers': 'ผู้ชมที่คาดการณ์',
     'stat.days': 'ระยะเวลาการแข่งขัน',
     'stat.provinces': 'ทีมที่เข้าร่วม',
+    'auth.subtitle': 'กรอกข้อมูลจริงเพื่อลงทะเบียน',
+    'ph.fname': 'ชื่อจริงของคุณ', 'ph.lname': 'นามสกุลของคุณ',
+    'ph.nick': 'ชื่อบัญชี / ชื่อเล่น', 'ph.phone': 'เบอร์โทร / ชื่อบัญชี',
+    'ph.refcode': 'ใส่รหัสผู้แนะนำ (ไม่บังคับ)',
+    'schedule.bet.title': '🎯 วางเดิมพัน P2P',
+    'schedule.bet.queue.label': 'รอจับคู่', 'schedule.bet.matched': 'จับคู่แล้ว',
+    'dep.slip': 'แนบสลิปการโอนเงิน', 'dep.step1': 'ระบุจำนวนและธนาคาร',
+    'dep.step2': 'โอนเงินตามบัญชีด้านล่าง', 'dep.step3': 'แนบสลิปและยืนยัน',
+    'with.bank': 'ธนาคารปลายทาง', 'with.accno': 'เลขบัญชี', 'with.accname': 'ชื่อบัญชี',
+    'txn.title': '📋 ประวัติธุรกรรม', 'txn.empty': 'ยังไม่มีธุรกรรม',
+    'support.title': '💬 ติดต่อเรา', 'support.submit': 'ส่งข้อความ',
+    'ref.copy': 'คัดลอก', 'ref.code': 'รหัสแนะนำของคุณ',
     'nav.about': 'เกี่ยวกับเรา',
     // ABOUT
     'about.back': '← กลับหน้าแรก',
@@ -5776,6 +5788,18 @@ const I18N = {
     'stat.viewers': 'ຜູ້ຊົມທີ່ຄາດຄະເນ',
     'stat.days': 'ໄລຍະເວລາການແຂ່ງ',
     'stat.provinces': 'ທີມທີ່ເຂົ້າຮ່ວມ',
+    'auth.subtitle': 'ກົ້ວຂໍ້ມູນຈິງເພື່ອລົງທະບຽນ',
+    'ph.fname': 'ຊື່ຈິງຂອງທ່ານ', 'ph.lname': 'ນາມສະກຸນຂອງທ່ານ',
+    'ph.nick': 'ຊື່ບັນຊີ / ຊື່ຫຼິ້ນ', 'ph.phone': 'ເບີໂທ / ຊື່ບັນຊີ',
+    'ph.refcode': 'ໃສ່ລະຫັດຜູ້ແນະນຳ (ບໍ່ບັງຄັບ)',
+    'schedule.bet.title': '🎯 ວາງເດີມພັນ P2P',
+    'schedule.bet.queue.label': 'ລໍຖ້າຄູ່', 'schedule.bet.matched': 'ຈັບຄູ່ແລ້ວ',
+    'dep.slip': 'ແນບສລິບການໂອນ', 'dep.step1': 'ລະບຸຈຳນວນ', 
+    'dep.step2': 'ໂອນເງິນຕາມບັນຊີ', 'dep.step3': 'ແນບສລິບ ແລະ ຢືນຢັນ',
+    'with.bank': 'ທະນາຄານປາຍທາງ', 'with.accno': 'ເລກບັນຊີ', 'with.accname': 'ຊື່ບັນຊີ',
+    'txn.title': '📋 ປະຫວັດທຸລະກຳ', 'txn.empty': 'ຍັງບໍ່ມີທຸລະກຳ',
+    'support.title': '💬 ຕິດຕໍ່ເຮົາ', 'support.submit': 'ສົ່ງຂໍ້ຄວາມ',
+    'ref.copy': 'ສຳເນົາ', 'ref.code': 'ລະຫັດແນະນຳຂອງທ່ານ',
     'nav.about': 'ກ່ຽວກັບເຮົາ',
     // ABOUT
     'about.back': '← ກັບໜ້າຫຼັກ',
@@ -5899,6 +5923,18 @@ const I18N = {
     'stat.viewers': 'Expected Viewers',
     'stat.days': 'Days of Competition',
     'stat.provinces': 'Participating Teams',
+    'auth.subtitle': 'Enter your real information to register',
+    'ph.fname': 'Your first name', 'ph.lname': 'Your last name',
+    'ph.nick': 'Username / Nickname', 'ph.phone': 'Phone / Username',
+    'ph.refcode': 'Referral code (optional)',
+    'schedule.bet.title': '🎯 Place P2P Bet',
+    'schedule.bet.queue.label': 'Waiting', 'schedule.bet.matched': 'Matched',
+    'dep.slip': 'Attach transfer slip', 'dep.step1': 'Enter amount',
+    'dep.step2': 'Transfer to account below', 'dep.step3': 'Attach slip & confirm',
+    'with.bank': 'Destination Bank', 'with.accno': 'Account Number', 'with.accname': 'Account Name',
+    'txn.title': '📋 Transaction History', 'txn.empty': 'No transactions yet',
+    'support.title': '💬 Contact Us', 'support.submit': 'Send Message',
+    'ref.copy': 'Copy', 'ref.code': 'Your referral code',
     'nav.about': 'About Us',
     // ABOUT
     'about.back': '← Back to Home',
@@ -6014,27 +6050,171 @@ function setLang(lang) {
 }
 
 function applyLang() {
-  // แปล elements ที่มี data-i18n attribute
+  const L = _lang;
+
+  // ── 1. data-i18n attributes (เดิม) ──
   document.querySelectorAll('[data-i18n]').forEach(el => {
-    const key  = el.getAttribute('data-i18n');
-    const attr = el.getAttribute('data-i18n-attr');
-    const val  = t(key);
-    if (attr) {
-      el.setAttribute(attr, val);
+    const key = el.getAttribute('data-i18n');
+    const val = t(key);
+    if (el.getAttribute('data-i18n-attr')) {
+      el.setAttribute(el.getAttribute('data-i18n-attr'), val);
     } else if (el.children.length === 0) {
       el.textContent = val;
     } else {
-      // มี child elements — เปลี่ยน text node แรกเท่านั้น
       const tn = [...el.childNodes].find(n => n.nodeType === 3 && n.textContent.trim());
       if (tn) tn.textContent = val;
     }
   });
-  // เปลี่ยน placeholder
   document.querySelectorAll('[data-i18n-placeholder]').forEach(el => {
     el.placeholder = t(el.getAttribute('data-i18n-placeholder'));
   });
-  // อัปเดต html lang
-  document.documentElement.lang = _lang === 'th' ? 'th' : _lang === 'la' ? 'lo' : 'en';
+
+  // ── 2. Register / Login form ──
+  const setText = (id, txt) => { const e = document.getElementById(id); if (e) e.textContent = txt; };
+  const setHTML = (id, html) => { const e = document.getElementById(id); if (e) e.innerHTML = html; };
+  const setPlaceholder = (id, txt) => { const e = document.getElementById(id); if (e) e.placeholder = txt; };
+  const setQS = (sel, txt) => { const e = document.querySelector(sel); if (e) e.textContent = txt; };
+  const setQSHTML = (sel, html) => { const e = document.querySelector(sel); if (e) e.innerHTML = html; };
+
+  // Register title & subtitle
+  setQS('.register-title', t('auth.title.register'));
+  setQS('.register-sub', t('auth.subtitle'));
+  // Login tab
+  const tabLogin = document.getElementById('tab-login');
+  if (tabLogin) tabLogin.textContent = t('auth.tab.login');
+
+  // Form labels — reg
+  const labelMap = {
+    'r-fname': t('auth.fname'), 'r-lname': t('auth.lname'),
+    'r-nick': t('auth.nick'),   'r-phone': t('auth.phone'),
+    'r-password': t('auth.password'), 'r-password2': t('auth.confirm'),
+    'r-refcode': t('auth.refcode'),
+    'l-phone': t('auth.phone'), 'l-password': t('auth.password'),
+  };
+  Object.entries(labelMap).forEach(([id, label]) => {
+    const inp = document.getElementById(id);
+    if (!inp) return;
+    const lbl = inp.previousElementSibling;
+    if (lbl && (lbl.tagName === 'LABEL' || lbl.classList.contains('reg-label'))) lbl.textContent = label;
+  });
+
+  // Placeholders
+  setPlaceholder('r-fname', t('ph.fname'));
+  setPlaceholder('r-lname', t('ph.lname'));
+  setPlaceholder('r-nick',  t('ph.nick'));
+  setPlaceholder('r-phone', t('ph.phone'));
+  setPlaceholder('r-refcode', t('ph.refcode'));
+
+  // Register button
+  const regBtn = document.querySelector('.reg-submit');
+  if (regBtn) regBtn.textContent = t('auth.btn.register');
+
+  // "or" divider
+  document.querySelectorAll('.auth-or-text').forEach(e => e.textContent = t('auth.or'));
+
+  // Register links
+  setQS('.reg-login', null); // handled below per element
+  document.querySelectorAll('.reg-login').forEach(el => {
+    if (el.innerHTML.includes('มีบัญชี') || el.innerHTML.includes('Already') || el.innerHTML.includes('ມີ')) {
+      el.innerHTML = `${t('auth.have.account')} <a href="#" onclick="switchAuthTab('login');return false;">${t('auth.tab.login')}</a> &nbsp;·&nbsp; <a href="#" onclick="hideRegister();return false;">${t('auth.back')}</a>`;
+    } else {
+      el.innerHTML = `${t('auth.no.account')} <a href="#" onclick="switchAuthTab('register');return false;">${t('auth.tab.register')}</a> &nbsp;·&nbsp; <a href="#" onclick="hideRegister();return false;">${t('auth.back')}</a>`;
+    }
+  });
+
+  // Remember me label
+  const remLabel = document.querySelector('#l-remember + span, label:has(#l-remember) span');
+  if (remLabel) remLabel.textContent = t('auth.remember');
+
+  // Success screen
+  setQS('.reg-success-sub', t('auth.success'));
+  const gotoBtn = document.querySelector('.reg-success-btn, #btn-goto-account');
+  if (gotoBtn) gotoBtn.textContent = t('auth.goto.account');
+
+  // ── 3. Schedule / Bet ──
+  setQS('.schedule-back', t('schedule.back'));
+  setQS('.bet-back-btn, .schedule-bet-back', t('schedule.bet.back'));
+  // Bet balance label
+  setQS('.bet-balance-label', t('schedule.bet.balance'));
+  // Bet section title
+  const betTitle = document.querySelector('.bet-section-title, .bet-panel-title');
+  if (betTitle) betTitle.textContent = t('schedule.bet.title');
+  // Queue section title
+  setQS('.bet-queue-title', t('schedule.bet.queue'));
+
+  // ── 4. Account tabs (ทำซ้ำเพื่อความปลอดภัย) ──
+  const tabKeys = {
+    'dashboard': t('acc.tab.dashboard'), 'info': t('acc.tab.info'),
+    'deposit': t('acc.tab.deposit'),     'withdraw': t('acc.tab.withdraw'),
+    'bet': t('acc.tab.bet'),             'txn': t('acc.tab.txn'),
+    'support': t('acc.tab.support'),     'referral': t('acc.tab.referral'),
+    'notifications': t('acc.tab.notif'),
+  };
+  document.querySelectorAll('.acc-tab').forEach(tab => {
+    const onclick = tab.getAttribute('onclick') || '';
+    const m = onclick.match(/switchAccTab\('(\w+)'/);
+    if (m && tabKeys[m[1]]) {
+      // เก็บ badge ไว้ถ้ามี
+      const badge = tab.querySelector('span');
+      tab.textContent = tabKeys[m[1]];
+      if (badge) tab.appendChild(badge);
+    }
+  });
+
+  // Account back
+  setText('acc-back-btn', t('acc.back'));
+  setQS('.account-back', t('acc.back'));
+
+  // Account balance label
+  setQS('.account-balance-label', t('acc.balance'));
+
+  // Logout
+  const logoutBtn = document.querySelector('.acc-logout-btn, #btn-logout');
+  if (logoutBtn) logoutBtn.textContent = t('acc.logout');
+
+  // ── 5. Deposit panel ──
+  setQS('#acc-deposit .panel-title, #acc-deposit .card-heading', t('dep.title'));
+  setQS('#dep-bank-header', `🏦 ${t('dep.bank')}`);
+  const copyBtn = document.querySelector('button[onclick="copyDepAccNo()"]');
+  if (copyBtn) copyBtn.textContent = t('dep.copy');
+  const depBtn = document.querySelector('#dep-step3 .reg-submit, button[onclick*="submitDeposit"]');
+  if (depBtn) depBtn.textContent = t('dep.submit');
+  // Slip label
+  setQS('.dep-slip-label', t('dep.slip'));
+
+  // ── 6. Withdraw panel ──
+  setQS('#acc-withdraw .panel-title, #acc-withdraw .card-heading', t('with.title'));
+  const withBtn = document.querySelector('button[onclick*="submitWithdraw"]');
+  if (withBtn) withBtn.textContent = t('with.submit');
+
+  // ── 7. Notification panel ──
+  setQS('#acc-notifications .card-title-text, #notif-panel-title', t('notif.title'));
+  document.querySelectorAll('.notif-chip').forEach(chip => {
+    const onclick = chip.getAttribute('onclick') || '';
+    if (onclick.includes("''"))        chip.textContent = t('notif.all');
+    else if (onclick.includes('success')) chip.textContent = t('notif.success');
+    else if (onclick.includes('error'))   chip.textContent = t('notif.error');
+    else if (onclick.includes('slip'))    chip.textContent = t('notif.slip');
+  });
+  const clearBtn = document.querySelector('button[onclick="clearNotifications()"]');
+  if (clearBtn) clearBtn.textContent = t('notif.clear');
+
+  // ── 8. Referral ──
+  setQS('#acc-referral .panel-title', t('ref.title'));
+
+  // ── 9. About page ──
+  setQS('#page-about .history-back', t('about.back'));
+
+  // ── 10. Schedule page back button ──
+  const schedBack = document.querySelector('.schedule-back');
+  if (schedBack) schedBack.textContent = t('schedule.back');
+
+  // ── 11. History back ──
+  const histBack = document.querySelector('.history-back:not(#page-about .history-back)');
+  if (histBack) histBack.textContent = t('schedule.back');
+
+  // ── 12. html lang attr ──
+  document.documentElement.lang = L === 'th' ? 'th' : L === 'la' ? 'lo' : 'en';
 }
 
   // ── Facebook OAuth ──
