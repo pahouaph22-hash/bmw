@@ -104,7 +104,8 @@ body{font-family:'Sarabun',sans-serif;background:#f4f4f0;color:#1a1a1a;min-heigh
 
 .flags-row{display:flex;flex-wrap:wrap;gap:4px;margin-top:4px;}
 .card{background:#fff;border-radius:12px;padding:20px;border:1px solid #e5e5e0;margin-bottom:16px;}
-.card-title{font-family:'Kanit',sans-serif;font-weight:700;font-size:15px;margin-bottom:14px;display:flex;align-items:center;justify-content:space-between;}
+.staff-notice{background:#fffbeb;border:1px solid #fde68a;border-radius:10px;padding:10px 16px;margin-bottom:14px;display:flex;align-items:center;gap:10px;font-family:'Kanit',sans-serif;font-size:12px;color:#92400e;}
+  .card-title{font-family:'Kanit',sans-serif;font-weight:700;font-size:15px;margin-bottom:14px;display:flex;align-items:center;justify-content:space-between;}
 
 /* TABLE */
 table{width:100%;border-collapse:collapse;}
@@ -1337,32 +1338,81 @@ let notifCount = 0;
 
 // ── Staff Auth ──
 let currentStaff = null; // null = super admin, object = staff
-// สิทธิ์แต่ละ role
-const STAFF_PERMISSIONS = {
-  financial: ['deposits','withdrawals'],               // เห็นแค่เติม/ถอน
-  cs:        ['matches','verdict','activity','referral','news'], // เห็นแค่ CS
+
+// ปุ่มที่แต่ละ role "ทำได้" (กดได้)
+const STAFF_CAN_DO = {
+  financial: ['deposits','withdrawals'],
+  cs:        ['matches','verdict','activity','referral','news','bets','members'],
 };
 
-function applyStaffPermissions(role) {
-  const allowed = STAFF_PERMISSIONS[role] || [];
-  document.querySelectorAll('.sb-item[data-panel]').forEach(el => {
-    const panel = el.getAttribute('data-panel');
-    // super admin เห็นทุกอย่าง
-    if (!currentStaff) { el.style.display = ''; return; }
-    // staff เห็นเฉพาะที่อนุญาต
-    el.style.display = allowed.includes(panel) ? '' : 'none';
-  });
-  // ซ่อนเมนูพนักงานสำหรับ staff
-  const sbStaff = document.getElementById('sb-staff');
-  if (sbStaff) sbStaff.style.display = currentStaff ? 'none' : '';
+// panel ที่ต้องการ action guard — คือ panel ที่ role นั้น "ทำไม่ได้"
+// แต่ "เห็นได้" — แค่ปุ่มจะถูกบล็อก
+function _getRoleBlockedPanels(role) {
+  const canDo = STAFF_CAN_DO[role] || [];
+  const all   = ['overview','members','matches','verdict','deposits','withdrawals','bets','referral','activity','news','settings'];
+  return all.filter(p => !canDo.includes(p));
+}
 
-  // เริ่มที่ panel แรกที่อนุญาต
-  if (currentStaff && allowed.length > 0) {
-    switchPanel(allowed[0]);
-    // โหลด panel แรก
-    if (allowed[0] === 'deposits') loadDeposits();
-    else if (allowed[0] === 'matches') loadMatches();
-  }
+function applyStaffPermissions(role) {
+  if (!currentStaff) return;
+
+  // เห็นทุกเมนู — แต่ซ่อนแค่ "พนักงาน" (เฉพาะ super admin จัดการได้)
+  const sbStaff = document.getElementById('sb-staff');
+  if (sbStaff) sbStaff.style.display = 'none';
+
+  // เพิ่ม banner บอก role ที่ด้านบนของแต่ละ panel ที่ทำไม่ได้
+  setTimeout(() => _applyActionBlocks(role), 800);
+}
+
+function _applyActionBlocks(role) {
+  if (!currentStaff) return;
+  const blockedPanels = _getRoleBlockedPanels(role);
+  const roleLabel = role === 'financial' ? '💰 เติม-ถอนเงิน' : '🎯 บริการลูกค้า';
+
+  document.querySelectorAll('.panel').forEach(panel => {
+    const panelId = panel.id.replace('panel-','');
+    if (!blockedPanels.includes(panelId)) return; // panel นี้ทำได้ ข้ามไป
+
+    // เพิ่ม notice banner (ถ้ายังไม่มี)
+    if (!panel.querySelector('.staff-notice')) {
+      const notice = document.createElement('div');
+      notice.className = 'staff-notice';
+      notice.style.cssText = 'background:#fffbeb;border:1px solid #fde68a;border-radius:10px;padding:10px 16px;margin-bottom:14px;display:flex;align-items:center;gap:10px;font-family:\'Kanit\',sans-serif;font-size:13px;color:#92400e;';
+      notice.innerHTML = `<span style="font-size:18px;">⚠️</span> <span>คุณเข้าสู่ระบบในฐานะ <strong>${roleLabel}</strong> — หน้านี้ <strong>ดูได้อย่างเดียว</strong> ไม่สามารถแก้ไขหรือดำเนินการได้ครับ</span>`;
+      panel.insertBefore(notice, panel.firstChild);
+    }
+
+    // บล็อกปุ่ม action ทั้งหมดใน panel นี้
+    const actionSelectors = [
+      'button.btn-green', 'button.btn-red', 'button.btn-gold',
+      '.save-btn', 'button[onclick*="approve"]', 'button[onclick*="reject"]',
+      'button[onclick*="confirm"]', 'button[onclick*="delete"]',
+      'button[onclick*="send"]', 'button[onclick*="update"]',
+      'button[onclick*="save"]', 'button[onclick*="add"]',
+    ].join(',');
+
+    panel.querySelectorAll(actionSelectors).forEach(btn => {
+      if (!btn.getAttribute('data-staff-blocked')) {
+        btn.setAttribute('data-staff-blocked', '1');
+        btn.setAttribute('title', '⛔ ไม่มีสิทธิ์ดำเนินการนี้ครับ');
+        btn.disabled = true;
+        btn.style.opacity = '0.35';
+        btn.style.cursor  = 'not-allowed';
+        btn.style.pointerEvents = 'none';
+        btn.onclick = e => { e.preventDefault(); e.stopPropagation(); showToast('⛔ ไม่มีสิทธิ์ดำเนินการนี้ครับ','error'); return false; };
+      }
+    });
+
+    // บล็อก input และ select ใน panel นี้ด้วย
+    panel.querySelectorAll('input:not([type=search]):not([type=date]):not([type=text][readonly]), select').forEach(el => {
+      if (!el.getAttribute('data-staff-blocked') && !el.closest('.date-filter') && !el.closest('.search-bar')) {
+        el.setAttribute('data-staff-blocked','1');
+        el.disabled = true;
+        el.style.opacity = '0.4';
+        el.style.cursor  = 'not-allowed';
+      }
+    });
+  });
 }
 
 // แสดง badge ตำแหน่งใน header
@@ -1409,18 +1459,16 @@ async function adminLogin() {
 
   if (staffRow && staffRow.password === pass) {
     currentStaff = staffRow;
-    // บันทึก last_login
     await sb.from('staff').update({ last_login: new Date().toISOString() }).eq('id', staffRow.id);
-    // log
     await logStaffAction(staffRow.username, 'login', 'เข้าสู่ระบบ');
 
     document.getElementById('login-page').style.display = 'none';
     document.getElementById('dashboard').style.display  = 'flex';
     showStaffBadge();
+    // โหลดข้อมูลทั้งหมดเหมือน super admin
+    loadAll();
+    // apply permission หลัง DOM โหลดเสร็จ
     applyStaffPermissions(staffRow.role);
-    // โหลดข้อมูลที่จำเป็น
-    if (staffRow.role === 'financial') { loadDeposits(); loadWithdrawals(); }
-    else { loadMatches(); loadVerdict(); }
     return;
   }
 
