@@ -10,6 +10,7 @@
 (function(){
 var fns=['showRegister','hideRegister','showSchedule','hideSchedule',
 'showHistory','hideHistory','showMyAccount','hideMyAccount',
+'showAbout','hideAbout',
 'goToMyAccount','logout','openModal','closeModal',
 'switchAuthTab','submitRegister','submitLogin',
 'switchAccTab','setDepAmount','setWithAmount','setWithAll',
@@ -2777,6 +2778,7 @@ fns.forEach(function(fn){
     <a href="#" onclick="goHome();return false;" data-i18n="nav.home">หน้าแรก</a>
     <a href="#" onclick="showSchedule();return false;" data-i18n="nav.schedule">ตารางแข่ง</a>
     <a href="#" onclick="showHistory();return false;" data-i18n="nav.history">ประวัติการแข่งขัน</a>
+    <a href="#" onclick="showAbout();return false;" data-i18n="nav.about">เกี่ยวกับเรา</a>
     <a href="#" onclick="showMyAccount();return false;" id="nav-myaccount" style="display:none;" data-i18n="nav.myaccount">👤 บัญชีของฉัน</a>
     <a href="#" onclick="showRegister();return false;" id="nav-register" data-i18n="nav.register">สมัคร / Login</a>
   </div>
@@ -3321,6 +3323,116 @@ fns.forEach(function(fn){
         กำลังโหลดข้อมูล...
       </div>
     </div>
+  </div>
+</div>
+
+<!-- ABOUT PAGE -->
+<div id="page-about" style="display:none;">
+  <div style="max-width:860px;margin:0 auto;padding:48px 32px 80px;">
+
+    <!-- Back -->
+    <button class="history-back" onclick="hideAbout()" data-i18n="about.back">← กลับหน้าแรก</button>
+
+    <!-- Header -->
+    <div style="text-align:center;margin-bottom:48px;">
+      <div style="font-size:56px;margin-bottom:12px;">🐂</div>
+      <h2 style="font-family:'Kanit',sans-serif;font-weight:900;font-size:36px;color:var(--gold);margin-bottom:8px;" data-i18n="about.title">เกี่ยว<span style="color:var(--red);">กับเรา</span></h2>
+      <div style="width:60px;height:3px;background:linear-gradient(90deg,var(--gold),var(--red));border-radius:999px;margin:0 auto 16px;"></div>
+      <p style="font-family:'Sarabun',sans-serif;font-size:15px;color:rgba(240,255,232,0.6);max-width:500px;margin:0 auto;line-height:1.7;" data-i18n="about.subtitle">
+        แพลตฟอร์มวัวชน P2P ที่ได้รับความไว้วางใจจากสมาชิกทั่วประเทศลาว
+      </p>
+    </div>
+
+    <!-- Story -->
+    <div style="background:rgba(255,255,255,0.04);border:1px solid rgba(245,200,66,0.2);border-radius:18px;padding:32px;margin-bottom:24px;">
+      <div style="display:flex;align-items:center;gap:12px;margin-bottom:18px;">
+        <div style="width:44px;height:44px;border-radius:12px;background:rgba(245,200,66,0.15);display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0;">📖</div>
+        <h3 style="font-family:'Kanit',sans-serif;font-weight:700;font-size:18px;color:var(--gold);" data-i18n="about.story.title">ที่มาของเรา</h3>
+      </div>
+      <p style="font-family:'Sarabun',sans-serif;font-size:14px;color:rgba(240,255,232,0.75);line-height:1.9;" data-i18n="about.story.text">
+        วัวชนลาว เกิดจากความรักและความภาคภูมิใจในประเพณีวัวชนอันยาวนานของชาวลาว เราถูกก่อตั้งขึ้นเพื่อนำประเพณีดั้งเดิมนี้เข้าสู่ยุคดิจิทัล ให้ผู้คนทุกที่ทั่วประเทศสามารถร่วมสนุกและเดิมพันกันแบบ P2P ได้อย่างปลอดภัย โปร่งใส และยุติธรรม โดยไม่มีเจ้ามือ ทุกเงินเดิมพันไหลตรงระหว่างผู้เล่นด้วยกัน
+      </p>
+    </div>
+
+    <!-- Stats trust -->
+    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-bottom:24px;">
+      <div style="background:rgba(39,148,63,0.1);border:1px solid rgba(39,148,63,0.3);border-radius:14px;padding:20px;text-align:center;">
+        <div style="font-family:'Kanit',sans-serif;font-weight:900;font-size:28px;color:#4ade80;">10,000+</div>
+        <div style="font-size:12px;color:rgba(240,255,232,0.5);margin-top:4px;font-family:'Kanit',sans-serif;" data-i18n="about.stat1">สมาชิกที่ไว้วางใจ</div>
+      </div>
+      <div style="background:rgba(245,200,66,0.08);border:1px solid rgba(245,200,66,0.25);border-radius:14px;padding:20px;text-align:center;">
+        <div style="font-family:'Kanit',sans-serif;font-weight:900;font-size:28px;color:var(--gold);">500+</div>
+        <div style="font-size:12px;color:rgba(240,255,232,0.5);margin-top:4px;font-family:'Kanit',sans-serif;" data-i18n="about.stat2">คู่การแข่งขัน</div>
+      </div>
+      <div style="background:rgba(200,16,46,0.08);border:1px solid rgba(200,16,46,0.25);border-radius:14px;padding:20px;text-align:center;">
+        <div style="font-family:'Kanit',sans-serif;font-weight:900;font-size:28px;color:#f87171;">18+</div>
+        <div style="font-size:12px;color:rgba(240,255,232,0.5);margin-top:4px;font-family:'Kanit',sans-serif;" data-i18n="about.stat3">จังหวัดทั่วลาว</div>
+      </div>
+    </div>
+
+    <!-- Why trust us -->
+    <div style="background:rgba(255,255,255,0.04);border:1px solid rgba(39,148,63,0.2);border-radius:18px;padding:32px;margin-bottom:24px;">
+      <div style="display:flex;align-items:center;gap:12px;margin-bottom:20px;">
+        <div style="width:44px;height:44px;border-radius:12px;background:rgba(39,148,63,0.15);display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0;">🛡️</div>
+        <h3 style="font-family:'Kanit',sans-serif;font-weight:700;font-size:18px;color:#4ade80;" data-i18n="about.why.title">ทำไมต้องเลือกเรา</h3>
+      </div>
+      <div style="display:grid;gap:14px;">
+        <div style="display:flex;gap:14px;align-items:flex-start;">
+          <div style="width:36px;height:36px;border-radius:10px;background:rgba(39,148,63,0.15);display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;">✅</div>
+          <div>
+            <div style="font-family:'Kanit',sans-serif;font-weight:700;font-size:14px;color:var(--cream);" data-i18n="about.f1.title">ระบบ P2P — ไม่มีเจ้ามือ</div>
+            <div style="font-size:12px;color:rgba(240,255,232,0.55);margin-top:3px;line-height:1.7;" data-i18n="about.f1.sub">เงินเดิมพันไหลตรงระหว่างผู้เล่น ไม่ผ่านคนกลาง ยุติธรรม 100%</div>
+          </div>
+        </div>
+        <div style="display:flex;gap:14px;align-items:flex-start;">
+          <div style="width:36px;height:36px;border-radius:10px;background:rgba(245,200,66,0.12);display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;">🔒</div>
+          <div>
+            <div style="font-family:'Kanit',sans-serif;font-weight:700;font-size:14px;color:var(--cream);" data-i18n="about.f2.title">ปลอดภัย — ข้อมูลเข้ารหัส</div>
+            <div style="font-size:12px;color:rgba(240,255,232,0.55);margin-top:3px;line-height:1.7;" data-i18n="about.f2.sub">ระบบ Supabase รองรับ SSL ทุก transaction ถูกบันทึกและตรวจสอบได้</div>
+          </div>
+        </div>
+        <div style="display:flex;gap:14px;align-items:flex-start;">
+          <div style="width:36px;height:36px;border-radius:10px;background:rgba(96,165,250,0.12);display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;">⚡</div>
+          <div>
+            <div style="font-family:'Kanit',sans-serif;font-weight:700;font-size:14px;color:var(--cream);" data-i18n="about.f3.title">ถอน-เติมเงินรวดเร็ว</div>
+            <div style="font-size:12px;color:rgba(240,255,232,0.55);margin-top:3px;line-height:1.7;" data-i18n="about.f3.sub">ทีมงานพร้อมให้บริการ 7 วัน อนุมัติรายการภายใน 5 นาที</div>
+          </div>
+        </div>
+        <div style="display:flex;gap:14px;align-items:flex-start;">
+          <div style="width:36px;height:36px;border-radius:10px;background:rgba(167,139,250,0.12);display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;">📞</div>
+          <div>
+            <div style="font-family:'Kanit',sans-serif;font-weight:700;font-size:14px;color:var(--cream);" data-i18n="about.f4.title">ทีม Support พร้อมตลอด 24 ชั่วโมง</div>
+            <div style="font-size:12px;color:rgba(240,255,232,0.55);margin-top:3px;line-height:1.7;" data-i18n="about.f4.sub">มีปัญหาหรือข้อสงสัย ติดต่อทีมงานได้ทันทีผ่าน Line / Facebook</div>
+          </div>
+        </div>
+        <div style="display:flex;gap:14px;align-items:flex-start;">
+          <div style="width:36px;height:36px;border-radius:10px;background:rgba(74,222,128,0.12);display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;">🏆</div>
+          <div>
+            <div style="font-family:'Kanit',sans-serif;font-weight:700;font-size:14px;color:var(--cream);" data-i18n="about.f5.title">ระบบ VIP และรางวัลสะสม</div>
+            <div style="font-size:12px;color:rgba(240,255,232,0.55);margin-top:3px;line-height:1.7;" data-i18n="about.f5.sub">ยิ่งเล่นมาก ยิ่งได้รับสิทธิพิเศษ พร้อมโบนัสแนะนำเพื่อน 5 ชั้น</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Mission -->
+    <div style="background:linear-gradient(135deg,rgba(245,200,66,0.08),rgba(200,16,46,0.06));border:1px solid rgba(245,200,66,0.2);border-radius:18px;padding:28px;margin-bottom:24px;text-align:center;">
+      <div style="font-size:32px;margin-bottom:10px;">🎯</div>
+      <h3 style="font-family:'Kanit',sans-serif;font-weight:700;font-size:16px;color:var(--gold);margin-bottom:10px;" data-i18n="about.mission.title">พันธกิจของเรา</h3>
+      <p style="font-family:'Sarabun',sans-serif;font-size:13px;color:rgba(240,255,232,0.65);line-height:1.9;max-width:560px;margin:0 auto;" data-i18n="about.mission.text">
+        เราเชื่อว่าประเพณีวัวชนคือมรดกทางวัฒนธรรมที่มีคุณค่า เราจึงมุ่งมั่นรักษา พัฒนา และนำมันมาสู่ยุคสมัยใหม่ ด้วยเทคโนโลยีที่ทันสมัย เพื่อให้ทุกคนสามารถเข้าถึงและสนุกกับกีฬาพื้นบ้านนี้ได้อย่างเท่าเทียม
+      </p>
+    </div>
+
+    <!-- CTA -->
+    <div style="text-align:center;padding:24px 0;">
+      <p style="font-family:'Kanit',sans-serif;font-size:15px;color:rgba(240,255,232,0.6);margin-bottom:16px;" data-i18n="about.cta.text">พร้อมร่วมสนุกกับเราแล้วหรือยัง?</p>
+      <div style="display:flex;gap:12px;justify-content:center;flex-wrap:wrap;">
+        <button onclick="showRegister()" class="btn-main" style="padding:14px 32px;font-size:15px;" data-i18n="about.cta.register">สมัครสมาชิกฟรี</button>
+        <button onclick="hideAbout();showSchedule();" class="btn-outline" style="padding:14px 32px;font-size:15px;" data-i18n="about.cta.schedule">ดูตารางแข่งขัน</button>
+      </div>
+    </div>
+
   </div>
 </div>
 
@@ -5541,6 +5653,33 @@ const I18N = {
     'stat.viewers': 'ผู้ชมที่คาดการณ์',
     'stat.days': 'ระยะเวลาการแข่งขัน',
     'stat.provinces': 'ทีมที่เข้าร่วม',
+    'nav.about': 'เกี่ยวกับเรา',
+    // ABOUT
+    'about.back': '← กลับหน้าแรก',
+    'about.title': 'เกี่ยวกับเรา',
+    'about.subtitle': 'แพลตฟอร์มวัวชน P2P ที่ได้รับความไว้วางใจจากสมาชิกทั่วประเทศลาว',
+    'about.story.title': 'ที่มาของเรา',
+    'about.story.text': 'วัวชนลาว เกิดจากความรักและความภาคภูมิใจในประเพณีวัวชนอันยาวนานของชาวลาว เราถูกก่อตั้งเพื่อนำประเพณีนี้เข้าสู่ยุคดิจิทัล P2P ปลอดภัย โปร่งใส ยุติธรรม',
+    'about.stat1': 'สมาชิกที่ไว้วางใจ',
+    'about.stat2': 'คู่การแข่งขัน',
+    'about.stat3': 'จังหวัดทั่วลาว',
+    'about.why.title': 'ทำไมต้องเลือกเรา',
+    'about.f1.title': 'ระบบ P2P — ไม่มีเจ้ามือ',
+    'about.f1.sub': 'เงินเดิมพันไหลตรงระหว่างผู้เล่น ยุติธรรม 100%',
+    'about.f2.title': 'ปลอดภัย — ข้อมูลเข้ารหัส',
+    'about.f2.sub': 'SSL ทุก transaction บันทึกและตรวจสอบได้',
+    'about.f3.title': 'ถอน-เติมเงินรวดเร็ว',
+    'about.f3.sub': 'ทีมงานพร้อม 7 วัน อนุมัติภายใน 5 นาที',
+    'about.f4.title': 'Support พร้อม 24 ชั่วโมง',
+    'about.f4.sub': 'ติดต่อได้ผ่าน Line / Facebook ทันที',
+    'about.f5.title': 'VIP และรางวัลสะสม',
+    'about.f5.sub': 'ยิ่งเล่นมาก ยิ่งได้สิทธิพิเศษ + โบนัสแนะนำเพื่อน 5 ชั้น',
+    'about.mission.title': 'พันธกิจของเรา',
+    'about.mission.text': 'มุ่งมั่นรักษาประเพณีวัวชนด้วยเทคโนโลยีสมัยใหม่ เพื่อให้ทุกคนเข้าถึงได้เท่าเทียม',
+    'about.cta.text': 'พร้อมร่วมสนุกกับเราแล้วหรือยัง?',
+    'about.cta.register': 'สมัครสมาชิกฟรี',
+    'about.cta.schedule': 'ดูตารางแข่งขัน',
+
     // AUTH
     'auth.title.register': 'สมัครสมาชิก',
     'auth.title.login': 'เข้าสู่ระบบ',
@@ -5637,6 +5776,33 @@ const I18N = {
     'stat.viewers': 'ຜູ້ຊົມທີ່ຄາດຄະເນ',
     'stat.days': 'ໄລຍະເວລາການແຂ່ງ',
     'stat.provinces': 'ທີມທີ່ເຂົ້າຮ່ວມ',
+    'nav.about': 'ກ່ຽວກັບເຮົາ',
+    // ABOUT
+    'about.back': '← ກັບໜ້າຫຼັກ',
+    'about.title': 'ກ່ຽວກັບເຮົາ',
+    'about.subtitle': 'ແພລດຟອມວົວຊົນ P2P ທີ່ໄດ້ຮັບຄວາມໄວ້ວາງໃຈຈາກສະມາຊິກທົ່ວລາວ',
+    'about.story.title': 'ທີ່ມາຂອງເຮົາ',
+    'about.story.text': 'ວົວຊົນລາວ ເກີດຈາກຄວາມຮັກໃນປະເພນີວົວຊົນອັນດົນນານ ເຮົາສ້າງຂຶ້ນເພື່ອນຳປະເພນີນີ້ສູ່ຍຸກດິຈິຕອນ P2P ປອດໄພ ໂປ່ງໃສ ຍຸຕິທຳ',
+    'about.stat1': 'ສະມາຊິກທີ່ໄວ້ວາງໃຈ',
+    'about.stat2': 'ຄູ່ການແຂ່ງ',
+    'about.stat3': 'ແຂວງທົ່ວລາວ',
+    'about.why.title': 'ເປັນຫຍັງຕ້ອງເລືອກເຮົາ',
+    'about.f1.title': 'ລະບົບ P2P — ບໍ່ມີເຈົ້າໝາກ',
+    'about.f1.sub': 'ເງິນເດີມພັນໄຫຼຕົງລະຫວ່າງຜູ້ຫຼິ້ນ ຍຸຕິທຳ 100%',
+    'about.f2.title': 'ປອດໄພ — ຂໍ້ມູນເຂົ້າລະຫັດ',
+    'about.f2.sub': 'SSL ທຸກ transaction ບັນທຶກ ແລະ ກວດສອບໄດ້',
+    'about.f3.title': 'ຖອນ-ເຕີມເງິນໄວ',
+    'about.f3.sub': 'ທີມງານພ້ອມ 7 ວັນ ອະນຸມັດພາຍໃນ 5 ນາທີ',
+    'about.f4.title': 'Support ພ້ອມ 24 ຊົ່ວໂມງ',
+    'about.f4.sub': 'ຕິດຕໍ່ໄດ້ຜ່ານ Line / Facebook ທັນທີ',
+    'about.f5.title': 'VIP ແລະ ລາງວັນສະສົມ',
+    'about.f5.sub': 'ຍິ່ງຫຼິ້ນຫຼາຍ ຍິ່ງໄດ້ສິດທິພິເສດ + ໂບນັດແນະນຳໝູ່ 5 ຊັ້ນ',
+    'about.mission.title': 'ພາລະກິດຂອງເຮົາ',
+    'about.mission.text': 'ມຸ່ງໝັ້ນຮັກສາປະເພນີວົວຊົນດ້ວຍເທກໂນໂລຊີສະໄໝໃໝ່ ເພື່ອໃຫ້ທຸກຄົນເຂົ້າເຖິງໄດ້ເທົ່າທຽມ',
+    'about.cta.text': 'ພ້ອມຮ່ວມສະໜຸກກັບເຮົາແລ້ວຫຼືຍັງ?',
+    'about.cta.register': 'ສະໝັກສະມາຊິກຟຣີ',
+    'about.cta.schedule': 'ເບິ່ງຕາຕະລາງແຂ່ງ',
+
     // AUTH
     'auth.title.register': 'ສະໝັກສະມາຊິກ',
     'auth.title.login': 'ເຂົ້າສູ່ລະບົບ',
@@ -5733,6 +5899,33 @@ const I18N = {
     'stat.viewers': 'Expected Viewers',
     'stat.days': 'Days of Competition',
     'stat.provinces': 'Participating Teams',
+    'nav.about': 'About Us',
+    // ABOUT
+    'about.back': '← Back to Home',
+    'about.title': 'About Us',
+    'about.subtitle': 'Trusted P2P Bull Fight Platform across Laos',
+    'about.story.title': 'Our Story',
+    'about.story.text': 'KawCai was born from a deep love for Lao bull fighting tradition. We built this platform to bring this ancient tradition into the digital age — P2P betting, safe, transparent and fair for everyone.',
+    'about.stat1': 'Trusted Members',
+    'about.stat2': 'Match Pairs',
+    'about.stat3': 'Provinces Across Laos',
+    'about.why.title': 'Why Choose Us',
+    'about.f1.title': 'P2P System — No House Edge',
+    'about.f1.sub': 'Bets flow directly between players. 100% fair.',
+    'about.f2.title': 'Secure — Encrypted Data',
+    'about.f2.sub': 'SSL on every transaction, fully auditable.',
+    'about.f3.title': 'Fast Deposits & Withdrawals',
+    'about.f3.sub': '7-day team, approvals within 5 minutes.',
+    'about.f4.title': '24/7 Support',
+    'about.f4.sub': 'Reach us instantly via Line or Facebook.',
+    'about.f5.title': 'VIP & Loyalty Rewards',
+    'about.f5.sub': 'More play = more perks + 5-tier referral bonus.',
+    'about.mission.title': 'Our Mission',
+    'about.mission.text': 'To preserve and modernize bull fighting traditions using cutting-edge technology, making it accessible to everyone equally.',
+    'about.cta.text': 'Ready to join us?',
+    'about.cta.register': 'Register Free',
+    'about.cta.schedule': 'View Schedule',
+
     // AUTH
     'auth.title.register': 'Create Account',
     'auth.title.login': 'Login',
@@ -7672,11 +7865,21 @@ function applyLang() {
       wrap.appendChild(card);
     });
   }
-  window.hideSchedule = window._real_hideSchedule = function hideSchedule() {
-    document.getElementById('main-content').style.display = 'block';
-    document.getElementById('page-schedule').style.display = 'none';
+  window.showAbout = window._real_showAbout = function showAbout() {
+    document.getElementById('main-content').style.display    = 'none';
+    document.getElementById('page-register').style.display   = 'none';
+    document.getElementById('page-schedule').style.display   = 'none';
+    document.getElementById('page-history').style.display    = 'none';
+    document.getElementById('page-myaccount').style.display  = 'none';
+    document.getElementById('page-about').style.display      = 'block';
     window.scrollTo(0, 0);
-  }
+  };
+
+  window.hideAbout = window._real_hideAbout = function hideAbout() {
+    document.getElementById('page-about').style.display    = 'none';
+    document.getElementById('main-content').style.display  = 'block';
+    window.scrollTo(0, 0);
+  };
 
   window.openModal = window._real_openModal = function openModal(d) {
     document.getElementById('m-round').textContent = d.round;
