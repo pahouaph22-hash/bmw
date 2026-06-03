@@ -5600,6 +5600,9 @@ fns.forEach(function(fn){
     // เช็ค oauth_pending เพื่อเชื่อมบัญชี OAuth
     const oauthPending = JSON.parse(sessionStorage.getItem('oauth_pending') || 'null');
 
+    // สร้าง referral_code ของตัวเอง
+    const myRefCode = nick.toUpperCase().slice(0,4) + Math.floor(1000 + Math.random() * 9000);
+
     // บันทึกลง Supabase
     const insertData = {
       fname, lname, nick, phone,
