@@ -7023,6 +7023,11 @@ setInterval(() => {
     if (_s3) _s3.style.display = 'none';
     loadDashboard();
     loadDepBanks();
+    // ยืนยันซ้ำหลัง async loadDepBanks เสร็จ
+    setTimeout(() => {
+      const chk = document.getElementById('dep-step1');
+      if (chk && chk.style.display !== 'block') chk.style.display = 'block';
+    }, 1000);
 
     // ── โหลดข้อมูลล่าสุดจาก Supabase ใน background ──
     try {
@@ -7089,7 +7094,7 @@ setInterval(() => {
   async function loadDepBanks() {
     try {
       const { data, error } = await sb.from('settings').select('value').eq('key','bankAccounts').maybeSingle();
-      if (error || !data) return; // ถ้าโหลดไม่ได้ ไม่ต้องทำอะไร (ไม่ทำลาย UI)
+      if (error || !data) return;
 
       const banksData   = data.value?.accounts || [];
       const activeBanks = banksData.filter(b => b.active === true);
@@ -7097,22 +7102,23 @@ setInterval(() => {
       if (activeBanks.length > 0) {
         _renderDepBankAccounts(activeBanks);
       } else {
-        // ไม่มีบัญชี active — แสดงข้อความใน dep-bank-info-wrap เท่านั้น ไม่แตะ step1/step3
         _depBanks = [];
+        // แสดงข้อความใน dep-bank-info-wrap แต่ไม่แตะ dep-step1
         const wrap = document.getElementById('dep-bank-info-wrap');
         if (wrap) {
           wrap.innerHTML = `
-            <div style="text-align:center;padding:20px;background:rgba(255,255,255,0.04);border-radius:12px;border:1px solid rgba(255,255,255,0.08);">
+            <div style="text-align:center;padding:20px;background:rgba(255,200,66,0.08);border-radius:12px;border:1px solid rgba(245,200,66,0.2);">
               <div style="font-size:28px;margin-bottom:8px;">🔒</div>
-              <div style="font-family:'Phetsarath','Noto Sans Lao','Kanit',sans-serif;font-size:13px;color:rgba(240,255,232,0.5);">
+              <div style="font-family:'Phetsarath','Noto Sans Lao','Kanit',sans-serif;font-size:13px;color:rgba(240,255,232,0.6);">
                 ขณะนี้ยังไม่มีบัญชีรับเงินที่เปิดใช้งาน<br>กรุณาติดต่อ Admin ครับ
               </div>
             </div>`;
         }
       }
-    } catch(_) {
-      // ถ้า error ใดๆ ไม่กระทบ UI
-    }
+    } catch(_) {}
+    // ── ยืนยันว่า step1 ยังแสดงอยู่เสมอหลัง loadDepBanks ──
+    const s1 = document.getElementById('dep-step1');
+    if (s1 && s1.style.display === 'none') s1.style.display = 'block';
   }
 
   function goDepStep1() {
@@ -7629,6 +7635,11 @@ setInterval(() => {
       if (s3) s3.style.display = 'none';
       loadDepHistory();
       loadDepBanks();
+      // ยืนยันซ้ำหลัง async เสร็จ
+      setTimeout(() => {
+        const _s1 = document.getElementById('dep-step1');
+        if (_s1 && _s1.style.display !== 'block') _s1.style.display = 'block';
+      }, 800);
     }
     if (id === 'withdraw')  { loadWithdrawPanel(); loadWithHistory(); }
     if (id === 'bet')       loadBetHistory();
