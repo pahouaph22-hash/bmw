@@ -7653,21 +7653,32 @@ setInterval(() => {
 
 
   // ── DEPOSIT PANEL GUARDIAN ──
-  // ตรวจทุก 200ms: ถ้า deposit panel active แต่ไม่มี step ไหนแสดง → force step1
+  // ใช้ TAB BUTTON เป็น source of truth — ถ้า tab active แต่ panel ไม่ active → fix
   setInterval(function _depGuardian() {
+    // ตรวจปุ่ม deposit tab
+    var depTabBtn = document.querySelector('.acc-tab[onclick*="deposit"]') ||
+                    document.querySelector('.acc-tab[onclick*="\'deposit\'"]');
+    if (!depTabBtn || !depTabBtn.classList.contains('active')) return;
+
+    // deposit tab button active → ensure acc-deposit panel แสดง
     var dep = document.getElementById('acc-deposit');
-    if (!dep || !dep.classList.contains('active')) return;
+    if (!dep) return;
+
+    if (!dep.classList.contains('active')) {
+      // Panel ไม่ได้ active ทั้งที่ tab active → force fix
+      document.querySelectorAll('.acc-panel').forEach(function(p) { p.classList.remove('active'); });
+      dep.classList.add('active');
+    }
+
+    // ensure dep-step1 แสดง ถ้าไม่มี step ไหนแสดงเลย
     var s1 = document.getElementById('dep-step1');
     var s2 = document.getElementById('dep-step2');
     var s3 = document.getElementById('dep-step3');
     if (!s1) return;
-    var s2vis = s2 && s2.style.display === 'block';
-    var s3vis = s3 && s3.style.display === 'block';
-    var s1vis = s1.style.display === 'block';
-    // ถ้าไม่มี step ไหนแสดงเลย → force step1
-    if (!s1vis && !s2vis && !s3vis) {
-      s1.style.display = 'block';
-    }
+    var anyVisible = (s1.style.display === 'block') ||
+                     (s2 && s2.style.display === 'block') ||
+                     (s3 && s3.style.display === 'block');
+    if (!anyVisible) s1.style.display = 'block';
   }, 200);
 
   window.switchAccTab = window._real_switchAccTab = function switchAccTab(id, el) {
