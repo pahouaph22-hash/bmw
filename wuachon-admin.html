@@ -280,6 +280,13 @@ tr:hover td{background:#fafafa;}
     <div class="topbar-right">
       <span id="realtime-dot" style="width:8px;height:8px;border-radius:50%;background:#639922;display:inline-block;" title="Realtime connected"></span>
       <span id="staff-badge"></span>
+      <!-- Language selector -->
+      <select id="admin-lang-selector" onchange="setAdminLang(this.value)"
+        style="font-family:'Kanit',sans-serif;font-size:11px;font-weight:700;padding:4px 8px;border-radius:7px;border:1px solid #e0e0e0;background:#fff;color:#555;cursor:pointer;outline:none;">
+        <option value="th">🇹🇭 TH</option>
+        <option value="la">🇱🇦 LA</option>
+        <option value="en">🇬🇧 EN</option>
+      </select>
       <button class="notif-btn" onclick="switchPanel('deposits')">🔔<span id="notif-badge" id="notif-num">0</span></button>
       <button class="logout-btn" onclick="adminLogout()">ออกจากระบบ</button>
     </div>
@@ -3817,7 +3824,156 @@ function _syncLegacyBank() {
   }
 }
 
-// ===== STAFF MANAGEMENT =====
+// ===== ADMIN i18n =====
+const ADMIN_I18N = {
+  th: {
+    'logout': 'ออกจากระบบ',
+    'panel.overview': '📊 ภาพรวม',
+    'panel.members': '👥 สมาชิก',
+    'panel.matches': '🏆 คู่แข่งขัน',
+    'panel.verdict': '⚖️ ตัดสินผล',
+    'panel.deposits': '💰 เติมเงิน',
+    'panel.withdrawals': '🏧 ถอนเงิน',
+    'panel.bets': '🎯 P2P',
+    'panel.referral': '🎁 แนะนำสมาชิก',
+    'panel.activity': '🎉 กิจกรรม',
+    'panel.news': '📰 ข่าวสาร',
+    'panel.settings': '⚙️ ตั้งค่า',
+    'panel.staff': '👨‍💼 พนักงาน',
+    'approve': '✅ อนุมัติ',
+    'reject': '❌ ปฏิเสธ',
+    'save': '💾 บันทึก',
+    'refresh': '🔄 รีเฟรช',
+    'search': 'ค้นหา...',
+    'loading': 'กำลังโหลด...',
+    'nodata': 'ไม่พบข้อมูล',
+    'member.count': 'สมาชิกทั้งหมด',
+    'balance': 'ยอดเงิน',
+    'amount': 'จำนวน',
+    'date': 'วันที่',
+    'status': 'สถานะ',
+    'action': 'จัดการ',
+    'pending': '⏳ รอดำเนินการ',
+    'approved': '✅ สำเร็จ',
+    'rejected': '❌ ปฏิเสธ',
+  },
+  la: {
+    'logout': 'ອອກຈາກລະບົບ',
+    'panel.overview': '📊 ພາບລວມ',
+    'panel.members': '👥 ສະມາຊິກ',
+    'panel.matches': '🏆 ຄູ່ແຂ່ງ',
+    'panel.verdict': '⚖️ ຕັດສິນຜົນ',
+    'panel.deposits': '💰 ເຕີມເງິນ',
+    'panel.withdrawals': '🏧 ຖອນເງິນ',
+    'panel.bets': '🎯 P2P',
+    'panel.referral': '🎁 ແນະນຳ',
+    'panel.activity': '🎉 ກິດຈະກຳ',
+    'panel.news': '📰 ຂ່າວ',
+    'panel.settings': '⚙️ ຕັ້ງຄ່າ',
+    'panel.staff': '👨‍💼 ພະນັກງານ',
+    'approve': '✅ ອະນຸມັດ',
+    'reject': '❌ ປະຕິເສດ',
+    'save': '💾 ບັນທຶກ',
+    'refresh': '🔄 ໂຫຼດໃໝ່',
+    'search': 'ຄົ້ນຫາ...',
+    'loading': 'ກຳລັງໂຫຼດ...',
+    'nodata': 'ບໍ່ພົບຂໍ້ມູນ',
+    'member.count': 'ສະມາຊິກທັງໝົດ',
+    'balance': 'ຍອດເງິນ',
+    'amount': 'ຈຳນວນ',
+    'date': 'ວັນທີ',
+    'status': 'ສະຖານະ',
+    'action': 'ຈັດການ',
+    'pending': '⏳ ລໍຖ້າ',
+    'approved': '✅ ສຳເລັດ',
+    'rejected': '❌ ປະຕິເສດ',
+  },
+  en: {
+    'logout': 'Logout',
+    'panel.overview': '📊 Overview',
+    'panel.members': '👥 Members',
+    'panel.matches': '🏆 Matches',
+    'panel.verdict': '⚖️ Verdict',
+    'panel.deposits': '💰 Deposits',
+    'panel.withdrawals': '🏧 Withdrawals',
+    'panel.bets': '🎯 P2P',
+    'panel.referral': '🎁 Referral',
+    'panel.activity': '🎉 Activity',
+    'panel.news': '📰 News',
+    'panel.settings': '⚙️ Settings',
+    'panel.staff': '👨‍💼 Staff',
+    'approve': '✅ Approve',
+    'reject': '❌ Reject',
+    'save': '💾 Save',
+    'refresh': '🔄 Refresh',
+    'search': 'Search...',
+    'loading': 'Loading...',
+    'nodata': 'No data found',
+    'member.count': 'Total Members',
+    'balance': 'Balance',
+    'amount': 'Amount',
+    'date': 'Date',
+    'status': 'Status',
+    'action': 'Action',
+    'pending': '⏳ Pending',
+    'approved': '✅ Approved',
+    'rejected': '❌ Rejected',
+  }
+};
+
+let _adminLang = localStorage.getItem('admin_lang') || 'th';
+
+function ta(key) {
+  return ADMIN_I18N[_adminLang]?.[key] || ADMIN_I18N['th']?.[key] || key;
+}
+
+function setAdminLang(lang) {
+  _adminLang = lang;
+  localStorage.setItem('admin_lang', lang);
+  applyAdminLang();
+  const sel = document.getElementById('admin-lang-selector');
+  if (sel) sel.value = lang;
+}
+
+function applyAdminLang() {
+  document.querySelectorAll('[data-i18n-admin]').forEach(el => {
+    const key = el.getAttribute('data-i18n-admin');
+    if (el.children.length === 0) {
+      el.textContent = ta(key);
+    }
+  });
+  // อัปเดต sidebar menu text
+  const menuMap = {
+    overview: ta('panel.overview'),
+    members: ta('panel.members'),
+    matches: ta('panel.matches'),
+    verdict: ta('panel.verdict'),
+    deposits: ta('panel.deposits'),
+    withdrawals: ta('panel.withdrawals'),
+    bets: ta('panel.bets'),
+    referral: ta('panel.referral'),
+    activity: ta('panel.activity'),
+    news: ta('panel.news'),
+    settings: ta('panel.settings'),
+    staff: ta('panel.staff'),
+  };
+  document.querySelectorAll('.sb-item[data-panel]').forEach(el => {
+    const panel = el.getAttribute('data-panel');
+    if (menuMap[panel]) el.textContent = menuMap[panel];
+  });
+  // logout button
+  const logoutBtn = document.querySelector('.logout-btn');
+  if (logoutBtn) logoutBtn.textContent = ta('logout');
+  document.documentElement.lang = _adminLang === 'th' ? 'th' : _adminLang === 'la' ? 'lo' : 'en';
+}
+
+// ── Init lang on load ──
+(function() {
+  const saved = localStorage.getItem('admin_lang') || 'th';
+  const sel = document.getElementById('admin-lang-selector');
+  if (sel) sel.value = saved;
+  if (saved !== 'th') { _adminLang = saved; applyAdminLang(); }
+})();
 let _allStaff = [], _allStaffLogs = [];
 
 async function loadStaffPanel() {

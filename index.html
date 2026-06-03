@@ -2774,12 +2774,19 @@ fns.forEach(function(fn){
     <span id="nav-site-name" style="font-family:'Kanit',sans-serif;font-weight:900;font-size:20px;color:#F5A800;">วัวชน<span style="color:#C8102E;">ไทย</span></span>
   </div>
   <div class="nav-links">
-    <a href="#" onclick="goHome();return false;">หน้าแรก</a>
-    <a href="#" onclick="showSchedule();return false;">ตารางแข่ง</a>
-    <a href="#" onclick="showHistory();return false;">ประวัติการแข่งขัน</a>
-    <a href="#" onclick="showMyAccount();return false;" id="nav-myaccount" style="display:none;">👤 บัญชีของฉัน</a>
-    <a href="#" onclick="showRegister();return false;" id="nav-register">สมัคร / Login</a>
+    <a href="#" onclick="goHome();return false;" data-i18n="nav.home">หน้าแรก</a>
+    <a href="#" onclick="showSchedule();return false;" data-i18n="nav.schedule">ตารางแข่ง</a>
+    <a href="#" onclick="showHistory();return false;" data-i18n="nav.history">ประวัติการแข่งขัน</a>
+    <a href="#" onclick="showMyAccount();return false;" id="nav-myaccount" style="display:none;" data-i18n="nav.myaccount">👤 บัญชีของฉัน</a>
+    <a href="#" onclick="showRegister();return false;" id="nav-register" data-i18n="nav.register">สมัคร / Login</a>
   </div>
+  <!-- Language selector -->
+  <select id="lang-selector" onchange="setLang(this.value)"
+    style="font-family:'Kanit',sans-serif;font-size:12px;font-weight:700;padding:5px 10px;border-radius:8px;border:1px solid rgba(245,200,66,0.4);background:rgba(0,0,0,0.3);color:var(--gold);cursor:pointer;outline:none;flex-shrink:0;">
+    <option value="th">🇹🇭 ไทย</option>
+    <option value="la">🇱🇦 ລາວ</option>
+    <option value="en">🇬🇧 EN</option>
+  </select>
   <svg id="nav-logo-big" viewBox="0 0 240 240" width="44" height="44" xmlns="http://www.w3.org/2000/svg" style="flex-shrink:0;">
     <circle cx="120" cy="120" r="116" fill="#1A0A00" stroke="#F5A800" stroke-width="8"/>
     <circle cx="120" cy="120" r="100" fill="none" stroke="#C8102E" stroke-width="4"/>
@@ -2951,7 +2958,7 @@ fns.forEach(function(fn){
 
           <!-- Tab สมัคร / Login -->
           <div style="display:flex;gap:0;margin-bottom:24px;border-radius:10px;overflow:hidden;border:1px solid rgba(255,255,255,0.1);">
-            <button id="tab-register" onclick="switchAuthTab('register')" style="flex:1;font-family:'Kanit',sans-serif;font-weight:700;font-size:14px;padding:12px;border:none;background:var(--green);color:#fff;cursor:pointer;transition:all .2s;">📝 สมัครสมาชิก</button>
+            <button id="tab-register" onclick="switchAuthTab('register')" style="flex:1;font-family:'Kanit',sans-serif;font-weight:700;font-size:14px;padding:12px;border:none;background:var(--green);color:#fff;cursor:pointer;transition:all .2s;" data-i18n="auth.tab.register">📝 สมัครสมาชิก</button>
             <button id="tab-login" onclick="switchAuthTab('login')" style="flex:1;font-family:'Kanit',sans-serif;font-weight:700;font-size:14px;padding:12px;border:none;background:rgba(255,255,255,0.05);color:rgba(240,255,232,0.5);cursor:pointer;transition:all .2s;">🔑 เข้าสู่ระบบ</button>
           </div>
 
@@ -3366,15 +3373,15 @@ fns.forEach(function(fn){
 
     <!-- Tabs (Mobile scroll) -->
     <div class="account-tabs" style="overflow-x:auto;-webkit-overflow-scrolling:touch;white-space:nowrap;display:flex;gap:6px;padding-bottom:4px;margin-bottom:14px;">
-      <button class="acc-tab active" onclick="switchAccTab('dashboard',this)" style="flex-shrink:0;">📊 Dashboard</button>
-      <button class="acc-tab" onclick="switchAccTab('info',this)" style="flex-shrink:0;">👤 โปรไฟล์</button>
-      <button class="acc-tab" onclick="switchAccTab('deposit',this)" style="flex-shrink:0;">💰 เติมเงิน</button>
-      <button class="acc-tab" onclick="switchAccTab('withdraw',this)" style="flex-shrink:0;">🏧 ถอนเงิน</button>
-      <button class="acc-tab" onclick="switchAccTab('bet',this)" style="flex-shrink:0;">🎯 P2P</button>
-      <button class="acc-tab" onclick="switchAccTab('txn',this)" style="flex-shrink:0;">📋 ธุรกรรม</button>
-      <button class="acc-tab" onclick="switchAccTab('support',this)" style="flex-shrink:0;">💬 ติดต่อ</button>
-      <button class="acc-tab" onclick="switchAccTab('referral',this);loadReferralTab();" style="flex-shrink:0;">🎁 แนะนำเพื่อน</button>
-      <button class="acc-tab" id="notif-tab-btn" onclick="switchAccTab('notifications',this)" style="flex-shrink:0;position:relative;">
+      <button class="acc-tab active" onclick="switchAccTab('dashboard',this)" style="flex-shrink:0;" data-i18n="acc.tab.dashboard">📊 Dashboard</button>
+      <button class="acc-tab" onclick="switchAccTab('info',this)" style="flex-shrink:0;" data-i18n="acc.tab.info">👤 โปรไฟล์</button>
+      <button class="acc-tab" onclick="switchAccTab('deposit',this)" style="flex-shrink:0;" data-i18n="acc.tab.deposit">💰 เติมเงิน</button>
+      <button class="acc-tab" onclick="switchAccTab('withdraw',this)" style="flex-shrink:0;" data-i18n="acc.tab.withdraw">🏧 ถอนเงิน</button>
+      <button class="acc-tab" onclick="switchAccTab('bet',this)" style="flex-shrink:0;" data-i18n="acc.tab.bet">🎯 P2P</button>
+      <button class="acc-tab" onclick="switchAccTab('txn',this)" style="flex-shrink:0;" data-i18n="acc.tab.txn">📋 ธุรกรรม</button>
+      <button class="acc-tab" onclick="switchAccTab('support',this)" style="flex-shrink:0;" data-i18n="acc.tab.support">💬 ติดต่อ</button>
+      <button class="acc-tab" onclick="switchAccTab('referral',this);loadReferralTab();" style="flex-shrink:0;" data-i18n="acc.tab.referral">🎁 แนะนำเพื่อน</button>
+      <button class="acc-tab" id="notif-tab-btn" onclick="switchAccTab('notifications',this)" style="flex-shrink:0;position:relative;" data-i18n="acc.tab.notif">
         🔔 แจ้งเตือน
         <span id="notif-tab-badge" style="display:none;position:absolute;top:4px;right:4px;background:var(--red);color:#fff;font-family:'Kanit',sans-serif;font-size:9px;font-weight:900;padding:1px 5px;border-radius:999px;min-width:14px;text-align:center;line-height:1.4;">0</span>
       </button>
@@ -5468,7 +5475,294 @@ fns.forEach(function(fn){
     document.body.appendChild(modal);
   }
 
-  // ===== OAUTH — Facebook & Email =====
+// ===== i18n — MULTI LANGUAGE SYSTEM =====
+const I18N = {
+  th: {
+    // NAV
+    'nav.home': 'หน้าแรก',
+    'nav.schedule': 'ตารางแข่ง',
+    'nav.history': 'ประวัติการแข่งขัน',
+    'nav.register': 'สมัคร / Login',
+    'nav.myaccount': 'บัญชีของฉัน',
+    // HERO
+    'hero.event': '⚡ มหกรรมวัวชนแห่งปี',
+    'hero.btn.schedule': 'ดูตารางแข่ง',
+    'hero.btn.register': 'สมัครบัญชีฟรี',
+    // AUTH
+    'auth.title.register': 'สมัครสมาชิก',
+    'auth.title.login': 'เข้าสู่ระบบ',
+    'auth.tab.register': '📝 สมัครสมาชิก',
+    'auth.tab.login': '🔑 เข้าสู่ระบบ',
+    'auth.fname': 'ชื่อจริง',
+    'auth.lname': 'นามสกุล',
+    'auth.nick': 'ชื่อบัญชี (ชื่อเล่น)',
+    'auth.phone': 'เบอร์โทรศัพท์',
+    'auth.password': 'รหัสผ่าน',
+    'auth.confirm': 'ยืนยันรหัสผ่าน',
+    'auth.refcode': 'รหัสผู้แนะนำ (ถ้ามี)',
+    'auth.btn.register': 'สมัครสมาชิก →',
+    'auth.btn.login': '🔑 เข้าสู่ระบบ →',
+    'auth.or': 'หรือสมัครด้วย',
+    'auth.or.login': 'หรือเข้าด้วย',
+    'auth.have.account': 'มีบัญชีแล้ว?',
+    'auth.no.account': 'ยังไม่มีบัญชี?',
+    'auth.back': 'กลับหน้าแรก',
+    'auth.remember': 'จำบัญชีในอุปกรณ์นี้',
+    'auth.success': 'สมัครสมาชิกสำเร็จแล้วครับ',
+    'auth.goto.account': '👤 ไปยังบัญชีของฉัน',
+    // SCHEDULE
+    'schedule.back': '← กลับหน้าแรก',
+    'schedule.bet.back': '← กลับรายการแข่งขัน',
+    'schedule.bet.balance': 'ยอดเงินคงเหลือ',
+    'schedule.bet.select': 'เลือกฝ่ายที่ต้องการเดิมพัน',
+    'schedule.bet.amount': 'จำนวนเงิน (฿)',
+    'schedule.bet.odds': 'อัตราต่อรอง (x)',
+    'schedule.bet.submit': '🎯 วางเดิมพันและรอจับคู่',
+    'schedule.bet.queue': '📋 รายการเดิมพัน',
+    // ACCOUNT
+    'acc.back': '← กลับหน้าแรก',
+    'acc.balance': 'ยอดเงินคงเหลือ',
+    'acc.logout': 'ออกจากระบบ',
+    'acc.tab.dashboard': '📊 Dashboard',
+    'acc.tab.info': '👤 โปรไฟล์',
+    'acc.tab.deposit': '💰 เติมเงิน',
+    'acc.tab.withdraw': '🏧 ถอนเงิน',
+    'acc.tab.bet': '🎯 P2P',
+    'acc.tab.txn': '📋 ธุรกรรม',
+    'acc.tab.support': '💬 ติดต่อ',
+    'acc.tab.referral': '🎁 แนะนำเพื่อน',
+    'acc.tab.notif': '🔔 แจ้งเตือน',
+    // DEPOSIT
+    'dep.title': '💰 เติมเงิน',
+    'dep.amount': 'จำนวนเงิน',
+    'dep.bank': 'บัญชีรับเงิน',
+    'dep.copy': '📋 คัดลอก',
+    'dep.slip': 'แนบสลิปการโอนเงิน',
+    'dep.submit': '✅ ยืนยันการเติมเงิน',
+    // WITHDRAW
+    'with.title': '🏧 ถอนเงิน',
+    'with.amount': 'จำนวนที่ต้องการถอน',
+    'with.submit': '✅ ยืนยันการถอนเงิน',
+    // NOTIF
+    'notif.title': '🔔 การแจ้งเตือน',
+    'notif.empty': 'ยังไม่มีการแจ้งเตือนครับ',
+    'notif.all': '📋 ทั้งหมด',
+    'notif.success': '✅ สำเร็จ',
+    'notif.error': '❌ ปฏิเสธ',
+    'notif.slip': '🧾 มีสลิป',
+    'notif.clear': '🗑 ล้างทั้งหมด',
+    // REFERRAL
+    'ref.title': '🎁 แนะนำเพื่อน',
+    'ref.code': 'รหัสแนะนำของคุณ',
+    'ref.copy': 'คัดลอก',
+    // LANG
+    'lang.label': '🌐 ภาษา',
+  },
+  la: {
+    // NAV
+    'nav.home': 'ໜ້າຫຼັກ',
+    'nav.schedule': 'ຕາຕະລາງແຂ່ງ',
+    'nav.history': 'ປະຫວັດການແຂ່ງ',
+    'nav.register': 'ສະໝັກ / ເຂົ້າສູ່ລະບົບ',
+    'nav.myaccount': 'ບັນຊີຂອງຂ້ອຍ',
+    // HERO
+    'hero.event': '⚡ ມະຫາກຳວົວຊົນ',
+    'hero.btn.schedule': 'ເບິ່ງຕາຕະລາງ',
+    'hero.btn.register': 'ສະໝັກຟຣີ',
+    // AUTH
+    'auth.title.register': 'ສະໝັກສະມາຊິກ',
+    'auth.title.login': 'ເຂົ້າສູ່ລະບົບ',
+    'auth.tab.register': '📝 ສະໝັກສະມາຊິກ',
+    'auth.tab.login': '🔑 ເຂົ້າສູ່ລະບົບ',
+    'auth.fname': 'ຊື່ຈິງ',
+    'auth.lname': 'ນາມສະກຸນ',
+    'auth.nick': 'ຊື່ບັນຊີ (ຊື່ຫຼິ້ນ)',
+    'auth.phone': 'ເບີໂທລະສັບ',
+    'auth.password': 'ລະຫັດຜ່ານ',
+    'auth.confirm': 'ຢືນຢັນລະຫັດຜ່ານ',
+    'auth.refcode': 'ລະຫັດຜູ້ແນະນຳ (ຖ້າມີ)',
+    'auth.btn.register': 'ສະໝັກສະມາຊິກ →',
+    'auth.btn.login': '🔑 ເຂົ້າສູ່ລະບົບ →',
+    'auth.or': 'ຫຼືສະໝັກດ້ວຍ',
+    'auth.or.login': 'ຫຼືເຂົ້າດ້ວຍ',
+    'auth.have.account': 'ມີບັນຊີແລ້ວ?',
+    'auth.no.account': 'ຍັງບໍ່ມີບັນຊີ?',
+    'auth.back': 'ກັບໜ້າຫຼັກ',
+    'auth.remember': 'ຈຳບັນຊີໃນອຸປະກອນນີ້',
+    'auth.success': 'ສະໝັກສະມາຊິກສຳເລັດແລ້ວ',
+    'auth.goto.account': '👤 ໄປຫາບັນຊີຂອງຂ້ອຍ',
+    // SCHEDULE
+    'schedule.back': '← ກັບໜ້າຫຼັກ',
+    'schedule.bet.back': '← ກັບລາຍການແຂ່ງ',
+    'schedule.bet.balance': 'ຍອດເງິນຄົງເຫຼືອ',
+    'schedule.bet.select': 'ເລືອກຝ່າຍທີ່ຕ້ອງການ',
+    'schedule.bet.amount': 'ຈຳນວນເງິນ (₭)',
+    'schedule.bet.odds': 'ອັດຕາຕໍ່ລອງ (x)',
+    'schedule.bet.submit': '🎯 ວາງເດີມພັນ',
+    'schedule.bet.queue': '📋 ລາຍການເດີມພັນ',
+    // ACCOUNT
+    'acc.back': '← ກັບໜ້າຫຼັກ',
+    'acc.balance': 'ຍອດເງິນຄົງເຫຼືອ',
+    'acc.logout': 'ອອກຈາກລະບົບ',
+    'acc.tab.dashboard': '📊 Dashboard',
+    'acc.tab.info': '👤 ໂປຣໄຟລ໌',
+    'acc.tab.deposit': '💰 ເຕີມເງິນ',
+    'acc.tab.withdraw': '🏧 ຖອນເງິນ',
+    'acc.tab.bet': '🎯 P2P',
+    'acc.tab.txn': '📋 ທຸລະກຳ',
+    'acc.tab.support': '💬 ຕິດຕໍ່',
+    'acc.tab.referral': '🎁 ແນະນຳໝູ່',
+    'acc.tab.notif': '🔔 ແຈ້ງເຕືອນ',
+    // DEPOSIT
+    'dep.title': '💰 ເຕີມເງິນ',
+    'dep.amount': 'ຈຳນວນເງິນ',
+    'dep.bank': 'ບັນຊີຮັບເງິນ',
+    'dep.copy': '📋 ສຳເນົາ',
+    'dep.slip': 'ແນບສລິບການໂອນ',
+    'dep.submit': '✅ ຢືນຢັນການເຕີມ',
+    // WITHDRAW
+    'with.title': '🏧 ຖອນເງິນ',
+    'with.amount': 'ຈຳນວນທີ່ຕ້ອງການຖອນ',
+    'with.submit': '✅ ຢືນຢັນການຖອນ',
+    // NOTIF
+    'notif.title': '🔔 ການແຈ້ງເຕືອນ',
+    'notif.empty': 'ຍັງບໍ່ມີການແຈ້ງເຕືອນ',
+    'notif.all': '📋 ທັງໝົດ',
+    'notif.success': '✅ ສຳເລັດ',
+    'notif.error': '❌ ປະຕິເສດ',
+    'notif.slip': '🧾 ມີສລິບ',
+    'notif.clear': '🗑 ລ້າງທັງໝົດ',
+    // REFERRAL
+    'ref.title': '🎁 ແນະນຳໝູ່',
+    'ref.code': 'ລະຫັດແນະນຳຂອງທ່ານ',
+    'ref.copy': 'ສຳເນົາ',
+    // LANG
+    'lang.label': '🌐 ພາສາ',
+  },
+  en: {
+    // NAV
+    'nav.home': 'Home',
+    'nav.schedule': 'Schedule',
+    'nav.history': 'Match History',
+    'nav.register': 'Sign Up / Login',
+    'nav.myaccount': 'My Account',
+    // HERO
+    'hero.event': '⚡ Bull Fight Championship',
+    'hero.btn.schedule': 'View Schedule',
+    'hero.btn.register': 'Register Free',
+    // AUTH
+    'auth.title.register': 'Create Account',
+    'auth.title.login': 'Login',
+    'auth.tab.register': '📝 Register',
+    'auth.tab.login': '🔑 Login',
+    'auth.fname': 'First Name',
+    'auth.lname': 'Last Name',
+    'auth.nick': 'Username',
+    'auth.phone': 'Phone Number',
+    'auth.password': 'Password',
+    'auth.confirm': 'Confirm Password',
+    'auth.refcode': 'Referral Code (optional)',
+    'auth.btn.register': 'Register →',
+    'auth.btn.login': '🔑 Login →',
+    'auth.or': 'or sign up with',
+    'auth.or.login': 'or login with',
+    'auth.have.account': 'Already have account?',
+    'auth.no.account': 'No account yet?',
+    'auth.back': 'Back to Home',
+    'auth.remember': 'Remember me on this device',
+    'auth.success': 'Registration successful!',
+    'auth.goto.account': '👤 Go to My Account',
+    // SCHEDULE
+    'schedule.back': '← Back to Home',
+    'schedule.bet.back': '← Back to Schedule',
+    'schedule.bet.balance': 'Balance',
+    'schedule.bet.select': 'Select your side',
+    'schedule.bet.amount': 'Amount (฿)',
+    'schedule.bet.odds': 'Odds (x)',
+    'schedule.bet.submit': '🎯 Place Bet',
+    'schedule.bet.queue': '📋 Bet Queue',
+    // ACCOUNT
+    'acc.back': '← Back to Home',
+    'acc.balance': 'Balance',
+    'acc.logout': 'Logout',
+    'acc.tab.dashboard': '📊 Dashboard',
+    'acc.tab.info': '👤 Profile',
+    'acc.tab.deposit': '💰 Deposit',
+    'acc.tab.withdraw': '🏧 Withdraw',
+    'acc.tab.bet': '🎯 P2P',
+    'acc.tab.txn': '📋 Transactions',
+    'acc.tab.support': '💬 Support',
+    'acc.tab.referral': '🎁 Referral',
+    'acc.tab.notif': '🔔 Notifications',
+    // DEPOSIT
+    'dep.title': '💰 Deposit',
+    'dep.amount': 'Amount',
+    'dep.bank': 'Bank Account',
+    'dep.copy': '📋 Copy',
+    'dep.slip': 'Attach transfer slip',
+    'dep.submit': '✅ Confirm Deposit',
+    // WITHDRAW
+    'with.title': '🏧 Withdraw',
+    'with.amount': 'Amount to withdraw',
+    'with.submit': '✅ Confirm Withdrawal',
+    // NOTIF
+    'notif.title': '🔔 Notifications',
+    'notif.empty': 'No notifications yet',
+    'notif.all': '📋 All',
+    'notif.success': '✅ Success',
+    'notif.error': '❌ Rejected',
+    'notif.slip': '🧾 Has Slip',
+    'notif.clear': '🗑 Clear All',
+    // REFERRAL
+    'ref.title': '🎁 Refer a Friend',
+    'ref.code': 'Your referral code',
+    'ref.copy': 'Copy',
+    // LANG
+    'lang.label': '🌐 Language',
+  }
+};
+
+let _lang = localStorage.getItem('bw_lang') || 'th';
+
+function t(key) {
+  return I18N[_lang]?.[key] || I18N['th']?.[key] || key;
+}
+
+function setLang(lang) {
+  _lang = lang;
+  localStorage.setItem('bw_lang', lang);
+  applyLang();
+  // อัปเดต dropdown
+  const sel = document.getElementById('lang-selector');
+  if (sel) sel.value = lang;
+}
+
+function applyLang() {
+  // แปล elements ที่มี data-i18n attribute
+  document.querySelectorAll('[data-i18n]').forEach(el => {
+    const key = el.getAttribute('data-i18n');
+    const attr = el.getAttribute('data-i18n-attr');
+    if (attr) {
+      el.setAttribute(attr, t(key));
+    } else {
+      // เก็บ child elements ไว้ถ้ามี
+      if (el.children.length === 0) {
+        el.textContent = t(key);
+      } else {
+        // แค่เปลี่ยน text node แรก
+        const textNode = [...el.childNodes].find(n => n.nodeType === 3 && n.textContent.trim());
+        if (textNode) textNode.textContent = t(key);
+        else el.firstChild && (el.firstChild.textContent = t(key));
+      }
+    }
+  });
+  // เปลี่ยน placeholder
+  document.querySelectorAll('[data-i18n-placeholder]').forEach(el => {
+    el.placeholder = t(el.getAttribute('data-i18n-placeholder'));
+  });
+  // อัปเดต html lang attribute
+  document.documentElement.lang = _lang === 'th' ? 'th' : _lang === 'la' ? 'lo' : 'en';
+}
 
   // ── Facebook OAuth ──
   window.loginWithFacebook = async function() {
@@ -5627,6 +5921,11 @@ fns.forEach(function(fn){
   }
   // auto-fill remember
   _autoFillLogin();
+  // apply saved language
+  const _savedLang = localStorage.getItem('bw_lang') || 'th';
+  const _langSel = document.getElementById('lang-selector');
+  if (_langSel) _langSel.value = _savedLang;
+  if (_savedLang !== 'th') applyLang();
 
   // ── Auth Tab Switch ──
   window.switchAuthTab = window._real_switchAuthTab = function switchAuthTab(tab) {
