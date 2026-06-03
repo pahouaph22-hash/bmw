@@ -7652,6 +7652,24 @@ setInterval(() => {
   }
 
 
+  // ── DEPOSIT PANEL GUARDIAN ──
+  // ตรวจทุก 200ms: ถ้า deposit panel active แต่ไม่มี step ไหนแสดง → force step1
+  setInterval(function _depGuardian() {
+    var dep = document.getElementById('acc-deposit');
+    if (!dep || !dep.classList.contains('active')) return;
+    var s1 = document.getElementById('dep-step1');
+    var s2 = document.getElementById('dep-step2');
+    var s3 = document.getElementById('dep-step3');
+    if (!s1) return;
+    var s2vis = s2 && s2.style.display === 'block';
+    var s3vis = s3 && s3.style.display === 'block';
+    var s1vis = s1.style.display === 'block';
+    // ถ้าไม่มี step ไหนแสดงเลย → force step1
+    if (!s1vis && !s2vis && !s3vis) {
+      s1.style.display = 'block';
+    }
+  }, 200);
+
   window.switchAccTab = window._real_switchAccTab = function switchAccTab(id, el) {
     document.querySelectorAll('.acc-panel').forEach(p => p.classList.remove('active'));
     document.querySelectorAll('.acc-tab').forEach(t => t.classList.remove('active'));
