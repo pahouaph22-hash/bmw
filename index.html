@@ -7014,6 +7014,13 @@ setInterval(() => {
 
     // แสดงหน้าก่อน
     showMyAccount();
+    // reset deposit กลับ step1 เสมอ
+    const _s1 = document.getElementById('dep-step1');
+    const _s2 = document.getElementById('dep-step2');
+    const _s3 = document.getElementById('dep-step3');
+    if (_s1) _s1.style.display = 'block';
+    if (_s2) _s2.style.display = 'none';
+    if (_s3) _s3.style.display = 'none';
     loadDashboard();
     loadDepBanks();
 
@@ -7612,7 +7619,17 @@ setInterval(() => {
     }
     if (id === 'dashboard') loadDashboard();
     if (id === 'txn')       loadTxnHistory();
-    if (id === 'deposit')   { loadDepHistory(); loadDepBanks(); }
+    if (id === 'deposit') {
+      // reset กลับ step1 เสมอเมื่อเปิด tab เติมเงิน
+      const s1 = document.getElementById('dep-step1');
+      const s2 = document.getElementById('dep-step2');
+      const s3 = document.getElementById('dep-step3');
+      if (s1) s1.style.display = 'block';
+      if (s2) s2.style.display = 'none';
+      if (s3) s3.style.display = 'none';
+      loadDepHistory();
+      loadDepBanks();
+    }
     if (id === 'withdraw')  { loadWithdrawPanel(); loadWithHistory(); }
     if (id === 'bet')       loadBetHistory();
     if (id === 'notifications') {
