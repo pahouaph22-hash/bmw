@@ -7,7 +7,7 @@
 <!-- Phetsarath OT — ฟอนต์หลักลาว -->
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Phetsarath:wght@400;700&family=Noto+Sans+Lao:wdth@100;400..900;wght@100..900&family=Kanit:wght@400;500;700;900&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Phetsarath:wght@400;700&family=Noto+Sans+Lao:wght@400;700;900&family=Kanit:wght@400;500;700;900&display=swap" rel="stylesheet">
 
 <script>
 // ── Global stubs ── รันก่อน CDN และ main script ──
@@ -3105,8 +3105,8 @@ input, textarea, select, button {
 
     <!-- LIST VIEW: แสดงรายการทั้งหมด -->
     <div id="sched-list-view">
-      <button class="schedule-back" onclick="hideSchedule()">← กลับหน้าแรก</button>
-      <h2 class="section-title">ตาราง<span class="red">การแข่งขัน</span></h2>
+      <button class="schedule-back" onclick="hideSchedule()" data-i18n="schedule.back">← กลับหน้าแรก</button>
+      <h2 class="section-title"><span data-i18n="schedule.title.prefix">ตาราง</span><span class="red" data-i18n="schedule.title.suffix">การแข่งขัน</span></h2>
       <div class="section-line"></div>
       <div id="schedule-fb-wrap">
         <div style="text-align:center;padding:48px;color:rgba(255,248,236,0.4);font-family:'Phetsarath OT','Phetsarath','Noto Sans Lao','Kanit',sans-serif;">
@@ -3190,7 +3190,7 @@ input, textarea, select, button {
 
     <!-- DETAIL VIEW: หน้ารายละเอียดและวางเดิมพัน -->
     <div id="sched-detail-view" style="display:none;">
-      <button class="schedule-back" onclick="closeMatchDetail()">← กลับรายการแข่งขัน</button>
+      <button class="schedule-back" onclick="closeMatchDetail()" data-i18n="schedule.bet.back">← กลับรายการแข่งขัน</button>
 
       <!-- หัวข้อคู่แข่ง -->
       <div id="detail-header"></div>
@@ -4302,6 +4302,22 @@ var I18N = {
     'auth.success': 'สมัครสมาชิกสำเร็จแล้วครับ',
     'auth.goto.account': '👤 ไปยังบัญชีของฉัน',
     // SCHEDULE
+    'schedule.title': 'ตารางการแข่งขัน',
+    'schedule.title.prefix': 'ตาราง',
+    'schedule.title.suffix': 'การแข่งขัน',
+    'schedule.loading': 'กำลังโหลด...',
+    'schedule.empty': 'ยังไม่มีรายการแข่งขันครับ',
+    'schedule.upcoming': '⏳ รอแข่ง',
+    'schedule.live': '🔴 กำลังแข่ง',
+    'schedule.done': '✅ จบแล้ว',
+    'bet.panel.title': '🎯 วางเดิมพัน P2P',
+    'bet.select': 'เลือกฝั่งที่ต้องการเดิมพัน',
+    'bet.amount.label': 'จำนวนเงิน (₭)',
+    'bet.odds.label': 'อัตราต่อรอง (x)',
+    'bet.submit': '🎯 วางเดิมพันและรอจับคู่',
+    'bet.queue.title': '📋 รายการเดิมพัน',
+    'bet.queue.empty': 'ยังไม่มีรายการเดิมพัน',
+    'bet.balance': 'ยอดเงินคงเหลือ',
     'schedule.back': '← กลับหน้าแรก',
     'schedule.bet.back': '← กลับรายการแข่งขัน',
     'schedule.bet.balance': 'ยอดเงินคงเหลือ',
@@ -4457,6 +4473,22 @@ var I18N = {
     'auth.success': 'ສະໝັກສະມາຊິກສຳເລັດແລ້ວ',
     'auth.goto.account': '👤 ໄປຫາບັນຊີຂອງຂ້ອຍ',
     // SCHEDULE
+    'schedule.title': 'ຕາຕະລາງການແຂ່ງ',
+    'schedule.title.prefix': 'ຕາຕະລາງ',
+    'schedule.title.suffix': 'ການແຂ່ງ',
+    'schedule.loading': 'ກຳລັງໂຫຼດ...',
+    'schedule.empty': 'ຍັງບໍ່ມີລາຍການແຂ່ງ',
+    'schedule.upcoming': '⏳ ລໍຖ້າ',
+    'schedule.live': '🔴 ກຳລັງແຂ່ງ',
+    'schedule.done': '✅ ຈົບແລ້ວ',
+    'bet.panel.title': '🎯 ວາງເດີມພັນ P2P',
+    'bet.select': 'ເລືອກຝ່າຍທີ່ຕ້ອງການ',
+    'bet.amount.label': 'ຈຳນວນເງິນ (₭)',
+    'bet.odds.label': 'ອັດຕາຕໍ່ລອງ (x)',
+    'bet.submit': '🎯 ວາງເດີມພັນ',
+    'bet.queue.title': '📋 ລາຍການເດີມພັນ',
+    'bet.queue.empty': 'ຍັງບໍ່ມີລາຍການ',
+    'bet.balance': 'ຍອດເງິນຄົງເຫຼືອ',
     'schedule.back': '← ກັບໜ້າຫຼັກ',
     'schedule.bet.back': '← ກັບລາຍການແຂ່ງ',
     'schedule.bet.balance': 'ຍອດເງິນຄົງເຫຼືອ',
@@ -4612,6 +4644,22 @@ var I18N = {
     'auth.success': 'Registration successful!',
     'auth.goto.account': '👤 Go to My Account',
     // SCHEDULE
+    'schedule.title': 'Match Schedule',
+    'schedule.title.prefix': '',
+    'schedule.title.suffix': 'Match Schedule',
+    'schedule.loading': 'Loading...',
+    'schedule.empty': 'No matches available',
+    'schedule.upcoming': '⏳ Upcoming',
+    'schedule.live': '🔴 Live',
+    'schedule.done': '✅ Finished',
+    'bet.panel.title': '🎯 Place P2P Bet',
+    'bet.select': 'Select your side',
+    'bet.amount.label': 'Amount (₭)',
+    'bet.odds.label': 'Odds (x)',
+    'bet.submit': '🎯 Place Bet',
+    'bet.queue.title': '📋 Bet Queue',
+    'bet.queue.empty': 'No bets yet',
+    'bet.balance': 'Balance',
     'schedule.back': '← Back to Home',
     'schedule.bet.back': '← Back to Schedule',
     'schedule.bet.balance': 'Balance',
@@ -4832,9 +4880,21 @@ function applyLang() {
   // ── 9. About page ──
   setQS('#page-about .history-back', t('about.back'));
 
-  // ── 10. Schedule page back button ──
-  const schedBack = document.querySelector('.schedule-back');
-  if (schedBack) schedBack.textContent = t('schedule.back');
+  // ── 10. Schedule page ──
+  document.querySelectorAll('[data-i18n="schedule.back"]').forEach(e => e.textContent = t('schedule.back'));
+  document.querySelectorAll('[data-i18n="schedule.bet.back"]').forEach(e => e.textContent = t('schedule.bet.back'));
+  document.querySelectorAll('[data-i18n="schedule.title.prefix"]').forEach(e => e.textContent = t('schedule.title.prefix'));
+  document.querySelectorAll('[data-i18n="schedule.title.suffix"]').forEach(e => e.textContent = t('schedule.title.suffix'));
+  // Balance label
+  setQS('.bet-balance-label', t('bet.balance'));
+  // Submit button
+  document.querySelectorAll('.bet-submit-btn').forEach(b => b.textContent = t('bet.submit'));
+  // Queue title
+  setQS('.bet-queue-title', t('bet.queue.title'));
+  // Status badges
+  document.querySelectorAll('.status-upcoming').forEach(e => e.textContent = t('schedule.upcoming'));
+  document.querySelectorAll('.status-live').forEach(e => e.textContent = t('schedule.live'));
+  document.querySelectorAll('.status-done').forEach(e => e.textContent = t('schedule.done'));
 
   // ── 11. History page ──
   document.querySelectorAll('.history-back').forEach(e => {
@@ -8091,15 +8151,16 @@ function applyLang() {
     document.getElementById('page-register').style.display = 'none';
     document.getElementById('page-schedule').style.display = 'block';
     window.scrollTo(0, 0);
+    setTimeout(applyLang, 100);
     // ซ่อน mock data แสดง real data
     const mockWrap = document.getElementById('bet-mock-wrap');
     if (mockWrap) mockWrap.style.display = 'none';
     const wrap = document.getElementById('schedule-fb-wrap');
     if (!wrap) return;
-    wrap.innerHTML = '<div style="text-align:center;padding:48px;color:rgba(255,248,236,0.4);font-family:Kanit,sans-serif;"><div style="font-size:32px;margin-bottom:12px;">⏳</div>กำลังโหลด...</div>';
+    wrap.innerHTML = `<div style="text-align:center;padding:48px;color:rgba(255,248,236,0.4);font-family:'Phetsarath','Noto Sans Lao','Kanit',sans-serif;"><div style="font-size:32px;margin-bottom:12px;">⏳</div>${t('schedule.loading')}</div>`;
     const { data } = await sb.from('matches').select('*').in('status',['upcoming','live']).order('date',{ascending:true}).order('created_at',{ascending:false});
     if (!data?.length) {
-      wrap.innerHTML = '<div style="text-align:center;padding:48px;color:rgba(255,248,236,0.4);font-family:Kanit,sans-serif;"><div style="font-size:32px;margin-bottom:12px;">🐂</div>ยังไม่มีรายการแข่งขันครับ</div>';
+      wrap.innerHTML = `<div style="text-align:center;padding:48px;color:rgba(255,248,236,0.4);font-family:'Phetsarath','Noto Sans Lao','Kanit',sans-serif;"><div style="font-size:32px;margin-bottom:12px;">🐂</div>${t('schedule.empty')}</div>`;
       return;
     }
     wrap.innerHTML = '';
@@ -8143,8 +8204,13 @@ function applyLang() {
       wrap.appendChild(card);
     });
   }
-  window.showAbout = window._real_showAbout = function showAbout() {
-    document.getElementById('main-content').style.display    = 'none';
+  window.hideSchedule = window._real_hideSchedule = function hideSchedule() {
+    document.getElementById('page-schedule').style.display  = 'none';
+    document.getElementById('main-content').style.display   = 'block';
+    window.scrollTo(0, 0);
+  };
+
+  window.showAbout = window._real_showAbout = function showAbout() {    document.getElementById('main-content').style.display    = 'none';
     document.getElementById('page-register').style.display   = 'none';
     document.getElementById('page-schedule').style.display   = 'none';
     document.getElementById('page-history').style.display    = 'none';
