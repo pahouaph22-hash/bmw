@@ -3750,7 +3750,7 @@ input, textarea, select, button {
               </div>
             </div>
           </div><!-- /dep-bank-info-wrap -->
-        </div><!-- /margin-bottom:16px wrapper -->
+        </div><!-- /bank-wrapper margin-bottom:16px -->
 
         <!-- คำแนะนำ -->
         <div class="acc-notice" style="margin-bottom:14px;">
@@ -7135,9 +7135,9 @@ setInterval(() => {
     try {
       const { data, error } = await sb.from('settings').select('value').eq('key','bankAccounts').maybeSingle();
       if (error || !data) {
-        console.warn('[loadDepBanks] no data or error:', error);
+        console.warn('[loadDepBanks]', error?.message || 'no data');
         const wrap = document.getElementById('dep-bank-info-wrap');
-        if (wrap) wrap.innerHTML = `<div style="text-align:center;padding:20px;background:rgba(255,200,66,0.08);border-radius:12px;border:1px solid rgba(245,200,66,0.2);"><div style="font-size:28px;margin-bottom:8px;">🔒</div><div style="font-family:'Phetsarath','Noto Sans Lao','Kanit',sans-serif;font-size:13px;color:rgba(240,255,232,0.6);">ไม่สามารถโหลดบัญชีรับเงินได้<br>กรุณาติดต่อ Admin ครับ</div></div>`;
+        if (wrap) wrap.innerHTML = `<div style="text-align:center;padding:20px;background:rgba(248,113,113,0.08);border-radius:12px;border:1px solid rgba(248,113,113,0.2);"><div style="font-size:24px;margin-bottom:8px;">⚠️</div><div style="font-family:'Phetsarath','Noto Sans Lao','Kanit',sans-serif;font-size:13px;color:rgba(240,255,232,0.6);">ไม่สามารถโหลดบัญชีรับเงินได้<br>กรุณารีเฟรชหรือติดต่อ Admin ครับ</div></div>`;
         return;
       }
 
@@ -7161,9 +7161,9 @@ setInterval(() => {
         }
       }
     } catch(err) {
-      console.error('[loadDepBanks] error:', err);
-      const wrap = document.getElementById('dep-bank-info-wrap');
-      if (wrap) wrap.innerHTML = `<div style="text-align:center;padding:20px;background:rgba(248,113,113,0.08);border-radius:12px;border:1px solid rgba(248,113,113,0.2);"><div style="font-size:24px;margin-bottom:8px;">⚠️</div><div style="font-family:'Phetsarath','Noto Sans Lao','Kanit',sans-serif;font-size:13px;color:rgba(240,255,232,0.6);">โหลดข้อมูลบัญชีไม่สำเร็จ<br>กรุณารีเฟรชหรือติดต่อ Admin ครับ</div></div>`;
+      console.error('[loadDepBanks]', err);
+      const wrapErr = document.getElementById('dep-bank-info-wrap');
+      if (wrapErr) wrapErr.innerHTML = '<div style="text-align:center;padding:20px;"><div style="font-size:24px;">⚠️</div><div style="font-family:Kanit,sans-serif;font-size:13px;color:rgba(240,255,232,0.6);">โหลดข้อมูลบัญชีไม่สำเร็จ<br>กรุณาติดต่อ Admin ครับ</div></div>';
     }
     // ── ยืนยันว่า step1 ยังแสดงอยู่เสมอหลัง loadDepBanks ──
     const s1 = document.getElementById('dep-step1');
@@ -7179,7 +7179,7 @@ setInterval(() => {
   function goDepStep2() {
     const amt = parseInt(document.getElementById('dep-amount').value) || 0;
     if (amt < 100) { showFEToast('⚠️ กรุณาระบุจำนวนเงินขั้นต่ำ 100 ₭ครับ'); return; }
-    if (!_depBanks || _depBanks.length === 0) { showFEToast('⚠️ ขณะนี้ยังไม่มีบัญชีรับเงิน กรุณาติดต่อ Admin ครับ'); return; }
+    if (!_depBanks || _depBanks.length === 0) { showFEToast('⚠️ ยังไม่มีบัญชีรับเงิน กรุณาติดต่อ Admin ครับ'); return; }
     const fmt = amt.toLocaleString() + ' ₭';
     document.getElementById('dep-confirm-amount').textContent  = fmt;
     document.getElementById('dep-notice-amount').textContent   = amt.toLocaleString() + ' ₭';
@@ -7275,7 +7275,7 @@ setInterval(() => {
         qrPh.style.display  = 'none';
       } else {
         qrImg.style.display = 'none';
-        qrPh.style.display  = 'flex';
+        qrPh.style.display  = 'block';
       }
     }
   }
@@ -7787,7 +7787,7 @@ setInterval(() => {
     const amount  = parseInt(document.getElementById('dep-amount').value);
     const bank    = document.getElementById('dep-bank-from').value;
     const slipFile = document.getElementById('dep-slip-file')?.files?.[0];
-    const hasSlip = slipFile && slipFile.size > 0;
+    const hasSlip = !!(slipFile && slipFile.size > 0);
     if (!amount || amount < 100) { showFEToast('⚠️ กรุณาระบุจำนวนเงินขั้นต่ำ 100 ₭ครับ'); return; }
     if (!bank)    { showFEToast('⚠️ กรุณาเลือกธนาคารที่โอนจากครับ'); return; }
     if (!hasSlip) { showFEToast('⚠️ กรุณาแนบสลิปการโอนเงินครับ'); return; }
