@@ -1722,14 +1722,7 @@ input, textarea, select, button {
 
       <!-- ═══════ PANEL: ประวัติการดำเนินงาน ═══════ -->
       <div class="panel" id="panel-worklog">
-        <div class="panel-layout">
-          <div class="panel-subnav">
-            <div class="panel-subnav-title">WORKLOG</div>
-          <div class="sub-nav-item active" data-sec="wl-main" onclick="switchSubNav('worklog','wl-main')">📋 ประวัติทั้งหมด</div>
-          </div>
-          <div class="panel-subcontent">
-          <div class="sub-pane active" id="wl-main">
-        <div class="panel-header"><h2 class="panel-title">📋 ประวัติการดำเนินงาน</h2></div>
+<div class="panel-header"><h2 class="panel-title">📋 ประวัติการดำเนินงาน</h2></div>
         <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-bottom:16px;background:#fafaf8;border:1px solid #e5e5e0;border-radius:10px;padding:12px 16px;">
           <input type="text" id="wl-search" placeholder="🔍 ค้นหาชื่อพนักงาน..." oninput="renderWorklog()" style="padding:7px 12px;border:1px solid #ddd;border-radius:7px;font-family:'Phetsarath','Noto Sans Lao','Kanit',sans-serif;font-size:13px;min-width:180px;">
           <select id="wl-staff" onchange="renderWorklog()" style="padding:7px 12px;border:1px solid #ddd;border-radius:7px;font-family:'Phetsarath','Noto Sans Lao','Kanit',sans-serif;font-size:13px;"><option value="">👤 พนักงานทุกคน</option></select>
@@ -1772,10 +1765,8 @@ input, textarea, select, button {
             <tbody id="wl-tbody"><tr><td colspan="5" style="text-align:center;padding:32px;color:#aaa;">กำลังโหลด...</td></tr></tbody>
           </table>
         </div>
-          </div>
-          </div>
-        </div>
       </div>
+
 
       <!-- STAFF PANEL -->
       <div class="panel" id="panel-staff">
