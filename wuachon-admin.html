@@ -4450,8 +4450,7 @@ function renderStaffTable() {
       <td style="font-size:11px;color:#aaa;">${s.last_login ? fmtDate(s.last_login) : 'ยังไม่เคย'}</td>
       <td>
         <div style="display:flex;gap:4px;">
-          <button class="btn" onclick="openStaffProfile('${s.id}','${s.username}','${(s.full_name||s.username).replace(/'/g,\"\")}','${s.role}')" style="font-size:11px;padding:4px 9px;background:#1B6B2F;color:#fff;border-color:#1B6B2F;">👁 ดูประวัติ</button>
-          <button class="btn" onclick="openStaffProfile(\'${s.id}\',\'${s.username}\',\'${(s.full_name||s.username).replace(/\'/g,\"\")}\',\'${s.role}\')" style="font-size:11px;padding:4px 9px;background:#1B6B2F;color:#fff;border-color:#1B6B2F;">👁 ดูประวัติ</button>
+          <button class="btn" onclick="openStaffProfile('${s.id}','${s.username}','${s.full_name||s.username}','${s.role}')" style="font-size:11px;padding:4px 9px;background:#1B6B2F;color:#fff;border-color:#1B6B2F;">👁 ดูประวัติ</button>
           <button class="btn btn-gold" onclick="editStaffPass('${s.id}','${s.username}')" style="font-size:11px;padding:4px 9px;">🔑 รีเซ็ต</button>
           <button class="btn btn-red" onclick="deleteStaff('${s.id}','${s.username}')" style="font-size:11px;padding:4px 9px;">🗑</button>
         </div>
