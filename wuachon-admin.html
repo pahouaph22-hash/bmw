@@ -259,6 +259,22 @@ tr:hover td{background:#fafafa;}
   .search-bar{ flex-direction:column; }
   .search-input{ min-width:0; width:100%; }
 }
+  /* ── Staff Profile Modal Tabs ── */
+  .sp-tab {
+    padding: 10px 16px;
+    border: none;
+    border-bottom: 3px solid transparent;
+    background: transparent;
+    font-family: 'Phetsarath','Noto Sans Lao','Kanit',sans-serif;
+    font-size: 12px;
+    font-weight: 700;
+    cursor: pointer;
+    color: #888;
+    transition: all .15s;
+    white-space: nowrap;
+  }
+  .sp-tab.active { color: #1B6B2F; border-bottom-color: #1B6B2F; }
+  .sp-tab:hover:not(.active) { color: #555; background: #f9f9f7; }
 </style>
 
 <style>
@@ -1353,10 +1369,21 @@ input, textarea, select, button {
         <div class="card-title">🛡️ ความปลอดภัย (Security)
           <span style="font-size:11px;font-weight:400;color:#aaa;">ตั้งค่า Supabase</span>
         </div>
-        <div id="rls-status-banner" style="background:#f0fff4;border:1px solid #b7ebc8;border-radius:8px;padding:12px 14px;margin-bottom:12px;font-size:12px;color:#1a7a3a;font-family:'Phetsarath','Noto Sans Lao','Kanit',sans-serif;line-height:1.7;">
-          ✅ <strong>RLS เปิดใช้งานแล้ว</strong> — table staff และ staff_logs ได้รับการป้องกันแล้วครับ
+        <div style="background:#fff8f8;border:1px solid #fde8e8;border-radius:8px;padding:12px 14px;margin-bottom:12px;font-size:12px;color:#c0392b;font-family:'Phetsarath','Noto Sans Lao','Kanit',sans-serif;line-height:1.7;">
+          ⚠️ <strong>table staff และ staff_logs ยังไม่มี RLS</strong> — กรุณารัน SQL ด้านล่างใน Supabase SQL Editor ทันที
         </div>
+        <div style="background:#1e1e2e;border-radius:8px;padding:14px;font-family:monospace;font-size:11px;color:#a6e3a1;overflow-x:auto;margin-bottom:10px;line-height:1.9;white-space:pre;">
+<span style="color:#89b4fa;">-- เปิด RLS</span>
+ALTER TABLE staff ENABLE ROW LEVEL SECURITY;
+ALTER TABLE staff_logs ENABLE ROW LEVEL SECURITY;
 
+<span style="color:#89b4fa;">-- บล็อก client โดยตรง</span>
+CREATE POLICY "block_direct" ON staff USING (false);
+CREATE POLICY "block_direct" ON staff_logs USING (false);</div>
+        <button onclick="navigator.clipboard?.writeText('ALTER TABLE staff ENABLE ROW LEVEL SECURITY;\nALTER TABLE staff_logs ENABLE ROW LEVEL SECURITY;\nCREATE POLICY \"block_direct\" ON staff USING (false);\nCREATE POLICY \"block_direct\" ON staff_logs USING (false);').then(()=>showToast('✅ คัดลอก SQL แล้วครับ'))"
+          style="font-family:'Phetsarath','Noto Sans Lao','Kanit',sans-serif;font-size:12px;font-weight:700;padding:7px 16px;border-radius:7px;border:1px solid #e0e0e0;background:#fff;color:#555;cursor:pointer;">
+          📋 คัดลอก SQL
+        </button>
       </div>
 
       <!-- STAFF PANEL -->
@@ -1432,6 +1459,97 @@ input, textarea, select, button {
       </div>
 
     </div>
+  </div>
+</div>
+
+
+<!-- ════════════════════════════════════════════
+     STAFF PROFILE MODAL — ประวัติพนักงานรายคน
+════════════════════════════════════════════ -->
+<div id="staff-profile-modal" style="display:none;position:fixed;inset:0;z-index:9999;background:rgba(0,0,0,0.55);backdrop-filter:blur(2px);overflow-y:auto;">
+  <div style="max-width:860px;margin:32px auto;background:#fff;border-radius:16px;box-shadow:0 20px 60px rgba(0,0,0,0.25);overflow:hidden;">
+
+    <!-- Header -->
+    <div style="background:linear-gradient(135deg,#1B6B2F,#27943F);padding:20px 24px;display:flex;align-items:center;justify-content:space-between;">
+      <div style="display:flex;align-items:center;gap:14px;">
+        <div id="sp-avatar" style="width:52px;height:52px;border-radius:50%;background:rgba(255,255,255,0.2);display:flex;align-items:center;justify-content:center;font-size:22px;font-weight:900;color:#fff;font-family:'Kanit',sans-serif;flex-shrink:0;">S</div>
+        <div>
+          <div id="sp-name" style="font-family:'Phetsarath','Noto Sans Lao','Kanit',sans-serif;font-size:18px;font-weight:900;color:#fff;"></div>
+          <div style="display:flex;gap:8px;margin-top:4px;">
+            <span id="sp-role-badge" style="font-size:11px;font-weight:700;padding:2px 10px;border-radius:999px;background:rgba(255,255,255,0.2);color:#fff;font-family:'Kanit',sans-serif;"></span>
+            <span id="sp-status-badge" style="font-size:11px;font-weight:700;padding:2px 10px;border-radius:999px;background:rgba(255,255,255,0.2);color:#fff;font-family:'Kanit',sans-serif;"></span>
+          </div>
+        </div>
+      </div>
+      <button onclick="closeStaffProfile()" style="background:rgba(255,255,255,0.15);border:none;color:#fff;font-size:20px;width:36px;height:36px;border-radius:50%;cursor:pointer;display:flex;align-items:center;justify-content:center;">✕</button>
+    </div>
+
+    <!-- Stat Cards -->
+    <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:0;border-bottom:1px solid #f0f0ec;">
+      <div style="padding:16px;text-align:center;border-right:1px solid #f0f0ec;">
+        <div id="sp-stat-total" style="font-size:24px;font-weight:900;color:#1B6B2F;font-family:'Kanit',sans-serif;">—</div>
+        <div style="font-size:11px;color:#aaa;font-family:'Kanit',sans-serif;margin-top:2px;">กิจกรรมทั้งหมด</div>
+      </div>
+      <div style="padding:16px;text-align:center;border-right:1px solid #f0f0ec;">
+        <div id="sp-stat-dep" style="font-size:24px;font-weight:900;color:#16a34a;font-family:'Kanit',sans-serif;">—</div>
+        <div style="font-size:11px;color:#aaa;font-family:'Kanit',sans-serif;margin-top:2px;">อนุมัติเติมเงิน</div>
+      </div>
+      <div style="padding:16px;text-align:center;border-right:1px solid #f0f0ec;">
+        <div id="sp-stat-with" style="font-size:24px;font-weight:900;color:#dc2626;font-family:'Kanit',sans-serif;">—</div>
+        <div style="font-size:11px;color:#aaa;font-family:'Kanit',sans-serif;margin-top:2px;">อนุมัติถอนเงิน</div>
+      </div>
+      <div style="padding:16px;text-align:center;">
+        <div id="sp-stat-last" style="font-size:13px;font-weight:700;color:#555;font-family:'Kanit',sans-serif;">—</div>
+        <div style="font-size:11px;color:#aaa;font-family:'Kanit',sans-serif;margin-top:2px;">กิจกรรมล่าสุด</div>
+      </div>
+    </div>
+
+    <!-- Tabs -->
+    <div style="display:flex;gap:0;border-bottom:2px solid #f0f0ec;padding:0 24px;">
+      <button class="sp-tab active" data-tab="all"      onclick="switchSpTab(this,'all')">📋 ทั้งหมด</button>
+      <button class="sp-tab"        data-tab="deposit"   onclick="switchSpTab(this,'deposit')">💰 เติมเงิน</button>
+      <button class="sp-tab"        data-tab="withdrawal" onclick="switchSpTab(this,'withdrawal')">🏧 ถอนเงิน</button>
+      <button class="sp-tab"        data-tab="match"     onclick="switchSpTab(this,'match')">🏆 คู่แข่งขัน</button>
+      <button class="sp-tab"        data-tab="member"    onclick="switchSpTab(this,'member')">👥 สมาชิก</button>
+      <button class="sp-tab"        data-tab="system"    onclick="switchSpTab(this,'system')">🔑 ระบบ</button>
+    </div>
+
+    <!-- Log Table -->
+    <div style="padding:20px 24px;">
+      <!-- Filter bar -->
+      <div style="display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap;align-items:center;">
+        <input id="sp-search" type="text" placeholder="🔍 ค้นหารายละเอียด..." oninput="renderSpLogs()"
+          style="flex:1;min-width:160px;padding:7px 12px;border:1px solid #e0e0e0;border-radius:8px;font-family:'Kanit',sans-serif;font-size:12px;">
+        <input id="sp-from" type="date" onchange="renderSpLogs()"
+          style="padding:7px 10px;border:1px solid #e0e0e0;border-radius:8px;font-size:12px;">
+        <span style="font-size:11px;color:#aaa;">ถึง</span>
+        <input id="sp-to" type="date" onchange="renderSpLogs()"
+          style="padding:7px 10px;border:1px solid #e0e0e0;border-radius:8px;font-size:12px;">
+        <button onclick="clearSpFilter()" style="padding:7px 12px;border:1px solid #e0e0e0;border-radius:8px;background:#fff;font-size:12px;cursor:pointer;color:#aaa;">✕ ล้าง</button>
+        <span id="sp-count" style="font-size:12px;color:#aaa;margin-left:auto;"></span>
+      </div>
+
+      <!-- Table -->
+      <div style="overflow-x:auto;max-height:400px;overflow-y:auto;">
+        <table style="width:100%;border-collapse:collapse;font-size:13px;">
+          <thead style="position:sticky;top:0;background:#f5f5f0;z-index:1;">
+            <tr>
+              <th style="padding:10px 12px;text-align:left;font-family:'Kanit',sans-serif;font-weight:700;border-bottom:2px solid #e5e5e0;white-space:nowrap;">📂 ประเภท</th>
+              <th style="padding:10px 12px;text-align:left;font-family:'Kanit',sans-serif;font-weight:700;border-bottom:2px solid #e5e5e0;">📝 รายละเอียด</th>
+              <th style="padding:10px 12px;text-align:right;font-family:'Kanit',sans-serif;font-weight:700;border-bottom:2px solid #e5e5e0;white-space:nowrap;">🕐 เวลา</th>
+            </tr>
+          </thead>
+          <tbody id="sp-tbody">
+            <tr><td colspan="3" style="text-align:center;padding:40px;color:#aaa;">กำลังโหลด...</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div id="sp-empty" style="display:none;text-align:center;padding:40px;color:#aaa;">
+        <div style="font-size:40px;margin-bottom:10px;">📭</div>
+        <div style="font-family:'Kanit',sans-serif;">ไม่พบประวัติการดำเนินงานครับ</div>
+      </div>
+    </div>
+
   </div>
 </div>
 
@@ -4328,6 +4446,7 @@ function renderStaffTable() {
       <td style="font-size:11px;color:#aaa;">${s.last_login ? fmtDate(s.last_login) : 'ยังไม่เคย'}</td>
       <td>
         <div style="display:flex;gap:4px;">
+          <button class="btn" onclick="openStaffProfile('${s.id}','${s.username}','${s.full_name||s.username}','${s.role}')" style="font-size:11px;padding:4px 9px;background:#1B6B2F;color:#fff;border-color:#1B6B2F;">👁 ดูประวัติ</button>
           <button class="btn btn-gold" onclick="editStaffPass('${s.id}','${s.username}')" style="font-size:11px;padding:4px 9px;">🔑 รีเซ็ต</button>
           <button class="btn btn-red" onclick="deleteStaff('${s.id}','${s.username}')" style="font-size:11px;padding:4px 9px;">🗑</button>
         </div>
@@ -4409,6 +4528,150 @@ async function loadStaffLogs() {
   _allStaffLogs = data || [];
   filterStaffLogs();
 }
+
+
+// ════════════════════════════════════════════════
+// STAFF PROFILE MODAL — ประวัติพนักงานรายคน
+// ════════════════════════════════════════════════
+
+let _spLogs    = [];
+let _spTabType = '';
+let _spUsername = '';
+
+// map action → category (เหมือน worklog)
+function _spCat(action) {
+  if (!action) return 'system';
+  if (action.includes('deposit'))                          return 'deposit';
+  if (action.includes('withdrawal') || action.includes('withdraw')) return 'withdrawal';
+  if (action.includes('match'))                            return 'match';
+  if (action.includes('verdict'))                          return 'verdict';
+  if (action.includes('member'))                           return 'member';
+  if (action.includes('bet') || action.includes('p2p'))   return 'p2p';
+  if (action.includes('activity'))                         return 'activity';
+  return 'system';
+}
+const _spCatLabel = { deposit:'💰 เติมเงิน', withdrawal:'🏧 ถอนเงิน', match:'🏆 คู่แข่งขัน', verdict:'⚖️ ตัดสินผล', member:'👥 สมาชิก', p2p:'🎯 P2P', activity:'🎉 กิจกรรม', system:'🔑 ระบบ' };
+const _spCatColor = { deposit:'#16a34a', withdrawal:'#dc2626', match:'#d97706', verdict:'#7c3aed', member:'#2563eb', p2p:'#0891b2', activity:'#db2777', system:'#6b7280' };
+
+async function openStaffProfile(id, username, fullname, role) {
+  _spUsername = username;
+  _spTabType  = '';
+
+  // แสดง modal ทันที พร้อม loading
+  const modal = document.getElementById('staff-profile-modal');
+  modal.style.display = 'block';
+
+  // set header info
+  const initials = (fullname||username).slice(0,1).toUpperCase();
+  document.getElementById('sp-avatar').textContent   = initials;
+  document.getElementById('sp-name').textContent     = fullname || username;
+  document.getElementById('sp-role-badge').textContent =
+    role === 'financial' ? '💰 Financial Staff' : role === 'cs' ? '🎯 Customer Service' : '👑 Super Admin';
+
+  const staffObj = _allStaff?.find(s => s.id === id || s.username === username);
+  document.getElementById('sp-status-badge').textContent =
+    staffObj?.is_active ? '✅ ใช้งานอยู่' : '⏸ ปิดใช้งาน';
+
+  // reset tabs
+  document.querySelectorAll('.sp-tab').forEach(b => b.classList.remove('active'));
+  document.querySelector('.sp-tab[data-tab="all"]')?.classList.add('active');
+
+  // reset filters
+  ['sp-search','sp-from','sp-to'].forEach(id => { const e=document.getElementById(id); if(e) e.value=''; });
+
+  // set tbody loading
+  const tb = document.getElementById('sp-tbody');
+  if (tb) tb.innerHTML = '<tr><td colspan="3" style="text-align:center;padding:40px;color:#aaa;">⏳ กำลังโหลดประวัติ...</td></tr>';
+
+  // โหลด logs ของพนักงานคนนี้
+  const { data, error } = await sb.from('staff_logs')
+    .select('*')
+    .eq('staff_username', username)
+    .order('created_at', { ascending: false })
+    .limit(500);
+
+  _spLogs = data || [];
+
+  // คำนวณ stats
+  const total   = _spLogs.length;
+  const depCnt  = _spLogs.filter(l => l.action === 'approve_deposit').length;
+  const withCnt = _spLogs.filter(l => l.action === 'approve_withdrawal').length;
+  const lastAct = _spLogs[0]?.created_at ? fmtDate(_spLogs[0].created_at) : '—';
+
+  document.getElementById('sp-stat-total').textContent = total;
+  document.getElementById('sp-stat-dep').textContent   = depCnt;
+  document.getElementById('sp-stat-with').textContent  = withCnt;
+  document.getElementById('sp-stat-last').textContent  = lastAct;
+
+  renderSpLogs();
+}
+
+function closeStaffProfile() {
+  document.getElementById('staff-profile-modal').style.display = 'none';
+  _spLogs     = [];
+  _spUsername = '';
+  _spTabType  = '';
+}
+
+function switchSpTab(btn, type) {
+  _spTabType = type;
+  document.querySelectorAll('.sp-tab').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  renderSpLogs();
+}
+
+function clearSpFilter() {
+  ['sp-search','sp-from','sp-to'].forEach(id => { const e=document.getElementById(id); if(e) e.value=''; });
+  renderSpLogs();
+}
+
+function renderSpLogs() {
+  const q    = (document.getElementById('sp-search')?.value || '').toLowerCase();
+  const from = document.getElementById('sp-from')?.value || '';
+  const to   = document.getElementById('sp-to')?.value   || '';
+  const tb   = document.getElementById('sp-tbody');
+  const empty = document.getElementById('sp-empty');
+  const cnt  = document.getElementById('sp-count');
+  if (!tb) return;
+
+  let logs = _spLogs.filter(l => {
+    const dt  = (l.created_at||'').slice(0,10);
+    const cat = _spCat(l.action);
+    if (_spTabType && cat !== _spTabType) return false;
+    if (from && dt < from) return false;
+    if (to   && dt > to)   return false;
+    if (q && !l.detail?.toLowerCase().includes(q) && !l.action?.toLowerCase().includes(q)) return false;
+    return true;
+  });
+
+  if (cnt) cnt.textContent = `${logs.length} รายการ`;
+
+  if (!logs.length) {
+    tb.innerHTML = '';
+    if (empty) empty.style.display = 'block';
+    return;
+  }
+  if (empty) empty.style.display = 'none';
+
+  tb.innerHTML = logs.map((l, i) => {
+    const cat   = _spCat(l.action);
+    const label = _spCatLabel[cat] || cat;
+    const color = _spCatColor[cat] || '#888';
+    return `<tr style="${i%2===1?'background:#fafaf8;':''}">
+      <td style="padding:10px 12px;white-space:nowrap;">
+        <span style="background:${color}18;color:${color};border:1px solid ${color}33;border-radius:999px;padding:2px 10px;font-size:11px;font-weight:700;">${label}</span>
+      </td>
+      <td style="padding:10px 12px;font-family:'Phetsarath','Noto Sans Lao','Kanit',sans-serif;font-size:13px;max-width:400px;">${l.detail||l.action||'—'}</td>
+      <td style="padding:10px 12px;text-align:right;font-size:11px;color:#aaa;white-space:nowrap;">${fmtDate(l.created_at)}</td>
+    </tr>`;
+  }).join('');
+}
+
+// ปิด modal เมื่อคลิก backdrop
+document.addEventListener('click', function(e) {
+  const modal = document.getElementById('staff-profile-modal');
+  if (modal && e.target === modal) closeStaffProfile();
+});
 
 async function logStaffAction(username, action, detail='') {
   try { await sb.from('staff_logs').insert({ staff_username: username, action, detail }); } catch(_) {}
