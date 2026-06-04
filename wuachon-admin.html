@@ -1440,6 +1440,7 @@ input, textarea, select, button {
               <select id="new-staff-role" style="width:100%;padding:9px 12px;border:1px solid #e5e5e0;border-radius:8px;font-family:'Phetsarath','Phetsarath','Noto Sans Lao','Kanit',sans-serif;font-size:13px;">
                 <option value="financial">💰 เติม-ถอนเงิน (Financial Staff)</option>
                 <option value="cs">🎯 บริการลูกค้า (Customer Service)</option>
+                <option value="all">⭐ พนักงานทั่วไป (Financial + CS)</option>
               </select>
             </div>
           </div>
@@ -1654,6 +1655,7 @@ let currentStaff = null; // null = super admin, object = staff
 const STAFF_CAN_DO = {
   financial: ['deposits','withdrawals','worklog'],
   cs:        ['matches','verdict','activity','referral','news','bets','members','worklog'],
+  all:       ['deposits','withdrawals','matches','verdict','activity','referral','news','bets','members','worklog'],
 };
 
 // panel ที่ต้องการ action guard — คือ panel ที่ role นั้น "ทำไม่ได้"
@@ -1684,7 +1686,7 @@ function applyStaffPermissions(role) {
 function _applyActionBlocks(role) {
   if (!currentStaff) return;
   const blockedPanels = _getRoleBlockedPanels(role);
-  const roleLabel = role === 'financial' ? '💰 เติม-ถอนเงิน' : '🎯 บริการลูกค้า';
+  const roleLabel = role === 'financial' ? '💰 เติม-ถอนเงิน' : role === 'cs' ? '🎯 บริการลูกค้า' : '⭐ พนักงานทั่วไป';
 
   document.querySelectorAll('.panel').forEach(panel => {
     const panelId = panel.id.replace('panel-','');
@@ -1739,7 +1741,7 @@ function showStaffBadge() {
   if (!currentStaff) {
     badge.innerHTML = '<span style="background:#8b5cf6;color:#fff;font-family:\'Kanit\',sans-serif;font-size:11px;font-weight:700;padding:3px 10px;border-radius:999px;">👑 Super Admin</span>';
   } else {
-    const roleLabel = currentStaff.role === 'financial' ? '💰 Financial' : '🎯 CS';
+    const roleLabel = currentStaff.role === 'financial' ? '💰 Financial' : currentStaff.role === 'cs' ? '🎯 CS' : '⭐ All';
     badge.innerHTML = `<span style="background:#1B6B2F;color:#fff;font-family:'Phetsarath','Phetsarath','Noto Sans Lao','Kanit',sans-serif;font-size:11px;font-weight:700;padding:3px 10px;border-radius:999px;">${roleLabel}: ${currentStaff.full_name||currentStaff.username}</span>`;
   }
 }
@@ -4433,7 +4435,9 @@ function renderStaffTable() {
   }
   const roleLabel = r => r === 'financial'
     ? '<span style="background:#dcfce7;color:#15803d;font-family:\'Kanit\',sans-serif;font-size:11px;font-weight:700;padding:2px 8px;border-radius:999px;">💰 Financial</span>'
-    : '<span style="background:#eff6ff;color:#1d4ed8;font-family:\'Kanit\',sans-serif;font-size:11px;font-weight:700;padding:2px 8px;border-radius:999px;">🎯 CS</span>';
+    : r === 'cs'
+    ? '<span style="background:#eff6ff;color:#1d4ed8;font-family:\'Kanit\',sans-serif;font-size:11px;font-weight:700;padding:2px 8px;border-radius:999px;">🎯 CS</span>'
+    : '<span style="background:#fef9c3;color:#a16207;font-family:\'Kanit\',sans-serif;font-size:11px;font-weight:700;padding:2px 8px;border-radius:999px;">⭐ Financial+CS</span>';
 
   tb.innerHTML = _allStaff.map((s,i) => `
     <tr style="${i%2===1?'background:#fafaf8;':''}">
@@ -4516,7 +4520,7 @@ function filterStaffLogs() {
   tb.innerHTML = logs.map((l,i) => `
     <tr style="${i%2===1?'background:#fafaf8;':''}">
       <td style="font-family:'Phetsarath','Phetsarath','Noto Sans Lao','Kanit',sans-serif;font-weight:700;font-size:13px;">${l.staff_username}</td>
-      <td style="font-size:11px;color:#888;">${_allStaff.find(s=>s.username===l.staff_username)?.role==='financial'?'💰 Financial':l.staff_username==='admin'?'👑 Admin':'🎯 CS'}</td>
+      <td style="font-size:11px;color:#888;">${(()=>{const r=_allStaff.find(s=>s.username===l.staff_username)?.role;return l.staff_username==='admin'?'👑 Admin':r==='financial'?'💰 Financial':r==='cs'?'🎯 CS':'⭐ All';})()} </td>
       <td style="font-size:12px;">${actionIcon(l.action)} ${l.detail||l.action}</td>
       <td style="text-align:right;font-size:11px;color:#aaa;">${fmtDate(l.created_at)}</td>
     </tr>`).join('');
@@ -4654,7 +4658,7 @@ async function openStaffProfile(id, username, fullname, role) {
   modal.style.display='block';
   document.getElementById('sp-avatar').textContent=(fullname||username).slice(0,1).toUpperCase();
   document.getElementById('sp-name').textContent=fullname||username;
-  document.getElementById('sp-role-badge').textContent=role==='financial'?'💰 Financial Staff':role==='cs'?'🎯 Customer Service':'👑 Super Admin';
+  document.getElementById('sp-role-badge').textContent=role==='financial'?'💰 Financial Staff':role==='cs'?'🎯 Customer Service':role==='all'?'⭐ Financial + CS':'👑 Super Admin';
   const staffObj=_allStaff?.find(s=>s.id===id||s.username===username);
   document.getElementById('sp-status-badge').textContent=staffObj?.is_active?'✅ ใช้งานอยู่':'⏸ ปิดใช้งาน';
   document.querySelectorAll('.sp-tab').forEach(b=>b.classList.remove('active'));
