@@ -7655,9 +7655,9 @@ setInterval(() => {
   // ── DEPOSIT PANEL GUARDIAN ──
   // ใช้ TAB BUTTON เป็น source of truth — ถ้า tab active แต่ panel ไม่ active → fix
   setInterval(function _depGuardian() {
-    // ตรวจปุ่ม deposit tab
-    var depTabBtn = document.querySelector('.acc-tab[onclick*="deposit"]') ||
-                    document.querySelector('.acc-tab[onclick*="\'deposit\'"]');
+    // ตรวจปุ่ม deposit tab ด้วย data-i18n (แม่นยำที่สุด)
+    var depTabBtn = document.querySelector('[data-i18n="acc.tab.deposit"]') ||
+                    document.querySelector('.acc-tab[onclick*="deposit"]');
     if (!depTabBtn || !depTabBtn.classList.contains('active')) return;
 
     // deposit tab button active → ensure acc-deposit panel แสดง
