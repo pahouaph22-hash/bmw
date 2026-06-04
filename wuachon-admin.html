@@ -37,7 +37,7 @@ body{font-family:'Phetsarath','Phetsarath','Noto Sans Lao','Sarabun',sans-serif;
 .notif-btn{background:none;border:none;color:rgba(255,248,236,.6);font-size:18px;cursor:pointer;position:relative;}
 #notif-badge{display:none;position:absolute;top:-4px;right:-4px;background:var(--red);color:#fff;font-family:'Phetsarath','Phetsarath','Noto Sans Lao','Kanit',sans-serif;font-size:9px;font-weight:900;padding:1px 5px;border-radius:999px;min-width:16px;text-align:center;}
 .logout-btn{background:rgba(255,255,255,.08);color:rgba(255,248,236,.6);font-family:'Phetsarath','Phetsarath','Noto Sans Lao','Kanit',sans-serif;font-size:12px;padding:6px 14px;border:1px solid rgba(255,255,255,.15);border-radius:6px;cursor:pointer;}
-.main-layout{display:flex;flex-direction:row;flex:1;overflow:hidden;}
+.main-layout{display:flex;flex-direction:column;flex:1;overflow:hidden;}
 /* ── Top Navbar (เมนูหลัก) ── */
 .navbar{background:#fff;border-bottom:2px solid #e5e5e0;padding:0 20px;display:flex;align-items:center;gap:2px;overflow-x:auto;flex-shrink:0;-webkit-overflow-scrolling:touch;}
 .navbar::-webkit-scrollbar{display:none;}
@@ -332,38 +332,6 @@ input, textarea, select, button {
   .cfg-tab.active { background: #fff; color: #1B6B2F; border-left-color: #1B6B2F; }
   .cfg-pane { display: none; }
   .cfg-pane.active { display: block; }
-
-  /* ── Panel Sub-nav Layout ── */
-  .panel-layout { display:flex; gap:0; min-height:500px; }
-  .panel-subnav {
-    width: 190px; flex-shrink:0;
-    background:#f7f7f5; border-right:1px solid #e5e5e0;
-    border-radius:10px 0 0 10px; padding:8px 0;
-  }
-  .panel-subnav-title {
-    font-family:'Kanit',sans-serif; font-size:10px; font-weight:700;
-    color:#bbb; letter-spacing:.08em; padding:8px 14px 4px;
-    text-transform:uppercase;
-  }
-  .sub-nav-item {
-    display:flex; align-items:center; gap:8px;
-    padding:10px 14px; font-family:'Phetsarath','Noto Sans Lao','Kanit',sans-serif;
-    font-size:13px; font-weight:600; color:#555; cursor:pointer;
-    border-left:3px solid transparent; transition:all .15s; white-space:nowrap;
-  }
-  .sub-nav-item:hover { background:#ededeb; color:#222; }
-  .sub-nav-item.active { background:#fff; color:#1B6B2F; border-left-color:#1B6B2F; font-weight:700; }
-  .panel-subcontent { flex:1; padding:0 0 0 20px; min-width:0; overflow-y:auto; }
-  .sub-pane { display:none; }
-  .sub-pane.active { display:block; }
-  @media(max-width:700px){
-    .panel-layout { flex-direction:column; }
-    .panel-subnav { width:100%; border-right:none; border-bottom:1px solid #e5e5e0; border-radius:10px 10px 0 0; display:flex; overflow-x:auto; padding:0; }
-    .panel-subnav-title { display:none; }
-    .sub-nav-item { border-left:none; border-bottom:3px solid transparent; white-space:nowrap; flex-shrink:0; }
-    .sub-nav-item.active { border-bottom-color:#1B6B2F; border-left-color:transparent; background:#f0faf4; }
-    .panel-subcontent { padding:16px 0 0; }
-  }
 </style>
 </head>
 <body>
@@ -406,31 +374,20 @@ input, textarea, select, button {
       <div class="sb-item active" data-panel="overview" onclick="switchPanel('overview')">📊 ภาพรวม</div>
       <div class="sb-item" data-panel="members" onclick="switchPanel('members')">👥 สมาชิก</div>
       <div class="sb-item" data-panel="matches" onclick="switchPanel('matches')">🏆 คู่แข่งขัน</div>
+      <div class="sb-item" data-panel="verdict" onclick="switchPanel('verdict')">⚖️ ตัดสินผล</div>
+      <div class="sb-section">|</div>
+      <div class="sb-item" data-panel="deposits" onclick="switchPanel('deposits')">💰 เติมเงิน</div>
+      <div class="sb-item" data-panel="withdrawals" onclick="switchPanel('withdrawals')">🏧 ถอนเงิน</div>
       <div class="sb-item" data-panel="bets" onclick="switchPanel('bets')">🎯 P2P</div>
+      <div class="sb-section">|</div>
+      <div class="sb-item" data-panel="referral" onclick="switchPanel('referral');loadReferralPanel();">🎁 แนะนำสมาชิก</div>
+      <div class="sb-item" data-panel="activity" onclick="switchPanel('activity');loadActivityPanel();">🎉 กิจกรรม</div>
+      <div class="sb-item" data-panel="news" onclick="switchPanel('news')">📰 ข่าวสาร</div>
+      <div class="sb-item" id="sb-worklog" data-panel="worklog" onclick="switchPanel('worklog');loadWorklogPanel();">📋 ประวัติการดำเนินงาน</div>
+      <div class="sb-item" data-panel="settings" id="sb-settings" onclick="switchPanel('settings')">⚙️ ตั้งค่า</div>
+      <div class="sb-item" id="sb-staff" data-panel="staff" onclick="switchPanel('staff');loadStaffPanel();" style="display:none;border-left:3px solid #8b5cf6;">👨‍💼 พนักงาน</div>
     </div>
 
-    <!-- ── Body: Sidebar + Content ── -->
-    <div style="display:flex;flex:1;overflow:hidden;">
-
-    <!-- ── Left Sidebar: เมนูรอง ── -->
-    <div class="sidebar" id="main-sidebar">
-      <div class="sidebar-section">💸 การเงิน</div>
-      <div class="side-item" id="sb-verdict"  data-panel="verdict"    onclick="switchPanel('verdict')">⚖️ ตัดสินผล</div>
-      <div class="side-item" id="sb-deposits" data-panel="deposits"   onclick="switchPanel('deposits')">💰 เติมเงิน</div>
-      <div class="side-item" id="sb-withdrawals" data-panel="withdrawals" onclick="switchPanel('withdrawals')">🏧 ถอนเงิน</div>
-
-      <div class="sidebar-section">👥 สมาชิก</div>
-      <div class="side-item" id="sb-referral" data-panel="referral"   onclick="switchPanel('referral');loadReferralPanel();">🎁 แนะนำสมาชิก</div>
-      <div class="side-item" id="sb-activity" data-panel="activity"   onclick="switchPanel('activity');loadActivityPanel();">🎉 กิจกรรม</div>
-      <div class="side-item" id="sb-news"     data-panel="news"       onclick="switchPanel('news')">📰 ข่าวสาร</div>
-
-      <div class="sidebar-section">⚙️ ระบบ</div>
-      <div class="side-item" id="sb-worklog"  data-panel="worklog"    onclick="switchPanel('worklog');loadWorklogPanel();">📋 ประวัติดำเนินงาน</div>
-      <div class="side-item" id="sb-settings" data-panel="settings"   onclick="switchPanel('settings')">⚙️ ตั้งค่า</div>
-      <div class="side-item" id="sb-staff"    data-panel="staff"      onclick="switchPanel('staff');loadStaffPanel();" style="display:none;">👨‍💼 พนักงาน</div>
-    </div>
-
-    <!-- ── Content Area ── -->
     <div class="content-area">
 
     <div class="content-area">
@@ -2133,7 +2090,7 @@ async function changeAdminPass() {
 // ===== PANEL SWITCH =====
 function switchPanel(name) {
   document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
-  document.querySelectorAll('.sb-item, .side-item').forEach(i => i.classList.remove('active'));
+  document.querySelectorAll('.sb-item').forEach(i => i.classList.remove('active'));
   document.getElementById('panel-'+name)?.classList.add('active');
   document.querySelectorAll(`[data-panel="${name}"]`).forEach(el => el.classList.add('active'));
   // เก็บ panel ปัจจุบัน
@@ -5087,15 +5044,6 @@ window.switchCfgTab = function(tabId) {
   if (tabId === 'bank') { loadBankAccounts(); loadTxLimits(); }
 };
 
-
-function switchSubNav(panelId, secId) {
-  document.querySelectorAll('#panel-' + panelId + ' .sub-nav-item').forEach(i => i.classList.remove('active'));
-  document.querySelectorAll('#panel-' + panelId + ' .sub-pane').forEach(p => p.classList.remove('active'));
-  const navBtn = document.querySelector('#panel-' + panelId + ' [data-sec="' + secId + '"]');
-  const pane   = document.getElementById(secId);
-  if (navBtn) navBtn.classList.add('active');
-  if (pane)   pane.classList.add('active');
-}
 
 async function logStaffAction(username, action, detail='') {
   try { await sb.from('staff_logs').insert({ staff_username: username, action, detail }); } catch(_) {}
