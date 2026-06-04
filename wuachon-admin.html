@@ -37,13 +37,21 @@ body{font-family:'Phetsarath','Phetsarath','Noto Sans Lao','Sarabun',sans-serif;
 .notif-btn{background:none;border:none;color:rgba(255,248,236,.6);font-size:18px;cursor:pointer;position:relative;}
 #notif-badge{display:none;position:absolute;top:-4px;right:-4px;background:var(--red);color:#fff;font-family:'Phetsarath','Phetsarath','Noto Sans Lao','Kanit',sans-serif;font-size:9px;font-weight:900;padding:1px 5px;border-radius:999px;min-width:16px;text-align:center;}
 .logout-btn{background:rgba(255,255,255,.08);color:rgba(255,248,236,.6);font-family:'Phetsarath','Phetsarath','Noto Sans Lao','Kanit',sans-serif;font-size:12px;padding:6px 14px;border:1px solid rgba(255,255,255,.15);border-radius:6px;cursor:pointer;}
-.main-layout{display:flex;flex-direction:column;flex:1;overflow:hidden;}
+.main-layout{display:flex;flex-direction:row;flex:1;overflow:hidden;}
+/* ── Top Navbar (เมนูหลัก) ── */
 .navbar{background:#fff;border-bottom:2px solid #e5e5e0;padding:0 20px;display:flex;align-items:center;gap:2px;overflow-x:auto;flex-shrink:0;-webkit-overflow-scrolling:touch;}
 .navbar::-webkit-scrollbar{display:none;}
-.sb-section{font-family:'Phetsarath','Phetsarath','Noto Sans Lao','Kanit',sans-serif;font-size:10px;font-weight:700;color:#ccc;letter-spacing:1px;padding:0 10px;white-space:nowrap;align-self:center;}
-.sb-item{display:flex;align-items:center;gap:6px;padding:14px 14px;font-family:'Phetsarath','Phetsarath','Noto Sans Lao','Kanit',sans-serif;font-size:13px;font-weight:500;color:#666;cursor:pointer;transition:all .15s;border-bottom:3px solid transparent;white-space:nowrap;flex-shrink:0;}
+.sb-section{font-family:'Phetsarath','Noto Sans Lao','Kanit',sans-serif;font-size:10px;font-weight:700;color:#ccc;letter-spacing:1px;padding:0 10px;white-space:nowrap;align-self:center;}
+.sb-item{display:flex;align-items:center;gap:6px;padding:14px 14px;font-family:'Phetsarath','Noto Sans Lao','Kanit',sans-serif;font-size:13px;font-weight:500;color:#666;cursor:pointer;transition:all .15s;border-bottom:3px solid transparent;white-space:nowrap;flex-shrink:0;}
 .sb-item:hover{color:#333;background:#f9f9f9;}
 .sb-item.active{color:var(--green);border-bottom-color:var(--green);font-weight:700;background:#f0faf4;}
+/* ── Sidebar (เมนูรอง) ── */
+.sidebar{width:200px;flex-shrink:0;background:#f7f7f5;border-right:1px solid #e5e5e0;overflow-y:auto;display:flex;flex-direction:column;}
+.sidebar-section{font-family:'Kanit',sans-serif;font-size:10px;font-weight:700;color:#bbb;letter-spacing:.08em;padding:14px 16px 6px;text-transform:uppercase;}
+.side-item{display:flex;align-items:center;gap:9px;padding:11px 16px;font-family:'Phetsarath','Noto Sans Lao','Kanit',sans-serif;font-size:13px;font-weight:600;color:#555;cursor:pointer;transition:all .15s;border-left:3px solid transparent;white-space:nowrap;}
+.side-item:hover{background:#efefed;color:#222;}
+.side-item.active{background:#fff;color:#1B6B2F;border-left-color:#1B6B2F;font-weight:700;}
+/* ── Content ── */
 .content-area{flex:1;overflow-y:auto;padding:24px;}
 .panel{display:none;}
 .panel.active{display:block;}
@@ -204,6 +212,30 @@ tr:hover td{background:#fafafa;}
   }
   .sb-item.active{ border-bottom:3px solid var(--green) !important; }
   .sb-section{ display:none; }
+  /* sidebar → horizontal scroll strip on mobile */
+  .sidebar{
+    width:100% !important;
+    flex-direction:row !important;
+    overflow-x:auto !important;
+    overflow-y:hidden !important;
+    border-right:none !important;
+    border-bottom:2px solid #e5e5e0;
+    padding:0 4px;
+    flex-shrink:0;
+    max-height:46px;
+  }
+  .sidebar-section{ display:none; }
+  .side-item{
+    padding:10px 14px;
+    font-size:11px;
+    white-space:nowrap;
+    flex-shrink:0;
+    border-left:none !important;
+    border-bottom:3px solid transparent;
+  }
+  .side-item.active{ border-bottom:3px solid #1B6B2F !important; color:#1B6B2F; background:#f0faf4; }
+  /* main-layout กลับเป็น column บน mobile */
+  .main-layout{ flex-direction:column !important; }
 
   /* ── Content ── */
   .content{ padding:12px 10px; min-width:0; }
@@ -300,6 +332,38 @@ input, textarea, select, button {
   .cfg-tab.active { background: #fff; color: #1B6B2F; border-left-color: #1B6B2F; }
   .cfg-pane { display: none; }
   .cfg-pane.active { display: block; }
+
+  /* ── Panel Sub-nav Layout ── */
+  .panel-layout { display:flex; gap:0; min-height:500px; }
+  .panel-subnav {
+    width: 190px; flex-shrink:0;
+    background:#f7f7f5; border-right:1px solid #e5e5e0;
+    border-radius:10px 0 0 10px; padding:8px 0;
+  }
+  .panel-subnav-title {
+    font-family:'Kanit',sans-serif; font-size:10px; font-weight:700;
+    color:#bbb; letter-spacing:.08em; padding:8px 14px 4px;
+    text-transform:uppercase;
+  }
+  .sub-nav-item {
+    display:flex; align-items:center; gap:8px;
+    padding:10px 14px; font-family:'Phetsarath','Noto Sans Lao','Kanit',sans-serif;
+    font-size:13px; font-weight:600; color:#555; cursor:pointer;
+    border-left:3px solid transparent; transition:all .15s; white-space:nowrap;
+  }
+  .sub-nav-item:hover { background:#ededeb; color:#222; }
+  .sub-nav-item.active { background:#fff; color:#1B6B2F; border-left-color:#1B6B2F; font-weight:700; }
+  .panel-subcontent { flex:1; padding:0 0 0 20px; min-width:0; overflow-y:auto; }
+  .sub-pane { display:none; }
+  .sub-pane.active { display:block; }
+  @media(max-width:700px){
+    .panel-layout { flex-direction:column; }
+    .panel-subnav { width:100%; border-right:none; border-bottom:1px solid #e5e5e0; border-radius:10px 10px 0 0; display:flex; overflow-x:auto; padding:0; }
+    .panel-subnav-title { display:none; }
+    .sub-nav-item { border-left:none; border-bottom:3px solid transparent; white-space:nowrap; flex-shrink:0; }
+    .sub-nav-item.active { border-bottom-color:#1B6B2F; border-left-color:transparent; background:#f0faf4; }
+    .panel-subcontent { padding:16px 0 0; }
+  }
 </style>
 </head>
 <body>
@@ -337,24 +401,37 @@ input, textarea, select, button {
   </div>
 
   <div class="main-layout">
+    <!-- ── Top Navbar: เมนูหลัก ── -->
     <div class="navbar">
       <div class="sb-item active" data-panel="overview" onclick="switchPanel('overview')">📊 ภาพรวม</div>
       <div class="sb-item" data-panel="members" onclick="switchPanel('members')">👥 สมาชิก</div>
       <div class="sb-item" data-panel="matches" onclick="switchPanel('matches')">🏆 คู่แข่งขัน</div>
-      <div class="sb-item" data-panel="verdict" onclick="switchPanel('verdict')">⚖️ ตัดสินผล</div>
-      <div class="sb-section">|</div>
-      <div class="sb-item" data-panel="deposits" onclick="switchPanel('deposits')">💰 เติมเงิน</div>
-      <div class="sb-item" data-panel="withdrawals" onclick="switchPanel('withdrawals')">🏧 ถอนเงิน</div>
       <div class="sb-item" data-panel="bets" onclick="switchPanel('bets')">🎯 P2P</div>
-      <div class="sb-section">|</div>
-      <div class="sb-item" data-panel="referral" onclick="switchPanel('referral');loadReferralPanel();">🎁 แนะนำสมาชิก</div>
-      <div class="sb-item" data-panel="activity" onclick="switchPanel('activity');loadActivityPanel();">🎉 กิจกรรม</div>
-      <div class="sb-item" data-panel="news" onclick="switchPanel('news')">📰 ข่าวสาร</div>
-      <div class="sb-item" id="sb-worklog" data-panel="worklog" onclick="switchPanel('worklog');loadWorklogPanel();">📋 ประวัติการดำเนินงาน</div>
-      <div class="sb-item" data-panel="settings" id="sb-settings" onclick="switchPanel('settings')">⚙️ ตั้งค่า</div>
-      <!-- เมนูพนักงาน — เฉพาะ Super Admin -->
-      <div class="sb-item" id="sb-staff" data-panel="staff" onclick="switchPanel('staff');loadStaffPanel();" style="display:none;border-left:3px solid #8b5cf6;">👨‍💼 พนักงาน</div>
     </div>
+
+    <!-- ── Body: Sidebar + Content ── -->
+    <div style="display:flex;flex:1;overflow:hidden;">
+
+    <!-- ── Left Sidebar: เมนูรอง ── -->
+    <div class="sidebar" id="main-sidebar">
+      <div class="sidebar-section">💸 การเงิน</div>
+      <div class="side-item" id="sb-verdict"  data-panel="verdict"    onclick="switchPanel('verdict')">⚖️ ตัดสินผล</div>
+      <div class="side-item" id="sb-deposits" data-panel="deposits"   onclick="switchPanel('deposits')">💰 เติมเงิน</div>
+      <div class="side-item" id="sb-withdrawals" data-panel="withdrawals" onclick="switchPanel('withdrawals')">🏧 ถอนเงิน</div>
+
+      <div class="sidebar-section">👥 สมาชิก</div>
+      <div class="side-item" id="sb-referral" data-panel="referral"   onclick="switchPanel('referral');loadReferralPanel();">🎁 แนะนำสมาชิก</div>
+      <div class="side-item" id="sb-activity" data-panel="activity"   onclick="switchPanel('activity');loadActivityPanel();">🎉 กิจกรรม</div>
+      <div class="side-item" id="sb-news"     data-panel="news"       onclick="switchPanel('news')">📰 ข่าวสาร</div>
+
+      <div class="sidebar-section">⚙️ ระบบ</div>
+      <div class="side-item" id="sb-worklog"  data-panel="worklog"    onclick="switchPanel('worklog');loadWorklogPanel();">📋 ประวัติดำเนินงาน</div>
+      <div class="side-item" id="sb-settings" data-panel="settings"   onclick="switchPanel('settings')">⚙️ ตั้งค่า</div>
+      <div class="side-item" id="sb-staff"    data-panel="staff"      onclick="switchPanel('staff');loadStaffPanel();" style="display:none;">👨‍💼 พนักงาน</div>
+    </div>
+
+    <!-- ── Content Area ── -->
+    <div class="content-area">
 
     <div class="content-area">
 
@@ -712,23 +789,43 @@ input, textarea, select, button {
 
       <!-- VERDICT -->
       <div class="panel" id="panel-verdict">
+        <div class="panel-layout">
+          <div class="panel-subnav">
+            <div class="panel-subnav-title">VERDICT</div>
+          <div class="sub-nav-item active" data-sec="vd-pending" onclick="switchSubNav('verdict','vd-pending')">⏳ รอตัดสิน</div>
+          <div class="sub-nav-item" data-sec="vd-done" onclick="switchSubNav('verdict','vd-done')">✅ ตัดสินแล้ว</div>
+          </div>
+          <div class="panel-subcontent">
+          <div class="sub-pane active" id="vd-pending">
         <div class="card">
           <div class="card-title">⚖️ รอตัดสินผล
             <button onclick="loadVerdict()" style="margin-left:auto;font-family:'Phetsarath','Phetsarath','Noto Sans Lao','Kanit',sans-serif;font-size:11px;font-weight:700;padding:5px 12px;border:1px solid #e0e0e0;border-radius:7px;background:#fff;color:#555;cursor:pointer;white-space:nowrap;">🔄 รีเฟรช</button>
             <button onclick="loadVerdict()" style="margin-left:auto;font-family:'Phetsarath','Phetsarath','Noto Sans Lao','Kanit',sans-serif;font-size:11px;font-weight:700;padding:5px 12px;border:1px solid #e0e0e0;border-radius:7px;background:#fff;color:#555;cursor:pointer;white-space:nowrap;">🔄 รีเฟรช</button></div>
           <div id="verdict-pending"><div style="text-align:center;padding:24px;color:#aaa;">กำลังโหลด...</div></div>
         </div>
+          </div>
+          <div class="sub-pane" id="vd-done">
         <div class="card">
           <div class="card-title">✅ ตัดสินแล้ว
             <button onclick="loadVerdict()" style="margin-left:auto;font-family:'Phetsarath','Phetsarath','Noto Sans Lao','Kanit',sans-serif;font-size:11px;font-weight:700;padding:5px 12px;border:1px solid #e0e0e0;border-radius:7px;background:#fff;color:#555;cursor:pointer;white-space:nowrap;">🔄 รีเฟรช</button>
           </div>
           <div id="verdict-done"><div style="text-align:center;padding:24px;color:#aaa;">กำลังโหลด...</div></div>
         </div>
+          </div>
+          </div>
+        </div>
       </div>
 
       <!-- DEPOSITS -->
       <div class="panel" id="panel-deposits">
-        <!-- รอดำเนินการ -->
+        <div class="panel-layout">
+          <div class="panel-subnav">
+            <div class="panel-subnav-title">DEPOSITS</div>
+          <div class="sub-nav-item active" data-sec="dep-pending" onclick="switchSubNav('deposits','dep-pending')">⏳ รอดำเนินการ</div>
+          <div class="sub-nav-item" data-sec="dep-done" onclick="switchSubNav('deposits','dep-done')">✅ เสร็จสิ้น</div>
+          </div>
+          <div class="panel-subcontent">
+          <div class="sub-pane active" id="dep-pending">
         <div class="card">
           <div class="card-title">💰 คำขอเติมเงิน (รอดำเนินการ)
             <button onclick="loadDeposits()" style="margin-left:auto;font-family:'Phetsarath','Phetsarath','Noto Sans Lao','Kanit',sans-serif;font-size:11px;font-weight:700;padding:5px 12px;border:1px solid #e0e0e0;border-radius:7px;background:#fff;color:#555;cursor:pointer;white-space:nowrap;">🔄 รีเฟรช</button>
@@ -751,8 +848,8 @@ input, textarea, select, button {
             </table>
           </div>
         </div>
-
-        <!-- เติมเงินสำเร็จ -->
+          </div>
+          <div class="sub-pane" id="dep-done">
         <div class="card">
           <div class="card-title" style="color:var(--green);">
             ✅ เติมเงินสำเร็จ
@@ -775,8 +872,6 @@ input, textarea, select, button {
             </table>
           </div>
         </div>
-
-        <!-- ถูกปฏิเสธ -->
         <div class="card">
           <div class="card-title" style="color:#f87171;">
             ❌ ถูกปฏิเสธ
@@ -799,11 +894,21 @@ input, textarea, select, button {
             </table>
           </div>
         </div>
+          </div>
+          </div>
+        </div>
       </div>
 
       <!-- WITHDRAWALS -->
       <div class="panel" id="panel-withdrawals">
-        <!-- คำขอรอดำเนินการ -->
+        <div class="panel-layout">
+          <div class="panel-subnav">
+            <div class="panel-subnav-title">WITHDRAWALS</div>
+          <div class="sub-nav-item active" data-sec="with-pending" onclick="switchSubNav('withdrawals','with-pending')">⏳ รอดำเนินการ</div>
+          <div class="sub-nav-item" data-sec="with-done" onclick="switchSubNav('withdrawals','with-done')">✅ เสร็จสิ้น</div>
+          </div>
+          <div class="panel-subcontent">
+          <div class="sub-pane active" id="with-pending">
         <div class="card">
           <div class="card-title">🏧 คำขอถอนเงิน (รอดำเนินการ)
             <button onclick="loadWithdrawals()" style="margin-left:auto;font-family:'Phetsarath','Phetsarath','Noto Sans Lao','Kanit',sans-serif;font-size:11px;font-weight:700;padding:5px 12px;border:1px solid #e0e0e0;border-radius:7px;background:#fff;color:#555;cursor:pointer;white-space:nowrap;">🔄 รีเฟรช</button>
@@ -826,8 +931,8 @@ input, textarea, select, button {
             </table>
           </div>
         </div>
-
-        <!-- ถอนเงินสำเร็จ -->
+          </div>
+          <div class="sub-pane" id="with-done">
         <div class="card">
           <div class="card-title" style="color:var(--green);">
             ✅ ถอนเงินสำเร็จ
@@ -848,6 +953,9 @@ input, textarea, select, button {
               <thead><tr><th>Nick</th><th>จำนวน</th><th>ธนาคาร</th><th>เลขบัญชี</th><th>สลิป</th><th>โอนเมื่อ</th></tr></thead>
               <tbody id="with-done-tbody"><tr><td colspan="6" style="text-align:center;padding:24px;color:#aaa;">กำลังโหลด...</td></tr></tbody>
             </table>
+          </div>
+        </div>
+          </div>
           </div>
         </div>
       </div>
@@ -883,16 +991,22 @@ input, textarea, select, button {
 
       <!-- REFERRAL -->
       <div class="panel" id="panel-referral">
-
-        <!-- ── stat cards ── -->
+        <div class="panel-layout">
+          <div class="panel-subnav">
+            <div class="panel-subnav-title">REFERRAL</div>
+          <div class="sub-nav-item active" data-sec="ref-stats" onclick="switchSubNav('referral','ref-stats')">📊 ภาพรวม</div>
+          <div class="sub-nav-item" data-sec="ref-list" onclick="switchSubNav('referral','ref-list')">📋 รายการ</div>
+          </div>
+          <div class="panel-subcontent">
+          <div class="sub-pane active" id="ref-stats">
         <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:0;">
           <div class="stat-card"><div class="ico">🤝</div><div class="val" id="ref-total-referrers">—</div><div class="lbl">ผู้แนะนำทั้งหมด</div></div>
           <div class="stat-card"><div class="ico">👥</div><div class="val" id="ref-total-members">—</div><div class="lbl">สมาชิกที่ถูกแนะนำ</div></div>
           <div class="stat-card"><div class="ico">💰</div><div class="val" id="ref-total-commission">—</div><div class="lbl">คอมฯ จ่ายรวม (₭)</div></div>
           <div class="stat-card"><div class="ico">📋</div><div class="val" id="ref-total-logs">—</div><div class="lbl">รายการทั้งหมด</div></div>
         </div>
-
-        <!-- ── ตาราง: สรุปต่อผู้แนะนำ (Referrer Summary) ── -->
+          </div>
+          <div class="sub-pane" id="ref-list">
         <div class="card">
           <div class="card-title">🏆 สรุปผู้แนะนำ — จำนวนสมาชิกที่แนะนำมา
             <button onclick="loadReferralPanel()" style="margin-left:auto;font-family:'Phetsarath','Phetsarath','Noto Sans Lao','Kanit',sans-serif;font-size:11px;font-weight:700;padding:5px 12px;border:1px solid #e0e0e0;border-radius:7px;background:#fff;color:#555;cursor:pointer;">🔄 รีเฟรช</button>
@@ -931,8 +1045,6 @@ input, textarea, select, button {
           </div>
           <div id="ref-summary-footer" style="padding:8px 12px;font-size:11px;color:#aaa;border-top:1px solid #f0f0ee;"></div>
         </div>
-
-        <!-- ── ตาราง: ประวัติรายการคอมฯ ── -->
         <div class="card">
           <div class="card-title" style="margin-bottom:12px;">📋 ประวัติรายการคอมมิชชัน
             <button onclick="loadReferralPanel()" style="margin-left:auto;font-family:'Phetsarath','Phetsarath','Noto Sans Lao','Kanit',sans-serif;font-size:11px;font-weight:700;padding:5px 12px;border:1px solid #e0e0e0;border-radius:7px;background:#fff;color:#555;cursor:pointer;">🔄 รีเฟรช</button>
@@ -987,14 +1099,22 @@ input, textarea, select, button {
           </div>
           <div id="ref-logs-footer2" style="padding:8px 12px;font-size:11px;color:#aaa;border-top:1px solid #f0f0ee;"></div>
         </div>
-
+          </div>
+          </div>
+        </div>
       </div>
       </div>
 
       <!-- ACTIVITY -->
       <div class="panel" id="panel-activity">
-
-        <!-- สร้างกิจกรรมใหม่ -->
+        <div class="panel-layout">
+          <div class="panel-subnav">
+            <div class="panel-subnav-title">ACTIVITY</div>
+          <div class="sub-nav-item active" data-sec="act-create" onclick="switchSubNav('activity','act-create')">🎉 สร้างกิจกรรม</div>
+          <div class="sub-nav-item" data-sec="act-list" onclick="switchSubNav('activity','act-list')">📋 รายการทั้งหมด</div>
+          </div>
+          <div class="panel-subcontent">
+          <div class="sub-pane active" id="act-create">
         <div class="card" style="border-left:4px solid #f59e0b;">
           <div class="card-title">🎉 สร้างกิจกรรมแจกรางวัล</div>
           <div style="font-size:12px;color:#888;margin-bottom:18px;">ตั้งชื่อกิจกรรม กำหนดเงินรางวัลแต่ละระดับ VIP แล้วกดส่ง — ยอดเงินจะเข้าบัญชีสมาชิกทันที</div>
@@ -1044,8 +1164,8 @@ input, textarea, select, button {
             🚀 ส่งรางวัลให้สมาชิกทันที
           </button>
         </div>
-
-        <!-- ประวัติกิจกรรม -->
+          </div>
+          <div class="sub-pane" id="act-list">
         <div class="card">
           <div class="card-title">📋 ประวัติกิจกรรมที่ผ่านมา
             <button class="btn btn-primary" onclick="loadActivityLogs()">🔄 รีเฟรช</button>
@@ -1060,8 +1180,6 @@ input, textarea, select, button {
             <div style="text-align:center;padding:32px;color:#aaa;font-family:'Phetsarath','Phetsarath','Noto Sans Lao','Kanit',sans-serif;">กำลังโหลด...</div>
           </div>
         </div>
-
-        <!-- กิจกรรมแนะนำเพื่อน — ประวัติค่าคอมมิชชัน -->
         <div class="card" style="border-left:4px solid #60a5fa;">
           <div class="card-title" style="color:#2563eb;">🎁 ประวัติค่าคอมมิชชันแนะนำเพื่อน
             <button class="btn btn-primary" onclick="loadRefCommissionLogs()">🔄 รีเฟรช</button>
@@ -1109,11 +1227,21 @@ input, textarea, select, button {
             </table>
           </div>
         </div>
-
+          </div>
+          </div>
+        </div>
       </div>
 
       <!-- NEWS -->
       <div class="panel" id="panel-news">
+        <div class="panel-layout">
+          <div class="panel-subnav">
+            <div class="panel-subnav-title">NEWS</div>
+          <div class="sub-nav-item active" data-sec="news-add" onclick="switchSubNav('news','news-add')">✏️ เพิ่มข้อความ</div>
+          <div class="sub-nav-item" data-sec="news-list" onclick="switchSubNav('news','news-list')">📋 รายการทั้งหมด</div>
+          </div>
+          <div class="panel-subcontent">
+          <div class="sub-pane active" id="news-add">
         <div class="card">
           <div class="card-title">✏️ เพิ่มข้อความ Ticker</div>
           <div class="fg">
@@ -1131,16 +1259,33 @@ input, textarea, select, button {
           </div>
           <button class="save-btn" onclick="addNews()" style="margin-top:16px;">📢 เพิ่มข้อความ</button>
         </div>
+          </div>
+          <div class="sub-pane" id="news-list">
         <div class="card">
           <div class="card-title">📋 ข้อความทั้งหมด
             <button onclick="loadNews()" style="margin-left:auto;font-family:'Phetsarath','Phetsarath','Noto Sans Lao','Kanit',sans-serif;font-size:11px;font-weight:700;padding:5px 12px;border:1px solid #e0e0e0;border-radius:7px;background:#fff;color:#555;cursor:pointer;white-space:nowrap;">🔄 รีเฟรช</button>
             <button onclick="loadNews()" style="margin-left:auto;font-family:'Phetsarath','Phetsarath','Noto Sans Lao','Kanit',sans-serif;font-size:11px;font-weight:700;padding:5px 12px;border:1px solid #e0e0e0;border-radius:7px;background:#fff;color:#555;cursor:pointer;white-space:nowrap;">🔄 รีเฟรช</button> <span id="news-count" style="font-size:12px;color:#888;font-weight:400;"></span></div>
           <div id="news-list"><div style="text-align:center;padding:24px;color:#aaa;">กำลังโหลด...</div></div>
         </div>
+          </div>
+          </div>
+        </div>
       </div>
 
       <!-- SETTINGS -->
       <div class="panel" id="panel-settings">
+        <div class="panel-layout">
+          <div class="panel-subnav">
+            <div class="panel-subnav-title">SETTINGS</div>
+          <div class="sub-nav-item active" data-sec="cfg-siteinfo" onclick="switchSubNav('settings','cfg-siteinfo')">🐂 ชื่อเว็บ & โลโก้</div>
+          <div class="sub-nav-item" data-sec="cfg-p2p" onclick="switchSubNav('settings','cfg-p2p')">💹 ค่าบริการ P2P</div>
+          <div class="sub-nav-item" data-sec="cfg-referral" onclick="switchSubNav('settings','cfg-referral')">🎁 ระบบแนะนำ</div>
+          <div class="sub-nav-item" data-sec="cfg-bank" onclick="switchSubNav('settings','cfg-bank')">🏦 บัญชีรับเงิน</div>
+          <div class="sub-nav-item" data-sec="cfg-contact" onclick="switchSubNav('settings','cfg-contact')">📞 ข้อมูลติดต่อ</div>
+          <div class="sub-nav-item" data-sec="cfg-vip" onclick="switchSubNav('settings','cfg-vip')">👑 VIP & รหัสผ่าน</div>
+          </div>
+          <div class="panel-subcontent">
+          <div class="sub-pane active" id="cfg-siteinfo">
         <div style="display:grid;grid-template-columns:200px 1fr;gap:0;min-height:600px;background:#fff;border-radius:12px;border:1px solid #e5e5e0;overflow:hidden;">
 
           <!-- ── Sidebar Tabs ── -->
@@ -1468,6 +1613,24 @@ input, textarea, select, button {
           </div>
 
         </div>
+          </div>
+          <div class="sub-pane" id="cfg-p2p">
+
+          </div>
+          <div class="sub-pane" id="cfg-referral">
+
+          </div>
+          <div class="sub-pane" id="cfg-bank">
+
+          </div>
+          <div class="sub-pane" id="cfg-contact">
+
+          </div>
+          <div class="sub-pane" id="cfg-vip">
+
+          </div>
+          </div>
+        </div>
       </div>
       <!-- Security Card -->
       <div class="card" style="border-left:4px solid #e24b4a;">
@@ -1482,6 +1645,13 @@ input, textarea, select, button {
 
       <!-- ═══════ PANEL: ประวัติการดำเนินงาน ═══════ -->
       <div class="panel" id="panel-worklog">
+        <div class="panel-layout">
+          <div class="panel-subnav">
+            <div class="panel-subnav-title">WORKLOG</div>
+          <div class="sub-nav-item active" data-sec="wl-main" onclick="switchSubNav('worklog','wl-main')">📋 ประวัติทั้งหมด</div>
+          </div>
+          <div class="panel-subcontent">
+          <div class="sub-pane active" id="wl-main">
         <div class="panel-header"><h2 class="panel-title">📋 ประวัติการดำเนินงาน</h2></div>
         <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-bottom:16px;background:#fafaf8;border:1px solid #e5e5e0;border-radius:10px;padding:12px 16px;">
           <input type="text" id="wl-search" placeholder="🔍 ค้นหาชื่อพนักงาน..." oninput="renderWorklog()" style="padding:7px 12px;border:1px solid #ddd;border-radius:7px;font-family:'Phetsarath','Noto Sans Lao','Kanit',sans-serif;font-size:13px;min-width:180px;">
@@ -1525,20 +1695,30 @@ input, textarea, select, button {
             <tbody id="wl-tbody"><tr><td colspan="5" style="text-align:center;padding:32px;color:#aaa;">กำลังโหลด...</td></tr></tbody>
           </table>
         </div>
-        <div id="wl-empty" style="display:none;text-align:center;padding:40px;color:#aaa;font-family:'Kanit',sans-serif;"><div style="font-size:40px;margin-bottom:12px;">📭</div><div>ไม่พบประวัติครับ</div></div>
+          </div>
+          </div>
+        </div>
       </div>
 
       <!-- STAFF PANEL -->
       <div class="panel" id="panel-staff">
-
-        <!-- stat cards -->
+        <div class="panel-layout">
+          <div class="panel-subnav">
+            <div class="panel-subnav-title">STAFF</div>
+          <div class="sub-nav-item active" data-sec="staff-stats" onclick="switchSubNav('staff','staff-stats')">📊 ภาพรวม</div>
+          <div class="sub-nav-item" data-sec="staff-list" onclick="switchSubNav('staff','staff-list')">👥 รายชื่อ</div>
+          <div class="sub-nav-item" data-sec="staff-add" onclick="switchSubNav('staff','staff-add')">➕ เพิ่มพนักงาน</div>
+          <div class="sub-nav-item" data-sec="staff-sec" onclick="switchSubNav('staff','staff-sec')">🔒 ความปลอดภัย</div>
+          </div>
+          <div class="panel-subcontent">
+          <div class="sub-pane active" id="staff-stats">
         <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:0;">
           <div class="stat-card"><div class="ico">👨‍💼</div><div class="val" id="staff-total">—</div><div class="lbl">พนักงานทั้งหมด</div></div>
           <div class="stat-card"><div class="ico">✅</div><div class="val" id="staff-active">—</div><div class="lbl">ใช้งานอยู่</div></div>
           <div class="stat-card"><div class="ico">📋</div><div class="val" id="staff-logs-count">—</div><div class="lbl">Log ทั้งหมด</div></div>
         </div>
-
-        <!-- เพิ่มพนักงาน -->
+          </div>
+          <div class="sub-pane" id="staff-list">
         <div class="card" style="border-left:4px solid #8b5cf6;">
           <div class="card-title">➕ เพิ่มพนักงานใหม่
             <button onclick="loadStaffPanel()" style="margin-left:auto;font-family:'Phetsarath','Phetsarath','Noto Sans Lao','Kanit',sans-serif;font-size:11px;font-weight:700;padding:5px 12px;border:1px solid #e0e0e0;border-radius:7px;background:#fff;color:#555;cursor:pointer;">🔄 รีเฟรช</button>
@@ -1558,8 +1738,8 @@ input, textarea, select, button {
           </div>
           <button class="save-btn" onclick="addStaff()">💾 เพิ่มพนักงาน</button>
         </div>
-
-        <!-- รายชื่อพนักงาน -->
+          </div>
+          <div class="sub-pane" id="staff-add">
         <div class="card">
           <div class="card-title">👥 รายชื่อพนักงาน</div>
           <div style="overflow-x:auto;">
@@ -1575,8 +1755,8 @@ input, textarea, select, button {
             </table>
           </div>
         </div>
-
-        <!-- Activity Log -->
+          </div>
+          <div class="sub-pane" id="staff-sec">
         <div class="card">
           <div class="card-title">📋 Activity Log — ประวัติการทำงาน
             <button onclick="loadStaffLogs()" style="margin-left:auto;font-family:'Phetsarath','Phetsarath','Noto Sans Lao','Kanit',sans-serif;font-size:11px;font-weight:700;padding:5px 12px;border:1px solid #e0e0e0;border-radius:7px;background:#fff;color:#555;cursor:pointer;">🔄 รีเฟรช</button>
@@ -1598,7 +1778,9 @@ input, textarea, select, button {
             </table>
           </div>
         </div>
-
+          </div>
+          </div>
+        </div>
       </div>
 
     </div>
@@ -1951,10 +2133,11 @@ async function changeAdminPass() {
 // ===== PANEL SWITCH =====
 function switchPanel(name) {
   document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
-  document.querySelectorAll('.sb-item').forEach(i => i.classList.remove('active'));
+  document.querySelectorAll('.sb-item, .side-item').forEach(i => i.classList.remove('active'));
   document.getElementById('panel-'+name)?.classList.add('active');
-  document.querySelector(`[data-panel="${name}"]`)?.classList.add('active');
-  currentPanel = name;
+  document.querySelectorAll(`[data-panel="${name}"]`).forEach(el => el.classList.add('active'));
+  // เก็บ panel ปัจจุบัน
+  _currentPanel = name;
 }
 
 // ===== TOAST =====
@@ -4903,6 +5086,16 @@ window.switchCfgTab = function(tabId) {
   _origSwitchCfgTab(tabId);
   if (tabId === 'bank') { loadBankAccounts(); loadTxLimits(); }
 };
+
+
+function switchSubNav(panelId, secId) {
+  document.querySelectorAll('#panel-' + panelId + ' .sub-nav-item').forEach(i => i.classList.remove('active'));
+  document.querySelectorAll('#panel-' + panelId + ' .sub-pane').forEach(p => p.classList.remove('active'));
+  const navBtn = document.querySelector('#panel-' + panelId + ' [data-sec="' + secId + '"]');
+  const pane   = document.getElementById(secId);
+  if (navBtn) navBtn.classList.add('active');
+  if (pane)   pane.classList.add('active');
+}
 
 async function logStaffAction(username, action, detail='') {
   try { await sb.from('staff_logs').insert({ staff_username: username, action, detail }); } catch(_) {}
