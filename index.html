@@ -2011,18 +2011,19 @@ fns.forEach(function(fn){
 
   /* MODAL bull photo */
   .modal-bull-photo {
-    width: 90px;
-    height: 90px;
-    border-radius: 12px;
+    width: 100px;
+    height: 100px;
+    border-radius: 14px;
     overflow: hidden;
-    border: 2px solid rgba(245,168,0,0.3);
-    background: rgba(255,255,255,0.04);
+    border: 2px solid rgba(245,168,0,0.4);
+    background: linear-gradient(135deg,rgba(245,168,0,0.08),rgba(0,0,0,0.3));
     display: flex;
     align-items: center;
     justify-content: center;
     margin: 0 auto 10px;
     cursor: pointer;
-    transition: border-color 0.2s;
+    transition: all 0.2s;
+    box-shadow: 0 4px 16px rgba(0,0,0,0.4);
   }
   .modal-bull-photo:hover { border-color: var(--gold); }
   .modal-bull-photo img { width: 100%; height: 100%; object-fit: cover; }
@@ -2723,7 +2724,7 @@ input, textarea, select, button {
         <div class="modal-bull">
           <div class="modal-bull-photo" onclick="document.getElementById('modal-img-a').click()">
             <img id="modal-photo-a" src="" style="display:none">
-            <div class="modal-bull-photo-placeholder" id="modal-placeholder-a">🐂</div>
+            <div class="modal-bull-photo-placeholder" id="modal-placeholder-a" style="display:none;"></div>
           </div>
           <input type="file" id="modal-img-a" accept="image/*" style="display:none" onchange="loadModalPhoto(this,'modal-photo-a','modal-placeholder-a')">
           <div class="modal-bull-name" id="m-bull-a">เจ้าพายุ</div>
@@ -2734,7 +2735,7 @@ input, textarea, select, button {
         <div class="modal-bull">
           <div class="modal-bull-photo" onclick="document.getElementById('modal-img-b').click()">
             <img id="modal-photo-b" src="" style="display:none">
-            <div class="modal-bull-photo-placeholder" id="modal-placeholder-b">🐃</div>
+            <div class="modal-bull-photo-placeholder" id="modal-placeholder-b" style="display:none;"></div>
           </div>
           <input type="file" id="modal-img-b" accept="image/*" style="display:none" onchange="loadModalPhoto(this,'modal-photo-b','modal-placeholder-b')">
           <div class="modal-bull-name" id="m-bull-b">ดำมหากาฬ</div>
@@ -8572,18 +8573,52 @@ setInterval(() => {
   };
 
   window.openModal = window._real_openModal = function openModal(d) {
-    document.getElementById('m-round').textContent = d.round;
-    document.getElementById('m-bull-a').textContent = d.bullA;
-    document.getElementById('m-owner-a').textContent = 'เจ้าของ: ' + d.ownerA;
+    document.getElementById('m-round').textContent    = d.round;
+    document.getElementById('m-bull-a').textContent   = d.bullA;
+    document.getElementById('m-owner-a').textContent  = 'เจ้าของ: ' + d.ownerA;
     document.getElementById('m-weight-a').textContent = d.weightA;
-    document.getElementById('m-bull-b').textContent = d.bullB;
-    document.getElementById('m-owner-b').textContent = 'เจ้าของ: ' + d.ownerB;
+    document.getElementById('m-bull-b').textContent   = d.bullB;
+    document.getElementById('m-owner-b').textContent  = 'เจ้าของ: ' + d.ownerB;
     document.getElementById('m-weight-b').textContent = d.weightB;
-    document.getElementById('m-date').textContent = d.date;
-    document.getElementById('m-time').textContent = d.time;
-    document.getElementById('m-loc').textContent = d.loc;
-    document.getElementById('m-prize').textContent = d.prize;
+    document.getElementById('m-date').textContent     = d.date;
+    document.getElementById('m-time').textContent     = d.time;
+    document.getElementById('m-loc').textContent      = d.loc;
+    document.getElementById('m-prize').textContent    = d.prize;
+
+    // ── แสดงรูปวัวจากฐานข้อมูล ──
+    const imgA = document.getElementById('modal-photo-a');
+    const phA  = document.getElementById('modal-placeholder-a');
+    const imgB = document.getElementById('modal-photo-b');
+    const phB  = document.getElementById('modal-placeholder-b');
+
+    function _setPhoto(img, ph, url) {
+      if (url && url.trim() && url !== '🐂' && url !== '🐃') {
+        img.src = url;
+        img.style.display = 'block';
+        if (ph) ph.style.display = 'none';
+        // ถ้าโหลดรูปไม่ได้ fallback
+        img.onerror = () => { img.style.display = 'none'; if(ph) ph.style.display = 'flex'; };
+      } else {
+        img.src = '';
+        img.style.display = 'none';
+        if (ph) ph.style.display = 'none'; // ซ่อน emoji ด้วย
+      }
+    }
+    _setPhoto(imgA, phA, d.photoA);
+    _setPhoto(imgB, phB, d.photoB);
+
+    // ปิด onclick file picker เมื่อมีรูปจาก DB แล้ว
+    const wrapA = imgA.closest('.modal-bull-photo');
+    const wrapB = imgB.closest('.modal-bull-photo');
+    if (wrapA) wrapA.onclick = d.photoA ? null : () => document.getElementById('modal-img-a').click();
+    if (wrapB) wrapB.onclick = d.photoB ? null : () => document.getElementById('modal-img-b').click();
+
+    // ── winner highlight ──
     const wb = document.getElementById('m-winner-bar');
+    const bullNameA = document.getElementById('m-bull-a');
+    const bullNameB = document.getElementById('m-bull-b');
+    if (bullNameA) bullNameA.classList.toggle('winner', d.winner && d.winner === d.bullA);
+    if (bullNameB) bullNameB.classList.toggle('winner', d.winner && d.winner === d.bullB);
     if (d.winner) {
       wb.style.display = 'block';
       document.getElementById('m-winner-name').textContent = d.winner;
