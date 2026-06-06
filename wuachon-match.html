@@ -567,19 +567,6 @@ function renderPage() {
   const sCls = isLive ? 's-live' : isDone ? 's-done' : 's-upcoming';
   const prize = m.prize ? Number(m.prize).toLocaleString('th-TH') + ' ₭' : '—';
 
-  // ── Poster ──
-  const posterWrap = document.getElementById('match-poster-wrap');
-  const posterImg  = document.getElementById('match-poster-img');
-  if (posterWrap && posterImg) {
-    if (m.poster_url) {
-      posterImg.src = m.poster_url;
-      posterWrap.style.display = 'block';
-      posterImg.onerror = () => { posterWrap.style.display = 'none'; };
-    } else {
-      posterWrap.style.display = 'none';
-    }
-  }
-
   const winnerHTML = (isDone && m.winner) ? `
     <div class="winner-banner">
       <div class="winner-label">🏆 ผลการแข่งขัน</div>
@@ -642,13 +629,14 @@ function renderPage() {
     <span class="status-badge ${sCls}">${sLabel}</span>
   </div>
 
-  <!-- POSTER -->
-  <div class="match-poster-wrap" id="match-poster-wrap" style="display:none;">
-    <img id="match-poster-img" class="match-poster-img" src="" alt="poster">
-  </div>
+  <!-- POSTER + VS: แสดง poster ถ้ามี ซ่อนรูปวัวถ้ามี poster -->
+  ${m.poster_url ? `
+  <div class="match-poster-wrap" style="display:block;">
+    <img class="match-poster-img" src="${m.poster_url}" alt="poster">
+  </div>` : ''}
 
   <!-- VS -->
-  <div class="vs-section">
+  <div class="vs-section" id="vs-section-wrap" style="${m.poster_url ? 'display:none;' : 'display:block;'}">
     <div class="vs-grid">
       <div class="bull">
         <div class="bull-ico bull-red">${m.photo_a ? `<img src="${m.photo_a}" style="width:100%;height:100%;object-fit:cover;border-radius:50%;" onerror="this.style.display='none'">` : ''}</div>
@@ -684,6 +672,7 @@ function renderPage() {
 
   renderBetsList();
   updateOddsDisplay();
+
 }
 
 // ===== BET FORM HTML =====
