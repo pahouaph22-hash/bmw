@@ -484,7 +484,7 @@ function renderPage() {
   <div class="vs-section">
     <div class="vs-grid">
       <div class="bull">
-        <div class="bull-ico bull-red">🐂</div>
+        <div class="bull-ico bull-red">${m.photo_a ? `<img src="${m.photo_a}" style="width:100%;height:100%;object-fit:cover;border-radius:50%;" onerror="this.style.display='none'">` : ''}</div>
         <div class="bull-name" style="color:#ff9090;">${m.name_a || 'เจ้าบ้าน'}</div>
         ${m.owner_a ? `<div class="bull-owner">${m.owner_a}</div>` : ''}
         ${m.weight_a ? `<div class="bull-wt">⚖️ ${m.weight_a} กก.</div>` : ''}
@@ -494,7 +494,7 @@ function renderPage() {
         <div class="prize-big">🏆 ${prize}</div>
       </div>
       <div class="bull">
-        <div class="bull-ico bull-blue">🐂</div>
+        <div class="bull-ico bull-blue">${m.photo_b ? `<img src="${m.photo_b}" style="width:100%;height:100%;object-fit:cover;border-radius:50%;" onerror="this.style.display='none'">` : ''}</div>
         <div class="bull-name" style="color:#90b4ff;">${m.name_b || 'ทีมเยือน'}</div>
         ${m.owner_b ? `<div class="bull-owner">${m.owner_b}</div>` : ''}
         ${m.weight_b ? `<div class="bull-wt">⚖️ ${m.weight_b} กก.</div>` : ''}
@@ -523,12 +523,12 @@ function betFormHTML(m) {
   return `
   <div class="side-btns">
     <div class="side-btn" id="btn-red" onclick="selectSide('red')">
-      <div style="font-size:24px;">🐂</div>
+      <div style="width:56px;height:56px;border-radius:50%;overflow:hidden;margin:0 auto 6px;background:rgba(255,144,144,0.1);">${m.photo_a ? `<img src="${m.photo_a}" style="width:100%;height:100%;object-fit:cover;" onerror="this.style.display='none'">` : ''}</div>
       <div class="side-name" style="color:#ff9090;">${m.name_a || 'เจ้าบ้าน'}</div>
       
     </div>
     <div class="side-btn" id="btn-blue" onclick="selectSide('blue')">
-      <div style="font-size:24px;">🐂</div>
+      <div style="width:56px;height:56px;border-radius:50%;overflow:hidden;margin:0 auto 6px;background:rgba(144,180,255,0.1);">${m.photo_b ? `<img src="${m.photo_b}" style="width:100%;height:100%;object-fit:cover;" onerror="this.style.display='none'">` : ''}</div>
       <div class="side-name" style="color:#90b4ff;">${m.name_b || 'ทีมเยือน'}</div>
       
     </div>
