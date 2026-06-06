@@ -278,6 +278,110 @@ nav{display:flex;align-items:center;justify-content:space-between;padding:13px 2
   .bull-name{font-size:15px;}
   .input-row{grid-template-columns:1fr;}
 }
+
+/* ══ BET2 — New Side-by-Side Design ══ */
+.bet2-wrap{
+  display:grid;
+  grid-template-columns:1fr 60px 1fr;
+  gap:0;
+  background:var(--card);
+  border-radius:14px;
+  border:1px solid var(--border);
+  overflow:hidden;
+}
+.bet2-side{
+  padding:18px 14px 16px;
+  display:flex;flex-direction:column;align-items:center;gap:8px;
+  position:relative;
+}
+.bet2-side-a{border-right:1px solid rgba(255,255,255,0.06);}
+
+.bet2-photo-ring{
+  width:90px;height:90px;border-radius:50%;
+  padding:3px;margin-bottom:2px;
+}
+.red-ring{ background:linear-gradient(135deg,rgba(200,16,46,0.8),rgba(200,16,46,0.2)); box-shadow:0 0 20px rgba(200,16,46,0.3);}
+.blue-ring{background:linear-gradient(135deg,rgba(30,80,200,0.8),rgba(30,80,200,0.2)); box-shadow:0 0 20px rgba(30,80,200,0.3);}
+.bet2-photo{
+  width:100%;height:100%;border-radius:50%;
+  overflow:hidden;background:rgba(0,0,0,0.3);
+  display:flex;align-items:center;justify-content:center;
+}
+.bet2-photo img{width:100%;height:100%;object-fit:cover;}
+.bet2-name{font-family:'Kanit',sans-serif;font-weight:900;font-size:15px;text-align:center;}
+.red-name{color:#ff9090;}
+.blue-name{color:#90b4ff;}
+.bet2-owner{font-size:10px;color:rgba(255,248,236,0.4);margin-top:-4px;}
+
+.bet2-odds-row{display:flex;gap:5px;width:100%;margin-top:4px;}
+.bet2-tab{
+  flex:1;padding:6px 4px;border-radius:8px;
+  border:1px solid rgba(255,255,255,0.1);
+  background:rgba(255,255,255,0.04);
+  color:rgba(240,255,232,0.5);
+  font-family:'Kanit',sans-serif;font-size:10px;font-weight:700;
+  cursor:pointer;transition:all .15s;text-align:center;line-height:1.4;
+}
+.bet2-tab.active-a{background:rgba(200,16,46,0.15);border-color:rgba(200,16,46,0.5);color:#ff9090;}
+.bet2-tab.active-b{background:rgba(30,80,200,0.15);border-color:rgba(30,80,200,0.5);color:#90b4ff;}
+.bet2-odds-num{display:block;font-size:16px;font-weight:900;color:var(--gold);margin-top:1px;}
+.bet2-odds-num.rong-color{color:#90c8ff;}
+
+.bet2-input-wrap{width:100%;}
+.bet2-qp-row{display:flex;gap:3px;margin-bottom:6px;flex-wrap:wrap;}
+.bet2-qp{
+  flex:1;min-width:0;padding:4px 2px;border-radius:6px;
+  border:1px solid rgba(255,255,255,0.08);
+  background:rgba(255,255,255,0.04);
+  color:rgba(240,255,232,0.5);
+  font-family:'Kanit',sans-serif;font-size:10px;font-weight:700;cursor:pointer;
+}
+.bet2-qp:hover{background:rgba(245,200,66,0.1);border-color:rgba(245,200,66,0.3);color:var(--gold);}
+.bet2-input{
+  width:100%;background:rgba(0,0,0,0.25);
+  border:1px solid rgba(255,255,255,0.12);
+  border-radius:8px;padding:9px 10px;
+  color:#fff;font-family:'Kanit',sans-serif;
+  font-size:16px;font-weight:700;text-align:center;
+  outline:none;box-sizing:border-box;
+}
+.bet2-input:focus{border-color:rgba(245,200,66,0.4);}
+.bet2-preview{
+  font-size:10px;color:rgba(240,255,232,0.4);
+  font-family:'Kanit',sans-serif;text-align:center;
+  min-height:14px;margin-top:3px;
+}
+.bet2-btn{
+  width:100%;padding:10px;border-radius:9px;border:none;
+  font-family:'Kanit',sans-serif;font-weight:900;font-size:13px;
+  cursor:pointer;transition:all .15s;margin-top:2px;
+}
+.bet2-btn-a{background:linear-gradient(135deg,#C8102E,#a00d24);color:#fff;}
+.bet2-btn-a:hover{background:linear-gradient(135deg,#e01535,#C8102E);}
+.bet2-btn-b{background:linear-gradient(135deg,#1e50c8,#1640a0);color:#fff;}
+.bet2-btn-b:hover{background:linear-gradient(135deg,#2563eb,#1e50c8);}
+.bet2-btn:disabled{opacity:0.4;cursor:not-allowed;}
+
+.bet2-vs{
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  gap:8px;padding:12px 0;
+}
+.bet2-vs-circle{
+  width:48px;height:48px;border-radius:50%;
+  background:linear-gradient(135deg,rgba(245,200,66,0.2),rgba(245,200,66,0.05));
+  border:2px solid rgba(245,200,66,0.4);
+  display:flex;align-items:center;justify-content:center;
+  font-family:'Kanit',sans-serif;font-weight:900;font-size:14px;color:var(--gold);
+}
+.bet2-prize{font-size:9px;color:var(--gold);font-family:'Kanit',sans-serif;text-align:center;writing-mode:vertical-lr;}
+
+@media(max-width:480px){
+  .bet2-wrap{grid-template-columns:1fr 40px 1fr;}
+  .bet2-photo-ring{width:70px;height:70px;}
+  .bet2-name{font-size:12px;}
+  .bet2-tab{font-size:9px;}
+  .bet2-odds-num{font-size:13px;}
+}
 </style>
 </head>
 <body>
@@ -586,86 +690,82 @@ function renderPage() {
 function betFormHTML(m) {
   const photoA = m.photo_a ? `<img src="${m.photo_a}" style="width:100%;height:100%;object-fit:cover;" onerror="this.style.display='none'">` : '';
   const photoB = m.photo_b ? `<img src="${m.photo_b}" style="width:100%;height:100%;object-fit:cover;" onerror="this.style.display='none'">` : '';
+  const oddsA  = m.odds_tor  || 1.0;
+  const oddsB  = m.odds_rong || 1.9;
   return `
-  <div class="bet-table-wrap">
+  <div class="bet2-wrap">
 
-    <!-- ── หัวตาราง: รูป + ชื่อวัว ── -->
-    <div class="bet-table-header">
-      <div class="bet-team-col red-col">
-        <div class="bet-team-col-photo">${photoA}</div>
-        <div class="bet-team-col-name red">${m.name_a||'เจ้าบ้าน'}</div>
-        ${m.owner_a?`<div style="font-size:10px;color:rgba(240,255,232,0.35);">${m.owner_a}</div>`:''}
+    <!-- ── ฝั่ง A ── -->
+    <div class="bet2-side bet2-side-a" id="bet2-a">
+      <div class="bet2-photo-ring red-ring">
+        <div class="bet2-photo">${photoA}</div>
       </div>
-      <div class="bet-team-col blue-col">
-        <div class="bet-team-col-photo">${photoB}</div>
-        <div class="bet-team-col-name blue">${m.name_b||'ทีมเยือน'}</div>
-        ${m.owner_b?`<div style="font-size:10px;color:rgba(240,255,232,0.35);">${m.owner_b}</div>`:''}
-      </div>
-    </div>
+      <div class="bet2-name red-name">${m.name_a||'เจ้าบ้าน'}</div>
+      ${m.owner_a?`<div class="bet2-owner">${m.owner_a}</div>`:''}
 
-    <!-- ── แถวอัตราต่อรอง ── -->
-    <div class="bet-odds-row">
-      <div class="bet-odds-cell">
-        <div class="bet-odds-label">⚔️ ต่อ (Favorite)</div>
-        <div class="bet-odds-value" id="odds-display-a">—</div>
-        <div class="bet-odds-sub">ชนะได้น้อยกว่า แต่โอกาสสูงกว่า</div>
+      <!-- อัตราต่อรอง -->
+      <div class="bet2-odds-row">
+        <button class="bet2-tab bet2-tab-tor active-a" id="tab2-a-tor" onclick="setBetType2('a','tor')">
+          ⚔️ ต่อ <span class="bet2-odds-num" id="odds-val-a-tor">×${oddsA}</span>
+        </button>
+        <button class="bet2-tab bet2-tab-rong" id="tab2-a-rong" onclick="setBetType2('a','rong')">
+          🛡️ รอง <span class="bet2-odds-num rong-color" id="odds-val-a-rong">×${oddsB}</span>
+        </button>
       </div>
-      <div class="bet-odds-cell">
-        <div class="bet-odds-label">🛡️ รอง (Underdog)</div>
-        <div class="bet-odds-value" id="odds-display-b">—</div>
-        <div class="bet-odds-sub">ชนะได้มากกว่า แต่โอกาสต่ำกว่า</div>
-      </div>
-    </div>
 
-    <!-- ── ช่องใส่จำนวนเงิน แยก 2 ฝั่ง ── -->
-    <div class="bet-input-row">
-
-      <!-- ฝั่ง A -->
-      <div class="bet-input-cell">
-        <div class="bet-type-tabs">
-          <button class="bet-type-tab active-tor" id="tab-a-tor" onclick="setBetType('a','tor')">⚔️ ต่อ</button>
-          <button class="bet-type-tab" id="tab-a-rong" onclick="setBetType('a','rong')">🛡️ รอง</button>
+      <!-- ช่องกรอกเงิน -->
+      <div class="bet2-input-wrap">
+        <div class="bet2-qp-row">
+          <button class="bet2-qp" onclick="setAmt('a',500)">500</button>
+          <button class="bet2-qp" onclick="setAmt('a',1000)">1K</button>
+          <button class="bet2-qp" onclick="setAmt('a',5000)">5K</button>
+          <button class="bet2-qp" onclick="setAmt('a',10000)">10K</button>
         </div>
-        <label>จำนวนเงิน (₭) — <span id="label-a" style="color:#ff9090;">${m.name_a||'เจ้าบ้าน'}</span></label>
-        <input type="number" id="amount-a" placeholder="เช่น 1000" min="10" oninput="calcPreview('a')">
-        <div class="bet-quickpick">
-          <button class="bet-qp-btn" onclick="setAmount('a',500)">500</button>
-          <button class="bet-qp-btn" onclick="setAmount('a',1000)">1K</button>
-          <button class="bet-qp-btn" onclick="setAmount('a',5000)">5K</button>
-          <button class="bet-qp-btn" onclick="setAmount('a',10000)">10K</button>
-        </div>
-        <div id="preview-a" style="font-size:11px;color:rgba(240,255,232,0.45);margin-top:6px;min-height:16px;font-family:'Kanit',sans-serif;"></div>
+        <input type="number" id="amt-a" class="bet2-input" placeholder="จำนวนเงิน ₭" min="10" oninput="calcPrev2('a')">
+        <div class="bet2-preview" id="prev2-a"></div>
       </div>
-
-      <!-- ฝั่ง B -->
-      <div class="bet-input-cell">
-        <div class="bet-type-tabs">
-          <button class="bet-type-tab active-tor" id="tab-b-tor" onclick="setBetType('b','tor')">⚔️ ต่อ</button>
-          <button class="bet-type-tab" id="tab-b-rong" onclick="setBetType('b','rong')">🛡️ รอง</button>
-        </div>
-        <label>จำนวนเงิน (₭) — <span id="label-b" style="color:#90b4ff;">${m.name_b||'ทีมเยือน'}</span></label>
-        <input type="number" id="amount-b" placeholder="เช่น 1000" min="10" oninput="calcPreview('b')">
-        <div class="bet-quickpick">
-          <button class="bet-qp-btn" onclick="setAmount('b',500)">500</button>
-          <button class="bet-qp-btn" onclick="setAmount('b',1000)">1K</button>
-          <button class="bet-qp-btn" onclick="setAmount('b',5000)">5K</button>
-          <button class="bet-qp-btn" onclick="setAmount('b',10000)">10K</button>
-        </div>
-        <div id="preview-b" style="font-size:11px;color:rgba(240,255,232,0.45);margin-top:6px;min-height:16px;font-family:'Kanit',sans-serif;"></div>
-      </div>
-
-    </div>
-
-    <!-- ── preview รวม ── -->
-    <div class="bet-preview-row" id="bet-preview-main">เลือกฝั่งและใส่จำนวนเงินเพื่อดูตัวอย่าง</div>
-
-    <!-- ── ปุ่มส่ง แยก 2 ฝั่ง ── -->
-    <div class="bet-submit-row">
-      <button class="btn-bet-red" id="btn-submit-a" onclick="placeBetSide('a')">
-        ⚔️ วางเดิมพัน<br><span style="font-size:11px;font-weight:400;">${m.name_a||'เจ้าบ้าน'}</span>
+      <button class="bet2-btn bet2-btn-a" id="btn2-a" onclick="placeBetSide2('a')">
+        วางเดิมพัน <span id="btn2-a-label">${m.name_a||'เจ้าบ้าน'}</span>
       </button>
-      <button class="btn-bet-blue" id="btn-submit-b" onclick="placeBetSide('b')">
-        🛡️ วางเดิมพัน<br><span style="font-size:11px;font-weight:400;">${m.name_b||'ทีมเยือน'}</span>
+    </div>
+
+    <!-- ── VS divider ── -->
+    <div class="bet2-vs">
+      <div class="bet2-vs-circle">VS</div>
+      <div class="bet2-prize">🏆 ${matchData?.prize ? Number(matchData.prize).toLocaleString() + ' ₭' : ''}</div>
+    </div>
+
+    <!-- ── ฝั่ง B ── -->
+    <div class="bet2-side bet2-side-b" id="bet2-b">
+      <div class="bet2-photo-ring blue-ring">
+        <div class="bet2-photo">${photoB}</div>
+      </div>
+      <div class="bet2-name blue-name">${m.name_b||'ทีมเยือน'}</div>
+      ${m.owner_b?`<div class="bet2-owner">${m.owner_b}</div>`:''}
+
+      <!-- อัตราต่อรอง -->
+      <div class="bet2-odds-row">
+        <button class="bet2-tab bet2-tab-tor active-b" id="tab2-b-tor" onclick="setBetType2('b','tor')">
+          ⚔️ ต่อ <span class="bet2-odds-num" id="odds-val-b-tor">×${oddsA}</span>
+        </button>
+        <button class="bet2-tab bet2-tab-rong" id="tab2-b-rong" onclick="setBetType2('b','rong')">
+          🛡️ รอง <span class="bet2-odds-num rong-color" id="odds-val-b-rong">×${oddsB}</span>
+        </button>
+      </div>
+
+      <!-- ช่องกรอกเงิน -->
+      <div class="bet2-input-wrap">
+        <div class="bet2-qp-row">
+          <button class="bet2-qp" onclick="setAmt('b',500)">500</button>
+          <button class="bet2-qp" onclick="setAmt('b',1000)">1K</button>
+          <button class="bet2-qp" onclick="setAmt('b',5000)">5K</button>
+          <button class="bet2-qp" onclick="setAmt('b',10000)">10K</button>
+        </div>
+        <input type="number" id="amt-b" class="bet2-input" placeholder="จำนวนเงิน ₭" min="10" oninput="calcPrev2('b')">
+        <div class="bet2-preview" id="prev2-b"></div>
+      </div>
+      <button class="bet2-btn bet2-btn-b" id="btn2-b" onclick="placeBetSide2('b')">
+        วางเดิมพัน <span id="btn2-b-label">${m.name_b||'ทีมเยือน'}</span>
       </button>
     </div>
 
@@ -674,55 +774,87 @@ function betFormHTML(m) {
 
 
 
-// ── bet type state ──
-const betTypes = { a: 'tor', b: 'tor' };
-const baseOdds = { tor: 1.0, rong: 1.9 };  // admin กำหนดได้ทีหลัง
+// ══ BET2 JS ══
+const betTypes2 = { a:'tor', b:'tor' };
 
-function setBetType(side, type) {
-  betTypes[side] = type;
-  const tor  = document.getElementById(`tab-${side}-tor`);
-  const rong = document.getElementById(`tab-${side}-rong`);
-  if (tor)  { tor.className  = 'bet-type-tab' + (type==='tor'  ? ' active-tor'  : ''); }
-  if (rong) { rong.className = 'bet-type-tab' + (type==='rong' ? ' active-rong' : ''); }
-  calcPreview(side);
+function setBetType2(side, type) {
+  betTypes2[side] = type;
+  const other = type === 'tor' ? 'rong' : 'tor';
+  const activeClass = side === 'a' ? 'active-a' : 'active-b';
+  const torEl  = document.getElementById(`tab2-${side}-tor`);
+  const rongEl = document.getElementById(`tab2-${side}-rong`);
+  if (torEl)  torEl.classList.toggle(activeClass, type === 'tor');
+  if (rongEl) rongEl.classList.toggle(activeClass, type === 'rong');
+  calcPrev2(side);
 }
 
-function setAmount(side, val) {
-  const el = document.getElementById(`amount-${side}`);
-  if (el) { el.value = val; calcPreview(side); }
+function setAmt(side, val) {
+  const el = document.getElementById(`amt-${side}`);
+  if (el) { el.value = val; calcPrev2(side); }
 }
 
-function getOdds(side) {
+function getOdds2(side) {
   const m = matchData;
-  const type = betTypes[side];
-  if (type === 'tor')  return parseFloat(m?.odds_tor  || 1.0);
-  if (type === 'rong') return parseFloat(m?.odds_rong || 1.9);
-  return 1.9;
+  const type = betTypes2[side];
+  return type === 'tor' ? parseFloat(m?.odds_tor||1.0) : parseFloat(m?.odds_rong||1.9);
 }
 
-function calcPreview(side) {
-  const amount = parseFloat(document.getElementById(`amount-${side}`)?.value) || 0;
-  const odds   = getOdds(side);
-  const prev   = document.getElementById(`preview-${side}`);
-  const main   = document.getElementById('bet-preview-main');
-  const type   = betTypes[side];
-  const typeLabel = type === 'tor' ? '⚔️ ต่อ' : '🛡️ รอง';
-  const sideName  = side === 'a' ? (matchData?.name_a||'เจ้าบ้าน') : (matchData?.name_b||'ทีมเยือน');
-
-  if (!amount) {
-    if (prev) prev.innerHTML = '';
-    return;
-  }
-  const win = Math.floor(amount * (1 + odds));
+function calcPrev2(side) {
+  const amount = parseFloat(document.getElementById(`amt-${side}`)?.value) || 0;
+  const odds   = getOdds2(side);
+  const prev   = document.getElementById(`prev2-${side}`);
+  if (!prev) return;
+  if (!amount) { prev.innerHTML = ''; return; }
+  const win    = Math.floor(amount * (1 + odds));
   const profit = Math.floor(amount * odds);
-  if (prev) prev.innerHTML = `${typeLabel} ${amount.toLocaleString()} ₭ → ได้รับ <b style="color:var(--gold);">${win.toLocaleString()} ₭</b> (+${profit.toLocaleString()})`;
-  if (main) main.innerHTML = `${typeLabel} <b>${sideName}</b> ${amount.toLocaleString()} ₭ × ${odds} = ชนะได้รับ <b style="color:var(--gold);">${win.toLocaleString()} ₭</b>`;
+  const type   = betTypes2[side] === 'tor' ? '⚔️ต่อ' : '🛡️รอง';
+  prev.innerHTML = `${type} → ได้รับ <b style="color:var(--gold);">${win.toLocaleString()} ₭</b> (+${profit.toLocaleString()})`;
 }
 
-// legacy compat
-function selectSide(side) {}
-function updatePreview() {}
+async function placeBetSide2(side) {
+  if (!currentUser) { showToast('กรุณาเข้าสู่ระบบก่อนครับ'); return; }
+  const currentStatus = normalizeStatus(matchData?.status);
+  if (currentStatus === 'live') { showToast('🔴 ปิดรับเดิมพันแล้วครับ'); return; }
+  if (currentStatus === 'done') { showToast('✅ การแข่งขันจบแล้วครับ'); return; }
 
+  const amount = parseFloat(document.getElementById(`amt-${side}`)?.value);
+  if (!amount || amount < 10) { showToast('จำนวนเงินขั้นต่ำ 10 ₭ครับ'); return; }
+  if (currentUser.balance < amount) { showToast('ยอดเงินไม่พอครับ'); return; }
+
+  const type     = betTypes2[side];
+  const odds     = getOdds2(side);
+  const sideName = side === 'a' ? (matchData?.name_a||'เจ้าบ้าน') : (matchData?.name_b||'ทีมเยือน');
+  const sideKey  = side === 'a' ? 'red' : 'blue';
+  const typeLabel = type === 'tor' ? 'ต่อ' : 'รอง';
+
+  const btn = document.getElementById(`btn2-${side}`);
+  if (btn) { btn.disabled = true; btn.textContent = 'กำลังส่ง...'; }
+
+  const txn = 'BET-' + Date.now() + '-' + Math.random().toString(36).slice(2,6).toUpperCase();
+  const expiresAt = new Date(Date.now() + 2*60*60*1000).toISOString();
+
+  const { error } = await sb.from('bets').insert({
+    match_id: matchId, nick: currentUser.nick,
+    side: sideKey, side_name: sideName,
+    amount, odds, txn, status: 'waiting',
+    match_status: 'waiting',
+    order_amount: amount, matched_amount: 0, remaining_amount: amount,
+    bet_type: type, expires_at: expiresAt,
+  });
+
+  if (btn) { btn.disabled = false; btn.innerHTML = `วางเดิมพัน <span>${sideName}</span>`; }
+  if (error) { showToast('เกิดข้อผิดพลาด: ' + error.message); return; }
+
+  const newBalance = (currentUser.balance||0) - amount;
+  await sb.from('members').update({ balance: newBalance }).eq('nick', currentUser.nick);
+  currentUser.balance = newBalance;
+  updateBalanceDisplay();
+
+  showToast(`✅ ${typeLabel} ${sideName} ${amount.toLocaleString()} ₭ สำเร็จ!`);
+  document.getElementById(`amt-${side}`).value = '';
+  document.getElementById(`prev2-${side}`).innerHTML = '';
+  setTimeout(renderBetsList, 800);
+}
 // ===== UPDATE ODDS DISPLAY =====
 function updateOddsDisplay() {
   const m = matchData;
