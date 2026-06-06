@@ -726,6 +726,55 @@ nav{display:flex;align-items:center;justify-content:space-between;padding:13px 2
 }
 .odds-badge-val{font-size:14px;font-weight:900;display:inline-block;margin-left:2px;}
 .odds-badge-val.rong{color:#80c8ff;}
+
+/* ══ Odds Picker ══ */
+.odds-picker-wrap { position:relative; width:100%; }
+.odds-picker-btn {
+  width:100%; padding:10px 8px; border-radius:10px; cursor:pointer;
+  font-family:'Kanit',sans-serif; font-weight:900; font-size:14px;
+  border:2px solid; transition:all .2s; text-align:center; line-height:1.3;
+  display:flex; flex-direction:column; align-items:center; gap:2px;
+}
+.odds-picker-btn.tor-btn {
+  background:rgba(245,200,66,0.12); border-color:rgba(245,200,66,0.5); color:var(--gold);
+}
+.odds-picker-btn.rong-btn {
+  background:rgba(80,160,255,0.12); border-color:rgba(80,160,255,0.4); color:#80c8ff;
+}
+.odds-picker-btn:hover { transform:translateY(-1px); filter:brightness(1.1); }
+.odds-picker-label { font-size:9px; font-weight:700; opacity:.65; letter-spacing:.05em; }
+.odds-picker-val { font-size:18px; font-weight:900; }
+
+.odds-dropdown {
+  position:absolute; top:calc(100% + 6px); left:0; right:0; z-index:100;
+  background:#1a2e1a; border:1px solid rgba(245,200,66,0.3);
+  border-radius:12px; padding:8px; box-shadow:0 8px 32px rgba(0,0,0,0.6);
+  display:none;
+}
+.odds-dropdown.open { display:block; }
+.odds-dropdown-title {
+  font-family:'Kanit',sans-serif; font-size:10px; font-weight:700;
+  color:rgba(240,255,232,0.4); text-align:center;
+  padding:2px 0 6px; letter-spacing:.05em;
+}
+.odds-grid {
+  display:grid; grid-template-columns:repeat(2,1fr); gap:4px;
+}
+.odds-option {
+  padding:8px 6px; border-radius:8px; cursor:pointer; text-align:center;
+  border:1px solid rgba(255,255,255,0.08);
+  background:rgba(255,255,255,0.04);
+  transition:all .15s;
+}
+.odds-option:hover { background:rgba(245,200,66,0.12); border-color:rgba(245,200,66,0.4); }
+.odds-option.selected { background:rgba(245,200,66,0.2); border-color:rgba(245,200,66,0.6); }
+.odds-ratio {
+  font-family:'Kanit',sans-serif; font-weight:900; font-size:15px; color:var(--gold);
+}
+.odds-desc {
+  font-family:'Kanit',sans-serif; font-size:9px; color:rgba(240,255,232,0.4);
+  margin-top:1px;
+}
 </style>
 </head>
 <body>
@@ -1092,119 +1141,219 @@ function renderPage() {
 
 // ===== BET FORM HTML =====
 function betFormHTML(m) {
-  const oddsT = m.odds_tor  || 1.0;
-  const oddsR = m.odds_rong || 1.9;
+  // default odds: ต่อ = 10/10, รอง = 1/10
   return `
   <div class="bet-form-wrap">
 
     <!-- ── ฝั่ง A ── -->
     <div class="bet-col bet-col-a">
-      <div class="bet-col-header red-header">
-        🔴 <b>${m.name_a||'เจ้าบ้าน'}</b>
-      </div>
+      <div class="bet-col-header red-header">🔴 <b>${m.name_a||'เจ้าบ้าน'}</b></div>
       <div class="bet-col-body">
-        <div class="bet-odds-row">
-          <button class="bet-type-btn active-tor" id="tab-a-tor" onclick="selectBetType('a','tor')">
-            ⚔️ ต่อ<span class="bet-odds-x">×${oddsT}</span>
+
+        <!-- Odds Picker -->
+        <div class="odds-picker-wrap">
+          <button class="odds-picker-btn tor-btn" id="odds-btn-a"
+            onclick="toggleOddsPicker('a')">
+            <span class="odds-picker-label">⚔️ ราคาต่อ (คลิกเลือก)</span>
+            <span class="odds-picker-val" id="odds-display-a">10/10</span>
           </button>
-          <button class="bet-type-btn" id="tab-a-rong" onclick="selectBetType('a','rong')">
-            🛡️ รอง<span class="bet-odds-x rong">×${oddsR}</span>
-          </button>
+          <div class="odds-dropdown" id="odds-drop-a">
+            <div class="odds-dropdown-title">⚔️ ต่อ — เลือกราคา</div>
+            <div class="odds-grid" id="odds-grid-a-tor"></div>
+          </div>
         </div>
+
         <div class="bet-qp-row">
           <button class="bet-qp-btn" onclick="setAmt('a',1000)">1K</button>
           <button class="bet-qp-btn" onclick="setAmt('a',5000)">5K</button>
           <button class="bet-qp-btn" onclick="setAmt('a',10000)">10K</button>
           <button class="bet-qp-btn" onclick="setAmt('a',50000)">50K</button>
         </div>
-        <input type="number" id="amt-a" class="bet-amt-input" placeholder="จำนวนเงิน ₭" min="10" oninput="calcPrev2('a')">
+        <input type="number" id="amt-a" class="bet-amt-input"
+          placeholder="จำนวนเงิน ₭" min="10" oninput="calcPrev2('a')">
         <div class="bet-prev" id="prev2-a"></div>
         <button class="bet-submit-btn red-btn" id="btn2-a" onclick="placeBetSide2('a')">
           วางเดิมพัน ${m.name_a||'A'}
         </button>
+
       </div>
     </div>
 
-    <!-- ── VS center ── -->
+    <!-- ── VS ── -->
     <div class="bet-vs-divider">
       <div class="bet-vs-badge">VS</div>
     </div>
 
     <!-- ── ฝั่ง B ── -->
     <div class="bet-col bet-col-b">
-      <div class="bet-col-header blue-header">
-        🔵 <b>${m.name_b||'ทีมเยือน'}</b>
-      </div>
+      <div class="bet-col-header blue-header">🔵 <b>${m.name_b||'ทีมเยือน'}</b></div>
       <div class="bet-col-body">
-        <div class="bet-odds-row">
-          <button class="bet-type-btn active-tor" id="tab-b-tor" onclick="selectBetType('b','tor')">
-            ⚔️ ต่อ<span class="bet-odds-x">×${oddsT}</span>
+
+        <!-- Odds Picker -->
+        <div class="odds-picker-wrap">
+          <button class="odds-picker-btn rong-btn" id="odds-btn-b"
+            onclick="toggleOddsPicker('b')">
+            <span class="odds-picker-label">🛡️ ราคารอง (คลิกเลือก)</span>
+            <span class="odds-picker-val" id="odds-display-b">1/10</span>
           </button>
-          <button class="bet-type-btn" id="tab-b-rong" onclick="selectBetType('b','rong')">
-            🛡️ รอง<span class="bet-odds-x rong">×${oddsR}</span>
-          </button>
+          <div class="odds-dropdown" id="odds-drop-b">
+            <div class="odds-dropdown-title">🛡️ รอง — เลือกราคา</div>
+            <div class="odds-grid" id="odds-grid-b-rong"></div>
+          </div>
         </div>
+
         <div class="bet-qp-row">
           <button class="bet-qp-btn" onclick="setAmt('b',1000)">1K</button>
           <button class="bet-qp-btn" onclick="setAmt('b',5000)">5K</button>
           <button class="bet-qp-btn" onclick="setAmt('b',10000)">10K</button>
           <button class="bet-qp-btn" onclick="setAmt('b',50000)">50K</button>
         </div>
-        <input type="number" id="amt-b" class="bet-amt-input" placeholder="จำนวนเงิน ₭" min="10" oninput="calcPrev2('b')">
+        <input type="number" id="amt-b" class="bet-amt-input"
+          placeholder="จำนวนเงิน ₭" min="10" oninput="calcPrev2('b')">
         <div class="bet-prev" id="prev2-b"></div>
         <button class="bet-submit-btn blue-btn" id="btn2-b" onclick="placeBetSide2('b')">
           วางเดิมพัน ${m.name_b||'B'}
         </button>
+
       </div>
     </div>
 
   </div>`;
 }
-// ══ Bet Type State ══
-const betTypes  = { a: 'tor', b: 'tor' };
 
-function selectBetType(side, type) {
-  betTypes[side] = type;
-  // ── อัปเดต bet form tabs ──
-  ['tor','rong'].forEach(t => {
-    const tabEl = document.getElementById('tab-' + side + '-' + t);
-    if (tabEl) tabEl.className = 'bet-type-btn' + (t===type ? (type==='tor'?' active-tor':' active-rong') : '');
-  });
-  // ── อัปเดต VS section badges ──
-  ['tor','rong'].forEach(t => {
-    const badgeEl = document.getElementById('vsbadge-' + side + '-' + t);
-    if (badgeEl) badgeEl.className = 'odds-badge-btn' + (t===type ? (type==='tor'?' active-tor':' active-rong') : '');
-  });
+// ══════════════════════════════════════════
+// ODDS SYSTEM — Handicap Style
+// ══════════════════════════════════════════
+
+// ค่า odds ปัจจุบันของแต่ละฝั่ง { numerator, denominator }
+const selectedOdds = {
+  a: { num: 10, den: 10 },  // ต่อ default 10/10
+  b: { num:  1, den: 10 },  // รอง default 1/10
+};
+
+// สร้าง options ราคาต่อ: 10/10 → 10/9 → ... → 10/1
+function buildTorOptions() {
+  const opts = [];
+  for (let den = 10; den >= 1; den--) {
+    opts.push({ num: 10, den, label: `10/${den}` });
+  }
+  return opts;
+}
+
+// สร้าง options ราคารอง: 1/10 → 2/10 → ... → 10/10
+function buildRongOptions() {
+  const opts = [];
+  for (let num = 1; num <= 10; num++) {
+    opts.push({ num, den: 10, label: `${num}/10` });
+  }
+  return opts;
+}
+
+// คำนวณกำไรจาก odds
+// ต่อ: ลง amount ได้กำไร = amount * (den/num)
+// รอง: ลง amount ได้กำไร = amount * (den/num)
+function calcProfit(amount, num, den) {
+  return Math.floor(amount * den / num);
+}
+
+// render grid ใน dropdown
+function renderOddsGrid(side) {
+  const isTor  = side === 'a';
+  const gridId = isTor ? 'odds-grid-a-tor' : 'odds-grid-b-rong';
+  const grid   = document.getElementById(gridId);
+  if (!grid) return;
+
+  const opts = isTor ? buildTorOptions() : buildRongOptions();
+  const cur  = selectedOdds[side];
+
+  grid.innerHTML = opts.map(o => {
+    // สูตร: กำไร = amount × den/num
+    const profit = calcProfit(100, o.num, o.den);
+    const isSelected = (o.num === cur.num && o.den === cur.den);
+
+    // คำอธิบายตาม type
+    let desc;
+    if (isTor) {
+      // ต่อ: ลง 100 ได้กำไร = 100 × (den/num)
+      desc = `ลง 100 ₭ → กำไร ${profit.toLocaleString()} ₭`;
+    } else {
+      // รอง: ลง 100 ₭ ได้กำไร = 100 × (den/num) = 100 × (10/num)
+      desc = `ลง 100 ₭ → กำไร ${profit.toLocaleString()} ₭`;
+    }
+
+    return `<div class="odds-option${isSelected?' selected':''}"
+      onclick="selectOdds('${side}',${o.num},${o.den})">
+      <div class="odds-ratio">${o.label}</div>
+      <div class="odds-desc">${desc}</div>
+    </div>`;
+  }).join('');
+}
+
+// เปิด/ปิด dropdown
+function toggleOddsPicker(side) {
+  const drop = document.getElementById('odds-drop-' + side);
+  if (!drop) return;
+  const isOpen = drop.classList.contains('open');
+  // ปิดทั้งหมดก่อน
+  document.querySelectorAll('.odds-dropdown').forEach(d => d.classList.remove('open'));
+  if (!isOpen) {
+    renderOddsGrid(side);
+    drop.classList.add('open');
+  }
+}
+
+// เลือก odds
+function selectOdds(side, num, den) {
+  selectedOdds[side] = { num, den };
+  const label = document.getElementById('odds-display-' + side);
+  if (label) label.textContent = num + '/' + den;
+  // ปิด dropdown
+  document.querySelectorAll('.odds-dropdown').forEach(d => d.classList.remove('open'));
   calcPrev2(side);
 }
 
-function highlightSide(side) {
-  // scroll ลงไปที่ bet form
-  const formEl = document.getElementById('amt-' + side);
-  if (formEl) formEl.focus();
+// ปิด dropdown เมื่อคลิกนอก
+document.addEventListener('click', e => {
+  if (!e.target.closest('.odds-picker-wrap')) {
+    document.querySelectorAll('.odds-dropdown').forEach(d => d.classList.remove('open'));
+  }
+});
+
+// override calcPrev2 ให้ใช้ selectedOdds
+function calcPrev2(side) {
+  const amount = parseFloat(document.getElementById('amt-' + side)?.value) || 0;
+  const prev   = document.getElementById('prev2-' + side);
+  if (!prev) return;
+  if (!amount) { prev.innerHTML = ''; return; }
+
+  const { num, den } = selectedOdds[side];
+  const profit  = calcProfit(amount, num, den);
+  const total   = amount + profit;
+  const label   = num + '/' + den;
+  const formula = side === 'a'
+    ? `${amount.toLocaleString()} × ${den}/${num}`   // ต่อ: amount × den/num
+    : `${amount.toLocaleString()} × ${den}/${num}`;  // รอง: amount × den/num
+
+  prev.innerHTML = `ราคา <b style="color:var(--gold);">${label}</b> (${formula} = ${profit.toLocaleString()}) → รับรวม <b style="color:#4ade80;">${total.toLocaleString()} ₭</b>`;
 }
 
+// override getOdds ให้ใช้ selectedOdds
 function getOdds(side) {
-  const m    = matchData;
-  const type = betTypes[side];
-  return type === 'tor' ? parseFloat(m?.odds_tor||1.0) : parseFloat(m?.odds_rong||1.9);
+  const { num, den } = selectedOdds[side];
+  return den / num;  // เป็น multiplier สำหรับ profit
 }
 
+// สืบทอด setAmt
 function setAmt(side, val) {
   const el = document.getElementById('amt-' + side);
   if (el) { el.value = val; calcPrev2(side); }
 }
 
-function calcPrev2(side) {
-  const amount = parseFloat(document.getElementById('amt-' + side)?.value) || 0;
-  const odds   = getOdds(side);
-  const prev   = document.getElementById('prev2-' + side);
-  if (!prev) return;
-  if (!amount) { prev.innerHTML = ''; return; }
-  const win    = Math.floor(amount * (1 + odds));
-  const profit = Math.floor(amount * odds);
-  const type   = betTypes[side] === 'tor' ? '⚔️ต่อ' : '🛡️รอง';
-  prev.innerHTML = `${type} ${amount.toLocaleString()} ₭ → ได้รับ <b style="color:var(--gold);">${win.toLocaleString()} ₭</b>`;
+// ── legacy compat ──
+function selectBetType(side, type) {}
+function setBetType2(side, type) {}
+function highlightSide(side) {
+  document.getElementById('amt-' + side)?.focus();
 }
 
 // ===== UPDATE ODDS DISPLAY =====
@@ -1230,11 +1379,13 @@ async function placeBetSide(side) {
   if (!amount || amount < 10) { showToast('จำนวนเงินขั้นต่ำ 10 ₭ครับ'); return; }
   if (currentUser.balance < amount) { showToast('ยอดเงินไม่พอครับ'); return; }
 
-  const type     = betTypes[side];
-  const odds     = getOdds(side);
+  const { num: oNum, den: oDen } = selectedOdds[side] || { num:10, den:10 };
+  const odds     = oDen / oNum;  // profit multiplier
+  const oddsLabel = oNum + '/' + oDen;
   const sideName = side === 'a' ? (matchData?.name_a||'เจ้าบ้าน') : (matchData?.name_b||'ทีมเยือน');
   const sideKey  = side === 'a' ? 'red' : 'blue';
-  const typeLabel = type === 'tor' ? 'ต่อ' : 'รอง';
+  const typeLabel = side === 'a' ? 'ต่อ' : 'รอง';
+  const sideEmoji = side === 'a' ? '⚔️' : '🛡️';
 
   const btnId = `btn-submit-${side}`;
   const btn = document.getElementById(btnId);
@@ -1263,7 +1414,7 @@ async function placeBetSide(side) {
   currentUser.balance = newBalance;
   updateBalanceDisplay();
 
-  showToast(`✅ วางเดิมพัน ${typeLabel} ${sideName} ${amount.toLocaleString()} ₭ สำเร็จ!`);
+  showToast(`✅ ${sideEmoji} ${sideName} ราคา ${oddsLabel} จำนวน ${amount.toLocaleString()} ₭ สำเร็จ!`);
   const amtEl = document.getElementById('amt-' + side); if(amtEl) amtEl.value = '';
   const prEl = document.getElementById('prev2-' + side); if(prEl) prEl.innerHTML = '';
   setTimeout(renderBetsList, 800);
