@@ -803,28 +803,25 @@ function renderBetsList() {
     const sideName  = isRed ? (matchData?.name_a||'A') : (matchData?.name_b||'B');
     const sideLabel = sideName;
 
-    // ── คำนวณ odds label จาก odds value (den/num format) ──
-    // odds ที่เก็บใน DB = den/num (profit multiplier)
-    // ต้อง reverse กลับเพื่อแสดง label
     const oddsStored = Number(b.odds||1);
-    let oddsLabel = '';
-    let betTypeLabel = '';
-    // หาว่าเป็น ต่อ หรือ รอง จาก side_name หรือ status
-    // ต่อ: odds < 1 (เช่น 10/10=1.0, 10/9=0.9, 10/1=0.1)
-    // รอง: odds > 1 (เช่น 1/10=10, 2/10=5, 10/10=1.0)
-    // แต่ 10/10=1 ทั้งคู่ — ใช้ bet_type ถ้ามี หรือดูจาก odds
-    if (b.bet_type === 'rong' || (oddsStored > 1 && b.bet_type !== 'tor')) {
+    let betTypeLabel, oddsLabel;
+    if (oddsStored > 1.01) {
+      // รอง (ได้กำไรมากกว่า): odds = 10/num → num = 10/odds
       betTypeLabel = 'รอง';
-      // odds = den/num → num/den label เช่น odds=10 → label 1/10, odds=5 → 2/10
       const num10 = Math.round(10 / oddsStored);
-      oddsLabel = `${num10}/10`;
-    } else {
+      const clampedNum = Math.max(1, Math.min(10, num10));
+      oddsLabel = `${clampedNum}/10`;
+    } else if (oddsStored < 0.99) {
+      // ต่อ (ได้กำไรน้อยกว่า): odds = den/10 → den = odds × 10
       betTypeLabel = 'ต่อ';
-      // odds = den/num → label 10/den เช่น odds=0.8 → 10/8, odds=0.5 → 10/5
       const den10 = Math.round(10 * oddsStored);
-      oddsLabel = `10/${den10}`;
+      const clampedDen = Math.max(1, Math.min(9, den10));
+      oddsLabel = `10/${clampedDen}`;
+    } else {
+      // odds ≈ 1.0 (10/10) — แสดงตาม side
+      betTypeLabel = 'ต่อ';
+      oddsLabel = '10/10';
     }
-    // label เต็ม: "เอ ต่อ 10/3" หรือ "บี รอง 7/10"
     const fullOddsLabel = `${sideName} ${betTypeLabel} ${oddsLabel}`;
 
     const ms = b.match_status || b.status || 'waiting';
