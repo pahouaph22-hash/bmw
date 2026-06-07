@@ -2773,6 +2773,7 @@ input, textarea, select, button {
 <div id="main-content">
 <nav>
   <div class="nav-logo" style="display:flex;align-items:center;gap:10px;">
+    <span id="nav-logo-img-wrap" style="display:inline-flex;align-items:center;justify-content:center;width:40px;height:40px;border-radius:50%;overflow:hidden;flex-shrink:0;">
     <svg id="nav-logo-svg" viewBox="0 0 60 60" width="40" height="40" xmlns="http://www.w3.org/2000/svg">
       <circle cx="30" cy="30" r="28" fill="#1A0A00" stroke="#F5A800" stroke-width="2.5"/>
       <circle cx="30" cy="30" r="24" fill="none" stroke="#C8102E" stroke-width="1"/>
@@ -2791,6 +2792,7 @@ input, textarea, select, button {
         <ellipse cx="26" cy="35" rx="3" ry="2.5" fill="#1A0A00"/>
       </g>
     </svg>
+    </span>
     <span id="nav-site-name" style="font-family:'Phetsarath OT','Phetsarath','Noto Sans Lao','Kanit',sans-serif;font-weight:900;font-size:20px;color:#F5A800;">วัวชน<span style="color:#C8102E;">ไทย</span></span>
   </div>
   <div class="nav-links">
@@ -5049,6 +5051,16 @@ function applyLang() {
           wrap.innerHTML = `<img src="${heroBullImg}" alt="hero bull" id="hero-bull-img" style="width:120px;height:120px;object-fit:contain;filter:drop-shadow(0 8px 24px rgba(245,200,66,0.4));">`;
         }
       }
+      // ── Logo ซ้าย Navbar ──
+      if (siteInfo.logoUrl) {
+        const wrap = document.getElementById('nav-logo-img-wrap');
+        if (wrap) {
+          wrap.innerHTML = `<img src="${siteInfo.logoUrl}" alt="logo"
+            style="width:40px;height:40px;object-fit:cover;border-radius:50%;"
+            onerror="this.parentElement.innerHTML='<svg id=nav-logo-svg viewBox=\'0 0 60 60\' width=40 height=40 xmlns=\'http://www.w3.org/2000/svg\'></svg>'">`;
+        }
+      }
+
       if (siteInfo.name1 || siteInfo.name2) {
         const n1 = siteInfo.name1 || 'วัวชน';
         const n2 = siteInfo.name2 || 'ไทย';
