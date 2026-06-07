@@ -842,7 +842,10 @@ function renderBetsList() {
         <button class="bc-btn-max" onclick="_setJoinMax('${b.id}',${remaining})">MAX</button>
         <button class="bc-btn-join" onclick="joinBet('${b.id}','${b.nick}','${b.side}',${oddsVal})">จับเดิมพัน</button>
       </div>
-      <div class="bc-potential">💡 จับ ${remaining.toLocaleString()} ₭ → คาดได้ ${(remaining*oddsVal).toLocaleString('th-TH',{maximumFractionDigits:0})} ₭</div>`:''}
+      <div class="bc-potential">
+        💡 จับได้สูงสุด <b>${remaining.toLocaleString()} ₭</b>
+        → ถ้าชนะได้กำไร <b style="color:#4ade80;">${Math.floor(remaining*oddsVal).toLocaleString()} ₭</b>
+      </div>`:''}
     </div>`;
   }).join('');
 }
@@ -952,12 +955,14 @@ function renderBdOddsGrid() {
   const opts = type==='tor' ? buildTorOpts() : buildRongOpts();
   const grid = document.getElementById('bd-odds-grid');
   grid.innerHTML = opts.map(o => {
-    const p = calcProfit(100, o.num, o.den);
+    // กำไร = amount × den/num  (สูตรเดียวกันทั้ง ต่อ และ รอง)
+    const profit100 = calcProfit(100, o.num, o.den);
     const isSel = o.num===num && o.den===den;
     const cls   = isSel ? (type==='tor'?'sel':'sel-rong') : '';
+    // desc: ลง 100 → กำไร X (ฝั่งตรงข้ามจับสูงสุด X)
     return `<div class="bd-odds-opt ${cls}" onclick="selectBdOdds(${o.num},${o.den})">
       <div class="bd-odds-ratio">${o.label}</div>
-      <div class="bd-odds-desc">+${p}</div>
+      <div class="bd-odds-desc">ลง100→กำไร${profit100}</div>
     </div>`;
   }).join('');
 }
@@ -1014,10 +1019,23 @@ function calcBdPreview() {
   const prev   = document.getElementById('bd-preview');
   if (!prev) return;
   if (!amount) { prev.innerHTML=''; return; }
-  const { num, den } = _bd;
-  const profit = calcProfit(amount, num, den);
-  const total  = amount + profit;
-  prev.innerHTML = `ราคา <b style="color:var(--gold);">${num}/${den}</b> → กำไร <b style="color:#4ade80;">+${profit.toLocaleString()}</b> รับรวม <b style="color:var(--gold);">${total.toLocaleString()} ₭</b>`;
+  const { num, den, type } = _bd;
+  // กำไร = amount × den/num (ทั้ง ต่อ และ รอง)
+  const profit    = calcProfit(amount, num, den);
+  const total     = amount + profit;
+  // จุดสูงสุดที่ฝั่งตรงข้ามจะมาจับ = profit นั่นเอง
+  const oppMax    = profit;
+  const typeLabel = type === 'tor' ? 'ต่อ' : 'รอง';
+  const oppLabel  = type === 'tor' ? 'ฝั่งรองจับได้สูงสุด' : 'ฝั่งต่อจับได้สูงสุด';
+
+  prev.innerHTML = `
+    <div style="display:flex;flex-direction:column;gap:3px;">
+      <div>ราคา <b style="color:var(--gold);">${num}/${den}</b>
+        &nbsp;·&nbsp; วาง <b style="color:#fff;">${amount.toLocaleString()} ₭</b></div>
+      <div style="color:rgba(240,255,232,0.5);font-size:10px;">${oppLabel}: <b style="color:var(--gold);">${oppMax.toLocaleString()} ₭</b></div>
+      <div>ถ้าชนะ → กำไร <b style="color:#4ade80;">+${profit.toLocaleString()} ₭</b>
+        &nbsp;รับรวม <b style="color:var(--gold);">${total.toLocaleString()} ₭</b></div>
+    </div>`;
 }
 
 async function submitBetDetail() {
