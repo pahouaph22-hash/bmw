@@ -865,14 +865,16 @@ function renderBetsList() {
       </div>`:''}
       ${canJoin?`
       <div class="bc-join">
-        <span class="bc-join-label">จับ:</span>
-        <input type="number" id="join-amt-${b.id}" class="bc-join-input" placeholder="จำนวน" min="10" max="${remaining}">
-        <button class="bc-btn-max" onclick="_setJoinMax('${b.id}',${remaining})">MAX</button>
+        <span class="bc-join-label">วางเงินมาจับ (สูงสุด ${Math.floor(remaining*oddsVal).toLocaleString()} ₭):</span>
+        <input type="number" id="join-amt-${b.id}" class="bc-join-input" placeholder="จำนวน"
+          min="10" max="${Math.floor(remaining*oddsVal)}">
+        <button class="bc-btn-max" onclick="_setJoinMax('${b.id}',${remaining},${oddsVal})">MAX</button>
         <button class="bc-btn-join" onclick="joinBet('${b.id}','${b.nick}','${b.side}',${oddsVal})">จับเดิมพัน</button>
       </div>
       <div class="bc-potential">
-        💡 จับได้สูงสุด <b>${remaining.toLocaleString()} ₭</b>
-        → ถ้าชนะได้กำไร <b style="color:#4ade80;">${Math.floor(remaining*oddsVal).toLocaleString()} ₭</b>
+        💡 ฝั่งตรงข้ามจับได้สูงสุด
+        <b style="color:var(--gold);">${Math.floor(remaining*oddsVal).toLocaleString()} ₭</b>
+        · ถ้าชนะได้กำไร <b style="color:#4ade80;">${remaining.toLocaleString()} ₭</b>
       </div>`:''}
     </div>`;
   }).join('');
@@ -890,27 +892,35 @@ async function joinBet(betId, oppNick, oppSide, oppOdds) {
   if (!order||order.remaining_amount<=0) { showToast('รายการนี้จับคู่ครบแล้วครับ'); await loadBets(); renderBetsList(); return; }
 
   const inp = document.getElementById('join-amt-'+betId);
+  // joinAmt = ยอดที่ฝั่งตรงข้ามวางมาจับ
   let joinAmt = parseFloat(inp?.value||0);
   if (!joinAmt||joinAmt<10) { showToast('กรุณากรอกจำนวนเงินที่ต้องการจับครับ'); return; }
-  joinAmt = Math.min(joinAmt, order.remaining_amount);
+
+  // oppMax = remaining * oppOdds (ยอดสูงสุดที่ฝั่งตรงข้ามวางได้)
+  const oppMax = Math.floor(Number(order.remaining_amount) * oppOdds);
+  joinAmt = Math.min(joinAmt, oppMax);
+
   if (currentUser.balance<joinAmt) { showToast(`ยอดไม่พอครับ (ต้องการ ${joinAmt.toLocaleString()} ₭)`); return; }
 
+  // คำนวณ remaining ที่ลดลง = joinAmt / oppOdds (ยอดต้นทุนของเจ้าของตั๋วที่ถูกจับ)
+  const ownerStakeUsed = Math.ceil(joinAmt / oppOdds);
   const mySide     = oppSide==='red' ? 'blue' : 'red';
   const mySideName = mySide==='red' ? (matchData?.name_a||'A') : (matchData?.name_b||'B');
   const txn = 'BET-'+Date.now()+'-'+Math.random().toString(36).slice(2,6).toUpperCase();
 
-  const newMatched   = Number(order.matched_amount||0)+joinAmt;
-  const newRemaining = Number(order.order_amount)-newMatched;
+  const newMatched   = Number(order.matched_amount||0) + ownerStakeUsed;
+  const newRemaining = Math.max(0, Number(order.order_amount) - newMatched);
 
   await sb.from('bets').update({
-    matched_amount:newMatched, remaining_amount:Math.max(0,newRemaining),
-    match_status:newRemaining<=0?'full':'partial', status:newRemaining<=0?'matched':'waiting',
+    matched_amount:newMatched, remaining_amount:newRemaining,
+    match_status:newRemaining<=0?'full':'partial',
+    status:newRemaining<=0?'matched':'waiting',
   }).eq('id',betId);
 
   await sb.from('bets').insert({
     match_id:matchId, nick:currentUser.nick,
     side:mySide, side_name:mySideName,
-    amount:joinAmt, odds:oppOdds, txn,
+    amount:joinAmt, odds:(1/oppOdds), txn,
     status:'matched', match_status:'full',
     order_amount:joinAmt, matched_amount:joinAmt, remaining_amount:0,
     parent_bet_id:betId,
@@ -920,13 +930,16 @@ async function joinBet(betId, oppNick, oppSide, oppOdds) {
   await sb.from('members').update({ balance:newBal }).eq('nick',currentUser.nick);
   currentUser.balance = newBal;
   sessionStorage.setItem('bw_user', JSON.stringify(currentUser));
-  showToast(`✅ จับ ${joinAmt.toLocaleString()} ₭ สำเร็จ!`);
+  showToast(`✅ จับ ${joinAmt.toLocaleString()} ₭ สำเร็จ! ถ้าชนะได้ ${Math.floor(joinAmt/oppOdds).toLocaleString()} ₭`);
   await loadBets(); renderBetsList();
 }
 
-function _setJoinMax(betId, remaining) {
-  const inp = document.getElementById('join-amt-'+betId);
-  if (inp) inp.value = Math.min(remaining, currentUser?.balance||0);
+function _setJoinMax(betId, remaining, oddsVal) {
+  // ยอดสูงสุดที่ฝั่งตรงข้ามต้องวาง = remaining * oddsVal
+  const oppMax = Math.floor(remaining * (oddsVal||1));
+  const myMax  = Math.min(oppMax, currentUser?.balance||0);
+  const inp    = document.getElementById('join-amt-'+betId);
+  if (inp) inp.value = myMax;
 }
 
 // ═══════════════════════════════════════
