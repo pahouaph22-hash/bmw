@@ -799,8 +799,34 @@ function renderBetsList() {
   const isUpcoming = normalizeStatus(matchData?.status) === 'upcoming';
 
   el.innerHTML = filtered.map(b => {
-    const isRed = b.side === 'red';
-    const sideLabel = isRed ? (matchData?.name_a||'A') : (matchData?.name_b||'B');
+    const isRed     = b.side === 'red';
+    const sideName  = isRed ? (matchData?.name_a||'A') : (matchData?.name_b||'B');
+    const sideLabel = sideName;
+
+    // ── คำนวณ odds label จาก odds value (den/num format) ──
+    // odds ที่เก็บใน DB = den/num (profit multiplier)
+    // ต้อง reverse กลับเพื่อแสดง label
+    const oddsStored = Number(b.odds||1);
+    let oddsLabel = '';
+    let betTypeLabel = '';
+    // หาว่าเป็น ต่อ หรือ รอง จาก side_name หรือ status
+    // ต่อ: odds < 1 (เช่น 10/10=1.0, 10/9=0.9, 10/1=0.1)
+    // รอง: odds > 1 (เช่น 1/10=10, 2/10=5, 10/10=1.0)
+    // แต่ 10/10=1 ทั้งคู่ — ใช้ bet_type ถ้ามี หรือดูจาก odds
+    if (b.bet_type === 'rong' || (oddsStored > 1 && b.bet_type !== 'tor')) {
+      betTypeLabel = 'รอง';
+      // odds = den/num → num/den label เช่น odds=10 → label 1/10, odds=5 → 2/10
+      const num10 = Math.round(10 / oddsStored);
+      oddsLabel = `${num10}/10`;
+    } else {
+      betTypeLabel = 'ต่อ';
+      // odds = den/num → label 10/den เช่น odds=0.8 → 10/8, odds=0.5 → 10/5
+      const den10 = Math.round(10 * oddsStored);
+      oddsLabel = `10/${den10}`;
+    }
+    // label เต็ม: "เอ ต่อ 10/3" หรือ "บี รอง 7/10"
+    const fullOddsLabel = `${sideName} ${betTypeLabel} ${oddsLabel}`;
+
     const ms = b.match_status || b.status || 'waiting';
     const statusMap = {waiting:'⏳ รอจับคู่',partial:'🔄 จับบางส่วน',full:'✅ จับครบ',matched:'✅ จับแล้ว',won:'🏆 ชนะ',lost:'❌ แพ้',cancelled:'↩️ คืนเงิน'};
     const statusCls = {waiting:'bcs-waiting',partial:'bcs-partial',full:'bcs-full',matched:'bcs-matched',won:'bcs-won',lost:'bcs-lost',cancelled:'bcs-cancelled'};
@@ -816,7 +842,7 @@ function renderBetsList() {
       <div class="bc-head">
         <div class="bc-left">
           <span class="bc-nick">${isOwnBet?'🙋 ฉัน':('👤 '+b.nick)}</span>
-          <span class="bc-side-badge ${isRed?'bc-side-red':'bc-side-blue'}">${sideLabel}</span>
+          <span class="bc-side-badge ${isRed?'bc-side-red':'bc-side-blue'}">${fullOddsLabel}</span>
         </div>
         <div style="display:flex;align-items:center;gap:5px;">
           <span class="bc-status ${statusCls[ms]||'bcs-waiting'}">${statusMap[ms]||ms}</span>
@@ -824,7 +850,12 @@ function renderBetsList() {
         </div>
       </div>
       <div class="bc-body">
-        <span class="bc-odds">ราคา ${oddsVal.toFixed(2)}× · คาดได้ ${potential.toLocaleString()} ₭</span>
+        <span class="bc-odds">
+          ถ้าชนะ → กำไร
+          <b style="color:#4ade80;">${potential.toLocaleString()} ₭</b>
+          รับรวม
+          <b style="color:var(--gold);">${(Number(b.amount)+potential).toLocaleString()} ₭</b>
+        </span>
         ${dt?`<span class="bc-time">${dt}</span>`:''}
       </div>
       ${b.order_amount>0?`
