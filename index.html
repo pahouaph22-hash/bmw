@@ -2810,6 +2810,7 @@ input, textarea, select, button {
     <option value="la">🇱🇦 ລາວ</option>
     <option value="en">🇬🇧 EN</option>
   </select>
+  <span id="nav-logo-big-wrap" style="display:inline-flex;width:44px;height:44px;border-radius:50%;overflow:hidden;flex-shrink:0;">
   <svg id="nav-logo-big" viewBox="0 0 240 240" width="44" height="44" xmlns="http://www.w3.org/2000/svg" style="flex-shrink:0;">
     <circle cx="120" cy="120" r="116" fill="#1A0A00" stroke="#F5A800" stroke-width="8"/>
     <circle cx="120" cy="120" r="100" fill="none" stroke="#C8102E" stroke-width="4"/>
@@ -2843,6 +2844,7 @@ input, textarea, select, button {
     <text x="28" y="127" text-anchor="middle" font-size="16" fill="#F5A800">★</text>
     <text x="212" y="127" text-anchor="middle" font-size="16" fill="#F5A800">★</text>
   </svg>
+</span>
 </nav>
 
 <!-- NEWS TICKER -->
@@ -5051,14 +5053,20 @@ function applyLang() {
           wrap.innerHTML = `<img src="${heroBullImg}" alt="hero bull" id="hero-bull-img" style="width:120px;height:120px;object-fit:contain;filter:drop-shadow(0 8px 24px rgba(245,200,66,0.4));">`;
         }
       }
-      // ── Logo ซ้าย Navbar ──
+      // ── Logo ซ้าย + ขวา Navbar ──
       if (siteInfo.logoUrl) {
-        const wrap = document.getElementById('nav-logo-img-wrap');
-        if (wrap) {
-          wrap.innerHTML = `<img src="${siteInfo.logoUrl}" alt="logo"
-            style="width:40px;height:40px;object-fit:cover;border-radius:50%;"
-            onerror="this.parentElement.innerHTML='<svg id=nav-logo-svg viewBox=\'0 0 60 60\' width=40 height=40 xmlns=\'http://www.w3.org/2000/svg\'></svg>'">`;
-        }
+        const imgHtmlSm = `<img src="${siteInfo.logoUrl}" alt="logo"
+          style="width:40px;height:40px;object-fit:cover;border-radius:50%;"
+          onerror="this.style.display='none'">`;
+        const imgHtmlBig = `<img src="${siteInfo.logoUrl}" alt="logo"
+          style="width:44px;height:44px;object-fit:cover;border-radius:50%;"
+          onerror="this.style.display='none'">`;
+        // โลโก้ซ้าย
+        const wrapSm = document.getElementById('nav-logo-img-wrap');
+        if (wrapSm) wrapSm.innerHTML = imgHtmlSm;
+        // โลโก้ขวา
+        const wrapBig = document.getElementById('nav-logo-big-wrap');
+        if (wrapBig) wrapBig.innerHTML = imgHtmlBig;
       }
 
       if (siteInfo.name1 || siteInfo.name2) {
