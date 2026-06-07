@@ -447,17 +447,25 @@ nav{
         <div class="bd-ob-empty">⏳ กำลังโหลด...</div>
       </div>
     </div>
-    <div class="bd-input-section">
+    <div class="bd-input-section" id="bd-input-section">
       <div class="bd-sep"></div>
-      <div class="bd-qp">
-        <button onclick="setBdAmt(1000)">1K</button>
-        <button onclick="setBdAmt(5000)">5K</button>
-        <button onclick="setBdAmt(10000)">10K</button>
-        <button onclick="setBdAmt(50000)">50K</button>
+      <!-- แสดง login notice ถ้ายังไม่ login -->
+      <div id="bd-login-notice" style="display:none;text-align:center;padding:16px;font-family:'Kanit',sans-serif;">
+        <div style="font-size:13px;color:var(--muted);margin-bottom:10px;">กรุณาเข้าสู่ระบบก่อนวางเดิมพันครับ</div>
+        <a onclick="location.href='index.html'" style="background:var(--gold);color:#000;font-family:'Kanit',sans-serif;font-weight:900;font-size:13px;padding:10px 28px;border-radius:10px;cursor:pointer;">เข้าสู่ระบบ</a>
       </div>
-      <input type="number" id="bd-amt" class="bd-amt-input" placeholder="จำนวนเงิน ₭" min="10" oninput="calcBdPreview()">
-      <div class="bd-preview" id="bd-preview"></div>
-      <button class="bd-submit" id="bd-submit" onclick="submitBetDetail()">วางเดิมพัน</button>
+      <!-- ช่องกรอกเงิน (แสดงเมื่อ login แล้ว) -->
+      <div id="bd-bet-form">
+        <div class="bd-qp">
+          <button onclick="setBdAmt(1000)">1K</button>
+          <button onclick="setBdAmt(5000)">5K</button>
+          <button onclick="setBdAmt(10000)">10K</button>
+          <button onclick="setBdAmt(50000)">50K</button>
+        </div>
+        <input type="number" id="bd-amt" class="bd-amt-input" placeholder="จำนวนเงิน ₭" min="10" oninput="calcBdPreview()">
+        <div class="bd-preview" id="bd-preview"></div>
+        <button class="bd-submit" id="bd-submit" onclick="submitBetDetail()">วางเดิมพัน</button>
+      </div>
     </div>
   </div>
 </div>
@@ -699,7 +707,7 @@ function renderPage() {
           </div>
         </div>
       </div>
-      ${!currentUser?`<div class="login-notice" style="padding:0 12px 16px;">กรุณา <a onclick="location.href='index.html'">เข้าสู่ระบบ</a> ก่อนวางเดิมพัน</div>`:''}
+
     </div>`;
   }
 
@@ -894,7 +902,6 @@ function _setJoinMax(betId, remaining) {
 // BET DETAIL OVERLAY
 // ═══════════════════════════════════════
 function openBetDetail(side, type) {
-  if (!currentUser) { showToast('กรุณาเข้าสู่ระบบก่อนครับ'); return; }
   _bd.side = side; _bd.type = type;
   _bd.num  = selOdds[side][type].num;
   _bd.den  = selOdds[side][type].den;
@@ -918,6 +925,17 @@ function openBetDetail(side, type) {
   const amtEl = document.getElementById('bd-amt');
   if (amtEl) amtEl.value = '';
   document.getElementById('bd-preview').innerHTML = '';
+
+  // แสดง/ซ่อน login notice
+  const loginNotice = document.getElementById('bd-login-notice');
+  const betForm     = document.getElementById('bd-bet-form');
+  if (currentUser) {
+    if (loginNotice) loginNotice.style.display = 'none';
+    if (betForm)     betForm.style.display = 'block';
+  } else {
+    if (loginNotice) loginNotice.style.display = 'block';
+    if (betForm)     betForm.style.display = 'none';
+  }
 
   document.getElementById('bd-overlay').classList.add('open');
   document.body.style.overflow = 'hidden';
