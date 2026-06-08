@@ -2862,6 +2862,17 @@ input, textarea, select, button {
   </div>
 </div>
 
+<!-- MODE TOGGLE -->
+<div class="mode-toggle-bar">
+  <div class="mode-toggle">
+    <button class="mode-btn active" id="mode-btn-bull" onclick="switchMode('bull')">🐂 วัวชน</button>
+    <button class="mode-btn" id="mode-btn-football" onclick="switchMode('football')">⚽ ฟุตบอล</button>
+  </div>
+</div>
+
+<!-- ═══ BULL MODE ═══ -->
+<div class="mode-section active" id="mode-bull">
+
 <!-- HERO -->
 <section class="hero">
   <div class="hero-pattern"></div>
@@ -2969,6 +2980,52 @@ input, textarea, select, button {
     </div>
   </div>
 </div>
+
+<!-- ═══ FOOTBALL MODE ═══ -->
+<div class="mode-section" id="mode-football">
+
+  <!-- Football Hero -->
+  <div class="hero-football">
+    <div class="hero-football-badge">⚽ เดิมพันฟุตบอล</div>
+    <div class="hero-football-icon">⚽</div>
+    <h1>เดิมพัน<span class="green">ฟุตบอล</span><br>ออนไลน์</h1>
+    <p class="hero-football-sub">วิเคราะห์บอล · ราคาต่อรองสด · P2P Betting ไม่มีเจ้ามือ</p>
+    <div class="hero-football-cta">
+      <button class="btn-main" onclick="showRegister()" style="background:linear-gradient(135deg,#166434,#15803d);">สมัครแทงบอล</button>
+      <button class="btn-outline" onclick="switchMode('football')" style="border-color:rgba(74,222,128,0.4);color:#4ade80;">ดูโปรแกรมบอล</button>
+    </div>
+  </div>
+
+  <!-- Football Matches -->
+  <div class="football-section">
+    <div class="football-section-title">
+      🔴 กำลังแข่ง <div class="line"></div>
+    </div>
+    <div id="fb-live-list">
+      <div class="fb-coming-soon">
+        <div class="icon">🔴</div>
+        <div class="title">ยังไม่มีแมตช์ Live</div>
+        <div class="sub">ติดตามโปรแกรมบอลด้านล่างครับ</div>
+      </div>
+    </div>
+
+    <div class="football-section-title" style="margin-top:20px;">
+      📅 โปรแกรมบอลวันนี้ <div class="line"></div>
+    </div>
+    <div id="fb-upcoming-list">
+      <!-- Sample cards — จะดึงจาก DB หรือ API -->
+      <div class="fb-coming-soon">
+        <div class="icon">⚽</div>
+        <div class="title">ระบบฟุตบอลกำลังพัฒนา</div>
+        <div class="sub">เร็วๆ นี้ครับ — ติดตามอัปเดตได้เลย</div>
+      </div>
+    </div>
+  </div>
+
+</div><!-- end mode-football -->
+
+</div><!-- end mode-bull -->
+
 </div><!-- end main-content -->
 
 <!-- REGISTER PAGE -->
@@ -3127,6 +3184,15 @@ input, textarea, select, button {
       <button class="schedule-back" onclick="hideSchedule()" data-i18n="schedule.back">← กลับหน้าแรก</button>
       <h2 class="section-title"><span data-i18n="schedule.title.prefix">ตาราง</span><span class="red" data-i18n="schedule.title.suffix">การแข่งขัน</span></h2>
       <div class="section-line"></div>
+
+      <!-- Sport Tabs -->
+      <div class="sport-tab-bar">
+        <button class="sport-tab active" id="sched-tab-bull" onclick="switchSchedTab('bull')">🐂 ศึกวัวชน</button>
+        <button class="sport-tab" id="sched-tab-football" onclick="switchSchedTab('football')">⚽ ฟุตบอล</button>
+      </div>
+
+      <!-- วัวชน -->
+      <div class="sport-tab-panel active" id="sched-panel-bull">
       <div id="schedule-fb-wrap">
         <div style="text-align:center;padding:48px;color:rgba(255,248,236,0.4);font-family:'Phetsarath OT','Phetsarath','Noto Sans Lao','Kanit',sans-serif;">
           <div style="font-size:32px;margin-bottom:12px;">⏳</div>กำลังโหลด...
@@ -3306,12 +3372,33 @@ input, textarea, select, button {
 
 
 
+      </div><!-- end schedule-fb-wrap -->
+      </div><!-- end sched-panel-bull -->
+
+      <!-- ฟุตบอล -->
+      <div class="sport-tab-panel" id="sched-panel-football">
+        <div class="fb-tab-placeholder">
+          <div class="icon">⚽</div>
+          <div class="title">ตารางฟุตบอลกำลังพัฒนา</div>
+          <div class="sub">ระบบจะเปิดให้ดูโปรแกรมบอลเร็วๆ นี้ครับ</div>
+        </div>
+      </div><!-- end sched-panel-football -->
+
 <!-- HISTORY PAGE -->
 <div id="page-history" style="display:none">
   <div class="history-section">
     <button class="history-back" onclick="hideHistory()">← กลับหน้าแรก</button>
     <h2 class="section-title" id="hist-title-3310"><span data-i18n="hist.title.prefix">ผล</span><span class="red" data-i18n="hist.title.suffix">การแข่งขัน</span></h2>
     <div class="section-line"></div>
+
+    <!-- Sport Tabs -->
+    <div class="sport-tab-bar">
+      <button class="sport-tab active" id="hist-tab-bull" onclick="switchHistTab('bull')">🐂 ศึกวัวชน</button>
+      <button class="sport-tab" id="hist-tab-football" onclick="switchHistTab('football')">⚽ ฟุตบอล</button>
+    </div>
+
+    <!-- วัวชน panel -->
+    <div class="sport-tab-panel active" id="hist-panel-bull">
 
     <!-- Notification Banner (ซ่อนไว้ก่อน แสดงเมื่อมีผลใหม่) -->
     <div id="result-notif" style="display:none;background:linear-gradient(135deg,rgba(39,148,63,0.2),rgba(245,200,66,0.1));border:1px solid rgba(245,200,66,0.4);border-radius:12px;padding:14px 18px;margin-bottom:20px;animation:fadeUp .4s ease;">
@@ -3356,6 +3443,18 @@ input, textarea, select, button {
         กำลังโหลดข้อมูล...
       </div>
     </div>
+
+    </div><!-- end hist-panel-bull -->
+
+    <!-- ฟุตบอล ผลการแข่งขัน -->
+    <div class="sport-tab-panel" id="hist-panel-football">
+      <div class="fb-tab-placeholder">
+        <div class="icon">⚽</div>
+        <div class="title">ผลการแข่งขันฟุตบอล</div>
+        <div class="sub">ระบบจะแสดงผลบอลย้อนหลังเร็วๆ นี้ครับ</div>
+      </div>
+    </div><!-- end hist-panel-football -->
+
   </div>
 </div>
 
@@ -6110,7 +6209,234 @@ function applyLang() {
         @keyframes popIn { from{transform:scale(.7) translateY(30px);opacity:0} to{transform:scale(1) translateY(0);opacity:1} }
         @keyframes coinSpin { 0%{transform:rotateY(0)} 100%{transform:rotateY(720deg)} }
         @keyframes shimmer { 0%,100%{opacity:.7} 50%{opacity:1} }
-      </style>
+      
+/* ══ Mode Toggle ══ */
+.mode-toggle-bar{
+  display:flex;align-items:center;justify-content:center;
+  gap:0;padding:14px 16px 0;
+}
+.mode-toggle{
+  display:flex;background:rgba(0,0,0,0.35);
+  border:1px solid rgba(255,255,255,0.08);
+  border-radius:999px;padding:4px;gap:4px;
+}
+.mode-btn{
+  padding:8px 22px;border-radius:999px;border:none;
+  font-family:'Phetsarath OT','Phetsarath','Noto Sans Lao','Kanit',sans-serif;
+  font-size:14px;font-weight:700;cursor:pointer;
+  transition:all .25s;color:rgba(240,255,232,0.45);
+  background:transparent;
+}
+.mode-btn.active{
+  background:linear-gradient(135deg,var(--gold),#e0a800);
+  color:#1a0a00;box-shadow:0 2px 12px rgba(245,200,66,0.35);
+}
+.mode-btn:not(.active):hover{color:rgba(240,255,232,0.75);}
+
+/* ══ Mode Sections ══ */
+.mode-section{display:none;}
+.mode-section.active{display:block;}
+
+/* ══ Football Hero ══ */
+.hero-football{
+  position:relative;overflow:hidden;
+  min-height:340px;display:flex;flex-direction:column;
+  align-items:center;justify-content:center;
+  padding:40px 20px 32px;text-align:center;
+  background:radial-gradient(ellipse at 50% 0%,rgba(22,100,46,0.5) 0%,transparent 70%);
+}
+.hero-football-icon{font-size:72px;margin-bottom:12px;animation:bounce-ball 1.2s ease-in-out infinite alternate;}
+@keyframes bounce-ball{from{transform:translateY(0)}to{transform:translateY(-10px)}}
+.hero-football-badge{
+  display:inline-block;background:linear-gradient(135deg,#166434,#15803d);
+  color:#fff;font-family:'Kanit',sans-serif;font-weight:700;font-size:11px;
+  padding:3px 14px;border-radius:999px;letter-spacing:.05em;margin-bottom:12px;
+}
+.hero-football h1{
+  font-family:'Phetsarath OT','Phetsarath','Noto Sans Lao','Kanit',sans-serif;
+  font-weight:900;font-size:clamp(28px,7vw,48px);line-height:1.15;
+  margin-bottom:10px;color:var(--cream);
+}
+.hero-football h1 .green{color:#4ade80;}
+.hero-football-sub{
+  font-size:14px;color:rgba(240,255,232,0.55);
+  font-family:'Phetsarath OT','Phetsarath','Noto Sans Lao','Kanit',sans-serif;
+  margin-bottom:20px;max-width:480px;
+}
+.hero-football-cta{display:flex;gap:10px;flex-wrap:wrap;justify-content:center;}
+
+/* ══ Football Match Cards ══ */
+.football-section{padding:20px 16px;}
+.football-section-title{
+  font-family:'Phetsarath OT','Phetsarath','Noto Sans Lao','Kanit',sans-serif;
+  font-weight:900;font-size:18px;margin-bottom:14px;
+  display:flex;align-items:center;gap:8px;
+}
+.football-section-title .line{
+  flex:1;height:1px;
+  background:linear-gradient(90deg,rgba(74,222,128,0.3),transparent);
+}
+.fb-match-card{
+  background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.07);
+  border-radius:14px;padding:14px 16px;margin-bottom:10px;
+  transition:border-color .2s;cursor:pointer;
+}
+.fb-match-card:hover{border-color:rgba(74,222,128,0.3);}
+.fb-match-card.live-card{border-left:3px solid #ef4444;}
+.fb-match-meta{
+  display:flex;align-items:center;justify-content:space-between;
+  margin-bottom:10px;
+}
+.fb-league{
+  font-family:'Kanit',sans-serif;font-size:10px;font-weight:700;
+  color:rgba(240,255,232,0.4);letter-spacing:.05em;
+}
+.fb-time{font-family:'Kanit',sans-serif;font-size:11px;color:rgba(240,255,232,0.4);}
+.fb-live-badge{
+  background:rgba(239,68,68,0.15);color:#f87171;
+  font-family:'Kanit',sans-serif;font-size:9px;font-weight:700;
+  padding:2px 8px;border-radius:999px;border:1px solid rgba(239,68,68,0.3);
+  animation:pulse 1.5s infinite;
+}
+.fb-teams{
+  display:grid;grid-template-columns:1fr auto 1fr;
+  align-items:center;gap:8px;margin-bottom:12px;
+}
+.fb-team{display:flex;flex-direction:column;align-items:center;gap:4px;}
+.fb-team-flag{font-size:28px;line-height:1;}
+.fb-team-name{
+  font-family:'Phetsarath OT','Phetsarath','Noto Sans Lao','Kanit',sans-serif;
+  font-weight:700;font-size:13px;text-align:center;
+}
+.fb-score-box{
+  display:flex;align-items:center;gap:6px;
+  background:rgba(0,0,0,0.3);border-radius:10px;padding:8px 12px;
+}
+.fb-score{
+  font-family:'Kanit',sans-serif;font-weight:900;font-size:22px;color:var(--cream);
+}
+.fb-score-sep{color:rgba(240,255,232,0.3);font-size:14px;}
+.fb-vs{
+  font-family:'Kanit',sans-serif;font-weight:900;font-size:12px;
+  color:rgba(240,255,232,0.4);
+}
+.fb-odds-row{
+  display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;
+}
+.fb-odd-btn{
+  padding:8px 4px;border-radius:9px;border:1px solid rgba(255,255,255,0.08);
+  background:rgba(255,255,255,0.04);cursor:pointer;text-align:center;
+  transition:all .15s;font-family:'Kanit',sans-serif;
+}
+.fb-odd-btn:hover{background:rgba(74,222,128,0.1);border-color:rgba(74,222,128,0.35);}
+.fb-odd-btn.selected{background:rgba(74,222,128,0.18);border-color:rgba(74,222,128,0.6);}
+.fb-odd-label{font-size:10px;color:rgba(240,255,232,0.45);margin-bottom:2px;}
+.fb-odd-val{font-size:15px;font-weight:900;color:#4ade80;}
+.fb-coming-soon{
+  text-align:center;padding:48px 20px;
+  font-family:'Phetsarath OT','Phetsarath','Noto Sans Lao','Kanit',sans-serif;
+  color:rgba(240,255,232,0.3);
+}
+.fb-coming-soon .icon{font-size:48px;margin-bottom:12px;}
+.fb-coming-soon .title{font-size:16px;font-weight:700;margin-bottom:6px;color:rgba(240,255,232,0.5);}
+.fb-coming-soon .sub{font-size:13px;}
+
+/* ══ Sport Tab (schedule & history) ══ */
+.sport-tab-bar{
+  display:flex;gap:0;background:rgba(0,0,0,0.25);
+  border:1px solid rgba(255,255,255,0.07);
+  border-radius:12px;padding:4px;margin-bottom:20px;
+}
+.sport-tab{
+  flex:1;padding:9px 10px;border-radius:9px;border:none;
+  font-family:'Phetsarath OT','Phetsarath','Noto Sans Lao','Kanit',sans-serif;
+  font-size:14px;font-weight:700;cursor:pointer;
+  transition:all .2s;color:rgba(240,255,232,0.45);
+  background:transparent;text-align:center;
+}
+.sport-tab.active{
+  background:linear-gradient(135deg,var(--gold),#e0a800);
+  color:#1a0a00;box-shadow:0 2px 10px rgba(245,200,66,0.3);
+}
+.sport-tab:not(.active):hover{color:rgba(240,255,232,0.75);}
+.sport-tab-panel{display:none;}
+.sport-tab-panel.active{display:block;}
+/* football placeholder */
+.fb-tab-placeholder{
+  text-align:center;padding:60px 20px;
+  font-family:'Phetsarath OT','Phetsarath','Noto Sans Lao','Kanit',sans-serif;
+}
+.fb-tab-placeholder .icon{font-size:52px;margin-bottom:14px;}
+.fb-tab-placeholder .title{font-weight:900;font-size:17px;color:rgba(240,255,232,0.7);margin-bottom:6px;}
+.fb-tab-placeholder .sub{font-size:13px;color:rgba(240,255,232,0.35);}
+
+/* ══ Mobile Bottom Navigation ══ */
+.mob-nav {
+  display: none;
+  position: fixed; bottom: 0; left: 0; right: 0; z-index: 999;
+  background: rgba(10,20,10,0.97);
+  border-top: 1px solid rgba(245,200,66,0.15);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  padding: 6px 0 max(6px, env(safe-area-inset-bottom));
+  box-shadow: 0 -4px 24px rgba(0,0,0,0.4);
+}
+@media (max-width: 768px) {
+  .mob-nav { display: flex; }
+  body { padding-bottom: 68px; }
+  nav .nav-links { display: none !important; }
+}
+.mob-nav-item {
+  flex: 1; display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  gap: 3px; padding: 4px 6px;
+  cursor: pointer; border: none; background: transparent;
+  color: rgba(240,255,232,0.4);
+  font-family: 'Phetsarath OT','Phetsarath','Noto Sans Lao','Kanit',sans-serif;
+  font-size: 10px; font-weight: 700;
+  transition: all .2s; -webkit-tap-highlight-color: transparent;
+  position: relative;
+}
+.mob-nav-item:active { transform: scale(.92); }
+.mob-nav-item.active { color: var(--gold); }
+.mob-nav-item .mob-nav-icon {
+  font-size: 22px; line-height: 1;
+  transition: transform .2s;
+}
+.mob-nav-item.active .mob-nav-icon { transform: scale(1.15); }
+.mob-nav-item .mob-nav-label { font-size: 10px; }
+
+/* badge แจ้งเตือน */
+.mob-nav-badge {
+  position: absolute; top: 2px; right: calc(50% - 16px);
+  background: #C8102E; color: #fff;
+  font-size: 9px; font-weight: 900;
+  min-width: 16px; height: 16px; border-radius: 999px;
+  display: flex; align-items: center; justify-content: center;
+  padding: 0 3px; border: 1.5px solid rgba(10,20,10,0.9);
+  pointer-events: none;
+}
+
+/* Account button special */
+.mob-nav-item.mob-acc-btn {
+  flex: 1.2;
+}
+.mob-nav-item.mob-acc-btn .mob-nav-icon {
+  width: 32px; height: 32px; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  background: rgba(245,200,66,0.12);
+  border: 1.5px solid rgba(245,200,66,0.35);
+  font-size: 18px; overflow: hidden;
+}
+.mob-nav-item.mob-acc-btn.active .mob-nav-icon {
+  background: rgba(245,200,66,0.2);
+  border-color: rgba(245,200,66,0.7);
+  box-shadow: 0 0 10px rgba(245,200,66,0.25);
+}
+.mob-nav-item.mob-acc-btn img.mob-avatar {
+  width: 100%; height: 100%; object-fit: cover; border-radius: 50%;
+}
+</style>
       <div style="background:linear-gradient(160deg,#0f2e18,#1a4a28);border:2px solid #F5C842;border-radius:22px;padding:32px 28px;width:100%;max-width:320px;text-align:center;box-shadow:0 0 60px rgba(245,200,66,.25);animation:popIn .4s cubic-bezier(.34,1.56,.64,1);position:relative;">
         <button onclick="document.getElementById('reward-popup').remove()" style="position:absolute;top:12px;right:14px;background:rgba(255,255,255,.1);border:none;color:#fff;font-size:16px;width:28px;height:28px;border-radius:50%;cursor:pointer;line-height:1;">✕</button>
         <div style="font-size:56px;margin-bottom:8px;animation:coinSpin .8s .2s ease both;">${icon}</div>
@@ -6270,11 +6596,13 @@ function applyLang() {
       .eq('nick', currentUser.nick).order('created_at',{ascending:false}).limit(30);
 
     const rows = bets || [];
-    const won     = rows.filter(b=>b.status==='won').length;
-    const lost    = rows.filter(b=>b.status==='lost').length;
-    const pend    = rows.filter(b=>['waiting','matched'].includes(b.status)).length;
-    const profit  = rows.filter(b=>b.status==='won').reduce((s,b)=>s+Number(b.amount||0),0)
-                  - rows.filter(b=>b.status==='lost').reduce((s,b)=>s+Number(b.amount||0),0);
+    // แยก draw ออกก่อน
+    const isDraw = b => b.match_status === 'draw' || b.matches?.winner === 'เสมอ';
+    const won    = rows.filter(b=>!isDraw(b) && b.status==='won').length;
+    const lost   = rows.filter(b=>!isDraw(b) && b.status==='lost').length;
+    const pend   = rows.filter(b=>!isDraw(b) && ['waiting','matched','partial'].includes(b.status)).length;
+    const profit = rows.filter(b=>!isDraw(b) && b.status==='won').reduce((s,b)=>s+Math.floor(Number(b.amount||0)*Number(b.odds||1)),0)
+                 - rows.filter(b=>!isDraw(b) && b.status==='lost').reduce((s,b)=>s+Number(b.amount||0),0);
 
     const setEl = (id,v) => { const e=document.getElementById(id); if(e) e.textContent=v; };
     setEl('bet-win-count', won);
@@ -6288,15 +6616,23 @@ function applyLang() {
 
     el.innerHTML = rows.map(b => {
       const m        = b.matches || {};
-      const isWon    = b.status === 'won';
-      const isLost   = b.status === 'lost';
-      const isWaiting = ['waiting','matched'].includes(b.status);
-      const resultColor = isWon ? '#4ade80' : isLost ? '#f87171' : 'var(--gold)';
-      const resultLabel = isWon ? '🏆 ชนะ' : isLost ? '❌ แพ้' : '⏳ รอผล';
+      // ── ตรวจสถานะ ──
+      const isDraw    = b.match_status === 'draw' || m.winner === 'เสมอ';
+      const isWon     = !isDraw && b.status === 'won';
+      const isLost    = !isDraw && b.status === 'lost';
+      const isWaiting = !isDraw && ['waiting','matched','partial'].includes(b.status);
+      const resultColor = isDraw ? '#a78bfa' : isWon ? '#4ade80' : isLost ? '#f87171' : 'var(--gold)';
+      const resultLabel = isDraw ? '🤝 เสมอ' : isWon ? '🏆 ชนะ' : isLost ? '❌ แพ้' : '⏳ รอผล';
       const myPick   = b.side_name || '—';
       const oppPick  = myPick === m.name_a ? m.name_b : m.name_a;
       const dateStr  = b.created_at ? new Date(b.created_at).toLocaleDateString('th-TH',{day:'numeric',month:'short'}) : '';
-      const payout   = isWon ? `+${(Number(b.amount)*Number(b.odds)).toLocaleString('th-TH',{maximumFractionDigits:0})} ₭` : isLost ? `-${Number(b.amount).toLocaleString()} ₭` : `${Number(b.amount).toLocaleString()} ₭`;
+      const payout   = isDraw
+        ? `↩️ ${Number(b.order_amount||b.amount).toLocaleString()} ₭ (คืนเต็ม)`
+        : isWon
+        ? `+${(Number(b.amount)*Number(b.odds)).toLocaleString('th-TH',{maximumFractionDigits:0})} ₭`
+        : isLost
+        ? `-${Number(b.amount).toLocaleString()} ₭`
+        : `${Number(b.amount).toLocaleString()} ₭`;
 
       return `
         <div class="bet-card" style="margin-bottom:10px;">
@@ -6316,8 +6652,8 @@ function applyLang() {
               <div style="font-size:11px;color:rgba(240,255,232,0.4);margin-top:3px;">TXN: ${(b.txn||'').slice(-6)}</div>
             </div>
           </div>
-          <div class="bet-result-bar ${isWon?'bet-result-win':isLost?'bet-result-lose':''}" style="${isWaiting?'background:rgba(245,200,66,0.08);border-top:1px solid rgba(245,200,66,0.15);':''}">
-            <div style="font-family:Kanit,sans-serif;font-size:13px;color:${resultColor};">${resultLabel} ${isWaiting?'— รอผลการแข่งขัน':isWon?'— คุณชนะ!':'— คุณแพ้'}</div>
+          <div class="bet-result-bar ${isDraw?'bet-result-draw':isWon?'bet-result-win':isLost?'bet-result-lose':''}" style="${isWaiting?'background:rgba(245,200,66,0.08);border-top:1px solid rgba(245,200,66,0.15);':isDraw?'background:rgba(124,58,237,0.08);border-top:1px solid rgba(124,58,237,0.2);':''}">
+            <div style="font-family:Kanit,sans-serif;font-size:13px;color:${resultColor};">${resultLabel} ${isDraw?'— ผลเสมอ คืนเงินเต็มจำนวน':isWaiting?'— รอผลการแข่งขัน':isWon?'— คุณชนะ!':'— คุณแพ้'}</div>
             <div style="font-family:Kanit,sans-serif;font-weight:900;font-size:16px;color:${isWon?'var(--gold)':'rgba(240,255,232,0.4)'};">${payout}</div>
           </div>
         </div>`;
@@ -8721,6 +9057,172 @@ setInterval(() => {
       document.getElementById('modal').classList.remove('open');
   }
 
+
+// ══ Mode Toggle ══
+let _currentMode = 'bull';
+
+function switchMode(mode) {
+  _currentMode = mode;
+  // toggle buttons
+  document.getElementById('mode-btn-bull')?.classList.toggle('active', mode==='bull');
+  document.getElementById('mode-btn-football')?.classList.toggle('active', mode==='football');
+  // toggle sections
+  document.getElementById('mode-bull')?.classList.toggle('active', mode==='bull');
+  document.getElementById('mode-football')?.classList.toggle('active', mode==='football');
+  // บันทึก preference
+  try { localStorage.setItem('bw_mode', mode); } catch(e) {}
+  // scroll to top
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+// โหลด mode preference
+(function() {
+  try {
+    const saved = localStorage.getItem('bw_mode');
+    if (saved === 'football') {
+      setTimeout(() => switchMode('football'), 100);
+    }
+  } catch(e) {}
+})();
+
+
+// ══ Sport Tab — Schedule ══
+function switchSchedTab(sport) {
+  ['bull','football'].forEach(s => {
+    document.getElementById('sched-tab-'+s)?.classList.toggle('active', s===sport);
+    document.getElementById('sched-panel-'+s)?.classList.toggle('active', s===sport);
+  });
+  try { localStorage.setItem('bw_sched_tab', sport); } catch(e) {}
+}
+
+// ══ Sport Tab — History ══
+function switchHistTab(sport) {
+  ['bull','football'].forEach(s => {
+    document.getElementById('hist-tab-'+s)?.classList.toggle('active', s===sport);
+    document.getElementById('hist-panel-'+s)?.classList.toggle('active', s===sport);
+  });
+  try { localStorage.setItem('bw_hist_tab', sport); } catch(e) {}
+}
+
+// โหลด tab preference
+(function() {
+  try {
+    const st = localStorage.getItem('bw_sched_tab');
+    if (st === 'football') setTimeout(() => switchSchedTab('football'), 200);
+    const ht = localStorage.getItem('bw_hist_tab');
+    if (ht === 'football') setTimeout(() => switchHistTab('football'), 200);
+  } catch(e) {}
+})();
+
+
+// ══ Mobile Bottom Navigation ══
+function mobNavActive(tab) {
+  document.querySelectorAll('.mob-nav-item').forEach(b => b.classList.remove('active'));
+  const el = document.getElementById('mobnav-' + tab);
+  if (el) el.classList.add('active');
+}
+
+function mobNavAccount() {
+  if (currentUser) {
+    showMyAccount();
+    mobNavActive('account');
+  } else {
+    showRegister();
+    mobNavActive('account');
+  }
+}
+
+function updateMobNavUser() {
+  const iconEl  = document.getElementById('mobnav-acc-icon');
+  const labelEl = document.getElementById('mobnav-acc-label');
+  const btn     = document.getElementById('mobnav-account');
+  if (!iconEl || !labelEl) return;
+
+  if (currentUser) {
+    // แสดงชื่อย่อหรือ avatar
+    const nick = currentUser.nick || '';
+    const initial = nick.slice(0,2).toUpperCase() || '👤';
+    if (currentUser.avatar_url) {
+      iconEl.innerHTML = `<img class="mob-avatar" src="${currentUser.avatar_url}" alt="${nick}" onerror="this.parentElement.textContent='${initial}'">`;
+    } else {
+      iconEl.textContent = initial.slice(0,1) || '👤';
+    }
+    labelEl.textContent = nick.length > 6 ? nick.slice(0,6)+'…' : (nick || 'บัญชี');
+    btn?.classList.add('active');
+  } else {
+    iconEl.textContent = '👤';
+    labelEl.textContent = 'เข้าสู่ระบบ';
+    btn?.classList.remove('active');
+  }
+}
+
+// เรียก updateMobNavUser เมื่อ login/logout
+const _origUpdateBalanceDisplay = typeof updateBalanceDisplay === 'function' ? updateBalanceDisplay : null;
+function updateBalanceDisplay() {
+  if (_origUpdateBalanceDisplay) _origUpdateBalanceDisplay();
+  updateMobNavUser();
+}
+
+// sync active tab กับ page navigation เดิม
+const _mobNavPatches = {
+  goHome:       'home',
+  showSchedule: 'schedule',
+  showHistory:  'history',
+  showMyAccount:'account',
+  showAbout:    'more',
+  showRegister: 'account',
+};
+Object.entries(_mobNavPatches).forEach(([fnName, tab]) => {
+  const orig = window[fnName];
+  if (typeof orig === 'function') {
+    window[fnName] = function(...args) {
+      const r = orig.apply(this, args);
+      mobNavActive(tab);
+      return r;
+    };
+  }
+});
+
+document.addEventListener('DOMContentLoaded', () => {
+  setTimeout(updateMobNavUser, 600);
+});
+
 </script>
+
+<!-- ══ Mobile Bottom Navigation ══ -->
+<nav class="mob-nav" id="mob-nav" role="navigation" aria-label="เมนูหลัก">
+
+  <!-- หน้าแรก -->
+  <button class="mob-nav-item active" id="mobnav-home" onclick="goHome();mobNavActive('home')">
+    <span class="mob-nav-icon">🏠</span>
+    <span class="mob-nav-label" data-i18n="nav.home">หน้าแรก</span>
+  </button>
+
+  <!-- ตารางแข่ง -->
+  <button class="mob-nav-item" id="mobnav-schedule" onclick="showSchedule();mobNavActive('schedule')">
+    <span class="mob-nav-icon">📅</span>
+    <span class="mob-nav-label" data-i18n="nav.schedule">ตารางแข่ง</span>
+  </button>
+
+  <!-- บัญชี / Login -->
+  <button class="mob-nav-item mob-acc-btn" id="mobnav-account" onclick="mobNavAccount()">
+    <span class="mob-nav-icon" id="mobnav-acc-icon">👤</span>
+    <span class="mob-nav-label" id="mobnav-acc-label">บัญชี</span>
+  </button>
+
+  <!-- ประวัติ -->
+  <button class="mob-nav-item" id="mobnav-history" onclick="showHistory();mobNavActive('history')">
+    <span class="mob-nav-icon">📋</span>
+    <span class="mob-nav-label" data-i18n="nav.history">ประวัติ</span>
+  </button>
+
+  <!-- เพิ่มเติม -->
+  <button class="mob-nav-item" id="mobnav-more" onclick="showAbout();mobNavActive('more')">
+    <span class="mob-nav-icon">⋯</span>
+    <span class="mob-nav-label">เพิ่มเติม</span>
+  </button>
+
+</nav>
+
 </body>
 </html>
