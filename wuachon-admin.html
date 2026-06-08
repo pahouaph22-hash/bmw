@@ -352,6 +352,49 @@ input, textarea, select, button {
     .match-nav-item { border-left:none;border-bottom:3px solid transparent;white-space:nowrap;flex-shrink:0; }
     .match-nav-item.active { border-bottom-color:#1B6B2F;border-left-color:transparent;background:#f0faf4; }
   }
+
+/* ══ Admin Sport Mode Toggle ══ */
+.admin-sport-toggle{
+  display:flex;align-items:center;gap:8px;
+  padding:8px 16px;background:rgba(0,0,0,0.15);
+  border-bottom:1px solid rgba(255,255,255,0.07);
+}
+.admin-sport-toggle-label{
+  font-family:'Kanit',sans-serif;font-size:10px;font-weight:700;
+  color:rgba(255,248,236,0.4);letter-spacing:.06em;white-space:nowrap;
+}
+.admin-sport-btn{
+  padding:5px 14px;border-radius:999px;border:none;
+  font-family:'Kanit',sans-serif;font-size:12px;font-weight:700;
+  cursor:pointer;transition:all .2s;
+  color:rgba(255,248,236,0.45);background:transparent;
+}
+.admin-sport-btn.active{
+  background:linear-gradient(135deg,var(--gold),#e0a800);
+  color:#1a0a00;box-shadow:0 2px 8px rgba(245,200,66,0.3);
+}
+.admin-sport-btn:not(.active):hover{color:rgba(255,248,236,0.8);}
+.admin-sport-tag{
+  display:inline-block;font-family:'Kanit',sans-serif;font-size:9px;
+  font-weight:700;padding:2px 7px;border-radius:999px;margin-left:4px;
+  background:rgba(74,222,128,0.15);color:#4ade80;border:1px solid rgba(74,222,128,0.3);
+}
+/* panels ที่ซ่อน/แสดงตาม sport mode */
+.sport-mode-section{display:none;}
+.sport-mode-section.sport-active{display:block;}
+/* football placeholder ใน admin */
+.admin-fb-placeholder{
+  text-align:center;padding:80px 20px;
+  font-family:'Kanit',sans-serif;
+}
+.admin-fb-placeholder .icon{font-size:52px;margin-bottom:16px;}
+.admin-fb-placeholder h3{font-size:18px;font-weight:900;margin-bottom:8px;color:#555;}
+.admin-fb-placeholder p{font-size:13px;color:#aaa;margin-bottom:20px;}
+.admin-fb-placeholder .coming-badge{
+  display:inline-block;background:rgba(74,222,128,0.1);
+  border:1px solid rgba(74,222,128,0.3);color:#4ade80;
+  font-size:11px;font-weight:700;padding:5px 14px;border-radius:999px;
+}
 </style>
 </head>
 <body>
@@ -680,8 +723,22 @@ input, textarea, select, button {
 
             <!-- Pane 1: เพิ่มคู่แข่งขัน -->
             <div id="match-sec-add" class="match-sec active">
+        <!-- Sport Tab — เพิ่มคู่แข่งขัน -->
+        <div style="display:flex;gap:0;background:#f3f4f6;border:1px solid #e5e5e0;border-radius:10px;padding:4px;margin-bottom:16px;max-width:320px;">
+          <button class="inner-sport-btn active" id="add-sport-btn-bull" onclick="switchAddSport('bull')"
+            style="flex:1;padding:8px 12px;border-radius:7px;border:none;font-family:'Kanit',sans-serif;font-size:13px;font-weight:700;cursor:pointer;transition:all .2s;background:linear-gradient(135deg,#C8102E,#a50c24);color:#fff;box-shadow:0 2px 8px rgba(200,16,46,0.3);">
+            🐂 ศึกวัวชน
+          </button>
+          <button class="inner-sport-btn" id="add-sport-btn-football" onclick="switchAddSport('football')"
+            style="flex:1;padding:8px 12px;border-radius:7px;border:none;font-family:'Kanit',sans-serif;font-size:13px;font-weight:700;cursor:pointer;transition:all .2s;background:transparent;color:#aaa;">
+            ⚽ ฟุตบอล
+          </button>
+        </div>
+
+        <!-- วัวชน form -->
+        <div id="add-panel-bull">
         <div class="card">
-          <div class="card-title">➕ เพิ่มคู่แข่งขัน</div>
+          <div class="card-title">➕ เพิ่มคู่แข่งขันวัวชน</div>
           <div class="form-row">
             <div class="fg"><label>รุ่น</label><input id="m-round" placeholder="เช่น รุ่นแชมเปียน"></div>
             <div class="fg"><label>สถานที่</label><input id="m-location" placeholder="สนาม..."></div>
@@ -770,7 +827,122 @@ input, textarea, select, button {
             </div>
 
             <!-- Pane 2: รายการแข่งขัน -->
-            <div id="match-sec-active" class="match-sec">
+            </div><!-- end add-panel-bull -->
+
+        <!-- ฟุตบอล form -->
+        <div id="add-panel-football" style="display:none;">
+          <div class="card">
+            <div class="card-title">➕ เพิ่มแมตช์ฟุตบอล</div>
+            <div class="form-row">
+              <div class="fg"><label>ลีก / รายการ</label><input id="fb-league" placeholder="เช่น Premier League, ลีกลาว"></div>
+              <div class="fg"><label>รอบ</label><input id="fb-round" placeholder="เช่น นัดที่ 1, รอบ 16 ทีม"></div>
+            </div>
+            <!-- ทีม A + B -->
+            <div class="form-row">
+              <div class="fg"><label>🔴 ทีมเหย้า</label><input id="fb-team-a" placeholder="ชื่อทีม A"></div>
+              <div class="fg"><label>🔵 ทีมเยือน</label><input id="fb-team-b" placeholder="ชื่อทีม B"></div>
+            </div>
+
+            <!-- วันที่ เวลา สนาม -->
+            <div class="form-row">
+              <div class="fg"><label>📅 วันที่แข่ง</label><input type="date" id="fb-date"></div>
+              <div class="fg"><label>⏰ เวลา</label><input type="time" id="fb-time"></div>
+              <div class="fg"><label>📍 สนาม</label><input id="fb-location" placeholder="ชื่อสนาม"></div>
+            </div>
+
+            <!-- รางวัล -->
+            <div class="form-row">
+              <div class="fg"><label>🏆 รางวัล (₭)</label><input id="fb-prize" type="number" placeholder="เช่น 500000"></div>
+            </div>
+
+            <!-- ราคาต่อรอง -->
+            <div class="form-row">
+              <div class="fg">
+                <label>⚔️ ราคาต่อรองหลัก</label>
+                <div style="display:flex;gap:8px;align-items:center;margin-top:4px;">
+                  <div style="flex:1;text-align:center;">
+                    <div style="font-size:10px;color:#aaa;margin-bottom:3px;">เจ้าบ้าน</div>
+                    <input type="number" id="fb-odds-a" placeholder="เช่น 1.95" step="0.01" min="1">
+                  </div>
+                  <div style="flex:1;text-align:center;">
+                    <div style="font-size:10px;color:#aaa;margin-bottom:3px;">เสมอ</div>
+                    <input type="number" id="fb-odds-draw" placeholder="เช่น 3.40" step="0.01" min="1">
+                  </div>
+                  <div style="flex:1;text-align:center;">
+                    <div style="font-size:10px;color:#aaa;margin-bottom:3px;">เยือน</div>
+                    <input type="number" id="fb-odds-b" placeholder="เช่น 4.20" step="0.01" min="1">
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- โลโก้ทีม A + B -->
+            <div class="form-row" style="align-items:flex-start;">
+              <div class="fg">
+                <label>🔴 โลโก้ทีมเหย้า</label>
+                <div style="display:flex;align-items:center;gap:12px;margin-top:6px;">
+                  <div id="prev-fb-logo-a" style="width:72px;height:72px;border-radius:50%;border:3px solid rgba(239,68,68,0.5);background:rgba(239,68,68,0.08);display:flex;align-items:center;justify-content:center;font-size:32px;overflow:hidden;flex-shrink:0;">⚽</div>
+                  <div style="flex:1;">
+                    <input type="file" id="fb-logo-a" accept="image/*" style="display:none;" onchange="previewMatchPhoto(this,'prev-fb-logo-a')">
+                    <button type="button" onclick="document.getElementById('fb-logo-a').click()"
+                      style="font-family:'Kanit',sans-serif;font-size:12px;font-weight:700;padding:8px 16px;border-radius:8px;border:1px solid rgba(239,68,68,0.4);background:rgba(239,68,68,0.08);color:#ef4444;cursor:pointer;width:100%;">
+                      📁 เลือกโลโก้ A
+                    </button>
+                    <button type="button" onclick="clearMatchPhoto('fb-logo-a','prev-fb-logo-a','⚽')"
+                      style="font-family:'Kanit',sans-serif;font-size:11px;padding:5px 12px;border-radius:6px;border:1px solid #e5e5e0;background:#f9f9f9;color:#888;cursor:pointer;width:100%;margin-top:4px;">
+                      ✕ ลบโลโก้
+                    </button>
+                  </div>
+                </div>
+              </div>
+              <div class="fg">
+                <label>🔵 โลโก้ทีมเยือน</label>
+                <div style="display:flex;align-items:center;gap:12px;margin-top:6px;">
+                  <div id="prev-fb-logo-b" style="width:72px;height:72px;border-radius:50%;border:3px solid rgba(59,130,246,0.5);background:rgba(59,130,246,0.08);display:flex;align-items:center;justify-content:center;font-size:32px;overflow:hidden;flex-shrink:0;">🥅</div>
+                  <div style="flex:1;">
+                    <input type="file" id="fb-logo-b" accept="image/*" style="display:none;" onchange="previewMatchPhoto(this,'prev-fb-logo-b')">
+                    <button type="button" onclick="document.getElementById('fb-logo-b').click()"
+                      style="font-family:'Kanit',sans-serif;font-size:12px;font-weight:700;padding:8px 16px;border-radius:8px;border:1px solid rgba(59,130,246,0.4);background:rgba(59,130,246,0.08);color:#3b82f6;cursor:pointer;width:100%;">
+                      📁 เลือกโลโก้ B
+                    </button>
+                    <button type="button" onclick="clearMatchPhoto('fb-logo-b','prev-fb-logo-b','🥅')"
+                      style="font-family:'Kanit',sans-serif;font-size:11px;padding:5px 12px;border-radius:6px;border:1px solid #e5e5e0;background:#f9f9f9;color:#888;cursor:pointer;width:100%;margin-top:4px;">
+                      ✕ ลบโลโก้
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- โปสเตอร์ -->
+            <div class="form-row full">
+              <div class="fg">
+                <label>🖼️ รูปโปสเตอร์แมตช์ฟุตบอล</label>
+                <div style="display:flex;gap:12px;align-items:flex-start;flex-wrap:wrap;">
+                  <div id="prev-fb-poster" style="width:200px;height:120px;border-radius:10px;background:rgba(74,222,128,0.06);border:2px dashed rgba(74,222,128,0.3);display:flex;align-items:center;justify-content:center;overflow:hidden;flex-shrink:0;">
+                    <span style="font-size:11px;color:rgba(74,222,128,0.4);">ยังไม่มีโปสเตอร์</span>
+                  </div>
+                  <div style="display:flex;flex-direction:column;gap:6px;flex:1;min-width:140px;">
+                    <input type="file" id="fb-poster" accept="image/*" style="display:none;" onchange="previewMatchPhoto(this,'prev-fb-poster')">
+                    <button type="button" onclick="document.getElementById('fb-poster').click()"
+                      style="font-family:'Kanit',sans-serif;font-size:12px;font-weight:700;padding:8px 16px;border-radius:8px;border:1px solid rgba(74,222,128,0.4);background:rgba(74,222,128,0.08);color:#4ade80;cursor:pointer;width:100%;">
+                      🖼️ เลือกรูปโปสเตอร์
+                    </button>
+                    <button type="button" onclick="clearMatchPhoto('fb-poster','prev-fb-poster','')"
+                      style="font-family:'Kanit',sans-serif;font-size:11px;padding:5px 12px;border-radius:6px;border:1px solid #e5e5e0;background:#f9f9f9;color:#888;cursor:pointer;width:100%;">
+                      ✕ ลบโปสเตอร์
+                    </button>
+                    <div style="font-size:11px;color:#aaa;">แนะนำ: 1:1.4 · ไม่เกิน 2MB</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <button class="save-btn" onclick="addFootballMatch()" style="background:linear-gradient(135deg,#166434,#15803d);">➕ เพิ่มแมตช์ฟุตบอล</button>
+          </div>
+        </div><!-- end add-panel-football -->
+
+        <div id="match-sec-active" class="match-sec">
               
               <div id="matches-tab-active"></div>
             </div>
@@ -793,9 +965,31 @@ input, textarea, select, button {
 
           <!-- ── Sub-nav ซ้าย ── -->
           <div class="match-subnav" style="width:185px;flex-shrink:0;background:#f7f7f5;border-right:1px solid #e5e5e0;padding:8px 0;">
-            <div style="font-family:'Kanit',sans-serif;font-size:10px;font-weight:700;color:#bbb;letter-spacing:.08em;padding:10px 16px 6px;text-transform:uppercase;">ตัดสินผล</div>
-            <div class="match-nav-item active" onclick="switchVerdictSec('pending')" id="vnav-pending">⏳ รอตัดสินผล</div>
-            <div class="match-nav-item" onclick="switchVerdictSec('done')" id="vnav-done">✅ ตัดสินแล้ว</div>
+            <!-- Sport tab ใน verdict -->
+            <div style="padding:10px 10px 8px;">
+              <div style="display:flex;gap:3px;background:#ebebeb;border-radius:8px;padding:3px;">
+                <button id="verd-sport-btn-bull" onclick="switchVerdictSport('bull')"
+                  style="flex:1;padding:5px 4px;border-radius:6px;border:none;font-family:'Kanit',sans-serif;font-size:11px;font-weight:700;cursor:pointer;background:linear-gradient(135deg,#C8102E,#a50c24);color:#fff;box-shadow:0 1px 4px rgba(200,16,46,0.3);">
+                  🐂 วัวชน
+                </button>
+                <button id="verd-sport-btn-football" onclick="switchVerdictSport('football')"
+                  style="flex:1;padding:5px 4px;border-radius:6px;border:none;font-family:'Kanit',sans-serif;font-size:11px;font-weight:700;cursor:pointer;background:transparent;color:#aaa;">
+                  ⚽ บอล
+                </button>
+              </div>
+            </div>
+            <!-- วัวชน nav items -->
+            <div id="verd-nav-bull">
+              <div style="font-family:'Kanit',sans-serif;font-size:10px;font-weight:700;color:#bbb;letter-spacing:.08em;padding:4px 16px 6px;text-transform:uppercase;">ตัดสินผลวัวชน</div>
+              <div class="match-nav-item active" onclick="switchVerdictSec('pending')" id="vnav-pending">⏳ รอตัดสินผล</div>
+              <div class="match-nav-item" onclick="switchVerdictSec('done')" id="vnav-done">✅ ตัดสินแล้ว</div>
+            </div>
+            <!-- ฟุตบอล nav items -->
+            <div id="verd-nav-football" style="display:none;">
+              <div style="font-family:'Kanit',sans-serif;font-size:10px;font-weight:700;color:#bbb;letter-spacing:.08em;padding:4px 16px 6px;text-transform:uppercase;">ตัดสินผลบอล</div>
+              <div class="match-nav-item active" onclick="switchVerdictFootballSec('pending')" id="vfnav-pending">⏳ รอผลบอล</div>
+              <div class="match-nav-item" onclick="switchVerdictFootballSec('done')" id="vfnav-done">✅ ยืนยันแล้ว</div>
+            </div>
           </div>
 
           <!-- ── Content ── -->
@@ -826,7 +1020,10 @@ input, textarea, select, button {
       </div>
 
 
-      <!-- DEPOSITS -->
+            <!-- FOOTBALL VERDICT content (ใน panel-verdict) -->
+      <!-- ถูกจัดการโดย JS switchVerdictSport -->
+
+<!-- DEPOSITS -->
       <div class="panel" id="panel-deposits">
         <div class="panel-layout-inner" style="display:flex;gap:0;background:#fff;border-radius:12px;border:1px solid #e5e5e0;overflow:hidden;min-height:500px;">
 
@@ -3727,9 +3924,10 @@ function renderVerdictPending(rows) {
           <div style="font-size:12px;color:#aaa;">${m.owner_b||''}</div>
         </div>
       </div>
-      <div style="display:flex;gap:8px;">
-        <button class="btn btn-red" style="flex:1;" onclick="doVerdict('${m.id}','${(m.name_a||'เจ้าบ้าน').replace(/'/g,"\\'")}','${(m.name_a||'เจ้าบ้าน').replace(/'/g,"\\'")}')">🏆 ${m.name_a||'เจ้าบ้าน'} ชนะ</button>
-        <button class="btn btn-primary" style="flex:1;" onclick="doVerdict('${m.id}','${(m.name_b||'ทีมเยือน').replace(/'/g,"\\'")}','${(m.name_b||'ทีมเยือน').replace(/'/g,"\\'")}')">🏆 ${m.name_b||'ทีมเยือน'} ชนะ</button>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;">
+        <button class="btn btn-red" style="flex:1;min-width:120px;" onclick="doVerdict('${m.id}','${(m.name_a||'เจ้าบ้าน').replace(/'/g,"\\'")}','${(m.name_a||'เจ้าบ้าน').replace(/'/g,"\\'")}')">🏆 ${m.name_a||'เจ้าบ้าน'} ชนะ</button>
+        <button class="btn btn-primary" style="flex:1;min-width:120px;" onclick="doVerdict('${m.id}','${(m.name_b||'ทีมเยือน').replace(/'/g,"\\'")}','${(m.name_b||'ทีมเยือน').replace(/'/g,"\\'")}')">🏆 ${m.name_b||'ทีมเยือน'} ชนะ</button>
+        <button class="btn" style="flex:1;min-width:120px;background:linear-gradient(135deg,#7c3aed,#6d28d9);color:#fff;border:none;" onclick="doDrawVerdict('${m.id}','${(m.name_a||'เจ้าบ้าน').replace(/'/g,"\\'")}','${(m.name_b||'ทีมเยือน').replace(/'/g,"\\'")}')">🤝 เสมอ (คืนเงิน)</button>
       </div>
     </div>`).join('');
 }
@@ -3741,10 +3939,69 @@ function renderVerdictDone(rows) {
     rows.map(m => `<tr>
       <td>${m.code?`<span class="match-code">${m.code}</span>`:'—'}</td>
       <td>${m.round||'—'}</td>
-      <td><span class="badge badge-approved">🏆 ${m.winner||'—'}</span></td>
+      <td>${m.winner==='เสมอ'?`<span class="badge" style="background:rgba(124,58,237,0.15);color:#a78bfa;border:1px solid rgba(124,58,237,0.3);">🤝 เสมอ</span>`:`<span class="badge badge-approved">🏆 ${m.winner||'—'}</span>`}</td>
       <td>${Number(m.prize||0).toLocaleString()} ₭</td>
       <td><button class="btn btn-gold" onclick="resetVerdict('${m.id}')">รีเซ็ต</button></td>
     </tr>`).join('') + '</tbody></table>';
+}
+
+async function doDrawVerdict(matchId, nameA, nameB) {
+  if (!confirm(
+    `ยืนยัน: ผลการแข่งขัน "เสมอ" ใช่ไหมครับ?\n\n` +
+    `ระบบจะ:\n` +
+    `• คืนเงินเดิมพันเต็มจำนวน 100% ทุกบิล\n` +
+    `• ไม่หักค่าธรรมเนียมหรือค่าบริการใดๆ ทั้งสิ้น\n` +
+    `• ยอดเงินจะโอนกลับเข้ากระเป๋าสมาชิกทันที`
+  )) return;
+
+  // อัปเดต match → done / winner = เสมอ
+  await sb.from('matches').update({ winner: 'เสมอ', status: 'done' }).eq('id', matchId);
+
+  // ดึง bets ทั้งหมดของแมตช์นี้ (ทุกสถานะที่ยังไม่ได้จ่าย)
+  const { data: bets } = await sb.from('bets')
+    .select('*').eq('match_id', matchId)
+    .not('match_status', 'in', '("draw","refunded")');
+
+  if (!bets?.length) {
+    showToast('🤝 บันทึกผลเสมอแล้วครับ (ไม่มีบิลที่ต้องคืน)');
+    loadVerdict(); loadMatches(); loadOverview();
+    return;
+  }
+
+  let totalRefund = 0;
+  let refundCount = 0;
+  const memberMap = {}; // nick → refund amount (รวมหลาย bets)
+
+  for (const bet of bets) {
+    // คืนเต็ม order_amount (เงินต้นที่วาง) ไม่หัก fee
+    const refund = Number(bet.order_amount || bet.amount || 0);
+    if (refund <= 0) continue;
+    memberMap[bet.nick] = (memberMap[bet.nick] || 0) + refund;
+    totalRefund += refund;
+    refundCount++;
+  }
+
+  // โอนเงินคืนแต่ละสมาชิก (batch by nick)
+  for (const [nick, refund] of Object.entries(memberMap)) {
+    const { data: mem } = await sb.from('members')
+      .select('balance').eq('nick', nick).maybeSingle();
+    const newBal = (Number(mem?.balance) || 0) + refund;
+    await sb.from('members').update({ balance: newBal }).eq('nick', nick);
+  }
+
+  // อัปเดตสถานะ bets ทั้งหมดเป็น draw
+  const betIds = bets.map(b => b.id);
+  await sb.from('bets').update({
+    status: 'cancelled',
+    match_status: 'draw',
+  }).in('id', betIds);
+
+  showToast(
+    `🤝 เสมอ! คืนเงินเต็ม ${refundCount} บิล` +
+    ` รวม ${totalRefund.toLocaleString()} ₭` +
+    ` (${Object.keys(memberMap).length} สมาชิก) — ไม่หัก fee ครับ`
+  );
+  loadVerdict(); loadMatches(); loadBets(); loadOverview(); loadMembers();
 }
 
 async function doVerdict(matchId, winner, winnerName) {
@@ -7802,6 +8059,91 @@ function clearLogoUpload() {
   const fu = document.getElementById('sf-logo-url');  if(fu) fu.value='';
 }
 let _logoDataUrl = null;
+
+
+
+// ══ Sport Tab — เพิ่มคู่แข่งขัน ══
+function switchAddSport(sport) {
+  // toggle buttons
+  const btnBull = document.getElementById('add-sport-btn-bull');
+  const btnFb   = document.getElementById('add-sport-btn-football');
+  if (btnBull) {
+    btnBull.style.background = sport==='bull' ? 'linear-gradient(135deg,#C8102E,#a50c24)' : 'transparent';
+    btnBull.style.color      = sport==='bull' ? '#fff' : '#aaa';
+    btnBull.style.boxShadow  = sport==='bull' ? '0 2px 8px rgba(200,16,46,0.3)' : 'none';
+  }
+  if (btnFb) {
+    btnFb.style.background = sport==='football' ? 'linear-gradient(135deg,#166434,#15803d)' : 'transparent';
+    btnFb.style.color      = sport==='football' ? '#fff' : '#aaa';
+    btnFb.style.boxShadow  = sport==='football' ? '0 2px 8px rgba(22,100,46,0.3)' : 'none';
+  }
+  // toggle panels
+  const panelBull = document.getElementById('add-panel-bull');
+  const panelFb   = document.getElementById('add-panel-football');
+  if (panelBull) panelBull.style.display = sport==='bull' ? 'block' : 'none';
+  if (panelFb)   panelFb.style.display   = sport==='football' ? 'block' : 'none';
+}
+
+// ══ Sport Tab — ตัดสินผล ══
+let _verdictSport = 'bull';
+
+function switchVerdictSport(sport) {
+  _verdictSport = sport;
+  // toggle buttons
+  const btnBull = document.getElementById('verd-sport-btn-bull');
+  const btnFb   = document.getElementById('verd-sport-btn-football');
+  if (btnBull) {
+    btnBull.style.background = sport==='bull' ? 'linear-gradient(135deg,#C8102E,#a50c24)' : 'transparent';
+    btnBull.style.color      = sport==='bull' ? '#fff' : '#aaa';
+    btnBull.style.boxShadow  = sport==='bull' ? '0 1px 4px rgba(200,16,46,0.3)' : 'none';
+  }
+  if (btnFb) {
+    btnFb.style.background = sport==='football' ? 'linear-gradient(135deg,#166434,#15803d)' : 'transparent';
+    btnFb.style.color      = sport==='football' ? '#fff' : '#aaa';
+    btnFb.style.boxShadow  = sport==='football' ? '0 1px 4px rgba(22,100,46,0.3)' : 'none';
+  }
+  // toggle nav items
+  const navBull = document.getElementById('verd-nav-bull');
+  const navFb   = document.getElementById('verd-nav-football');
+  if (navBull) navBull.style.display = sport==='bull'     ? 'block' : 'none';
+  if (navFb)   navFb.style.display   = sport==='football' ? 'block' : 'none';
+
+  // แสดง content ตาม sport
+  const contentArea = document.querySelector('#panel-verdict .match-sec.active');
+  if (sport === 'bull') {
+    switchVerdictSec('pending');
+  } else {
+    switchVerdictSec('pending');
+    // แสดง placeholder ฟุตบอล
+    const area = document.getElementById('verdict-sec-pending');
+    if (area) area.innerHTML = `
+      <div style="text-align:center;padding:60px 20px;font-family:'Kanit',sans-serif;">
+        <div style="font-size:48px;margin-bottom:14px;">⚽</div>
+        <div style="font-size:17px;font-weight:900;color:#555;margin-bottom:8px;">ตัดสินผลฟุตบอล</div>
+        <div style="font-size:13px;color:#aaa;margin-bottom:16px;">ระบบตัดสินผลบอลกำลังพัฒนาครับ</div>
+        <span style="background:rgba(74,222,128,0.1);border:1px solid rgba(74,222,128,0.3);color:#4ade80;font-size:11px;font-weight:700;padding:5px 14px;border-radius:999px;">🔧 Coming Soon</span>
+      </div>`;
+  }
+}
+
+function switchVerdictFootballSec(sec) {
+  // placeholder สำหรับอนาคต
+  console.log('Football verdict section:', sec);
+}
+
+// ฟังก์ชัน addFootballMatch (placeholder)
+async function addFootballMatch() {
+  const league = document.getElementById('fb-league')?.value.trim();
+  const teamA  = document.getElementById('fb-team-a')?.value.trim();
+  const teamB  = document.getElementById('fb-team-b')?.value.trim();
+  const date   = document.getElementById('fb-date')?.value;
+  const time   = document.getElementById('fb-time')?.value;
+  if (!league || !teamA || !teamB || !date) {
+    showToast('⚠️ กรุณากรอกข้อมูลให้ครบถ้วนครับ', 'error'); return;
+  }
+  // บันทึกลง settings หรือ table ใหม่ในอนาคต
+  showToast('✅ บันทึกแมตช์ฟุตบอล "' + teamA + ' vs ' + teamB + '" แล้วครับ (Coming Soon)');
+}
 
 </script>
 
