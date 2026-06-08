@@ -396,6 +396,45 @@ input, textarea, select, button {
   font-size:11px;font-weight:700;padding:5px 14px;border-radius:999px;
 }
 </style>
+  <!-- Flatpickr DateTime Picker -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/flatpickr/4.6.13/flatpickr.min.css">
+  <style>
+    /* Flatpickr custom theme */
+    .flatpickr-calendar{
+      background:#1a2e1a!important;border:1px solid rgba(245,200,66,0.25)!important;
+      border-radius:12px!important;box-shadow:0 8px 32px rgba(0,0,0,0.5)!important;
+      font-family:'Kanit',sans-serif!important;
+    }
+    .flatpickr-day{color:#f0ffe8!important;border-radius:8px!important;}
+    .flatpickr-day:hover,.flatpickr-day.selected{
+      background:rgba(245,200,66,0.25)!important;
+      border-color:rgba(245,200,66,0.5)!important;color:var(--gold)!important;
+    }
+    .flatpickr-day.selected{background:#F5C842!important;color:#1a0a00!important;font-weight:700!important;}
+    .flatpickr-day.today{border-color:rgba(245,200,66,0.4)!important;}
+    .flatpickr-months,.flatpickr-weekdays{
+      background:rgba(0,0,0,0.2)!important;border-radius:10px 10px 0 0!important;
+    }
+    .flatpickr-current-month,.flatpickr-weekday,.flatpickr-month{color:#f0ffe8!important;}
+    .flatpickr-monthDropdown-months{background:#1a2e1a!important;color:#f0ffe8!important;}
+    .numInputWrapper:hover{background:rgba(245,200,66,0.08)!important;}
+    .numInput{color:#f0ffe8!important;background:transparent!important;}
+    .flatpickr-time input{color:#f0ffe8!important;background:rgba(0,0,0,0.2)!important;}
+    .flatpickr-time .flatpickr-am-pm{color:#f0ffe8!important;}
+    .flatpickr-prev-month svg,.flatpickr-next-month svg{fill:#f0ffe8!important;}
+    .dt-picker-wrap{position:relative;}
+    .dt-picker-icon{
+      position:absolute;right:10px;top:50%;transform:translateY(-50%);
+      pointer-events:none;font-size:16px;opacity:.5;
+    }
+    input.flatpickr-input{cursor:pointer!important;}
+    /* datetime combined field */
+    .dt-combined-row{display:flex;gap:8px;align-items:flex-end;}
+    .dt-combined-row .dt-picker-wrap{flex:1;}
+    .dt-combined-row .dt-picker-wrap:first-child{flex:1.4;}
+  </style>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/flatpickr/4.6.13/flatpickr.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/flatpickr/4.6.13/l10n/th.js"></script>
 </head>
 <body>
 
@@ -744,8 +783,20 @@ input, textarea, select, button {
             <div class="fg"><label>สถานที่</label><input id="m-location" placeholder="สนาม..."></div>
           </div>
           <div class="form-row">
-            <div class="fg"><label>วันที่</label><input id="m-date" placeholder="เช่น 28.5.2568"></div>
-            <div class="fg"><label>เวลา</label><input id="m-time" placeholder="เช่น 13:30"></div>
+            <div class="fg">
+              <label>📅 วันที่และเวลาแข่งขัน</label>
+              <div class="dt-combined-row" style="margin-top:4px;">
+                <div class="dt-picker-wrap">
+                  <input id="m-date" class="flatpickr-input" placeholder="คลิกเลือกวันที่" readonly style="width:100%;cursor:pointer;">
+                  <span class="dt-picker-icon">📅</span>
+                </div>
+                <div class="dt-picker-wrap">
+                  <input id="m-time" class="flatpickr-input" placeholder="เลือกเวลา" readonly style="width:100%;cursor:pointer;">
+                  <span class="dt-picker-icon">⏰</span>
+                </div>
+              </div>
+              <div style="font-size:10px;color:#aaa;margin-top:3px;">คลิกช่องเพื่อเปิดปฏิทิน</div>
+            </div>
           </div>
           <div class="form-row">
             <div class="fg"><label>🔴 ชื่อวัวเจ้าบ้าน</label><input id="m-name-a" placeholder="ชื่อวัว A"></div>
@@ -8144,6 +8195,49 @@ async function addFootballMatch() {
   // บันทึกลง settings หรือ table ใหม่ในอนาคต
   showToast('✅ บันทึกแมตช์ฟุตบอล "' + teamA + ' vs ' + teamB + '" แล้วครับ (Coming Soon)');
 }
+
+
+// ══ Flatpickr DateTime Picker — Match Form ══
+function initMatchDatePickers() {
+  // ปฏิทินวันที่
+  if (document.getElementById('m-date') && !document.getElementById('m-date')._flatpickr) {
+    flatpickr('#m-date', {
+      locale: 'th',
+      dateFormat: 'd/m/Y',
+      allowInput: false,
+      disableMobile: true,
+      minDate: 'today',
+      onChange: function(selectedDates, dateStr) {
+        // sync กับ time picker ถ้าเลือกวันแล้ว
+        const tp = document.getElementById('m-time')?._flatpickr;
+        if (tp && selectedDates[0]) tp.set('minDate', null);
+      }
+    });
+  }
+  // นาฬิกาเวลา
+  if (document.getElementById('m-time') && !document.getElementById('m-time')._flatpickr) {
+    flatpickr('#m-time', {
+      locale: 'th',
+      enableTime: true,
+      noCalendar: true,
+      dateFormat: 'H:i',
+      time_24hr: true,
+      minuteIncrement: 15,
+      allowInput: false,
+      disableMobile: true,
+      defaultHour: 13,
+      defaultMinute: 0,
+    });
+  }
+}
+
+// เรียก init หลัง DOM โหลด + เมื่อ switchMatchSec('add')
+document.addEventListener('DOMContentLoaded', () => {
+  setTimeout(initMatchDatePickers, 500);
+});
+
+// override switchMatchSec เดิมให้ init pickers ด้วย
+const _origSwitchMatchSec = typeof switchMatchSec === 'function' ? switchMatchSec : null;
 
 </script>
 
