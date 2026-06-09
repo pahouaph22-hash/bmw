@@ -4335,6 +4335,32 @@ document.addEventListener('DOMContentLoaded', () => {
   observer.observe(document.body, { childList: true, subtree: true });
 });
 
+
+// ── switchChart — สลับ dataset ที่แสดงในกราฟ ──
+function switchChart(type, btn) {
+  // highlight tab
+  document.querySelectorAll('.chart-tab').forEach(t => t.classList.remove('active'));
+  if (btn) btn.classList.add('active');
+
+  if (!_growthChart) return;
+
+  // แสดง/ซ่อน dataset
+  _growthChart.data.datasets.forEach((ds, i) => {
+    if (type === 'all') {
+      ds.hidden = false;
+    } else if (type === 'members') {
+      ds.hidden = i !== 2; // dataset index 2 = สมาชิกใหม่
+    } else if (type === 'deposits') {
+      ds.hidden = i !== 0; // dataset index 0 = เติมเงิน
+    } else if (type === 'withdrawals') {
+      ds.hidden = i !== 1; // dataset index 1 = ถอนเงิน
+    } else if (type === 'matches') {
+      ds.hidden = true; // ยังไม่มี matches dataset
+    }
+  });
+  _growthChart.update();
+}
+
 </script>
 </body>
 </html>
