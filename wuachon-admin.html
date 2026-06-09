@@ -4368,7 +4368,7 @@ function switchChart(type, btn) {
 async function loadFinanceTable() {
   const tbody = document.getElementById('finance-tbody');
   if (!tbody) return;
-  tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;padding:32px;color:#aaa;font-family:'Kanit',sans-serif;">⏳ กำลังโหลด...</td></tr>';
+  tbody.innerHTML = `<tr><td colspan="8" style="text-align:center;padding:32px;color:#aaa;font-family:'Kanit',sans-serif;">⏳ กำลังโหลด...</td></tr>`;
 
   try {
     // ดึงข้อมูลย้อนหลัง 3 เดือน
