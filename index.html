@@ -2,6 +2,18 @@
 <html lang="th">
 <head>
 <meta charset="UTF-8">
+  <!-- ══ PWA Meta Tags ══ -->
+  <meta name="application-name" content="ວົວຊົນລາວ">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="ວົວຊົນ">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="theme-color" content="#F5C842">
+  <meta name="msapplication-TileColor" content="#0a1a0a">
+  <meta name="msapplication-tap-highlight" content="no">
+  <link rel="manifest" href="/manifest.json">
+  <link rel="apple-touch-icon" href="/icon-192.png">
+  <link rel="icon" type="image/png" sizes="192x192" href="/icon-192.png">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <!-- KAWCAI-V2-20260604 -->
 <title>วัวชนไทย — ศึกชนโคทั่วประเทศลาว</title>
@@ -6436,6 +6448,11 @@ function applyLang() {
 .mob-nav-item.mob-acc-btn img.mob-avatar {
   width: 100%; height: 100%; object-fit: cover; border-radius: 50%;
 }
+
+@keyframes pulse-install {
+  0%,100%{ box-shadow:0 4px 16px rgba(245,200,66,0.4); }
+  50%{ box-shadow:0 4px 24px rgba(245,200,66,0.7); transform:scale(1.03); }
+}
 </style>
       <div style="background:linear-gradient(160deg,#0f2e18,#1a4a28);border:2px solid #F5C842;border-radius:22px;padding:32px 28px;width:100%;max-width:320px;text-align:center;box-shadow:0 0 60px rgba(245,200,66,.25);animation:popIn .4s cubic-bezier(.34,1.56,.64,1);position:relative;">
         <button onclick="document.getElementById('reward-popup').remove()" style="position:absolute;top:12px;right:14px;background:rgba(255,255,255,.1);border:none;color:#fff;font-size:16px;width:28px;height:28px;border-radius:50%;cursor:pointer;line-height:1;">✕</button>
@@ -6626,13 +6643,27 @@ function applyLang() {
       const myPick   = b.side_name || '—';
       const oppPick  = myPick === m.name_a ? m.name_b : m.name_a;
       const dateStr  = b.created_at ? new Date(b.created_at).toLocaleDateString('th-TH',{day:'numeric',month:'short'}) : '';
-      const payout   = isDraw
-        ? `↩️ ${Number(b.order_amount||b.amount).toLocaleString()} ₭ (คืนเต็ม)`
+
+      // ── คำนวณรายละเอียดการจ่าย ──
+      const stake        = Number(b.order_amount || b.amount || 0);   // เงินต้นที่วาง
+      const matched      = Number(b.matched_amount || 0);             // ยอดที่มีคู่จับ
+      const remaining    = Number(b.remaining_amount || 0);           // ยอดที่ยังไม่มีคู่
+      const odds         = Number(b.odds || 1);
+      // กำไรสุทธิ = matched × odds (เฉพาะส่วนที่มีคู่จับ)
+      const profitGross  = Math.floor(matched * odds);
+      const FEE          = 0.07;
+      const feeAmt       = Math.floor(profitGross * FEE);
+      const profitNet    = profitGross - feeAmt;
+      // รับรวม = ต้นทุนทั้งหมด + กำไรสุทธิ (remaining คืนกลับด้วย)
+      const totalReturn  = stake + profitNet;
+
+      const payout = isDraw
+        ? `↩️ คืน ${stake.toLocaleString()} ₭ (เสมอ)`
         : isWon
-        ? `+${(Number(b.amount)*Number(b.odds)).toLocaleString('th-TH',{maximumFractionDigits:0})} ₭`
+        ? `+${profitNet.toLocaleString()} ₭`
         : isLost
-        ? `-${Number(b.amount).toLocaleString()} ₭`
-        : `${Number(b.amount).toLocaleString()} ₭`;
+        ? `-${matched.toLocaleString()} ₭`
+        : `${stake.toLocaleString()} ₭`;
 
       return `
         <div class="bet-card" style="margin-bottom:10px;">
@@ -6653,7 +6684,26 @@ function applyLang() {
             </div>
           </div>
           <div class="bet-result-bar ${isDraw?'bet-result-draw':isWon?'bet-result-win':isLost?'bet-result-lose':''}" style="${isWaiting?'background:rgba(245,200,66,0.08);border-top:1px solid rgba(245,200,66,0.15);':isDraw?'background:rgba(124,58,237,0.08);border-top:1px solid rgba(124,58,237,0.2);':''}">
-            <div style="font-family:Kanit,sans-serif;font-size:13px;color:${resultColor};">${resultLabel} ${isDraw?'— ผลเสมอ คืนเงินเต็มจำนวน':isWaiting?'— รอผลการแข่งขัน':isWon?'— คุณชนะ!':'— คุณแพ้'}</div>
+            ${isWon ? `
+            <div style="font-family:'Kanit',sans-serif;width:100%;">
+              <div style="font-size:13px;color:#4ade80;font-weight:900;margin-bottom:6px;">🏆 ชนะ!</div>
+              <div style="display:grid;grid-template-columns:1fr 1fr;gap:4px 12px;font-size:11px;color:rgba(240,255,232,0.6);">
+                <span>💰 เงินต้นที่วาง</span><span style="color:#fff;font-weight:700;text-align:right;">${stake.toLocaleString()} ₭</span>
+                <span>🤝 ฝั่งตรงข้ามจับ</span><span style="color:var(--gold);font-weight:700;text-align:right;">${matched.toLocaleString()} ₭</span>
+                ${remaining>0?`<span>↩️ ส่วนที่ไม่มีคู่</span><span style="color:#a0aec0;font-weight:700;text-align:right;">${remaining.toLocaleString()} ₭</span>`:''}
+                <span>📈 กำไรสุทธิ (หัก fee)</span><span style="color:#4ade80;font-weight:900;text-align:right;">+${profitNet.toLocaleString()} ₭</span>
+                <span style="border-top:1px solid rgba(255,255,255,0.1);padding-top:4px;">💵 รับรวมทั้งสิ้น</span><span style="color:var(--gold);font-weight:900;font-size:14px;text-align:right;border-top:1px solid rgba(255,255,255,0.1);padding-top:4px;">${totalReturn.toLocaleString()} ₭</span>
+              </div>
+            </div>` : isDraw ? `
+            <div style="font-family:'Kanit',sans-serif;width:100%;">
+              <div style="font-size:13px;color:#a78bfa;font-weight:900;margin-bottom:6px;">🤝 เสมอ — คืนเงินเต็มจำนวน</div>
+              <div style="font-size:11px;color:rgba(240,255,232,0.6);">ได้รับคืน <b style="color:#fff;">${stake.toLocaleString()} ₭</b> (ไม่หักค่าบริการ)</div>
+            </div>` : isLost ? `
+            <div style="font-family:'Kanit',sans-serif;width:100%;">
+              <div style="font-size:13px;color:#f87171;font-weight:900;margin-bottom:4px;">❌ แพ้</div>
+              <div style="font-size:11px;color:rgba(240,255,232,0.5);">เสียเงินส่วนที่ถูกจับ ${matched.toLocaleString()} ₭${remaining>0?' · คืน remaining '+remaining.toLocaleString()+' ₭':''}</div>
+            </div>` : `
+            <div style="font-family:'Kanit',sans-serif;font-size:13px;color:var(--gold);">⏳ รอผลการแข่งขัน</div>`}
             <div style="font-family:Kanit,sans-serif;font-weight:900;font-size:16px;color:${isWon?'var(--gold)':'rgba(240,255,232,0.4)'};">${payout}</div>
           </div>
         </div>`;
@@ -7188,6 +7238,7 @@ function applyLang() {
 
     // บันทึก session
     currentUser = { ...data, id: data.id };
+    document.dispatchEvent(new Event('bw:user-changed'));
     _safeStorage.setItem('bw_user', JSON.stringify(currentUser));
     // Remember me ถ้ากด checkbox
     if (document.getElementById('l-remember')?.checked) _saveRemembered(phone);
@@ -9157,11 +9208,8 @@ function updateMobNavUser() {
 }
 
 // เรียก updateMobNavUser เมื่อ login/logout
-const _origUpdateBalanceDisplay = typeof updateBalanceDisplay === 'function' ? updateBalanceDisplay : null;
-function updateBalanceDisplay() {
-  if (_origUpdateBalanceDisplay) _origUpdateBalanceDisplay();
-  updateMobNavUser();
-}
+// hook updateMobNavUser เข้ากับ login/logout events
+document.addEventListener('bw:user-changed', updateMobNavUser);
 
 // sync active tab กับ page navigation เดิม
 const _mobNavPatches = {
@@ -9186,6 +9234,97 @@ Object.entries(_mobNavPatches).forEach(([fnName, tab]) => {
 document.addEventListener('DOMContentLoaded', () => {
   setTimeout(updateMobNavUser, 600);
 });
+
+
+// ══ PWA — Service Worker + Install ══
+let _pwaInstallPrompt = null;
+
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('/sw.js')
+      .then(reg => {
+        console.log('SW registered:', reg.scope);
+        // ตรวจ update
+        reg.addEventListener('updatefound', () => {
+          const newWorker = reg.installing;
+          newWorker?.addEventListener('statechange', () => {
+            if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+              showPWAUpdateBanner();
+            }
+          });
+        });
+      })
+      .catch(err => console.warn('SW error:', err));
+  });
+}
+
+// Install prompt (Android Chrome)
+window.addEventListener('beforeinstallprompt', e => {
+  e.preventDefault();
+  _pwaInstallPrompt = e;
+  showPWAInstallBtn();
+});
+
+window.addEventListener('appinstalled', () => {
+  _pwaInstallPrompt = null;
+  hidePWAInstallBtn();
+  showFEToast('✅ ติดตั้งแอปสำเร็จ! เปิดจาก Home Screen ได้เลยครับ');
+});
+
+function showPWAInstallBtn() {
+  let btn = document.getElementById('pwa-install-btn');
+  if (!btn) {
+    btn = document.createElement('button');
+    btn.id = 'pwa-install-btn';
+    btn.innerHTML = '📲 ติดตั้งแอป';
+    btn.style.cssText = `
+      position:fixed;bottom:78px;right:12px;z-index:998;
+      background:linear-gradient(135deg,#F5C842,#e0a800);color:#1a0a00;
+      font-family:'Kanit',sans-serif;font-weight:900;font-size:12px;
+      padding:8px 14px;border-radius:999px;border:none;cursor:pointer;
+      box-shadow:0 4px 16px rgba(245,200,66,0.4);
+      animation:pulse-install 2s infinite;
+    `;
+    btn.onclick = triggerPWAInstall;
+    document.body.appendChild(btn);
+  }
+  btn.style.display = 'block';
+}
+
+function hidePWAInstallBtn() {
+  document.getElementById('pwa-install-btn')?.remove();
+}
+
+async function triggerPWAInstall() {
+  if (!_pwaInstallPrompt) return;
+  _pwaInstallPrompt.prompt();
+  const { outcome } = await _pwaInstallPrompt.userChoice;
+  if (outcome === 'accepted') {
+    _pwaInstallPrompt = null;
+    hidePWAInstallBtn();
+  }
+}
+
+function showPWAUpdateBanner() {
+  const banner = document.createElement('div');
+  banner.style.cssText = `
+    position:fixed;top:70px;left:12px;right:12px;z-index:9999;
+    background:#0d1f0d;border:1px solid rgba(245,200,66,0.3);
+    border-radius:12px;padding:12px 16px;
+    display:flex;align-items:center;justify-content:space-between;
+    font-family:'Kanit',sans-serif;font-size:13px;
+    box-shadow:0 4px 20px rgba(0,0,0,0.5);
+  `;
+  banner.innerHTML = `
+    <span style="color:#f0ffe8;">🔄 มีอัปเดตใหม่พร้อมแล้วครับ</span>
+    <button onclick="window.location.reload(true)" style="
+      background:var(--gold);color:#1a0a00;border:none;border-radius:8px;
+      padding:5px 12px;font-family:'Kanit',sans-serif;font-weight:700;
+      font-size:12px;cursor:pointer;">รีโหลด</button>
+  `;
+  document.body.appendChild(banner);
+  setTimeout(() => banner.remove(), 10000);
+}
 
 </script>
 
