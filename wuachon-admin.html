@@ -522,8 +522,8 @@ function addBankAccount(){showToast("กำลังพัฒนาครับ"
     <div id="login-step-1">
       <div id="login-err" style="display:none;color:#f87171;font-size:12px;text-align:center;margin-bottom:10px;font-family:'Kanit',sans-serif;padding:8px;background:rgba(248,113,113,0.1);border-radius:8px;border:1px solid rgba(248,113,113,0.2);">❌ Username หรือรหัสผ่านไม่ถูกต้องครับ</div>
       <div class="fg"><label>USERNAME</label><input type="text" id="admin-user" value="admin" placeholder="admin" autocomplete="username"></div>
-      <div class="fg"><label>PASSWORD</label><input type="password" id="admin-pass" placeholder="รหัสผ่าน" autocomplete="current-password" onkeydown="if(event.key==='Enter')adminLogin()"></div>
-      <button class="btn-login" onclick="adminLogin()">เข้าสู่ระบบ →</button>
+      <div class="fg"><label>PASSWORD</label><input type="password" id="admin-pass" placeholder="รหัสผ่าน" autocomplete="current-password" onkeydown="if(event.key==='Enter'){var f=window.adminLogin||function(){};f();}"></div>
+      <button class="btn-login" id="btn-do-login">เข้าสู่ระบบ →</button>
       <div id="default-pass-warn" style="display:none;font-size:11px;color:#f87171;margin-top:8px;background:rgba(200,16,46,0.1);border:1px solid rgba(200,16,46,0.2);border-radius:6px;padding:6px 10px;">⚠️ กำลังใช้รหัสผ่าน default — กรุณาเปลี่ยนใน Settings ทันที</div>
     </div>
     <div id="login-step-2" style="display:none;">
@@ -547,6 +547,18 @@ function addBankAccount(){showToast("กำลังพัฒนาครับ"
   .mo-tab.active{color:var(--green);border-bottom-color:var(--green);}
   .mo-pane{display:none;} .mo-pane.active{display:block;}
   </style>
+  <script>
+  // Safe event binding — รอ main script โหลดแล้วค่อย bind
+  (function bindLoginBtn(){
+    var btn = document.getElementById('btn-do-login');
+    if(!btn) return;
+    btn.addEventListener('click', function(){
+      if(typeof adminLogin === 'function') adminLogin();
+      else setTimeout(function(){ if(typeof adminLogin==='function') adminLogin(); }, 500);
+    });
+  })();
+  </script>
+
 </div>
 
 <!-- DASHBOARD -->
@@ -2467,6 +2479,54 @@ let currentPanel = 'overview';
 let allMembers = [], allMatches = [], allDeposits = [], allWithdrawals = [], allBets = [];
 let notifCount = 0;
 
+
+async function adminLogin(){
+  const user=sanitizeInput(document.getElementById('admin-user').value.trim());
+  const pass=document.getElementById('admin-pass').value.trim();
+  const err=document.getElementById('login-err');err.style.display='none';
+  if(!user||!pass){err.style.display='block';err.textContent='❌ กรุณากรอก Username และรหัสผ่านครับ';return;}
+  const bc=_checkLoginAttempts(user);if(bc!==true){err.style.display='block';err.textContent=bc;return;}
+
+  // แสดง loading
+  const btn=document.querySelector('.btn-login');if(btn){btn.disabled=true;btn.textContent='กำลังตรวจสอบ...';}
+
+  try{
+    await loadAdminPass();
+    const ph=await hashPassword(pass),sm=(ADMIN_PASS===pass)||(ADMIN_PASS===ph);
+
+    if(user==='admin'&&sm){
+      _clearLoginAttempts(user);
+      _pUser='admin';_pRole='superadmin';_pStaffRow=null;
+      // ตรวจ 2FA ก่อน — ถ้าเปิดอยู่ค่อยถาม OTP
+      const twofaOn=await _checkTwofaEnabled();
+      if(twofaOn){_goOTPStep();}
+      else{await _finishLogin();}
+      return;
+    }
+
+    const{data:sr}=await sb.from('staff').select('*').eq('username',user).eq('is_active',true).maybeSingle();
+    const sh=await hashPassword(pass),stm=sr&&(sr.password===pass||sr.password===sh);
+    if(stm){
+      _clearLoginAttempts(user);
+      _pUser=sr.username;_pRole='staff';_pStaffRow=sr;
+      // Staff: ถ้ามี must_change_password → เข้า dashboard ก่อน แล้ว trigger onboarding
+      // (ไม่ต้องถาม 2FA ถ้ายังไม่ได้ตั้ง)
+      const staffTwofaOn = sr.totp_secret && await _checkTwofaEnabled();
+      if(staffTwofaOn){_goOTPStep();}
+      else{await _finishLogin();}
+      return;
+    }
+
+    _recordFailedLogin(user);
+    const att=_loginAttempts[user]?.count||0,rem=MAX_ATTEMPTS-att;
+    err.style.display='block';
+    err.textContent=rem>0?'❌ Username หรือรหัสผ่านไม่ถูกต้อง (เหลืออีก '+rem+' ครั้ง)':'🔒 Login ผิดเกินกำหนด — ถูกล็อค 15 นาทีครับ';
+  }finally{
+    if(btn){btn.disabled=false;btn.textContent='เข้าสู่ระบบ →';}
+  }
+}
+
+
 // ── Staff Auth ──
 let currentStaff = null; // null = super admin, object = staff
 
@@ -2571,66 +2631,8 @@ async function loadAdminPass() {
   if (data?.value) ADMIN_PASS = data.value;
 }
 
-async function adminLogin() {
-  const user = sanitizeInput(document.getElementById('admin-user').value.trim());
-  const pass = document.getElementById('admin-pass').value.trim();
-  const err  = document.getElementById('login-err');
-  err.style.display = 'none';
-  if (!user || !pass) { err.style.display = 'block'; err.textContent = '❌ กรุณากรอก Username และรหัสผ่านครับ'; return; }
+// adminLogin moved to injected block below
 
-  // ── Brute Force Check ──
-  const bruteCheck = _checkLoginAttempts(user);
-  if (bruteCheck !== true) {
-    err.style.display = 'block';
-    err.textContent = bruteCheck;
-    return;
-  }
-
-  await loadAdminPass();
-
-  // ── ตรวจ Super Admin ──
-  if (user === 'admin' && pass === ADMIN_PASS) {
-    _clearLoginAttempts(user);
-    currentStaff = null;
-    document.getElementById('login-page').style.display = 'none';
-    document.getElementById('dashboard').style.display  = 'flex';
-    document.getElementById('sb-staff').style.display   = '';
-    showStaffBadge();
-    _startSessionTimer();
-    if (ADMIN_PASS === 'wuachon2568') {
-      setTimeout(() => showToast('⚠️ คุณกำลังใช้รหัสผ่าน default — กรุณาเปลี่ยนใน ⚙️ ตั้งค่า ทันทีครับ', 'error'), 1000);
-    }
-    loadAll();
-    return;
-  }
-
-  // ── ตรวจ Staff ──
-  const { data: staffRow } = await sb.from('staff')
-    .select('*').eq('username', user).eq('is_active', true).maybeSingle();
-
-  if (staffRow && staffRow.password === pass) {
-    _clearLoginAttempts(user);
-    currentStaff = staffRow;
-    await sb.from('staff').update({ last_login: new Date().toISOString() }).eq('id', staffRow.id);
-    await logStaffAction(staffRow.username, 'login', 'เข้าสู่ระบบ');
-    document.getElementById('login-page').style.display = 'none';
-    document.getElementById('dashboard').style.display  = 'flex';
-    showStaffBadge();
-    _startSessionTimer();
-    loadAll();
-    applyStaffPermissions(staffRow.role);
-    return;
-  }
-
-  // ── Login ผิด → บันทึก attempt ──
-  _recordFailedLogin(user);
-  const attempts = _loginAttempts[user]?.count || 0;
-  const remaining = MAX_ATTEMPTS - attempts;
-  err.style.display = 'block';
-  err.textContent = remaining > 0
-    ? `❌ Username หรือรหัสผ่านไม่ถูกต้อง (เหลืออีก ${remaining} ครั้ง)`
-    : `🔒 Login ผิดเกินกำหนด — ถูกล็อค 15 นาทีครับ`;
-}
 
 function adminLogout() {
   if (currentStaff) logStaffAction(currentStaff.username, 'logout', 'ออกจากระบบ');
@@ -4678,51 +4680,8 @@ function switchCfgTab(tab){
 // ══════════════════════════════════════════════════════════════════════
 let _pUser=null,_pRole=null,_pStaffRow=null,_otpTimer=null;
 
-async function adminLogin(){
-  const user=sanitizeInput(document.getElementById('admin-user').value.trim());
-  const pass=document.getElementById('admin-pass').value.trim();
-  const err=document.getElementById('login-err');err.style.display='none';
-  if(!user||!pass){err.style.display='block';err.textContent='❌ กรุณากรอก Username และรหัสผ่านครับ';return;}
-  const bc=_checkLoginAttempts(user);if(bc!==true){err.style.display='block';err.textContent=bc;return;}
+// adminLogin defined at top of script
 
-  // แสดง loading
-  const btn=document.querySelector('.btn-login');if(btn){btn.disabled=true;btn.textContent='กำลังตรวจสอบ...';}
-
-  try{
-    await loadAdminPass();
-    const ph=await hashPassword(pass),sm=(ADMIN_PASS===pass)||(ADMIN_PASS===ph);
-
-    if(user==='admin'&&sm){
-      _clearLoginAttempts(user);
-      _pUser='admin';_pRole='superadmin';_pStaffRow=null;
-      // ตรวจ 2FA ก่อน — ถ้าเปิดอยู่ค่อยถาม OTP
-      const twofaOn=await _checkTwofaEnabled();
-      if(twofaOn){_goOTPStep();}
-      else{await _finishLogin();}
-      return;
-    }
-
-    const{data:sr}=await sb.from('staff').select('*').eq('username',user).eq('is_active',true).maybeSingle();
-    const sh=await hashPassword(pass),stm=sr&&(sr.password===pass||sr.password===sh);
-    if(stm){
-      _clearLoginAttempts(user);
-      _pUser=sr.username;_pRole='staff';_pStaffRow=sr;
-      // Staff: ถ้ามี must_change_password → เข้า dashboard ก่อน แล้ว trigger onboarding
-      // (ไม่ต้องถาม 2FA ถ้ายังไม่ได้ตั้ง)
-      const staffTwofaOn = sr.totp_secret && await _checkTwofaEnabled();
-      if(staffTwofaOn){_goOTPStep();}
-      else{await _finishLogin();}
-      return;
-    }
-
-    _recordFailedLogin(user);
-    const att=_loginAttempts[user]?.count||0,rem=MAX_ATTEMPTS-att;
-    err.style.display='block';
-    err.textContent=rem>0?'❌ Username หรือรหัสผ่านไม่ถูกต้อง (เหลืออีก '+rem+' ครั้ง)':'🔒 Login ผิดเกินกำหนด — ถูกล็อค 15 นาทีครับ';
-  }finally{
-    if(btn){btn.disabled=false;btn.textContent='เข้าสู่ระบบ →';}
-  }
-}
 function _goOTPStep(){
   document.getElementById('login-step-1').style.display='none';
   document.getElementById('login-step-2').style.display='block';
