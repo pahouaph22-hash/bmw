@@ -2,19 +2,11 @@
 <html lang="th">
 <head>
 <meta charset="UTF-8">
-  <!-- ══ PWA Meta Tags ══ -->
-  <meta name="application-name" content="ວົວຊົນລາວ">
-  <meta name="apple-mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-  <meta name="apple-mobile-web-app-title" content="ວົວຊົນ">
-  <meta name="mobile-web-app-capable" content="yes">
-  <meta name="theme-color" content="#F5C842">
-  <meta name="msapplication-TileColor" content="#0a1a0a">
-  <meta name="msapplication-tap-highlight" content="no">
-  <link rel="manifest" href="/manifest.json">
-  <link rel="apple-touch-icon" href="/icon-192.png">
-  <link rel="icon" type="image/png" sizes="192x192" href="/icon-192.png">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="description" content="แพลตฟอร์มวัวชน P2P ออนไลน์ ทั่วประเทศลาว — เดิมพันตรงระหว่างผู้เล่น ไม่มีเจ้ามือ">
+<meta property="og:title" content="วัวชนไทย — ศึกชนโคทั่วประเทศลาว">
+<meta property="og:description" content="แพลตฟอร์มวัวชน P2P ที่ยุติธรรมที่สุด">
+<link rel="icon" type="image/svg+xml" href="/favicon.svg">
 <!-- KAWCAI-V2-20260604 -->
 <title>วัวชนไทย — ศึกชนโคทั่วประเทศลาว</title>
 <!-- Phetsarath OT — ฟอนต์หลักลาว -->
@@ -95,85 +87,7 @@ fns.forEach(function(fn){
     100% { opacity: 0; transform: translateY(-600px) scale(1.5) rotate(180deg); }
   }
 
-  /* HERO SPLIT LAYOUT */
-  .hero-split {
-    flex-direction: row !important;
-    justify-content: center;
-    align-items: center;
-    gap: 60px;
-    padding: 80px 60px 60px;
-    text-align: left;
-  }
-  .hero-left {
-    flex: 1;
-    max-width: 520px;
-    display: flex;
-    flex-direction: column;
-    align-items: flex-start;
-  }
-  .hero-left .hero-badge { margin-bottom: 20px; }
-  .hero-left .hero-cta { justify-content: flex-start; margin-top: 36px; }
-  .hero-right {
-    flex-shrink: 0;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    animation: float 4s ease-in-out infinite;
-  }
-  @keyframes float {
-    0%, 100% { transform: translateY(0) rotate(-2deg); }
-    50% { transform: translateY(-16px) rotate(2deg); }
-  }
-  @media (max-width: 768px) {
-    .hero-split { flex-direction: column !important; text-align: center; padding: 60px 24px 40px; gap: 32px; }
-    .hero-left { align-items: center; }
-    .hero-left .hero-cta { justify-content: center; }
-    .hero-right svg { width: 180px; height: 180px; }
-  }
-
-  /* NAV */
-  nav {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 14px 40px;
-    background: rgba(7,26,12,0.97);
-    border-bottom: 2px solid var(--gold);
-    position: sticky;
-    top: 0;
-    z-index: 100;
-    backdrop-filter: blur(12px);
-  }
-  .nav-logo {
-    font-family: 'Phetsarath', 'Noto Sans Lao', 'Kanit', sans-serif;
-    font-weight: 900;
-    font-size: 22px;
-    color: var(--gold);
-  }
-  .nav-logo span { color: var(--accent); }
-  .nav-links { display: flex; gap: 28px; }
-  .nav-links a {
-    font-family: 'Phetsarath', 'Noto Sans Lao', 'Kanit', sans-serif;
-    font-weight: 700;
-    font-size: 14px;
-    color: rgba(240,255,232,0.75);
-    text-decoration: none;
-    letter-spacing: 0.5px;
-    transition: color 0.2s;
-    position: relative;
-  }
-  .nav-links a::after {
-    content: '';
-    position: absolute;
-    bottom: -3px;
-    left: 0;
-    width: 0;
-    height: 2px;
-    background: var(--gold);
-    transition: width 0.25s;
-  }
-  .nav-links a:hover { color: var(--gold); }
-  .nav-links a:hover::after { width: 100%; }
+  /* HERO SPLIT + NAV — defined in style block 2 below */
 
   /* HERO */
   .hero {
@@ -765,13 +679,15 @@ fns.forEach(function(fn){
     justify-content: space-between;
     align-items: center;
     padding: 14px 40px;
-    background: rgba(26,10,0,0.97);
+    background: rgba(7,26,12,0.97);
     border-bottom: 2px solid var(--gold);
     position: sticky;
     top: 0;
-    z-index: 100;
+    z-index: 200;
     flex-wrap: wrap;
     gap: 8px;
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
   }
   .nav-logo {
     font-family: 'Phetsarath', 'Noto Sans Lao', 'Kanit', sans-serif;
@@ -2712,6 +2628,164 @@ fns.forEach(function(fn){
     .notif-chip { font-size: 10px; padding: 4px 10px; }
   }
 
+
+/* ═══════════════════════════════════════════════
+   DESKTOP WEB LAYOUT — เพิ่มเติมสำหรับ desktop
+   ═══════════════════════════════════════════════ */
+
+/* Global page wrapper */
+.page-wrap {
+  max-width: 1280px;
+  margin: 0 auto;
+  width: 100%;
+}
+
+/* Nav ปรับให้ desktop สวย */
+@media (min-width: 769px) {
+  nav {
+    padding: 14px 48px;
+  }
+  nav .nav-links {
+    gap: 32px;
+  }
+  nav .nav-links a {
+    font-size: 14px;
+    padding: 4px 0;
+  }
+  /* Auth buttons ใน nav */
+  #nav-register {
+    background: var(--gold);
+    color: var(--dark) !important;
+    padding: 7px 18px !important;
+    border-radius: 8px;
+    font-weight: 900 !important;
+    transition: background 0.2s, transform 0.15s !important;
+  }
+  #nav-register:hover {
+    background: #e0a800;
+    transform: translateY(-1px);
+    color: var(--dark) !important;
+  }
+  #nav-register::after { display: none !important; }
+  #nav-myaccount {
+    border: 1px solid rgba(245,200,66,0.4);
+    padding: 6px 16px !important;
+    border-radius: 8px;
+    transition: border-color 0.2s !important;
+  }
+  #nav-myaccount:hover {
+    border-color: var(--gold);
+  }
+  #nav-myaccount::after { display: none !important; }
+}
+
+/* Section containers — max-width และ centered */
+@media (min-width: 769px) {
+  .hero {
+    padding: 80px 48px 70px;
+  }
+  .events-section,
+  .results-section,
+  .about-section {
+    padding: 60px 48px;
+    max-width: 1280px;
+    margin-left: auto;
+    margin-right: auto;
+  }
+  .ticker-wrap {
+    padding: 0 48px;
+  }
+  /* Stats bar ใน hero */
+  .hero-stats {
+    gap: 40px;
+  }
+  /* User account panel — wider on desktop */
+  .acc-panel-wrap,
+  #acc-panel {
+    max-width: 960px;
+    margin: 0 auto;
+  }
+  /* Forms — center และ max-width */
+  .register-wrap,
+  #register-section,
+  #auth-section {
+    max-width: 520px;
+    margin: 60px auto;
+    border-radius: 16px;
+    padding: 40px;
+  }
+  /* Schedule section */
+  #schedule-section {
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 40px 48px;
+  }
+  /* History section */
+  #history-section {
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 40px 48px;
+  }
+  /* About section */
+  #about-section {
+    max-width: 960px;
+    margin: 0 auto;
+    padding: 60px 48px;
+  }
+  /* Event grid — 3 columns on wide desktop */
+  .event-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+  /* Match cards */
+  .match-body {
+    grid-template-columns: 1fr 100px 1fr;
+    min-height: 160px;
+  }
+  /* Account sidebar layout on desktop */
+  .acc-layout {
+    display: grid;
+    grid-template-columns: 220px 1fr;
+    gap: 0;
+    max-width: 1100px;
+    margin: 0 auto;
+  }
+  .acc-sidebar {
+    border-right: 1px solid rgba(245,200,66,0.12);
+    position: sticky;
+    top: 70px;
+    height: calc(100vh - 70px);
+    overflow-y: auto;
+  }
+  .acc-content {
+    padding: 24px 32px;
+    overflow-y: auto;
+  }
+}
+
+/* Large desktop (1200px+) */
+@media (min-width: 1200px) {
+  .hero-split {
+    gap: 80px;
+    padding: 100px 80px 80px;
+  }
+  .events-section,
+  .results-section {
+    padding: 70px 80px;
+  }
+}
+
+/* ══ Scrollbar styling (desktop) ══ */
+@media (min-width: 769px) {
+  ::-webkit-scrollbar { width: 6px; }
+  ::-webkit-scrollbar-track { background: var(--dark3); }
+  ::-webkit-scrollbar-thumb {
+    background: rgba(245,200,66,0.25);
+    border-radius: 3px;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background: rgba(245,200,66,0.45);
+  }
+}
 </style>
 <style>
 /* ── Phetsarath OT — Global Font Override ── */
@@ -2783,7 +2857,17 @@ input, textarea, select, button {
 
 <!-- NAV -->
 <div id="main-content">
-<nav>
+<a href="#main-content" class="skip-link" style="
+  position:absolute;top:-40px;left:0;background:var(--gold);color:var(--dark);
+  padding:8px 16px;border-radius:0 0 8px 0;font-weight:700;font-size:14px;
+  z-index:9999;transition:top 0.2s;text-decoration:none;
+  font-family:'Kanit',sans-serif;">
+  ข้ามไปยังเนื้อหาหลัก
+</a>
+<style>
+  .skip-link:focus { top: 0; }
+</style>
+<nav role="navigation" aria-label="เมนูหลัก">
   <div class="nav-logo" style="display:flex;align-items:center;gap:10px;">
     <span id="nav-logo-img-wrap" style="display:inline-flex;align-items:center;justify-content:center;width:40px;height:40px;border-radius:50%;overflow:hidden;flex-shrink:0;">
     <svg id="nav-logo-svg" viewBox="0 0 60 60" width="40" height="40" xmlns="http://www.w3.org/2000/svg">
@@ -6398,6 +6482,12 @@ function applyLang() {
   body { padding-bottom: 68px; }
   nav .nav-links { display: none !important; }
 }
+/* Desktop: ซ่อน bottom nav, แสดง nav-links เสมอ */
+@media (min-width: 769px) {
+  .mob-nav { display: none !important; }
+  body { padding-bottom: 0 !important; }
+  nav .nav-links { display: flex !important; }
+}
 .mob-nav-item {
   flex: 1; display: flex; flex-direction: column;
   align-items: center; justify-content: center;
@@ -6449,8 +6539,6 @@ function applyLang() {
   width: 100%; height: 100%; object-fit: cover; border-radius: 50%;
 }
 
-@keyframes pulse-install {
-  0%,100%{ box-shadow:0 4px 16px rgba(245,200,66,0.4); }
   50%{ box-shadow:0 4px 24px rgba(245,200,66,0.7); transform:scale(1.03); }
 }
 </style>
@@ -9253,95 +9341,6 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 
-// ══ PWA — Service Worker + Install ══
-let _pwaInstallPrompt = null;
-
-if ('serviceWorker' in navigator) {
-  window.addEventListener('load', () => {
-    navigator.serviceWorker.register('/sw.js')
-      .then(reg => {
-        console.log('SW registered:', reg.scope);
-        // ตรวจ update
-        reg.addEventListener('updatefound', () => {
-          const newWorker = reg.installing;
-          newWorker?.addEventListener('statechange', () => {
-            if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
-              showPWAUpdateBanner();
-            }
-          });
-        });
-      })
-      .catch(err => console.warn('SW error:', err));
-  });
-}
-
-// Install prompt (Android Chrome)
-window.addEventListener('beforeinstallprompt', e => {
-  e.preventDefault();
-  _pwaInstallPrompt = e;
-  showPWAInstallBtn();
-});
-
-window.addEventListener('appinstalled', () => {
-  _pwaInstallPrompt = null;
-  hidePWAInstallBtn();
-  showFEToast('✅ ติดตั้งแอปสำเร็จ! เปิดจาก Home Screen ได้เลยครับ');
-});
-
-function showPWAInstallBtn() {
-  let btn = document.getElementById('pwa-install-btn');
-  if (!btn) {
-    btn = document.createElement('button');
-    btn.id = 'pwa-install-btn';
-    btn.innerHTML = '📲 ติดตั้งแอป';
-    btn.style.cssText = `
-      position:fixed;bottom:78px;right:12px;z-index:998;
-      background:linear-gradient(135deg,#F5C842,#e0a800);color:#1a0a00;
-      font-family:'Kanit',sans-serif;font-weight:900;font-size:12px;
-      padding:8px 14px;border-radius:999px;border:none;cursor:pointer;
-      box-shadow:0 4px 16px rgba(245,200,66,0.4);
-      animation:pulse-install 2s infinite;
-    `;
-    btn.onclick = triggerPWAInstall;
-    document.body.appendChild(btn);
-  }
-  btn.style.display = 'block';
-}
-
-function hidePWAInstallBtn() {
-  document.getElementById('pwa-install-btn')?.remove();
-}
-
-async function triggerPWAInstall() {
-  if (!_pwaInstallPrompt) return;
-  _pwaInstallPrompt.prompt();
-  const { outcome } = await _pwaInstallPrompt.userChoice;
-  if (outcome === 'accepted') {
-    _pwaInstallPrompt = null;
-    hidePWAInstallBtn();
-  }
-}
-
-function showPWAUpdateBanner() {
-  const banner = document.createElement('div');
-  banner.style.cssText = `
-    position:fixed;top:70px;left:12px;right:12px;z-index:9999;
-    background:#0d1f0d;border:1px solid rgba(245,200,66,0.3);
-    border-radius:12px;padding:12px 16px;
-    display:flex;align-items:center;justify-content:space-between;
-    font-family:'Kanit',sans-serif;font-size:13px;
-    box-shadow:0 4px 20px rgba(0,0,0,0.5);
-  `;
-  banner.innerHTML = `
-    <span style="color:#f0ffe8;">🔄 มีอัปเดตใหม่พร้อมแล้วครับ</span>
-    <button onclick="window.location.reload(true)" style="
-      background:var(--gold);color:#1a0a00;border:none;border-radius:8px;
-      padding:5px 12px;font-family:'Kanit',sans-serif;font-weight:700;
-      font-size:12px;cursor:pointer;">รีโหลด</button>
-  `;
-  document.body.appendChild(banner);
-  setTimeout(() => banner.remove(), 10000);
-}
 
 </script>
 
