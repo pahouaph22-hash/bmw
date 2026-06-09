@@ -2813,9 +2813,9 @@ input, textarea, select, button {
             <div class="modal-bull-photo-placeholder" id="modal-placeholder-a" style="display:none;"></div>
           </div>
           <input type="file" id="modal-img-a" accept="image/*" style="display:none" onchange="loadModalPhoto(this,'modal-photo-a','modal-placeholder-a')">
-          <div class="modal-bull-name" id="m-bull-a">เจ้าพายุ</div>
-          <div class="modal-bull-sub" id="m-owner-a">เจ้าของ: นายสมชาย</div>
-          <div class="modal-bull-tag" id="m-weight-a">520 กก.</div>
+          <div class="modal-bull-name" id="m-bull-a">—</div>
+          <div class="modal-bull-sub" id="m-owner-a">—</div>
+          <div class="modal-bull-tag" id="m-weight-a">—</div>
         </div>
         <div class="modal-vs-circle">VS</div>
         <div class="modal-bull">
@@ -2824,15 +2824,15 @@ input, textarea, select, button {
             <div class="modal-bull-photo-placeholder" id="modal-placeholder-b" style="display:none;"></div>
           </div>
           <input type="file" id="modal-img-b" accept="image/*" style="display:none" onchange="loadModalPhoto(this,'modal-photo-b','modal-placeholder-b')">
-          <div class="modal-bull-name" id="m-bull-b">ดำมหากาฬ</div>
-          <div class="modal-bull-sub" id="m-owner-b">เจ้าของ: นายวิชัย</div>
-          <div class="modal-bull-tag" id="m-weight-b">510 กก.</div>
+          <div class="modal-bull-name" id="m-bull-b">—</div>
+          <div class="modal-bull-sub" id="m-owner-b">—</div>
+          <div class="modal-bull-tag" id="m-weight-b">—</div>
         </div>
       </div>
       <div class="modal-info">
         <div class="modal-info-item">
           <div class="modal-info-label">วันที่</div>
-          <div class="modal-info-val" id="m-date">4 มิ.ย. 68</div>
+          <div class="modal-info-val" id="m-date">—</div>
         </div>
         <div class="modal-info-item">
           <div class="modal-info-label">เวลา</div>
@@ -3003,10 +3003,10 @@ input, textarea, select, button {
 
 <!-- STATS -->
 <div class="stats-bar">
-  <div class="stat-item"><div class="stat-num">128</div><div class="stat-label" data-i18n="stat.bulls">คู่วัวที่ลงทะเบียน</div></div>
-  <div class="stat-item"><div class="stat-num">5,000+</div><div class="stat-label" data-i18n="stat.viewers">ผู้ชมที่คาดการณ์</div></div>
-  <div class="stat-item"><div class="stat-num" data-i18n="stat.days.val">3 วัน</div><div class="stat-label" data-i18n="stat.days">ระยะเวลาการแข่งขัน</div></div>
-  <div class="stat-item"><div class="stat-num" data-i18n="stat.provinces.val">12 จังหวัด</div><div class="stat-label" data-i18n="stat.provinces">ทีมที่เข้าร่วม</div></div>
+  <div class="stat-item"><div class="stat-num" id="hero-stat-matches">128</div><div class="stat-label" data-i18n="stat.bulls">คู่วัวที่ลงทะเบียน</div></div>
+  <div class="stat-item"><div class="stat-num" id="hero-stat-members">5,000+</div><div class="stat-label" data-i18n="stat.viewers">ผู้ชมที่คาดการณ์</div></div>
+  <div class="stat-item"><div class="stat-num" id="hero-stat-days" data-i18n="stat.days.val">3 วัน</div><div class="stat-label" data-i18n="stat.days">ระยะเวลาการแข่งขัน</div></div>
+  <div class="stat-item"><div class="stat-num" id="hero-stat-provinces" data-i18n="stat.provinces.val">12 จังหวัด</div><div class="stat-label" data-i18n="stat.provinces">ทีมที่เข้าร่วม</div></div>
 </div>
 
 <div class="gold-divider"></div>
@@ -3294,78 +3294,6 @@ input, textarea, select, button {
           <div style="font-size:32px;margin-bottom:12px;">⏳</div>กำลังโหลด...
         </div>
       </div>
-
-      <!-- MOCK list -->
-      <div class="bet-match-wrap" id="bet-mock-wrap">
-
-        <!-- การ์ดคู่ที่ 1 -->
-        <div class="sched-card" onclick="openMatchDetail('match-1')">
-          <div class="bet-match-header">
-            <div>
-              <div class="bet-round-label">🏆 รุ่นแชมเปียน</div>
-              <div class="bet-match-info">📅 28 พ.ค. 68 &nbsp;·&nbsp; ⏰ 13:30 น. &nbsp;·&nbsp; 📍 สนามหลัก นครศรีธรรมราช</div>
-            </div>
-            <span class="match-status-badge status-upcoming">⏳ รอแข่ง</span>
-          </div>
-          <div class="sched-card-body">
-            <div class="sched-side red-sched">
-              <div class="sched-photo red-glow"></div>
-              <div class="sched-name">เจ้าพายุ</div>
-              <div class="sched-owner">นายสมชาย ใจดี</div>
-              <div class="sched-tag">⚖️ 520 กก.</div>
-            </div>
-            <div class="sched-center">
-              <div class="sched-vs">VS</div>
-              <div class="sched-prize">💰 500,000 ₭</div>
-              <div class="sched-pool">🎯 22,300 ₭</div>
-            </div>
-            <div class="sched-side blue-sched">
-              <div class="sched-photo blue-glow"></div>
-              <div class="sched-name">ดำมหากาฬ</div>
-              <div class="sched-owner">นายวิชัย แก้วมณี</div>
-              <div class="sched-tag">⚖️ 510 กก.</div>
-            </div>
-          </div>
-          <div class="sched-footer">
-            <span style="font-size:12px;color:rgba(240,255,232,0.4);font-family:'Phetsarath OT','Phetsarath','Noto Sans Lao','Kanit',sans-serif;">📋 3 รายการรอจับคู่</span>
-            <span class="sched-enter-btn">เข้าดูและวางเดิมพัน →</span>
-          </div>
-        </div>
-
-        <!-- การ์ดคู่ที่ 2 -->
-        <div class="sched-card" onclick="openMatchDetail('match-2')">
-          <div class="bet-match-header">
-            <div>
-              <div class="bet-round-label">🏆 รุ่นน้ำหนัก 500 กก.</div>
-              <div class="bet-match-info">📅 29 พ.ค. 68 &nbsp;·&nbsp; ⏰ 09:00 น. &nbsp;·&nbsp; 📍 สนาม A พัทลุง</div>
-            </div>
-            <span class="match-status-badge status-upcoming">⏳ รอแข่ง</span>
-          </div>
-          <div class="sched-card-body">
-            <div class="sched-side red-sched">
-              <div class="sched-photo red-glow"></div>
-              <div class="sched-name">แดงอรหันต์</div>
-              <div class="sched-owner">นายประสิทธิ์ ทองดี</div>
-              <div class="sched-tag">⚖️ 498 กก.</div>
-            </div>
-            <div class="sched-center">
-              <div class="sched-vs">VS</div>
-              <div class="sched-prize">💰 200,000 ₭</div>
-              <div class="sched-pool">🎯 8,500 ₭</div>
-            </div>
-            <div class="sched-side blue-sched">
-              <div class="sched-photo blue-glow"></div>
-              <div class="sched-name">ขาวมงคล</div>
-              <div class="sched-owner">นายชาญ บุญมา</div>
-              <div class="sched-tag">⚖️ 502 กก.</div>
-            </div>
-          </div>
-          <div class="sched-footer">
-            <span style="font-size:12px;color:rgba(240,255,232,0.4);font-family:'Phetsarath OT','Phetsarath','Noto Sans Lao','Kanit',sans-serif;">📋 1 รายการรอจับคู่</span>
-            <span class="sched-enter-btn">เข้าดูและวางเดิมพัน →</span>
-          </div>
-        </div>
-
       </div>
     </div>
 
@@ -4168,42 +4096,8 @@ input, textarea, select, button {
         <button onclick="loadTxnHistory()" style="font-family:'Phetsarath OT','Phetsarath','Noto Sans Lao','Kanit',sans-serif;font-size:11px;font-weight:700;padding:5px 12px;border-radius:8px;border:1px solid rgba(74,222,128,0.3);background:transparent;color:rgba(74,222,128,0.7);cursor:pointer;">🔄 รีเฟรช</button>
       </div>
       <div class="txn-list" id="acc-txn-list">
-        <div class="txn-item">
-          <div class="txn-icon dep">💰</div>
-          <div class="txn-info">
-            <div class="txn-label">เติมเงิน</div>
-            <div class="txn-date">22 พ.ค. 68 · 14:32</div>
-            <div class="txn-id">TXN: 472520037</div>
-          </div>
-          <div><div class="txn-amount dep">+500 ₭</div><div style="font-size:10px;color:rgba(240,255,232,0.3);text-align:right;margin-top:2px;font-family:'Phetsarath OT','Phetsarath','Noto Sans Lao','Kanit',sans-serif;">อนุมัติแล้ว</div></div>
-        </div>
-        <div class="txn-item">
-          <div class="txn-icon with">🏧</div>
-          <div class="txn-info">
-            <div class="txn-label">ถอนเงิน</div>
-            <div class="txn-date">20 พ.ค. 68 · 10:15</div>
-            <div class="txn-id">TXN: 946239640</div>
-          </div>
-          <div><div class="txn-amount with">-1,500 ₭</div><div style="font-size:10px;color:rgba(240,255,232,0.3);text-align:right;margin-top:2px;font-family:'Phetsarath OT','Phetsarath','Noto Sans Lao','Kanit',sans-serif;">โอนแล้ว</div></div>
-        </div>
-        <div class="txn-item">
-          <div class="txn-icon dep">💰</div>
-          <div class="txn-info">
-            <div class="txn-label">เติมเงิน</div>
-            <div class="txn-date">18 พ.ค. 68 · 09:00</div>
-            <div class="txn-id">TXN: 415790477</div>
-          </div>
-          <div><div class="txn-amount dep">+2,000 ₭</div><div style="font-size:10px;color:rgba(240,255,232,0.3);text-align:right;margin-top:2px;font-family:'Phetsarath OT','Phetsarath','Noto Sans Lao','Kanit',sans-serif;">อนุมัติแล้ว</div></div>
-        </div>
-        <div class="txn-item">
-          <div class="txn-icon dep">💰</div>
-          <div class="txn-info">
-            <div class="txn-label">เติมเงิน</div>
-            <div class="txn-date">15 พ.ค. 68 · 11:00</div>
-            <div class="txn-id">TXN: 419817497</div>
-          </div>
-          <div><div class="txn-amount dep">+6,000 ₭</div><div style="font-size:10px;color:rgba(240,255,232,0.3);text-align:right;margin-top:2px;font-family:'Phetsarath OT','Phetsarath','Noto Sans Lao','Kanit',sans-serif;">อนุมัติแล้ว</div></div>
-        </div>
+        <div style="text-align:center;padding:20px;color:rgba(240,255,232,0.3);font-size:12px;font-family:'Phetsarath OT','Phetsarath','Noto Sans Lao','Kanit',sans-serif;">กำลังโหลด...</div>
+      </div>
       </div>
     </div>
 
@@ -5188,9 +5082,29 @@ function applyLang() {
   document.documentElement.lang = L === 'th' ? 'th' : L === 'la' ? 'lo' : 'en';
 }
 
-  const target = new Date();
-  target.setDate(target.getDate() + 12);
-  target.setHours(target.getHours() + 8, 34, 0);
+  // ── Countdown: target ดึงจาก Supabase (match ถัดไป) ──
+  let target = new Date();
+  target.setDate(target.getDate() + 7); // fallback default
+
+  async function _loadNextMatchDate() {
+    try {
+      const { data } = await sb.from('matches')
+        .select('date,time')
+        .in('status', ['upcoming','live'])
+        .order('date', { ascending: true })
+        .limit(1)
+        .maybeSingle();
+      if (data?.date) {
+        const dateStr = data.date.includes('/')
+          ? data.date.split('/').reverse().join('-')
+          : data.date;
+        const timeStr = data.time ? data.time.replace(' น.','').trim() : '09:00';
+        target = new Date(`${dateStr}T${timeStr.length===5?timeStr:'09:00'}:00`);
+        if (isNaN(target.getTime())) target = new Date(Date.now() + 7*86400000);
+      }
+    } catch(_) {}
+  }
+  _loadNextMatchDate();
 
   function tick() {
     const now = new Date();
@@ -5322,6 +5236,38 @@ function applyLang() {
       // ถ้าไม่มีบัญชี active ไม่ต้องแตะ UI ตรงนี้ — loadDepBanks() จะจัดการตอนเปิด tab
     }
     loadSettings();
+    loadHeroStats();
+
+    // ── Hero Stats: ดึงจาก Supabase ──
+    async function loadHeroStats() {
+      try {
+        const [matchRes, memRes, siteRes] = await Promise.all([
+          sb.from('matches').select('*', {count:'exact', head:true}).in('status',['upcoming','live']),
+          sb.from('members').select('*', {count:'exact', head:true}),
+          sb.from('settings').select('value').eq('key','siteStats').maybeSingle(),
+        ]);
+
+        const matchCount = matchRes.count || 0;
+        const memCount   = memRes.count   || 0;
+        const siteStats  = siteRes.data?.value || {};
+
+        const setHero = (id, val) => {
+          const el = document.getElementById(id);
+          if (el) el.textContent = val;
+        };
+
+        // คู่วัวที่ลงทะเบียน
+        if (matchCount > 0) setHero('hero-stat-matches', matchCount.toLocaleString());
+        // ผู้ชม / สมาชิก
+        if (memCount > 0) setHero('hero-stat-members', memCount.toLocaleString() + '+');
+        // ระยะเวลา (จาก siteStats หรือ hardcode)
+        if (siteStats.days)      setHero('hero-stat-days',      siteStats.days);
+        if (siteStats.provinces) setHero('hero-stat-provinces', siteStats.provinces);
+
+      } catch(e) {
+        console.warn('[loadHeroStats]', e.message);
+      }
+    }
 
     // ── Matches: แสดงบนหน้าแรก ──
     let _allResults = []; // เก็บข้อมูลทั้งหมดสำหรับ filter
@@ -5918,6 +5864,23 @@ function applyLang() {
           // skip
         }
         // ─ อื่น ๆ (เติมเงิน approved มีอยู่แล้วใน deposits UPDATE) ─
+      })
+      // ── members balance realtime sync ──
+      .on('postgres_changes', {
+        event: 'UPDATE', schema: 'public', table: 'members',
+        filter: `nick=eq.${nick}`
+      }, payload => {
+        const m = payload.new;
+        if (m && typeof m.balance !== 'undefined') {
+          const newBal = Number(m.balance || 0);
+          updateAccBalance(newBal);
+          currentUser.balance = newBal;
+          const balEl = document.getElementById('dash-balance');
+          if (balEl) balEl.textContent = newBal.toLocaleString();
+          // update nav balance badge ด้วย
+          const navBal = document.getElementById('nav-balance-val');
+          if (navBal) navBal.textContent = newBal.toLocaleString() + ' ₭';
+        }
       })
       .subscribe();
     _activeChannels[channelName] = ch;
@@ -8482,7 +8445,9 @@ setInterval(() => {
 
   function addTxnItem(type, icon, label, sub, txn, amount, amtClass) {
     const now = new Date();
-    const dateStr = `${now.getDate()} พ.ค. 68 · ${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}`;
+    const thaiMonths = ['ม.ค.','ก.พ.','มี.ค.','เม.ย.','พ.ค.','มิ.ย.','ก.ค.','ส.ค.','ก.ย.','ต.ค.','พ.ย.','ธ.ค.'];
+    const buddhistYear = (now.getFullYear() + 543) % 100;
+    const dateStr = `${now.getDate()} ${thaiMonths[now.getMonth()]} ${buddhistYear} · ${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}`;
     const item = document.createElement('div');
     item.className = 'txn-item';
     item.innerHTML = `
@@ -8536,7 +8501,9 @@ setInterval(() => {
 
     const typeLabel = { general:'💬 ทั่วไป', deposit:'💰 เติมเงิน', withdraw:'🏧 ถอนเงิน', bet:'🏆 การแข่งขัน', feedback:'⭐ ความคิดเห็น', bug:'🐛 แจ้งปัญหา' };
     const now     = new Date();
-    const dateStr = `${now.getDate()} พ.ค. 68 · ${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}`;
+    const _thm = ['ม.ค.','ก.พ.','มี.ค.','เม.ย.','พ.ค.','มิ.ย.','ก.ค.','ส.ค.','ก.ย.','ต.ค.','พ.ย.','ธ.ค.'];
+    const _by = (now.getFullYear() + 543) % 100;
+    const dateStr = `${now.getDate()} ${_thm[now.getMonth()]} ${_by} · ${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}`;
     const nick    = currentUser?.nick || 'ไม่ระบุ';
 
     // บันทึกลง Supabase
@@ -8954,7 +8921,9 @@ setInterval(() => {
     const list = document.getElementById('acc-txn-list');
     if (!list) return;
     const now = new Date();
-    const dateStr = `${now.getDate()} พ.ค. 68 · ${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}`;
+    const thaiMonths = ['ม.ค.','ก.พ.','มี.ค.','เม.ย.','พ.ค.','มิ.ย.','ก.ค.','ส.ค.','ก.ย.','ต.ค.','พ.ย.','ธ.ค.'];
+    const buddhistYear = (now.getFullYear() + 543) % 100;
+    const dateStr = `${now.getDate()} ${thaiMonths[now.getMonth()]} ${buddhistYear} · ${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}`;
     const item = document.createElement('div');
     item.className = 'txn-item';
     item.innerHTML = `
@@ -8979,16 +8948,33 @@ setInterval(() => {
   });
 
   // ── MATCH DETAIL NAVIGATION ──
-  const matchData = {
-    'match-1': { nameA:'เจ้าพายุ', ownerA:'นายสมชาย ใจดี', weightA:'520 กก.', photoA:'',
-                 nameB:'ดำมหากาฬ', ownerB:'นายวิชัย แก้วมณี', weightB:'510 กก.', photoB:'',
-                 round:'รุ่นแชมเปียน', date:'28 พ.ค. 68', time:'13:30 น.', loc:'สนามหลัก นครศรีธรรมราช', prize:'500,000' },
-    'match-2': { nameA:'แดงอรหันต์', ownerA:'นายประสิทธิ์ ทองดี', weightA:'498 กก.', photoA:'',
-                 nameB:'ขาวมงคล', ownerB:'นายชาญ บุญมา', weightB:'502 กก.', photoB:'',
-                 round:'รุ่นน้ำหนัก 500 กก.', date:'29 พ.ค. 68', time:'09:00 น.', loc:'สนาม A พัทลุง', prize:'200,000' },
-  };
+  // matchData cache: เก็บข้อมูลที่ดึงจาก Supabase แล้ว
+  const matchData = {};
 
-  window.openMatchDetail = function openMatchDetail(matchId) {
+  window.openMatchDetail = async function openMatchDetail(matchId) {
+    if (!matchId) return;
+
+    // ดึงจาก cache ก่อน ถ้าไม่มีให้ fetch จาก Supabase
+    if (!matchData[matchId]) {
+      const { data } = await sb.from('matches').select('*').eq('id', matchId).maybeSingle();
+      if (data) {
+        matchData[matchId] = {
+          nameA:  data.name_a || '—', ownerA: data.owner_a || '',
+          weightA: data.weight_a ? data.weight_a + ' กก.' : '',
+          photoA: data.photo_a || '',
+          nameB:  data.name_b || '—', ownerB: data.owner_b || '',
+          weightB: data.weight_b ? data.weight_b + ' กก.' : '',
+          photoB: data.photo_b || '',
+          round:  data.round   || 'รายการแข่งขัน',
+          date:   data.date    || '—',
+          time:   data.time    || '—',
+          loc:    data.location || '—',
+          prize:  data.prize ? Number(data.prize).toLocaleString() : '—',
+          status: data.status  || 'upcoming',
+        };
+      }
+    }
+
     // โหลด bet queue จาก DB
     setTimeout(() => {
       loadBetQueue(matchId);
@@ -9080,9 +9066,7 @@ setInterval(() => {
     document.getElementById('page-schedule').style.display = 'block';
     window.scrollTo(0, 0);
     setTimeout(applyLang, 100);
-    // ซ่อน mock data แสดง real data
-    const mockWrap = document.getElementById('bet-mock-wrap');
-    if (mockWrap) mockWrap.style.display = 'none';
+    // mock data ถูกลบออกแล้ว — โหลดจาก Supabase โดยตรง
     const wrap = document.getElementById('schedule-fb-wrap');
     if (!wrap) return;
     wrap.innerHTML = `<div style="text-align:center;padding:48px;color:rgba(255,248,236,0.4);font-family:'Phetsarath','Noto Sans Lao','Kanit',sans-serif;"><div style="font-size:32px;margin-bottom:12px;">⏳</div>${t('schedule.loading')}</div>`;
