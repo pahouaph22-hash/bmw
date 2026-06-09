@@ -4361,6 +4361,96 @@ function switchChart(type, btn) {
   _growthChart.update();
 }
 
+
+// ═══════════════════════════════════════════════
+// FINANCE SUMMARY TABLE
+// ═══════════════════════════════════════════════
+async function loadFinanceTable() {
+  const tbody = document.getElementById('finance-tbody');
+  if (!tbody) return;
+  tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;padding:32px;color:#aaa;font-family:'Kanit',sans-serif;">⏳ กำลังโหลด...</td></tr>';
+
+  try {
+    // ดึงข้อมูลย้อนหลัง 3 เดือน
+    const now   = new Date();
+    const rows  = [];
+
+    for (let m = 2; m >= 0; m--) {
+      const start = new Date(now.getFullYear(), now.getMonth() - m, 1);
+      const end   = new Date(now.getFullYear(), now.getMonth() - m + 1, 0, 23, 59, 59);
+      const startISO = start.toISOString();
+      const endISO   = end.toISOString();
+      const label = start.toLocaleDateString('th-TH', { month: 'long', year: 'numeric' });
+
+      const [deps, withs, newMems] = await Promise.all([
+        sb.from('deposits').select('amount,bank,status').eq('status','approved')
+          .gte('created_at', startISO).lte('created_at', endISO),
+        sb.from('withdrawals').select('amount,status').eq('status','approved')
+          .gte('created_at', startISO).lte('created_at', endISO),
+        sb.from('members').select('id', {count:'exact', head:true})
+          .gte('created_at', startISO).lte('created_at', endISO),
+      ]);
+
+      // เติมเงินจริง (ไม่รวมค่าบริการ/รางวัล)
+      const depReal    = (deps.data||[])
+        .filter(d => !d.bank?.includes('ค่าบริการ') && !d.bank?.includes('กิจกรรม') && !d.bank?.includes('คอม') && !d.bank?.includes('referral'))
+        .reduce((s,d) => s + Number(d.amount||0), 0);
+
+      // ค่าบริการ
+      const feeTotal   = (deps.data||[])
+        .filter(d => d.bank?.includes('ค่าบริการ'))
+        .reduce((s,d) => s + Number(d.amount||0), 0);
+
+      // เงินรางวัล
+      const rewardTotal = (deps.data||[])
+        .filter(d => d.bank?.includes('กิจกรรม') || d.bank?.includes('คอม') || d.bank?.includes('referral') || d.bank?.includes('แนะนำ'))
+        .reduce((s,d) => s + Number(d.amount||0), 0);
+
+      const withTotal  = (withs.data||[]).reduce((s,d) => s + Number(d.amount||0), 0);
+      const netFlow    = depReal - withTotal;
+      const profit     = netFlow; // กำไร/ขาดทุนจากมุมมองสภาพคล่อง
+      const members    = newMems.count || 0;
+
+      rows.push({ label, members, depReal, withTotal, netFlow, profit, feeTotal, rewardTotal });
+    }
+
+    // เพิ่ม row "รวม"
+    const totals = rows.reduce((acc, r) => ({
+      members:     acc.members + r.members,
+      depReal:     acc.depReal + r.depReal,
+      withTotal:   acc.withTotal + r.withTotal,
+      netFlow:     acc.netFlow + r.netFlow,
+      profit:      acc.profit + r.profit,
+      feeTotal:    acc.feeTotal + r.feeTotal,
+      rewardTotal: acc.rewardTotal + r.rewardTotal,
+    }), { members:0, depReal:0, withTotal:0, netFlow:0, profit:0, feeTotal:0, rewardTotal:0 });
+
+    const fmt  = n => Number(n).toLocaleString('th-TH', {maximumFractionDigits:0});
+    const fmtK = n => (Number(n)/1000).toFixed(1) + 'K';
+
+    const renderRow = (r, isTotals=false) => {
+      const profitColor = r.profit >= 0 ? '#16a34a' : '#dc2626';
+      const profitSign  = r.profit >= 0 ? '+' : '';
+      const bold = isTotals ? 'font-weight:900;background:#fafaf8;' : '';
+      return `<tr style="${bold}border-bottom:1px solid #f0f0ee;">
+        <td style="padding:10px 16px;font-family:'Kanit',sans-serif;font-size:12px;font-weight:${isTotals?'900':'600'};white-space:nowrap;">${isTotals?'📊 รวมทั้งหมด':r.label}</td>
+        <td style="padding:10px 14px;text-align:right;font-family:'Kanit',sans-serif;font-size:12px;color:#3b82f6;">${fmt(r.members)}</td>
+        <td style="padding:10px 14px;text-align:right;font-family:'Kanit',sans-serif;font-size:12px;color:#16a34a;font-weight:600;">${fmtK(r.depReal)}</td>
+        <td style="padding:10px 14px;text-align:right;font-family:'Kanit',sans-serif;font-size:12px;color:#dc2626;font-weight:600;">${fmtK(r.withTotal)}</td>
+        <td style="padding:10px 14px;text-align:right;font-family:'Kanit',sans-serif;font-size:12px;color:${r.netFlow>=0?'#16a34a':'#dc2626'};font-weight:600;">${r.netFlow>=0?'+':''}${fmtK(r.netFlow)}</td>
+        <td style="padding:10px 14px;text-align:right;font-family:'Kanit',sans-serif;font-size:12px;color:${profitColor};font-weight:700;">${profitSign}${fmtK(r.profit)}</td>
+        <td style="padding:10px 14px;text-align:right;font-family:'Kanit',sans-serif;font-size:12px;color:#854d0e;">${fmtK(r.feeTotal)}</td>
+        <td style="padding:10px 14px;text-align:right;font-family:'Kanit',sans-serif;font-size:12px;color:#dc2626;">${fmtK(r.rewardTotal)}</td>
+      </tr>`;
+    };
+
+    tbody.innerHTML = rows.map(r => renderRow(r)).join('') + renderRow(totals, true);
+
+  } catch(err) {
+    if (tbody) tbody.innerHTML = `<tr><td colspan="8" style="text-align:center;padding:24px;color:#dc2626;font-family:'Kanit',sans-serif;">❌ โหลดไม่สำเร็จ: ${err.message}</td></tr>`;
+  }
+}
+
 </script>
 </body>
 </html>
