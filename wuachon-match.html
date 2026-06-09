@@ -751,7 +751,10 @@ function renderPage() {
     </div>
 
     <!-- Winner -->
-    ${isDone&&m.winner?`<div class="winner-banner"><div class="winner-label">🏆 ผลการแข่งขัน</div><div class="winner-name">${m.winner} ชนะ!</div></div>`:''}
+    ${isDone&&m.winner?`<div class="winner-banner" style="${m.winner==='เสมอ'?'background:linear-gradient(135deg,rgba(124,58,237,0.15),rgba(124,58,237,0.05));border-color:rgba(124,58,237,0.3);':''}">
+      <div class="winner-label">${m.winner==='เสมอ'?'🤝':'🏆'} ผลการแข่งขัน</div>
+      <div class="winner-name">${m.winner==='เสมอ'?'เสมอ':m.winner+' ชนะ!'}</div>
+    </div>`:''}
 
     <!-- Bet Panel -->
     ${betHTML}
