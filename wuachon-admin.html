@@ -3,9 +3,8 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<meta name="robots" content="noindex,nofollow,noarchive">
+<meta name="robots" content="noindex,nofollow">
 <meta name="referrer" content="no-referrer">
-<meta http-equiv="X-Frame-Options" content="DENY">
 <title>วัวชนไทย — Admin Dashboard</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -438,79 +437,7 @@ input, textarea, select, button {
   </style>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/flatpickr/4.6.13/flatpickr.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/flatpickr/4.6.13/l10n/th.js">
-// ── Missing function stubs ──
-function _adminNick(){return currentStaff?.username||currentStaff?.nick||'admin';}
-function openMember(nick){const ov=document.getElementById('member-overlay');if(!ov)return;const m=allMembers.find(x=>x.nick===nick);if(!m)return;ov.style.display='block';document.body.style.overflow='hidden';const se=(id,v)=>{const e=document.getElementById(id);if(e)e.textContent=v;};const av=document.getElementById('mo-avatar');if(av)av.textContent=(m.nick||'?')[0].toUpperCase();const nk=document.getElementById('mo-nick');if(nk)nk.textContent=m.nick||'—';const vip=typeof getVipLevel==='function'?getVipLevel(m._totalDep||0):{icon:'',name:'',tier:0};const vb=document.getElementById('mo-vip-badge');if(vb)vb.textContent=vip.icon+' '+vip.name;se('mo-balance',Number(m.balance||0).toLocaleString());se('mo-dep-total',Number(m._totalDep||0).toLocaleString());se('mo-with-total',Number(m._totalWith||0).toLocaleString());se('mo-fullname',(m.fname||'')+' '+(m.lname||'')||'—');se('mo-phone',m.phone||'—');se('mo-created',typeof fmtDate==='function'?fmtDate(m.created_at):m.created_at||'—');se('mo-referred',m.referred_by||'—');const ni=document.getElementById('mo-note-input');if(ni)ni.value=m.admin_note||'';const fc=document.getElementById('mo-flag-controls');if(fc){const fl=['vip','suspicious','blocked','high_roller'],fl2={vip:'⭐ VIP',suspicious:'⚠️ น่าสงสัย',blocked:'🚫 บล็อก',high_roller:'💎 HighRoller'};fc.innerHTML=fl.map(f=>{const a=(m.flags||[]).includes(f);return'<button onclick="toggleMemberFlag(''+f+'')" style="padding:6px 14px;border-radius:20px;font-size:11px;font-weight:700;cursor:pointer;font-family:'Kanit',sans-serif;border:1.5px solid '+(a?'#dc2626':'#e0e0e0')+';background:'+(a?'#fee2e2':'#fff')+';color:'+(a?'#dc2626':'#888')+';">'+fl2[f]+'</button>';}).join('');}
-  _loadMemberTxns(nick);}
-async function _loadMemberTxns(nick){const sbadge=s=>s==='approved'?'<span style="background:#dcfce7;color:#15803d;padding:2px 8px;border-radius:12px;font-size:11px;font-weight:700;">✅ สำเร็จ</span>':s==='rejected'?'<span style="background:#fee2e2;color:#991b1b;padding:2px 8px;border-radius:12px;font-size:11px;font-weight:700;">❌ ปฏิเสธ</span>':'<span style="background:#fef9c3;color:#854d0e;padding:2px 8px;border-radius:12px;font-size:11px;font-weight:700;">⏳ รอ</span>';try{const{data:deps}=await sb.from('deposits').select('*').eq('nick',nick).order('created_at',{ascending:false}).limit(50);const dt=document.getElementById('mo-dep-tbody');if(dt)dt.innerHTML=(deps||[]).length?(deps||[]).map(d=>'<tr><td style="padding:9px 12px;font-size:11px;color:#888;">'+fmtDate(d.created_at)+'</td><td style="padding:9px 12px;text-align:right;font-weight:700;color:#16a34a;">'+Number(d.amount||0).toLocaleString()+' ₭</td><td style="padding:9px 12px;font-size:12px;">'+(d.bank||'—')+'</td><td style="padding:9px 12px;font-size:11px;color:#888;">'+(d.txn||'—')+'</td><td style="padding:9px 12px;text-align:center;">'+sbadge(d.status)+'</td></tr>').join(''):'<tr><td colspan="5" style="text-align:center;padding:24px;color:#aaa;">ยังไม่มีรายการ</td></tr>';}catch(e){}
-  try{const{data:ws}=await sb.from('withdrawals').select('*').eq('nick',nick).order('created_at',{ascending:false}).limit(50);const wt=document.getElementById('mo-with-tbody');if(wt)wt.innerHTML=(ws||[]).length?(ws||[]).map(w=>'<tr><td style="padding:9px 12px;font-size:11px;color:#888;">'+fmtDate(w.created_at)+'</td><td style="padding:9px 12px;text-align:right;font-weight:700;color:#dc2626;">'+Number(w.amount||0).toLocaleString()+' ₭</td><td style="padding:9px 12px;font-size:12px;">'+(w.bank||'—')+'</td><td style="padding:9px 12px;text-align:center;">'+sbadge(w.status)+'</td></tr>').join(''):'<tr><td colspan="4" style="text-align:center;padding:24px;color:#aaa;">ยังไม่มีรายการ</td></tr>';}catch(e){}
-  try{const{data:bs}=await sb.from('bets').select('*').eq('nick',nick).order('created_at',{ascending:false}).limit(50);const bt=document.getElementById('mo-bets-tbody');const bc=document.getElementById('mo-bets-count');if(bc)bc.textContent=(bs||[]).length;if(bt)bt.innerHTML=(bs||[]).length?(bs||[]).map(b=>{const res=b.status==='won'?'<span style="background:#dcfce7;color:#15803d;padding:2px 8px;border-radius:12px;font-size:11px;font-weight:700;">🏆</span>':b.status==='lost'?'<span style="background:#fee2e2;color:#991b1b;padding:2px 8px;border-radius:12px;font-size:11px;font-weight:700;">💔</span>':'<span style="background:#f1f5f9;color:#64748b;padding:2px 8px;border-radius:12px;font-size:11px;font-weight:700;">⏳</span>';return'<tr><td style="padding:9px 12px;font-size:11px;color:#888;">'+fmtDate(b.created_at)+'</td><td style="padding:9px 12px;font-size:12px;">'+(b.match_code||'—')+'</td><td style="padding:9px 12px;"><span style="padding:2px 8px;border-radius:12px;font-size:11px;background:'+(b.side==='A'?'#fee2e2':'#dbeafe')+';color:'+(b.side==='A'?'#991b1b':'#1d4ed8')+';">'+(b.side==='A'?'🔴':'🔵')+'</span></td><td style="padding:9px 12px;text-align:right;font-weight:700;">'+Number(b.amount||0).toLocaleString()+' ₭</td><td style="padding:9px 12px;text-align:center;">'+res+'</td></tr>';}).join(''):'<tr><td colspan="5" style="text-align:center;padding:24px;color:#aaa;">ยังไม่มีรายการ</td></tr>';}catch(e){}}
-function closeMemberOverlay(){const ov=document.getElementById('member-overlay');if(ov)ov.style.display='none';document.body.style.overflow='';}
-function closeMember(){closeMemberOverlay();}
-function switchMoTab(btn,tab){document.querySelectorAll('.mo-tab').forEach(t=>t.classList.remove('active'));document.querySelectorAll('.mo-pane').forEach(p=>p.classList.remove('active'));btn.classList.add('active');const pane=document.getElementById('mo-pane-'+tab);if(pane)pane.classList.add('active');}
-async function saveMemberNote(){const note=document.getElementById('mo-note-input')?.value||'';const nick=document.getElementById('mo-nick')?.textContent;if(!nick||nick==='—')return;const{error}=await sb.from('members').update({admin_note:note}).eq('nick',nick);if(error){showToast('❌ '+error.message,'error');return;}showToast('💾 บันทึกหมายเหตุสำเร็จ');await loadMembers();}
-async function toggleMemberFlag(flag){const nick=document.getElementById('mo-nick')?.textContent;if(!nick||nick==='—')return;const m=allMembers.find(x=>x.nick===nick);if(!m)return;const flags=Array.isArray(m.flags)?[...m.flags]:[];const idx=flags.indexOf(flag);if(idx!==-1)flags.splice(idx,1);else flags.push(flag);const{error}=await sb.from('members').update({flags}).eq('nick',nick);if(error){showToast('❌ '+error.message,'error');return;}showToast(idx!==-1?'✅ ลบ flag แล้ว':'✅ เพิ่ม flag แล้ว');await loadMembers();openMember(nick);}
-async function adjustMemberBalance(){const nick=document.getElementById('mo-nick')?.textContent;const ai=document.getElementById('mo-adjust-amount'),ri=document.getElementById('mo-adjust-reason');const amount=parseFloat(ai?.value||'0'),reason=ri?.value?.trim()||'';if(!nick||nick==='—'||!amount){showToast('⚠️ กรุณากรอกจำนวนครับ','error');return;}if(!reason){showToast('⚠️ กรุณากรอกเหตุผลครับ','error');return;}const m=allMembers.find(x=>x.nick===nick);if(!m)return;const nb=Math.max(0,(m.balance||0)+amount);const{error}=await sb.from('members').update({balance:nb}).eq('nick',nick);if(error){showToast('❌ '+error.message,'error');return;}await sb.from('worklog').insert({admin:_adminNick(),action:'balance_adjust',nick,amount,note:'ปรับยอด: '+reason,created_at:new Date().toISOString()}).select().maybeSingle();showToast('✅ ปรับยอด '+(amount>0?'+':'')+amount.toLocaleString()+' ₭ สำเร็จ');if(ai)ai.value='';if(ri)ri.value='';await loadMembers();openMember(nick);}
-async function deleteMemberFromOverlay(){const nick=document.getElementById('mo-nick')?.textContent;if(!nick||nick==='—')return;const m=allMembers.find(x=>x.nick===nick);if(!m)return;if(!confirm('ลบบัญชีสมาชิก "'+nick+'" ถาวร?'))return;const{error}=await sb.from('members').delete().eq('id',m.id);if(error){showToast('❌ '+error.message,'error');return;}showToast('🗑 ลบสมาชิก "'+nick+'" แล้ว');closeMemberOverlay();await loadMembers();}
-document.addEventListener('click',e=>{const ov=document.getElementById('member-overlay');if(ov&&e.target===ov)closeMemberOverlay();});
-
-function addStubFn(name){if(typeof window[name]==='undefined') window[name]=function(){showToast('กำลังพัฒนา');};};
-['addBankAccount','loadBankAccounts','clearHeroBull','clearLogoUpload','addFootballMatch','resetVerdict','switchVerdictSport','switchVerdictFootballSec','switchAddSport','previewRefExample'].forEach(addStubFn);
-
-async function loadDeposits(){const res=await sb.from('deposits').select('*').order('created_at',{ascending:false});allDeposits=res.data||[];const sc=(id,n)=>{const e=document.getElementById(id);if(e)e.textContent=n?'('+n+')':'';}; sc('dep-pending-count',allDeposits.filter(d=>d.status==='pending').length);sc('dep-done-count',allDeposits.filter(d=>d.status==='approved').length);sc('dep-reject-count',allDeposits.filter(d=>d.status==='rejected').length);filterDeposits();filterDepDone();filterDepReject();}
-function switchDepSec(sec){document.querySelectorAll('#panel-deposits .match-sec').forEach(s=>s.classList.remove('active'));document.querySelectorAll('#panel-deposits .match-nav-item').forEach(i=>i.classList.remove('active'));document.getElementById('dep-sec-'+sec)?.classList.add('active');document.getElementById('dnav-'+sec)?.classList.add('active');}
-function filterDepDone(){const from=document.getElementById('dep-done-from')?.value||'',to=document.getElementById('dep-done-to')?.value||'';const rows=allDeposits.filter(d=>d.status==='approved'&&(!from||(d.approved_at||d.created_at||'').slice(0,10)>=from)&&(!to||(d.approved_at||d.created_at||'').slice(0,10)<=to));const tb=document.getElementById('dep-done-tbody');if(!tb)return;if(!rows.length){tb.innerHTML='<tr><td colspan="5" style="text-align:center;padding:28px;color:#aaa;">ไม่มีรายการ</td></tr>';return;}tb.innerHTML=rows.map(d=>'<tr><td style="font-weight:700;cursor:pointer;color:var(--green);" onclick="openMember(''+d.nick+'')">'+(d.nick||'—')+'</td><td style="font-weight:700;color:#16a34a;">'+Number(d.amount||0).toLocaleString()+' ₭</td><td style="font-size:12px;">'+(d.bank||'—')+'</td><td style="font-size:11px;color:#888;">'+(d.txn||'—')+'</td><td style="font-size:11px;color:#888;">'+fmtDate(d.approved_at||d.created_at)+'</td></tr>').join('');}
-function filterDepReject(){const from=document.getElementById('dep-reject-from')?.value||'',to=document.getElementById('dep-reject-to')?.value||'';const rows=allDeposits.filter(d=>d.status==='rejected'&&(!from||(d.created_at||'').slice(0,10)>=from)&&(!to||(d.created_at||'').slice(0,10)<=to));const tb=document.getElementById('dep-reject-tbody');if(!tb)return;if(!rows.length){tb.innerHTML='<tr><td colspan="4" style="text-align:center;padding:28px;color:#aaa;">ไม่มีรายการ</td></tr>';return;}tb.innerHTML=rows.map(d=>'<tr><td style="font-weight:700;cursor:pointer;color:var(--green);" onclick="openMember(''+d.nick+'')">'+(d.nick||'—')+'</td><td style="font-weight:700;color:#dc2626;">'+Number(d.amount||0).toLocaleString()+' ₭</td><td style="font-size:12px;color:#888;">'+(d.reject_reason||d.note||'—')+'</td><td style="font-size:11px;color:#888;">'+fmtDate(d.created_at)+'</td></tr>').join('');}
-async function loadWithdrawals(){const res=await sb.from('withdrawals').select('*').order('created_at',{ascending:false});allWithdrawals=res.data||[];const sc=(id,n)=>{const e=document.getElementById(id);if(e)e.textContent=n?'('+n+')':'';}; sc('with-pending-count',allWithdrawals.filter(w=>w.status==='pending').length);sc('with-done-count',allWithdrawals.filter(w=>w.status==='approved').length);sc('with-reject-count',allWithdrawals.filter(w=>w.status==='rejected').length);filterWithdrawals();filterWithDone();filterWithReject();}
-function switchWithSec(sec){document.querySelectorAll('#panel-withdrawals .match-sec').forEach(s=>s.classList.remove('active'));document.querySelectorAll('#panel-withdrawals .match-nav-item').forEach(i=>i.classList.remove('active'));document.getElementById('with-sec-'+sec)?.classList.add('active');document.getElementById('wnav-'+sec)?.classList.add('active');}
-function filterWithDone(){const from=document.getElementById('with-done-from')?.value||'',to=document.getElementById('with-done-to')?.value||'';const rows=allWithdrawals.filter(w=>w.status==='approved'&&(!from||(w.approved_at||w.created_at||'').slice(0,10)>=from)&&(!to||(w.approved_at||w.created_at||'').slice(0,10)<=to));const tb=document.getElementById('with-done-tbody');if(!tb)return;if(!rows.length){tb.innerHTML='<tr><td colspan="5" style="text-align:center;padding:28px;color:#aaa;">ไม่มีรายการ</td></tr>';return;}tb.innerHTML=rows.map(w=>'<tr><td style="font-weight:700;cursor:pointer;color:var(--green);" onclick="openMember(''+w.nick+'')">'+(w.nick||'—')+'</td><td style="font-weight:700;color:#3b82f6;">'+Number(w.amount||0).toLocaleString()+' ₭</td><td style="font-size:12px;">'+(w.bank||'—')+'</td><td style="font-size:11px;color:#888;">'+(w.txn||'—')+'</td><td style="font-size:11px;color:#888;">'+fmtDate(w.approved_at||w.created_at)+'</td></tr>').join('');}
-function filterWithReject(){const from=document.getElementById('with-reject-from')?.value||'',to=document.getElementById('with-reject-to')?.value||'';const rows=allWithdrawals.filter(w=>w.status==='rejected'&&(!from||(w.created_at||'').slice(0,10)>=from)&&(!to||(w.created_at||'').slice(0,10)<=to));const tb=document.getElementById('with-reject-tbody');if(!tb)return;if(!rows.length){tb.innerHTML='<tr><td colspan="4" style="text-align:center;padding:28px;color:#aaa;">ไม่มีรายการ</td></tr>';return;}tb.innerHTML=rows.map(w=>'<tr><td style="font-weight:700;cursor:pointer;color:var(--green);" onclick="openMember(''+w.nick+'')">'+(w.nick||'—')+'</td><td style="font-weight:700;color:#dc2626;">'+Number(w.amount||0).toLocaleString()+' ₭</td><td style="font-size:12px;color:#888;">'+(w.reject_reason||w.note||'—')+'</td><td style="font-size:11px;color:#888;">'+fmtDate(w.created_at)+'</td></tr>').join('');}
-async function loadBets(){const res=await sb.from('bets').select('*').order('created_at',{ascending:false});allBets=res.data||[];filterBets();}
-let _nl=[];
-async function loadNews(){try{const r=await sb.from('settings').select('value').eq('key','newsTicker').maybeSingle();_nl=r.data?.value||[];_rnl();}catch(e){}}
-function _rnl(){const tb=document.getElementById('news-list-tbody');if(!tb)return;if(!_nl.length){tb.innerHTML='<tr><td colspan="3" style="text-align:center;padding:24px;color:#aaa;">ยังไม่มีข่าว</td></tr>';return;}tb.innerHTML=_nl.map((x,i)=>'<tr><td>'+(typeof x==='object'?x.title||x:x)+'</td><td style="text-align:center;color:#aaa;">'+(i+1)+'</td><td><button onclick="_dn('+i+')" style="padding:3px 10px;background:#fff;color:#dc2626;border:1px solid #dc2626;border-radius:6px;font-size:11px;cursor:pointer;">🗑</button></td></tr>').join('');}
-async function addNews(){const inp=document.getElementById('news-input');const t=inp?.value?.trim();if(!t){showToast('กรุณากรอกข้อความ','error');return;}_nl.push(t);await sb.from('settings').upsert({key:'newsTicker',value:_nl});if(inp)inp.value='';showToast('เพิ่มข่าวสำเร็จ ✅');_rnl();}
-async function _dn(i){if(!confirm('ลบข่าวนี้?'))return;_nl.splice(i,1);await sb.from('settings').upsert({key:'newsTicker',value:_nl});showToast('ลบสำเร็จ');_rnl();}
-async function loadSettings(){try{const res=await sb.from('settings').select('*');const rows=res.data||[];const find=k=>rows.find(r=>r.key===k)?.value||{};const sv=(id,val)=>{const e=document.getElementById(id);if(e&&val!==undefined)e.value=val;};const c=find('contact'),fee=find('feeRate'),ref=find('referralRate');sv('set-line-id',c?.lineId||'');sv('set-fb-url',c?.fbUrl||'');sv('set-tel',c?.phone1||'');sv('set-fee-rate',typeof fee==='number'?fee*100:fee||7);sv('set-ref-rate',typeof ref==='number'?ref*100:ref||5);}catch(e){}}
-async function saveSettings(section){const get=id=>document.getElementById(id)?.value?.trim()??'';let key='',value={};if(section==='contact'){key='contact';value={lineId:get('set-line-id'),fbUrl:get('set-fb-url'),phone1:get('set-tel')};}else if(section==='fee'){key='feeRate';value=parseFloat(get('set-fee-rate'))/100||0.07;}else if(section==='referral'){key='referralRate';value=parseFloat(get('set-ref-rate'))/100||0.05;}else{showToast('ไม่รู้จัก: '+section,'error');return;}const{error}=await sb.from('settings').upsert({key,value});if(error){showToast('❌ '+error.message,'error');return;}showToast('💾 บันทึกสำเร็จ ✅');}
-async function loadWorklogPanel(){const tb=document.getElementById('worklog-tbody');if(!tb)return;tb.innerHTML='<tr><td colspan="6" style="text-align:center;padding:24px;color:#aaa;">กำลังโหลด...</td></tr>';try{const res=await sb.from('worklog').select('*').order('created_at',{ascending:false}).limit(200);const rows=res.data||[];if(!rows.length){tb.innerHTML='<tr><td colspan="6" style="text-align:center;padding:24px;color:#aaa;">ยังไม่มีประวัติ</td></tr>';return;}const lbl={approve_deposit:'✅ อนุมัติเติมเงิน',reject_deposit:'❌ ปฏิเสธ',approve_withdraw:'✅ โอนเงิน',reject_withdraw:'❌ ปฏิเสธถอน',admin_login:'🔑 Login'};tb.innerHTML=rows.map(r=>'<tr><td style="font-size:11px;color:#888;">'+fmtDate(r.created_at)+'</td><td style="font-weight:700;font-size:12px;color:var(--green);">'+(r.admin||'—')+'</td><td style="font-size:12px;">'+(lbl[r.action]||r.action||'—')+'</td><td style="font-size:12px;cursor:pointer;color:var(--green);" onclick="openMember(''+(r.nick||'')+'')">'+(r.nick||'—')+'</td><td style="font-size:12px;font-weight:700;color:'+(r.amount>0?'#16a34a':'#888')+';">'+(r.amount?Number(r.amount).toLocaleString()+' ₭':'—')+'</td><td style="font-size:11px;color:#888;">'+(r.note||'—')+'</td></tr>').join('');}catch(err){tb.innerHTML='<tr><td colspan="6" style="text-align:center;color:#dc2626;">❌ '+err.message+'</td></tr>';}}
-function setWorklogTab(btn,type){document.querySelectorAll('.wl-tab').forEach(b=>b.classList.remove('active'));btn?.classList.add('active');loadWorklogPanel();}
-function clearWorklogFilter(){loadWorklogPanel();}
-async function loadReferralPanel(){const tb=document.getElementById('ref-summary-tbody');if(!tb)return;try{const[mR,dR,cR]=await Promise.all([sb.from('members').select('nick,referred_by').not('referred_by','is',null),sb.from('deposits').select('nick,amount').eq('status','approved'),sb.from('settings').select('value').eq('key','referralRate').maybeSingle()]);const dM={};(dR.data||[]).forEach(d=>{dM[d.nick]=(dM[d.nick]||0)+Number(d.amount||0);});const rM={};(mR.data||[]).forEach(m=>{if(!rM[m.referred_by])rM[m.referred_by]={count:0,totalDep:0};rM[m.referred_by].count++;rM[m.referred_by].totalDep+=dM[m.nick]||0;});const rate=cR.data?.value||0.05;const rows=Object.entries(rM).sort((a,b)=>b[1].totalDep-a[1].totalDep);if(!rows.length){tb.innerHTML='<tr><td colspan="5" style="text-align:center;padding:24px;color:#aaa;">ยังไม่มีข้อมูล</td></tr>';return;}tb.innerHTML=rows.map(([ref,d])=>'<tr><td style="font-weight:700;cursor:pointer;color:var(--green);" onclick="openMember(''+ref+'')">'+''+ref+'</td><td style="text-align:center;">'+d.count+'</td><td style="text-align:right;font-weight:700;color:#16a34a;">'+d.totalDep.toLocaleString()+' ₭</td><td style="text-align:right;font-weight:700;color:#854d0e;">'+Math.round(d.totalDep*rate).toLocaleString()+' ₭</td><td style="font-size:11px;color:#888;">'+(rate*100).toFixed(1)+'%</td></tr>').join('');}catch(err){tb.innerHTML='<tr><td colspan="5" style="text-align:center;color:#dc2626;">❌ '+err.message+'</td></tr>';}}
-async function loadActivityPanel(){const tb=document.getElementById('activity-log-tbody');if(!tb)return;try{const res=await sb.from('worklog').select('*').eq('action','activity_reward').order('created_at',{ascending:false}).limit(100);const rows=res.data||[];if(!rows.length){tb.innerHTML='<tr><td colspan="5" style="text-align:center;padding:24px;color:#aaa;">ยังไม่มี</td></tr>';return;}tb.innerHTML=rows.map(r=>'<tr><td style="font-size:11px;color:#888;">'+fmtDate(r.created_at)+'</td><td style="font-weight:700;">'+(r.admin||'—')+'</td><td style="cursor:pointer;color:var(--green);" onclick="openMember(''+r.nick+'')">'+(r.nick||'—')+'</td><td style="font-weight:700;color:#16a34a;">'+(r.amount?Number(r.amount).toLocaleString()+' ₭':'—')+'</td><td style="font-size:11px;color:#888;">'+(r.note||'—')+'</td></tr>').join('');}catch(e){}}
-function loadActivityLogs(){loadActivityPanel();}
-async function loadRefRateLevels(){try{const r=await sb.from('settings').select('value').eq('key','referralRate').maybeSingle();const rate=r.data?.value||0.05;const el=document.getElementById('set-ref-rate');if(el)el.value=(rate*100).toFixed(1);}catch(e){}}
-function subscribeNotifications(){sb.channel('adm-dep').on('postgres_changes',{event:'INSERT',schema:'public',table:'deposits'},p=>{if(p.new?.status==='pending'){showToast('💰 เติมเงินใหม่: '+p.new.nick+' — '+Number(p.new.amount).toLocaleString()+' ₭');if(_currentPanel==='deposits')loadDeposits();loadOverview();}}).subscribe();sb.channel('adm-with').on('postgres_changes',{event:'INSERT',schema:'public',table:'withdrawals'},p=>{if(p.new?.status==='pending'){showToast('🏧 ถอนเงินใหม่: '+p.new.nick+' — '+Number(p.new.amount).toLocaleString()+' ₭');if(_currentPanel==='withdrawals')loadWithdrawals();loadOverview();}}).subscribe();}
-async function _logLoginActivity(u,role,r){try{let ip='unknown';try{const x=await Promise.race([fetch('https://api.ipify.org?format=json').then(x=>x.json()),new Promise((_,rej)=>setTimeout(rej,2000))]);ip=x?.ip||'unknown';}catch(_){}await sb.from('worklog').insert({admin:u,action:r==='success'?'admin_login':'admin_login_failed',nick:u,note:(r==='success'?'✅':'❌')+' | Role: '+role+' | IP: '+ip,created_at:new Date().toISOString()}).select().maybeSingle();}catch(e){}}
-document.addEventListener('visibilitychange',()=>{if(document.hidden){window._ht=setTimeout(()=>{const d=document.getElementById('dashboard');if(d&&d.style.display!=='none')_showLockScreen();},5*60*1000);}else{clearTimeout(window._ht);}});
-function _showLockScreen(){if(document.getElementById('lock-screen'))return;const div=document.createElement('div');div.id='lock-screen';div.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,0.93);z-index:99999;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:16px;';div.innerHTML='<div style="font-size:48px;">🔒</div><div style="color:#fff;font-family:'Kanit',sans-serif;font-size:18px;font-weight:700;">หน้าจอถูกล็อค</div><input type="password" id="lock-pi" placeholder="รหัสผ่าน Admin" style="padding:12px 18px;border-radius:10px;border:1.5px solid rgba(255,255,255,0.2);background:rgba(255,255,255,0.08);color:#fff;font-size:15px;font-family:'Kanit',sans-serif;width:260px;outline:none;text-align:center;" onkeydown="if(event.key==='Enter')_unlockScreen()"><button onclick="_unlockScreen()" style="padding:11px 32px;background:#1B6B2F;color:#fff;border:none;border-radius:10px;font-family:'Kanit',sans-serif;font-weight:700;font-size:15px;cursor:pointer;">ปลดล็อค</button><div id="lock-err" style="color:#f87171;font-family:'Kanit',sans-serif;font-size:12px;display:none;">รหัสผ่านไม่ถูกต้องครับ</div>';document.body.appendChild(div);setTimeout(()=>document.getElementById('lock-pi')?.focus(),100);}
-async function _unlockScreen(){const inp=document.getElementById('lock-pi'),e=document.getElementById('lock-err');const p=inp?.value||'';if(!p)return;const ph=await hashPassword(p);if((ADMIN_PASS===p||ADMIN_PASS===ph)||(currentStaff&&(currentStaff.password===p||currentStaff.password===ph))){document.getElementById('lock-screen')?.remove();_resetSessionTimer();}else{if(e)e.style.display='block';if(inp){inp.value='';inp.focus();}}}
-async function loadSecurityLog(){const tb=document.getElementById('sec-log-tbody');if(!tb)return;tb.innerHTML='<tr><td colspan="4" style="text-align:center;padding:24px;color:#aaa;">กำลังโหลด...</td></tr>';try{const today=new Date();today.setHours(0,0,0,0);const[lR,aR]=await Promise.all([sb.from('worklog').select('*').in('action',['admin_login','admin_login_failed']).order('created_at',{ascending:false}).limit(30),sb.from('worklog').select('*',{count:'exact',head:true}).in('action',['approve_deposit','approve_withdraw']).gte('created_at',today.toISOString())]);const logs=lR.data||[];const se=(id,v)=>{const e=document.getElementById(id);if(e)e.textContent=v;};se('sec-login-ok',logs.filter(l=>l.action==='admin_login').length);se('sec-login-fail',logs.filter(l=>l.action==='admin_login_failed').length);se('sec-act-today',aR.count||0);if(!logs.length){tb.innerHTML='<tr><td colspan="4" style="text-align:center;padding:24px;color:#aaa;">ยังไม่มี log</td></tr>';return;}tb.innerHTML=logs.map(log=>{const ok=log.action==='admin_login';const badge=ok?'<span style="background:#dcfce7;color:#15803d;padding:2px 9px;border-radius:12px;font-size:11px;">✅ สำเร็จ</span>':'<span style="background:#fee2e2;color:#991b1b;padding:2px 9px;border-radius:12px;font-size:11px;">❌ ล้มเหลว</span>';const note=log.note||'';const ipM=note.match(/IP:\s*([^\s|]+)/);const ip=ipM?ipM[1]:'—';return'<tr style="border-bottom:1px solid #f0f0ee;"><td style="padding:9px 12px;font-size:11px;color:#888;">'+fmtDate(log.created_at)+'</td><td style="padding:9px 12px;font-weight:700;font-size:12px;color:var(--green);">'+(log.admin||'—')+'</td><td style="padding:9px 12px;">'+badge+'</td><td style="padding:9px 12px;font-size:11px;color:#888;">IP: '+ip+'</td></tr>';}).join('');}catch(err){tb.innerHTML='<tr><td colspan="4" style="text-align:center;color:#dc2626;">❌ '+err.message+'</td></tr>';}}
-async function _forceLogoutAll(){if(!confirm('Force Logout ทุก session?'))return;const token=(typeof crypto.randomUUID==='function')?crypto.randomUUID():Date.now().toString(36);await sb.from('settings').upsert({key:'session_token',value:token});showToast('✅ Force Logout สำเร็จ');setTimeout(()=>adminLogout(),1500);}
-async function _clearSecurityLogs(){if(!confirm('ลบ Security Log เก่ากว่า 30 วัน?'))return;const cutoff=new Date(Date.now()-30*86400000).toISOString();const{error}=await sb.from('worklog').delete().in('action',['admin_login','admin_login_failed']).lt('created_at',cutoff);if(error){showToast('❌ '+error.message,'error');return;}showToast('✅ ล้าง Log เก่าสำเร็จ');loadSecurityLog();}
-function switchRefSec(sec){document.querySelectorAll('#panel-referral .match-sec').forEach(s=>s.classList.remove('active'));document.querySelectorAll('#panel-referral .match-nav-item').forEach(i=>i.classList.remove('active'));document.getElementById('ref-sec-'+sec)?.classList.add('active');document.getElementById('rnav-'+sec)?.classList.add('active');}
-function loadRefCommissionLogs(){} function _refLogToday(){} function _refLogMonth(){} function _refLogClear(){}
-function switchSubNav(p,s){document.querySelectorAll('#panel-'+p+' .match-sec').forEach(x=>x.classList.remove('active'));document.querySelectorAll('#panel-'+p+' .sub-nav-item').forEach(i=>i.classList.remove('active'));document.getElementById('sec-'+s)?.classList.add('active');document.querySelector('[data-sec="'+s+'"]')?.classList.add('active');}
-function switchActSec(sec){document.querySelectorAll('#panel-activity .match-sec').forEach(s=>s.classList.remove('active'));document.querySelectorAll('#panel-activity .match-nav-item').forEach(i=>i.classList.remove('active'));document.getElementById('act-sec-'+sec)?.classList.add('active');document.getElementById('anav-'+sec)?.classList.add('active');}
-function sendActivity(){showToast('กำลังส่ง...');}
-function saveTxLimits(){saveSettings('fee');} function loadTxLimits(){loadSettings();} function saveRefRateLevels(){saveSettings('referral');}
-function setDateSection2(s){setDateSection(s);} function clearDateSection2(s){clearDateSection(s);} function setChartRange(p){switchChartPeriod(p);}
-function switchCfgTab(tab){document.querySelectorAll('.cfg-tab').forEach(b=>b.classList.remove('active'));document.querySelectorAll('.cfg-pane').forEach(p=>{p.classList.remove('active');p.style.display='none';});document.getElementById('cfg-tab-'+tab)?.classList.add('active');const pane=document.getElementById('cfg-pane-'+tab);if(pane){pane.classList.add('active');pane.style.display='block';}if(tab==='twofa')loadTwofaPanel();}
-function _obCopySecret(){const el=document.getElementById('ob-secret-display');const t=(el?.textContent||'').replace(/\s/g,'');if(navigator.clipboard)navigator.clipboard.writeText(t).then(()=>showToast('✅ คัดลอก Secret Key แล้ว'));}
-function _copySecret(){const el=document.getElementById('twofa-secret-display');const t=(el?.textContent||'').replace(/\s/g,'');if(navigator.clipboard)navigator.clipboard.writeText(t).then(()=>showToast('✅ คัดลอก Secret Key แล้ว'));}
-
-function previewRefExample(){showToast("กำลังพัฒนาครับ");}
-function clearLogoUpload(){showToast("กำลังพัฒนาครับ");}
-function switchVerdictSport(){showToast("กำลังพัฒนาครับ");}
-function switchAddSport(){showToast("กำลังพัฒนาครับ");}
-function clearHeroBull(){showToast("กำลังพัฒนาครับ");}
-function loadBankAccounts(){showToast("กำลังพัฒนาครับ");}
-function switchVerdictFootballSec(){showToast("กำลังพัฒนาครับ");}
-function resetVerdict(){showToast("กำลังพัฒนาครับ");}
-function addFootballMatch(){showToast("กำลังพัฒนาครับ");}
-function addBankAccount(){showToast("กำลังพัฒนาครับ");}
-</script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/flatpickr/4.6.13/l10n/th.js"></script>
 </head>
 <body>
 
@@ -522,43 +449,41 @@ function addBankAccount(){showToast("กำลังพัฒนาครับ"
     <div id="login-step-1">
       <div id="login-err" style="display:none;color:#f87171;font-size:12px;text-align:center;margin-bottom:10px;font-family:'Kanit',sans-serif;padding:8px;background:rgba(248,113,113,0.1);border-radius:8px;border:1px solid rgba(248,113,113,0.2);">❌ Username หรือรหัสผ่านไม่ถูกต้องครับ</div>
       <div class="fg"><label>USERNAME</label><input type="text" id="admin-user" value="admin" placeholder="admin" autocomplete="username"></div>
-      <div class="fg"><label>PASSWORD</label><input type="password" id="admin-pass" placeholder="รหัสผ่าน" autocomplete="current-password" onkeydown="if(event.key==='Enter'){var f=window.adminLogin||function(){};f();}"></div>
-      <button class="btn-login" id="btn-do-login">เข้าสู่ระบบ →</button>
+      <div class="fg"><label>PASSWORD</label><input type="password" id="admin-pass" placeholder="รหัสผ่าน" autocomplete="current-password" onkeydown="if(event.key==='Enter'){var f=window._doAdminLogin;if(f)f();}"></div>
+      <button id="btn-do-login" class="btn-login">เข้าสู่ระบบ →</button>
       <div id="default-pass-warn" style="display:none;font-size:11px;color:#f87171;margin-top:8px;background:rgba(200,16,46,0.1);border:1px solid rgba(200,16,46,0.2);border-radius:6px;padding:6px 10px;">⚠️ กำลังใช้รหัสผ่าน default — กรุณาเปลี่ยนใน Settings ทันที</div>
     </div>
     <div id="login-step-2" style="display:none;">
-      <div style="text-align:center;margin-bottom:18px;"><div style="font-size:36px;margin-bottom:8px;">🔐</div><div style="font-family:'Kanit',sans-serif;font-weight:700;font-size:16px;color:#fff;">ยืนยัน 2FA</div><div style="font-size:12px;color:rgba(255,255,255,0.55);margin-top:4px;">กรอกรหัส 6 หลักจากแอป Google Authenticator</div></div>
-      <div id="otp-err" style="display:none;color:#f87171;font-size:12px;text-align:center;margin-bottom:10px;font-family:'Kanit',sans-serif;padding:8px;background:rgba(248,113,113,0.1);border-radius:8px;">❌ รหัส OTP ไม่ถูกต้อง</div>
+      <div style="text-align:center;margin-bottom:18px;"><div style="font-size:36px;margin-bottom:8px;">🔐</div><div style="font-family:'Kanit',sans-serif;font-weight:700;font-size:16px;color:#fff;">ยืนยัน 2FA</div><div style="font-size:12px;color:rgba(255,255,255,0.55);margin-top:4px;">กรอกรหัส 6 หลักจาก Google Authenticator</div></div>
+      <div id="otp-err" style="display:none;color:#f87171;font-size:12px;text-align:center;margin-bottom:10px;padding:8px;background:rgba(248,113,113,0.1);border-radius:8px;">❌ รหัส OTP ไม่ถูกต้อง</div>
       <div style="display:flex;gap:8px;justify-content:center;margin-bottom:20px;"><input class="otp-d" maxlength="1" type="text" inputmode="numeric" id="otp-0" oninput="_otpNext(this,1)" onkeydown="_otpKey(event,0)" autocomplete="one-time-code"><input class="otp-d" maxlength="1" type="text" inputmode="numeric" id="otp-1" oninput="_otpNext(this,2)" onkeydown="_otpKey(event,1)"><input class="otp-d" maxlength="1" type="text" inputmode="numeric" id="otp-2" oninput="_otpNext(this,3)" onkeydown="_otpKey(event,2)"><input class="otp-d" maxlength="1" type="text" inputmode="numeric" id="otp-3" oninput="_otpNext(this,4)" onkeydown="_otpKey(event,3)"><input class="otp-d" maxlength="1" type="text" inputmode="numeric" id="otp-4" oninput="_otpNext(this,5)" onkeydown="_otpKey(event,4)"><input class="otp-d" maxlength="1" type="text" inputmode="numeric" id="otp-5" oninput="_otpNext(this,-1)" onkeydown="_otpKey(event,5)" onkeyup="_otpAutoSubmit()"></div>
       <div style="margin-bottom:16px;"><div style="display:flex;justify-content:space-between;margin-bottom:4px;"><span style="font-size:11px;color:rgba(255,255,255,0.4);font-family:'Kanit',sans-serif;">OTP หมดอายุใน</span><span id="otp-cd" style="font-size:12px;font-weight:700;font-family:'Kanit',sans-serif;color:#f5c842;">30s</span></div><div style="background:rgba(255,255,255,0.1);border-radius:4px;height:4px;overflow:hidden;"><div id="otp-bar" style="height:100%;background:#f5c842;border-radius:4px;transition:width 1s linear;width:100%;"></div></div></div>
-      <button class="btn-login" onclick="verifyLoginOTP()">✅ ยืนยัน OTP</button>
-      <button onclick="_backToStep1()" style="width:100%;margin-top:8px;padding:10px;background:transparent;color:rgba(255,255,255,0.4);border:1px solid rgba(255,255,255,0.15);border-radius:8px;font-family:'Kanit',sans-serif;font-size:13px;cursor:pointer;">← กลับ</button>
-      <div id="otp-skip-hint" style="display:none;margin-top:12px;padding:10px;background:rgba(245,200,66,0.1);border:1px solid rgba(245,200,66,0.3);border-radius:8px;font-size:11px;color:rgba(255,255,255,0.7);text-align:center;font-family:'Kanit',sans-serif;">⚠️ ยังไม่ได้ตั้งค่า 2FA<br><button onclick="_skipOTPFirstTime()" style="margin-top:6px;padding:6px 16px;background:rgba(245,200,66,0.2);color:#f5c842;border:1px solid rgba(245,200,66,0.4);border-radius:6px;font-family:'Kanit',sans-serif;font-size:12px;font-weight:700;cursor:pointer;">เข้าระบบและตั้งค่า 2FA ด่วน</button></div>
+      <button class="btn-login" onclick="window._doVerifyOTP&&_doVerifyOTP()">✅ ยืนยัน OTP</button>
+      <button onclick="_backToStep1&&_backToStep1()" style="width:100%;margin-top:8px;padding:10px;background:transparent;color:rgba(255,255,255,0.4);border:1px solid rgba(255,255,255,0.15);border-radius:8px;font-family:'Kanit',sans-serif;font-size:13px;cursor:pointer;">← กลับ</button>
+      <div id="otp-skip-hint" style="display:none;margin-top:12px;padding:10px;background:rgba(245,200,66,0.1);border:1px solid rgba(245,200,66,0.3);border-radius:8px;font-size:11px;color:rgba(255,255,255,0.7);text-align:center;font-family:'Kanit',sans-serif;">⚠️ ยังไม่ได้ตั้งค่า 2FA<br><button onclick="_skipOTPFirstTime&&_skipOTPFirstTime()" style="margin-top:6px;padding:6px 16px;background:rgba(245,200,66,0.2);color:#f5c842;border:1px solid rgba(245,200,66,0.4);border-radius:6px;font-family:'Kanit',sans-serif;font-size:12px;font-weight:700;cursor:pointer;">เข้าระบบและตั้งค่า 2FA</button></div>
     </div>
   </div>
   <style>
   .otp-d{width:44px;height:52px;font-size:22px;font-weight:900;text-align:center;background:rgba(255,255,255,0.08);border:2px solid rgba(255,255,255,0.2);border-radius:10px;color:#fff;font-family:'Kanit',monospace;outline:none;transition:all .15s;caret-color:transparent;}
-  .otp-d:focus{border-color:#f5c842;background:rgba(245,200,66,0.1);box-shadow:0 0 0 3px rgba(245,200,66,0.2);}
+  .otp-d:focus{border-color:#f5c842;background:rgba(245,200,66,0.1);}
   .otp-d.filled{border-color:rgba(74,222,128,0.6);background:rgba(74,222,128,0.08);}
   .otp-sm{width:38px;height:44px;font-size:18px;font-weight:900;text-align:center;background:#fff;border:2px solid #e0e0e0;border-radius:8px;color:#1a1a1a;font-family:'Kanit',monospace;outline:none;transition:all .15s;}
-  .otp-sm:focus{border-color:#1B6B2F;box-shadow:0 0 0 3px rgba(27,107,47,0.15);}
+  .otp-sm:focus{border-color:#1B6B2F;}
   .otp-sm.filled{border-color:#16a34a;background:#f0fdf4;}
   .mo-tab{padding:10px 16px;border:none;border-bottom:3px solid transparent;background:transparent;font-family:'Kanit',sans-serif;font-size:13px;font-weight:700;color:#888;cursor:pointer;white-space:nowrap;}
   .mo-tab.active{color:var(--green);border-bottom-color:var(--green);}
   .mo-pane{display:none;} .mo-pane.active{display:block;}
   </style>
   <script>
-  // Safe event binding — รอ main script โหลดแล้วค่อย bind
-  (function bindLoginBtn(){
-    var btn = document.getElementById('btn-do-login');
-    if(!btn) return;
-    btn.addEventListener('click', function(){
-      if(typeof adminLogin === 'function') adminLogin();
-      else setTimeout(function(){ if(typeof adminLogin==='function') adminLogin(); }, 500);
+  // ── safe bind: รอ main script โหลดก่อนแล้วค่อยผูก ──
+  document.addEventListener('DOMContentLoaded',function(){
+    var btn=document.getElementById('btn-do-login');
+    if(btn) btn.addEventListener('click',function(){
+      if(typeof adminLogin==='function') adminLogin();
+      else setTimeout(function(){if(typeof adminLogin==='function')adminLogin();},200);
     });
-  })();
+  });
   </script>
-
 </div>
 
 <!-- DASHBOARD -->
@@ -598,7 +523,7 @@ function addBankAccount(){showToast("กำลังพัฒนาครับ"
       <div class="sb-item" id="sb-worklog" data-panel="worklog" onclick="switchPanel('worklog');loadWorklogPanel();">📋 ประวัติการดำเนินงาน</div>
       <div class="sb-item" data-panel="settings" id="sb-settings" onclick="switchPanel('settings')">⚙️ ตั้งค่า</div>
       <div class="sb-item" id="sb-staff" data-panel="staff" onclick="switchPanel('staff');loadStaffPanel();" style="display:none;border-left:3px solid #8b5cf6;">👨‍💼 พนักงาน</div>
-      <div class="sb-item" data-panel="security" onclick="switchPanel('security');loadSecurityLog();">🔐 Security Log</div>
+      <div class="sb-item" data-panel="security" onclick="if(typeof switchPanel==='function')switchPanel('security');if(typeof loadSecurityLog==='function')loadSecurityLog();">🔐 Security Log</div>
     </div>
 
     <div class="content-area">
@@ -1770,7 +1695,7 @@ function addBankAccount(){showToast("กำลังพัฒนาครับ"
           <span style="font-size:18px;">👑</span>
           <span>VIP & รหัสผ่าน</span>
         </button>
-        <button class="cfg-tab" onclick="switchCfgTab('twofa')" id="cfg-tab-twofa" style="border-left:3px solid #dc2626;">
+        <button class="cfg-tab" onclick="if(typeof switchCfgTab==='function')switchCfgTab('twofa')" id="cfg-tab-twofa" style="border-left:3px solid #dc2626;">
           <span style="font-size:18px;">🔐</span>
           <span>2FA Setup</span>
         </button>
@@ -2115,42 +2040,40 @@ function addBankAccount(){showToast("กำลังพัฒนาครับ"
       </div>
 
 
-      <!-- ── CSS OTP + member overlay ── -->
-      <style>
-      #cfg-pane-twofa{display:none;} #cfg-pane-twofa.active{display:block;}
-      </style>
 
       <!-- ── 2FA cfg pane ── -->
       <div class="cfg-pane" id="cfg-pane-twofa" style="display:none;">
         <div class="card" style="border-left:4px solid #dc2626;margin-bottom:16px;">
           <div class="card-title">🔐 Two-Factor Authentication (2FA/TOTP)</div>
-          <div style="font-size:12px;color:#888;margin-bottom:16px;line-height:1.7;">ป้องกัน Login และการอนุมัติเงินด้วย OTP 6 หลักจาก Google Authenticator</div>
           <div style="display:flex;align-items:center;gap:12px;padding:14px;border-radius:10px;margin-bottom:20px;background:#f9f9f7;border:1px solid #e5e5e0;" id="twofa-status-wrap"><div id="twofa-status-icon" style="font-size:28px;">⏳</div><div style="flex:1;"><div id="twofa-status-label" style="font-family:'Kanit',sans-serif;font-weight:700;font-size:14px;color:#333;">กำลังตรวจสอบ...</div><div id="twofa-status-sub" style="font-size:11px;color:#888;margin-top:2px;"></div></div><span id="twofa-badge" style="padding:4px 12px;border-radius:20px;font-size:11px;font-weight:700;font-family:'Kanit',sans-serif;background:#fee2e2;color:#dc2626;">ปิดอยู่</span></div>
-          <div id="twofa-init-section"><button onclick="initTOTPSetup()" style="padding:11px 28px;background:#dc2626;color:#fff;border:none;border-radius:9px;font-family:'Kanit',sans-serif;font-weight:900;font-size:14px;cursor:pointer;">🔐 เริ่มตั้งค่า 2FA</button></div>
-          <div id="twofa-setup-section" style="display:none;"><div style="display:grid;grid-template-columns:auto 1fr;gap:16px;align-items:start;background:#f9f9f7;border-radius:10px;padding:16px;border:1px solid #e5e5e0;margin-bottom:16px;"><div id="twofa-qr-wrap" style="width:160px;height:160px;background:#fff;border-radius:8px;border:1px solid #e0e0e0;display:flex;align-items:center;justify-content:center;overflow:hidden;flex-shrink:0;"><div style="text-align:center;color:#aaa;font-size:12px;">กำลังสร้าง QR...</div></div><div><div style="font-size:12px;color:#555;line-height:1.8;margin-bottom:12px;"><b>1.</b> เปิดแอป <b>Google Authenticator</b><br><b>2.</b> กด + → สแกน QR Code<br><b>3.</b> กรอกรหัส 6 หลักด้านล่าง</div><div style="font-size:11px;color:#888;margin-bottom:4px;">Secret Key</div><div style="display:flex;align-items:center;gap:8px;"><code id="twofa-secret-display" style="background:#f1f5f9;padding:6px 10px;border-radius:6px;font-size:13px;font-weight:700;letter-spacing:2px;color:#1a1a1a;font-family:monospace;border:1px solid #e0e0e0;">—</code><button onclick="_copySecret()" style="padding:5px 10px;background:#fff;border:1px solid #e0e0e0;border-radius:6px;font-size:11px;cursor:pointer;font-family:'Kanit',sans-serif;">📋 คัดลอก</button></div></div></div><div style="background:#fffbeb;border-radius:10px;padding:16px;border:1px solid rgba(245,200,66,0.3);"><div style="font-family:'Kanit',sans-serif;font-weight:700;font-size:13px;margin-bottom:10px;color:#92400e;">✅ กรอกรหัส 6 หลักจากแอปเพื่อยืนยัน</div><div style="display:flex;gap:8px;margin-bottom:12px;"><input class="otp-sm" maxlength="1" type="text" inputmode="numeric" id="tv-0" oninput="_tvNext(this,1)" onkeydown="_tvKey(event,0)"><input class="otp-sm" maxlength="1" type="text" inputmode="numeric" id="tv-1" oninput="_tvNext(this,2)" onkeydown="_tvKey(event,1)"><input class="otp-sm" maxlength="1" type="text" inputmode="numeric" id="tv-2" oninput="_tvNext(this,3)" onkeydown="_tvKey(event,2)"><input class="otp-sm" maxlength="1" type="text" inputmode="numeric" id="tv-3" oninput="_tvNext(this,4)" onkeydown="_tvKey(event,3)"><input class="otp-sm" maxlength="1" type="text" inputmode="numeric" id="tv-4" oninput="_tvNext(this,5)" onkeydown="_tvKey(event,4)"><input class="otp-sm" maxlength="1" type="text" inputmode="numeric" id="tv-5" oninput="_tvNext(this,-1)" onkeydown="_tvKey(event,5)"></div><div id="twofa-verify-err" style="display:none;color:#dc2626;font-size:11px;margin-bottom:8px;font-family:'Kanit',sans-serif;">❌ รหัสไม่ถูกต้อง</div><button onclick="activateTOTP()" style="padding:9px 24px;background:#1B6B2F;color:#fff;border:none;border-radius:8px;font-family:'Kanit',sans-serif;font-weight:700;font-size:13px;cursor:pointer;">🔐 เปิดใช้งาน 2FA</button></div></div>
-          <div id="twofa-active-section" style="display:none;"><div style="background:#f0fdf4;border-radius:10px;padding:16px;border:1px solid rgba(74,222,128,0.3);margin-bottom:16px;text-align:center;"><div style="font-size:32px;margin-bottom:8px;">🛡️</div><div style="font-family:'Kanit',sans-serif;font-weight:700;font-size:15px;color:#15803d;">2FA เปิดใช้งานแล้ว</div></div><div style="display:flex;gap:10px;flex-wrap:wrap;"><button onclick="regenerateTOTP()" style="padding:9px 18px;background:#fff;color:#d97706;border:1.5px solid #d97706;border-radius:8px;font-family:'Kanit',sans-serif;font-weight:700;font-size:12px;cursor:pointer;">🔄 สร้าง Secret ใหม่</button><button onclick="disableTOTP()" style="padding:9px 18px;background:#fff;color:#dc2626;border:1.5px solid #dc2626;border-radius:8px;font-family:'Kanit',sans-serif;font-weight:700;font-size:12px;cursor:pointer;">❌ ปิด 2FA</button></div></div>
+          <div id="twofa-init-section"><button onclick="if(typeof initTOTPSetup==='function')initTOTPSetup()" style="padding:11px 28px;background:#dc2626;color:#fff;border:none;border-radius:9px;font-family:'Kanit',sans-serif;font-weight:900;font-size:14px;cursor:pointer;box-shadow:0 4px 12px rgba(220,38,38,0.3);">🔐 เริ่มตั้งค่า 2FA</button></div>
+          <div id="twofa-setup-section" style="display:none;">
+            <div style="display:grid;grid-template-columns:auto 1fr;gap:16px;background:#f9f9f7;border-radius:10px;padding:16px;border:1px solid #e5e5e0;margin-bottom:16px;"><div id="twofa-qr-wrap" style="width:160px;height:160px;background:#fff;border-radius:8px;border:1px solid #e0e0e0;display:flex;align-items:center;justify-content:center;overflow:hidden;flex-shrink:0;"><div style="font-size:12px;color:#aaa;text-align:center;">กำลังสร้าง QR...</div></div><div><div style="font-size:12px;color:#555;line-height:1.8;margin-bottom:12px;"><b>1.</b> เปิด Google Authenticator<br><b>2.</b> กด + → สแกน QR Code<br><b>3.</b> กรอกรหัส 6 หลัก</div><div style="font-size:11px;color:#888;margin-bottom:4px;">Secret Key</div><div style="display:flex;align-items:center;gap:8px;"><code id="twofa-secret-display" style="background:#f1f5f9;padding:6px 10px;border-radius:6px;font-size:13px;font-weight:700;letter-spacing:2px;color:#1a1a1a;font-family:monospace;border:1px solid #e0e0e0;">—</code><button onclick="if(typeof _copySecret==='function')_copySecret()" style="padding:5px 10px;background:#fff;border:1px solid #e0e0e0;border-radius:6px;font-size:11px;cursor:pointer;font-family:'Kanit',sans-serif;">📋</button></div></div></div>
+            <div style="background:#fffbeb;border-radius:10px;padding:16px;border:1px solid rgba(245,200,66,0.3);"><div style="font-family:'Kanit',sans-serif;font-weight:700;font-size:13px;margin-bottom:10px;color:#92400e;">✅ กรอกรหัส 6 หลักเพื่อยืนยัน</div><div style="display:flex;gap:8px;margin-bottom:12px;"><input class="otp-sm" maxlength="1" type="text" inputmode="numeric" id="tv-0" oninput="_tvNext&&_tvNext(this,1)" onkeydown="_tvKey&&_tvKey(event,0)"><input class="otp-sm" maxlength="1" type="text" inputmode="numeric" id="tv-1" oninput="_tvNext&&_tvNext(this,2)" onkeydown="_tvKey&&_tvKey(event,1)"><input class="otp-sm" maxlength="1" type="text" inputmode="numeric" id="tv-2" oninput="_tvNext&&_tvNext(this,3)" onkeydown="_tvKey&&_tvKey(event,2)"><input class="otp-sm" maxlength="1" type="text" inputmode="numeric" id="tv-3" oninput="_tvNext&&_tvNext(this,4)" onkeydown="_tvKey&&_tvKey(event,3)"><input class="otp-sm" maxlength="1" type="text" inputmode="numeric" id="tv-4" oninput="_tvNext&&_tvNext(this,5)" onkeydown="_tvKey&&_tvKey(event,4)"><input class="otp-sm" maxlength="1" type="text" inputmode="numeric" id="tv-5" oninput="_tvNext&&_tvNext(this,-1)" onkeydown="_tvKey&&_tvKey(event,5)"></div><div id="twofa-verify-err" style="display:none;color:#dc2626;font-size:11px;margin-bottom:8px;font-family:'Kanit',sans-serif;">❌ รหัสไม่ถูกต้อง</div><button onclick="if(typeof activateTOTP==='function')activateTOTP()" style="padding:9px 24px;background:#1B6B2F;color:#fff;border:none;border-radius:8px;font-family:'Kanit',sans-serif;font-weight:700;font-size:13px;cursor:pointer;">🔐 เปิดใช้งาน 2FA</button></div>
+          </div>
+          <div id="twofa-active-section" style="display:none;"><div style="background:#f0fdf4;border-radius:10px;padding:16px;border:1px solid rgba(74,222,128,0.3);margin-bottom:16px;text-align:center;"><div style="font-size:32px;margin-bottom:8px;">🛡️</div><div style="font-family:'Kanit',sans-serif;font-weight:700;font-size:15px;color:#15803d;">2FA เปิดใช้งานแล้ว</div></div><div style="display:flex;gap:10px;flex-wrap:wrap;"><button onclick="if(typeof regenerateTOTP==='function')regenerateTOTP()" style="padding:9px 18px;background:#fff;color:#d97706;border:1.5px solid #d97706;border-radius:8px;font-family:'Kanit',sans-serif;font-weight:700;font-size:12px;cursor:pointer;">🔄 สร้าง Secret ใหม่</button><button onclick="if(typeof disableTOTP==='function')disableTOTP()" style="padding:9px 18px;background:#fff;color:#dc2626;border:1.5px solid #dc2626;border-radius:8px;font-family:'Kanit',sans-serif;font-weight:700;font-size:12px;cursor:pointer;">❌ ปิด 2FA</button></div></div>
         </div>
-        <div class="card" style="border-left:4px solid #7c3aed;"><div class="card-title">⚡ ระดับการป้องกัน 2FA</div><div style="display:flex;flex-direction:column;gap:12px;"><label style="display:flex;align-items:center;gap:12px;cursor:pointer;padding:12px;border-radius:8px;border:1px solid #e5e5e0;background:#fafaf8;"><input type="checkbox" id="twofa-on-login" checked onchange="saveTwofaSettings()" style="width:18px;height:18px;accent-color:#dc2626;"><div><div style="font-family:'Kanit',sans-serif;font-weight:700;font-size:13px;">🔑 บังคับ OTP ตอน Login</div></div></label><label style="display:flex;align-items:center;gap:12px;cursor:pointer;padding:12px;border-radius:8px;border:1px solid #e5e5e0;background:#fafaf8;"><input type="checkbox" id="twofa-on-approve" checked onchange="saveTwofaSettings()" style="width:18px;height:18px;accent-color:#dc2626;"><div><div style="font-family:'Kanit',sans-serif;font-weight:700;font-size:13px;">💰 บังคับ OTP ตอนอนุมัติเงิน</div></div></label></div></div>
+        <div class="card" style="border-left:4px solid #7c3aed;"><div class="card-title">⚡ ระดับการป้องกัน 2FA</div><div style="display:flex;flex-direction:column;gap:12px;"><label style="display:flex;align-items:center;gap:12px;cursor:pointer;padding:12px;border-radius:8px;border:1px solid #e5e5e0;background:#fafaf8;"><input type="checkbox" id="twofa-on-login" checked onchange="if(typeof saveTwofaSettings==='function')saveTwofaSettings()" style="width:18px;height:18px;accent-color:#dc2626;"><div><div style="font-family:'Kanit',sans-serif;font-weight:700;font-size:13px;">🔑 บังคับ OTP ตอน Login</div></div></label><label style="display:flex;align-items:center;gap:12px;cursor:pointer;padding:12px;border-radius:8px;border:1px solid #e5e5e0;background:#fafaf8;"><input type="checkbox" id="twofa-on-approve" checked onchange="if(typeof saveTwofaSettings==='function')saveTwofaSettings()" style="width:18px;height:18px;accent-color:#dc2626;"><div><div style="font-family:'Kanit',sans-serif;font-weight:700;font-size:13px;">💰 บังคับ OTP ตอนอนุมัติเงิน</div></div></label></div></div>
       </div>
 
       <!-- ── Security Panel ── -->
       <div class="panel" id="panel-security">
-        <div class="card" style="margin-bottom:16px;"><div class="card-title" style="display:flex;align-items:center;justify-content:space-between;"><span>🔐 Security Log</span><button onclick="loadSecurityLog()" style="font-family:'Kanit',sans-serif;font-size:11px;padding:5px 12px;border:1px solid #e0e0e0;border-radius:7px;background:#fff;color:#555;cursor:pointer;font-weight:700;">🔄 รีเฟรช</button></div><div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:20px;"><div style="background:#f0fdf4;border-radius:10px;padding:14px;text-align:center;"><div style="font-size:22px;font-weight:900;color:#16a34a;" id="sec-login-ok">—</div><div style="font-size:11px;color:#888;font-family:'Kanit',sans-serif;margin-top:2px;">Login สำเร็จ</div></div><div style="background:#fff5f5;border-radius:10px;padding:14px;text-align:center;"><div style="font-size:22px;font-weight:900;color:#dc2626;" id="sec-login-fail">—</div><div style="font-size:11px;color:#888;font-family:'Kanit',sans-serif;margin-top:2px;">Login ล้มเหลว</div></div><div style="background:#fffbeb;border-radius:10px;padding:14px;text-align:center;"><div style="font-size:22px;font-weight:900;color:#d97706;" id="sec-act-today">—</div><div style="font-size:11px;color:#888;font-family:'Kanit',sans-serif;margin-top:2px;">อนุมัติวันนี้</div></div></div><div style="overflow-x:auto;"><table style="width:100%;border-collapse:collapse;"><thead><tr style="background:#fafaf8;"><th style="padding:9px 12px;text-align:left;font-size:11px;color:#888;border-bottom:2px solid #e5e5e0;">เวลา</th><th style="padding:9px 12px;font-size:11px;color:#888;border-bottom:2px solid #e5e5e0;text-align:left;">Admin</th><th style="padding:9px 12px;font-size:11px;color:#888;border-bottom:2px solid #e5e5e0;text-align:left;">ผล</th><th style="padding:9px 12px;font-size:11px;color:#888;border-bottom:2px solid #e5e5e0;text-align:left;">IP</th></tr></thead><tbody id="sec-log-tbody"><tr><td colspan="4" style="text-align:center;padding:24px;color:#aaa;">กำลังโหลด...</td></tr></tbody></table></div></div>
-        <div class="card"><div class="card-title">⚡ Quick Actions</div><div style="display:flex;flex-wrap:wrap;gap:10px;"><button onclick="_forceLogoutAll()" style="padding:9px 18px;background:#fff;color:#dc2626;border:1.5px solid #dc2626;border-radius:8px;font-family:'Kanit',sans-serif;font-weight:700;font-size:13px;cursor:pointer;">🚪 Force Logout</button><button onclick="_clearSecurityLogs()" style="padding:9px 18px;background:#fff;color:#888;border:1.5px solid #e0e0e0;border-radius:8px;font-family:'Kanit',sans-serif;font-weight:700;font-size:13px;cursor:pointer;">🗑 ล้าง Log เก่า</button></div></div>
+        <div class="card" style="margin-bottom:16px;"><div class="card-title" style="display:flex;align-items:center;justify-content:space-between;"><span>🔐 Security Log</span><button onclick="if(typeof loadSecurityLog==='function')loadSecurityLog()" style="font-family:'Kanit',sans-serif;font-size:11px;padding:5px 12px;border:1px solid #e0e0e0;border-radius:7px;background:#fff;color:#555;cursor:pointer;">🔄 รีเฟรช</button></div><div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:20px;"><div style="background:#f0fdf4;border-radius:10px;padding:14px;text-align:center;"><div style="font-size:22px;font-weight:900;color:#16a34a;" id="sec-login-ok">—</div><div style="font-size:11px;color:#888;font-family:'Kanit',sans-serif;margin-top:2px;">Login สำเร็จ</div></div><div style="background:#fff5f5;border-radius:10px;padding:14px;text-align:center;"><div style="font-size:22px;font-weight:900;color:#dc2626;" id="sec-login-fail">—</div><div style="font-size:11px;color:#888;font-family:'Kanit',sans-serif;margin-top:2px;">Login ล้มเหลว</div></div><div style="background:#fffbeb;border-radius:10px;padding:14px;text-align:center;"><div style="font-size:22px;font-weight:900;color:#d97706;" id="sec-act-today">—</div><div style="font-size:11px;color:#888;font-family:'Kanit',sans-serif;margin-top:2px;">อนุมัติวันนี้</div></div></div><div style="overflow-x:auto;"><table style="width:100%;border-collapse:collapse;min-width:560px;"><thead><tr style="background:#fafaf8;"><th style="padding:9px 12px;text-align:left;font-size:11px;color:#888;border-bottom:2px solid #e5e5e0;">เวลา</th><th style="padding:9px 12px;font-size:11px;color:#888;border-bottom:2px solid #e5e5e0;text-align:left;">Admin</th><th style="padding:9px 12px;font-size:11px;color:#888;border-bottom:2px solid #e5e5e0;text-align:left;">ผล</th><th style="padding:9px 12px;font-size:11px;color:#888;border-bottom:2px solid #e5e5e0;text-align:left;">IP</th></tr></thead><tbody id="sec-log-tbody"><tr><td colspan="4" style="text-align:center;padding:24px;color:#aaa;">กำลังโหลด...</td></tr></tbody></table></div></div>
+        <div class="card"><div class="card-title">⚡ Quick Actions</div><div style="display:flex;flex-wrap:wrap;gap:10px;"><button onclick="if(typeof _forceLogoutAll==='function')_forceLogoutAll()" style="padding:9px 18px;background:#fff;color:#dc2626;border:1.5px solid #dc2626;border-radius:8px;font-family:'Kanit',sans-serif;font-weight:700;font-size:13px;cursor:pointer;">🚪 Force Logout</button><button onclick="if(typeof _clearSecurityLogs==='function')_clearSecurityLogs()" style="padding:9px 18px;background:#fff;color:#888;border:1.5px solid #e0e0e0;border-radius:8px;font-family:'Kanit',sans-serif;font-weight:700;font-size:13px;cursor:pointer;">🗑 ล้าง Log เก่า</button></div></div>
       </div>
 
       <!-- ── Member Detail Overlay ── -->
       <div id="member-overlay" style="display:none;position:fixed;inset:0;z-index:9998;background:rgba(0,0,0,0.6);backdrop-filter:blur(3px);overflow-y:auto;padding:20px;">
         <div style="max-width:900px;margin:0 auto;background:#fff;border-radius:16px;box-shadow:0 24px 80px rgba(0,0,0,0.3);overflow:hidden;">
-          <div style="background:linear-gradient(135deg,#1B6B2F,#27943F);padding:20px 24px;display:flex;align-items:center;justify-content:space-between;"><div style="display:flex;align-items:center;gap:14px;"><div id="mo-avatar" style="width:52px;height:52px;border-radius:50%;background:rgba(255,255,255,0.2);display:flex;align-items:center;justify-content:center;font-size:22px;font-weight:900;color:#fff;font-family:'Kanit',sans-serif;flex-shrink:0;">?</div><div><div id="mo-nick" style="font-family:'Kanit',sans-serif;font-size:20px;font-weight:900;color:#fff;">—</div><div style="display:flex;gap:8px;margin-top:4px;"><span id="mo-vip-badge" style="font-size:11px;padding:2px 10px;border-radius:999px;background:rgba(255,255,255,0.2);color:#fff;font-family:'Kanit',sans-serif;font-weight:700;"></span></div></div></div><button onclick="closeMemberOverlay()" style="background:rgba(255,255,255,0.15);border:none;color:#fff;font-size:20px;width:36px;height:36px;border-radius:50%;cursor:pointer;">✕</button></div>
-          <div style="display:grid;grid-template-columns:repeat(4,1fr);border-bottom:1px solid #f0f0ec;"><div style="padding:16px;text-align:center;border-right:1px solid #f0f0ec;"><div id="mo-balance" style="font-size:22px;font-weight:900;color:#1B6B2F;font-family:'Kanit',sans-serif;">—</div><div style="font-size:11px;color:#aaa;font-family:'Kanit',sans-serif;margin-top:2px;">ยอดเงิน ₭</div></div><div style="padding:16px;text-align:center;border-right:1px solid #f0f0ec;"><div id="mo-dep-total" style="font-size:22px;font-weight:900;color:#16a34a;font-family:'Kanit',sans-serif;">—</div><div style="font-size:11px;color:#aaa;font-family:'Kanit',sans-serif;margin-top:2px;">เติมสะสม ₭</div></div><div style="padding:16px;text-align:center;border-right:1px solid #f0f0ec;"><div id="mo-with-total" style="font-size:22px;font-weight:900;color:#dc2626;font-family:'Kanit',sans-serif;">—</div><div style="font-size:11px;color:#aaa;font-family:'Kanit',sans-serif;margin-top:2px;">ถอนสะสม ₭</div></div><div style="padding:16px;text-align:center;"><div id="mo-bets-count" style="font-size:22px;font-weight:900;color:#7c3aed;font-family:'Kanit',sans-serif;">—</div><div style="font-size:11px;color:#aaa;font-family:'Kanit',sans-serif;margin-top:2px;">เดิมพัน</div></div></div>
-          <div style="display:flex;gap:0;border-bottom:2px solid #f0f0ec;padding:0 24px;overflow-x:auto;"><button class="mo-tab active" data-tab="info" onclick="switchMoTab(this,'info')">👤 ข้อมูล</button><button class="mo-tab" data-tab="deposits" onclick="switchMoTab(this,'deposits')">💰 เติมเงิน</button><button class="mo-tab" data-tab="withdrawals" onclick="switchMoTab(this,'withdrawals')">🏧 ถอนเงิน</button><button class="mo-tab" data-tab="bets" onclick="switchMoTab(this,'bets')">🎯 เดิมพัน</button><button class="mo-tab" data-tab="admin" onclick="switchMoTab(this,'admin')">⚙️ Admin</button></div>
+          <div style="background:linear-gradient(135deg,#1B6B2F,#27943F);padding:20px 24px;display:flex;align-items:center;justify-content:space-between;"><div style="display:flex;align-items:center;gap:14px;"><div id="mo-avatar" style="width:52px;height:52px;border-radius:50%;background:rgba(255,255,255,0.2);display:flex;align-items:center;justify-content:center;font-size:22px;font-weight:900;color:#fff;">?</div><div><div id="mo-nick" style="font-family:'Kanit',sans-serif;font-size:20px;font-weight:900;color:#fff;">—</div><span id="mo-vip-badge" style="font-size:11px;padding:2px 10px;border-radius:999px;background:rgba(255,255,255,0.2);color:#fff;font-family:'Kanit',sans-serif;"></span></div></div><button onclick="if(typeof closeMemberOverlay==='function')closeMemberOverlay()" style="background:rgba(255,255,255,0.15);border:none;color:#fff;font-size:20px;width:36px;height:36px;border-radius:50%;cursor:pointer;">✕</button></div>
+          <div style="display:grid;grid-template-columns:repeat(4,1fr);border-bottom:1px solid #f0f0ec;"><div style="padding:16px;text-align:center;border-right:1px solid #f0f0ec;"><div id="mo-balance" style="font-size:22px;font-weight:900;color:#1B6B2F;font-family:'Kanit',sans-serif;">—</div><div style="font-size:11px;color:#aaa;margin-top:2px;">ยอดเงิน ₭</div></div><div style="padding:16px;text-align:center;border-right:1px solid #f0f0ec;"><div id="mo-dep-total" style="font-size:22px;font-weight:900;color:#16a34a;font-family:'Kanit',sans-serif;">—</div><div style="font-size:11px;color:#aaa;margin-top:2px;">เติมสะสม ₭</div></div><div style="padding:16px;text-align:center;border-right:1px solid #f0f0ec;"><div id="mo-with-total" style="font-size:22px;font-weight:900;color:#dc2626;font-family:'Kanit',sans-serif;">—</div><div style="font-size:11px;color:#aaa;margin-top:2px;">ถอนสะสม ₭</div></div><div style="padding:16px;text-align:center;"><div id="mo-bets-count" style="font-size:22px;font-weight:900;color:#7c3aed;font-family:'Kanit',sans-serif;">—</div><div style="font-size:11px;color:#aaa;margin-top:2px;">เดิมพัน</div></div></div>
+          <div style="display:flex;border-bottom:2px solid #f0f0ec;padding:0 24px;overflow-x:auto;"><button class="mo-tab active" data-tab="info" onclick="if(typeof switchMoTab==='function')switchMoTab(this,'info')">👤 ข้อมูล</button><button class="mo-tab" data-tab="deposits" onclick="if(typeof switchMoTab==='function')switchMoTab(this,'deposits')">💰 เติมเงิน</button><button class="mo-tab" data-tab="withdrawals" onclick="if(typeof switchMoTab==='function')switchMoTab(this,'withdrawals')">🏧 ถอนเงิน</button><button class="mo-tab" data-tab="bets" onclick="if(typeof switchMoTab==='function')switchMoTab(this,'bets')">🎯 เดิมพัน</button><button class="mo-tab" data-tab="admin" onclick="if(typeof switchMoTab==='function')switchMoTab(this,'admin')">⚙️ Admin</button></div>
           <div style="padding:20px 24px;min-height:300px;">
-            <div class="mo-pane active" id="mo-pane-info"><div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;"><div><div style="font-size:11px;color:#aaa;font-family:'Kanit',sans-serif;margin-bottom:3px;">ชื่อ-นามสกุล</div><div id="mo-fullname" style="font-size:14px;font-weight:700;color:#333;font-family:'Kanit',sans-serif;"></div></div><div><div style="font-size:11px;color:#aaa;font-family:'Kanit',sans-serif;margin-bottom:3px;">เบอร์โทรศัพท์</div><div id="mo-phone" style="font-size:14px;font-weight:700;color:#333;font-family:'Kanit',sans-serif;"></div></div><div><div style="font-size:11px;color:#aaa;font-family:'Kanit',sans-serif;margin-bottom:3px;">สมัครเมื่อ</div><div id="mo-created" style="font-size:13px;color:#555;font-family:'Kanit',sans-serif;"></div></div><div><div style="font-size:11px;color:#aaa;font-family:'Kanit',sans-serif;margin-bottom:3px;">แนะนำโดย</div><div id="mo-referred" style="font-size:13px;color:#555;font-family:'Kanit',sans-serif;"></div></div></div><div style="margin-top:16px;"><div style="font-size:11px;color:#aaa;font-family:'Kanit',sans-serif;margin-bottom:6px;">📝 หมายเหตุ Admin</div><textarea id="mo-note-input" rows="3" style="width:100%;padding:9px 12px;border:1px solid #e0e0e0;border-radius:8px;font-family:'Kanit',sans-serif;font-size:13px;resize:vertical;box-sizing:border-box;"></textarea><button onclick="saveMemberNote()" style="margin-top:6px;padding:7px 18px;background:#1B6B2F;color:#fff;border:none;border-radius:7px;font-family:'Kanit',sans-serif;font-weight:700;font-size:12px;cursor:pointer;">💾 บันทึก</button></div></div>
-            <div class="mo-pane" id="mo-pane-deposits"><div style="overflow-x:auto;"><table style="width:100%;border-collapse:collapse;font-size:13px;"><thead><tr style="background:#f9f9f7;"><th style="padding:9px 12px;text-align:left;border-bottom:2px solid #e5e5e0;">วันที่</th><th style="padding:9px 12px;text-align:right;border-bottom:2px solid #e5e5e0;">จำนวน</th><th style="padding:9px 12px;border-bottom:2px solid #e5e5e0;">ธนาคาร</th><th style="padding:9px 12px;border-bottom:2px solid #e5e5e0;">TXN</th><th style="padding:9px 12px;text-align:center;border-bottom:2px solid #e5e5e0;">สถานะ</th></tr></thead><tbody id="mo-dep-tbody"><tr><td colspan="5" style="text-align:center;padding:24px;color:#aaa;">กำลังโหลด...</td></tr></tbody></table></div></div>
-            <div class="mo-pane" id="mo-pane-withdrawals"><div style="overflow-x:auto;"><table style="width:100%;border-collapse:collapse;font-size:13px;"><thead><tr style="background:#f9f9f7;"><th style="padding:9px 12px;text-align:left;border-bottom:2px solid #e5e5e0;">วันที่</th><th style="padding:9px 12px;text-align:right;border-bottom:2px solid #e5e5e0;">จำนวน</th><th style="padding:9px 12px;border-bottom:2px solid #e5e5e0;">ธนาคาร</th><th style="padding:9px 12px;text-align:center;border-bottom:2px solid #e5e5e0;">สถานะ</th></tr></thead><tbody id="mo-with-tbody"><tr><td colspan="4" style="text-align:center;padding:24px;color:#aaa;">กำลังโหลด...</td></tr></tbody></table></div></div>
-            <div class="mo-pane" id="mo-pane-bets"><div style="overflow-x:auto;"><table style="width:100%;border-collapse:collapse;font-size:13px;"><thead><tr style="background:#f9f9f7;"><th style="padding:9px 12px;text-align:left;border-bottom:2px solid #e5e5e0;">วันที่</th><th style="padding:9px 12px;border-bottom:2px solid #e5e5e0;">คู่แข่ง</th><th style="padding:9px 12px;border-bottom:2px solid #e5e5e0;">ฝั่ง</th><th style="padding:9px 12px;text-align:right;border-bottom:2px solid #e5e5e0;">จำนวน</th><th style="padding:9px 12px;text-align:center;border-bottom:2px solid #e5e5e0;">ผล</th></tr></thead><tbody id="mo-bets-tbody"><tr><td colspan="5" style="text-align:center;padding:24px;color:#aaa;">กำลังโหลด...</td></tr></tbody></table></div></div>
-            <div class="mo-pane" id="mo-pane-admin"><div style="display:flex;flex-direction:column;gap:14px;"><div style="background:#fafaf8;border-radius:10px;padding:14px;border:1px solid #e5e5e0;"><div style="font-family:'Kanit',sans-serif;font-weight:700;font-size:13px;margin-bottom:10px;">💰 ปรับยอดเงิน (Manual)</div><div style="display:flex;gap:8px;flex-wrap:wrap;"><input type="number" id="mo-adjust-amount" placeholder="จำนวน ₭" style="flex:1;min-width:140px;padding:9px 12px;border:1px solid #e0e0e0;border-radius:8px;font-family:'Kanit',sans-serif;font-size:14px;"><input type="text" id="mo-adjust-reason" placeholder="เหตุผล (จำเป็น)" style="flex:2;min-width:160px;padding:9px 12px;border:1px solid #e0e0e0;border-radius:8px;font-family:'Kanit',sans-serif;font-size:13px;"><button onclick="adjustMemberBalance()" style="padding:9px 18px;background:#1B6B2F;color:#fff;border:none;border-radius:8px;font-family:'Kanit',sans-serif;font-weight:700;font-size:13px;cursor:pointer;">✅ ปรับยอด</button></div></div><div style="background:#fafaf8;border-radius:10px;padding:14px;border:1px solid #e5e5e0;"><div style="font-family:'Kanit',sans-serif;font-weight:700;font-size:13px;margin-bottom:10px;">🚩 Flag สมาชิก</div><div style="display:flex;gap:8px;flex-wrap:wrap;" id="mo-flag-controls"></div></div><div style="background:#fff5f5;border-radius:10px;padding:14px;border:1px solid #fca5a5;"><div style="font-family:'Kanit',sans-serif;font-weight:700;font-size:13px;margin-bottom:10px;color:#dc2626;">⚠️ Danger Zone</div><button onclick="deleteMemberFromOverlay()" style="padding:8px 16px;background:#fff;color:#dc2626;border:1.5px solid #dc2626;border-radius:8px;font-family:'Kanit',sans-serif;font-weight:700;font-size:12px;cursor:pointer;">🗑 ลบบัญชีสมาชิก</button></div></div></div>
+            <div class="mo-pane active" id="mo-pane-info"><div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;"><div><div style="font-size:11px;color:#aaa;font-family:'Kanit',sans-serif;">ชื่อ</div><div id="mo-fullname" style="font-size:14px;font-weight:700;font-family:'Kanit',sans-serif;"></div></div><div><div style="font-size:11px;color:#aaa;font-family:'Kanit',sans-serif;">เบอร์</div><div id="mo-phone" style="font-size:14px;font-weight:700;font-family:'Kanit',sans-serif;"></div></div><div><div style="font-size:11px;color:#aaa;font-family:'Kanit',sans-serif;">สมัครเมื่อ</div><div id="mo-created" style="font-size:13px;"></div></div><div><div style="font-size:11px;color:#aaa;font-family:'Kanit',sans-serif;">แนะนำโดย</div><div id="mo-referred" style="font-size:13px;"></div></div></div><div style="margin-top:16px;"><textarea id="mo-note-input" rows="3" placeholder="หมายเหตุ Admin..." style="width:100%;padding:9px 12px;border:1px solid #e0e0e0;border-radius:8px;font-family:'Kanit',sans-serif;font-size:13px;resize:vertical;box-sizing:border-box;"></textarea><button onclick="if(typeof saveMemberNote==='function')saveMemberNote()" style="margin-top:6px;padding:7px 18px;background:#1B6B2F;color:#fff;border:none;border-radius:7px;font-family:'Kanit',sans-serif;font-weight:700;font-size:12px;cursor:pointer;">💾 บันทึก</button></div></div>
+            <div class="mo-pane" id="mo-pane-deposits"><div style="overflow-x:auto;"><table style="width:100%;border-collapse:collapse;font-size:13px;"><thead><tr style="background:#f9f9f7;"><th style="padding:9px 12px;text-align:left;border-bottom:2px solid #e5e5e0;">วันที่</th><th style="padding:9px 12px;text-align:right;border-bottom:2px solid #e5e5e0;">จำนวน</th><th style="padding:9px 12px;border-bottom:2px solid #e5e5e0;">ธนาคาร</th><th style="padding:9px 12px;border-bottom:2px solid #e5e5e0;">TXN</th><th style="padding:9px 12px;text-align:center;border-bottom:2px solid #e5e5e0;">สถานะ</th></tr></thead><tbody id="mo-dep-tbody"></tbody></table></div></div>
+            <div class="mo-pane" id="mo-pane-withdrawals"><div style="overflow-x:auto;"><table style="width:100%;border-collapse:collapse;font-size:13px;"><thead><tr style="background:#f9f9f7;"><th style="padding:9px 12px;text-align:left;border-bottom:2px solid #e5e5e0;">วันที่</th><th style="padding:9px 12px;text-align:right;border-bottom:2px solid #e5e5e0;">จำนวน</th><th style="padding:9px 12px;border-bottom:2px solid #e5e5e0;">ธนาคาร</th><th style="padding:9px 12px;text-align:center;border-bottom:2px solid #e5e5e0;">สถานะ</th></tr></thead><tbody id="mo-with-tbody"></tbody></table></div></div>
+            <div class="mo-pane" id="mo-pane-bets"><div style="overflow-x:auto;"><table style="width:100%;border-collapse:collapse;font-size:13px;"><thead><tr style="background:#f9f9f7;"><th style="padding:9px 12px;text-align:left;border-bottom:2px solid #e5e5e0;">วันที่</th><th style="padding:9px 12px;border-bottom:2px solid #e5e5e0;">คู่แข่ง</th><th style="padding:9px 12px;border-bottom:2px solid #e5e5e0;">ฝั่ง</th><th style="padding:9px 12px;text-align:right;border-bottom:2px solid #e5e5e0;">จำนวน</th><th style="padding:9px 12px;text-align:center;border-bottom:2px solid #e5e5e0;">ผล</th></tr></thead><tbody id="mo-bets-tbody"></tbody></table></div></div>
+            <div class="mo-pane" id="mo-pane-admin"><div style="display:flex;flex-direction:column;gap:14px;"><div style="background:#fafaf8;border-radius:10px;padding:14px;border:1px solid #e5e5e0;"><div style="font-family:'Kanit',sans-serif;font-weight:700;font-size:13px;margin-bottom:10px;">💰 ปรับยอดเงิน</div><div style="display:flex;gap:8px;flex-wrap:wrap;"><input type="number" id="mo-adjust-amount" placeholder="จำนวน ₭" style="flex:1;min-width:140px;padding:9px 12px;border:1px solid #e0e0e0;border-radius:8px;font-family:'Kanit',sans-serif;"><input type="text" id="mo-adjust-reason" placeholder="เหตุผล" style="flex:2;min-width:160px;padding:9px 12px;border:1px solid #e0e0e0;border-radius:8px;font-family:'Kanit',sans-serif;"><button onclick="if(typeof adjustMemberBalance==='function')adjustMemberBalance()" style="padding:9px 18px;background:#1B6B2F;color:#fff;border:none;border-radius:8px;font-family:'Kanit',sans-serif;font-weight:700;cursor:pointer;">✅ ปรับ</button></div></div><div style="background:#fafaf8;border-radius:10px;padding:14px;border:1px solid #e5e5e0;"><div style="font-family:'Kanit',sans-serif;font-weight:700;font-size:13px;margin-bottom:10px;">🚩 Flag</div><div id="mo-flag-controls" style="display:flex;gap:8px;flex-wrap:wrap;"></div></div><div style="background:#fff5f5;border-radius:10px;padding:14px;border:1px solid #fca5a5;"><div style="font-family:'Kanit',sans-serif;font-weight:700;font-size:13px;margin-bottom:10px;color:#dc2626;">⚠️ Danger Zone</div><button onclick="if(typeof deleteMemberFromOverlay==='function')deleteMemberFromOverlay()" style="padding:8px 16px;background:#fff;color:#dc2626;border:1.5px solid #dc2626;border-radius:8px;font-family:'Kanit',sans-serif;font-weight:700;font-size:12px;cursor:pointer;">🗑 ลบบัญชีสมาชิก</button></div></div></div>
           </div>
         </div>
       </div>
@@ -2158,9 +2081,9 @@ function addBankAccount(){showToast("กำลังพัฒนาครับ"
       <!-- ── Staff Onboarding Modal ── -->
       <div id="staff-onboarding-modal" style="display:none;position:fixed;inset:0;z-index:99999;background:rgba(0,0,0,0.85);backdrop-filter:blur(4px);align-items:center;justify-content:center;padding:16px;">
         <div style="background:#fff;border-radius:16px;width:100%;max-width:480px;overflow:hidden;box-shadow:0 24px 80px rgba(0,0,0,0.4);">
-          <div style="background:linear-gradient(135deg,#7c3aed,#6d28d9);padding:18px 24px;"><div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;"><div style="font-family:'Kanit',sans-serif;font-size:16px;font-weight:900;color:#fff;">🎉 ยินดีต้อนรับสู่ระบบ!</div><div id="ob-step-label" style="font-size:11px;color:rgba(255,255,255,0.6);font-family:'Kanit',sans-serif;"></div></div><div style="display:flex;gap:8px;"><div id="ob-dot-1" style="height:4px;flex:1;border-radius:4px;background:rgba(255,255,255,0.9);"></div><div id="ob-dot-2" style="height:4px;flex:1;border-radius:4px;background:rgba(255,255,255,0.3);"></div></div></div>
-          <div id="ob-step-1" style="padding:24px;"><div style="text-align:center;margin-bottom:20px;"><div style="font-size:40px;margin-bottom:8px;">🔑</div><div style="font-family:'Kanit',sans-serif;font-weight:900;font-size:18px;color:#1a1a1a;">ตั้งรหัสผ่านใหม่</div><div style="font-size:13px;color:#888;margin-top:4px;">รหัสผ่านชั่วคราวต้องถูกเปลี่ยนก่อนใช้งาน</div></div><div id="ob-pass-err" style="display:none;background:#fff5f5;border:1px solid #fca5a5;border-radius:8px;padding:8px 12px;font-size:12px;color:#dc2626;font-family:'Kanit',sans-serif;margin-bottom:12px;"></div><div style="display:flex;flex-direction:column;gap:10px;"><div><label style="font-family:'Kanit',sans-serif;font-size:12px;font-weight:700;color:#666;display:block;margin-bottom:4px;">รหัสผ่านใหม่ (≥8 ตัว + ตัวพิมพ์ใหญ่ + ตัวเลข)</label><input type="password" id="ob-new-pass" placeholder="รหัสผ่านใหม่" style="width:100%;padding:11px 14px;border:1px solid #e0e0e0;border-radius:9px;font-family:'Kanit',sans-serif;font-size:14px;box-sizing:border-box;"></div><div><label style="font-family:'Kanit',sans-serif;font-size:12px;font-weight:700;color:#666;display:block;margin-bottom:4px;">ยืนยันรหัสผ่านใหม่</label><input type="password" id="ob-confirm-pass" placeholder="ยืนยันรหัสผ่าน" style="width:100%;padding:11px 14px;border:1px solid #e0e0e0;border-radius:9px;font-family:'Kanit',sans-serif;font-size:14px;box-sizing:border-box;" onkeydown="if(event.key==='Enter')_obSubmitPassword()"></div></div><button onclick="_obSubmitPassword()" style="width:100%;margin-top:16px;padding:13px;background:linear-gradient(135deg,#7c3aed,#6d28d9);color:#fff;border:none;border-radius:10px;font-family:'Kanit',sans-serif;font-weight:900;font-size:15px;cursor:pointer;">ถัดไป →</button></div>
-          <div id="ob-step-2" style="padding:24px;display:none;"><div style="text-align:center;margin-bottom:20px;"><div style="font-size:40px;margin-bottom:8px;">🔐</div><div style="font-family:'Kanit',sans-serif;font-weight:900;font-size:18px;color:#1a1a1a;">ตั้งค่า Google Authenticator</div></div><div style="display:grid;grid-template-columns:auto 1fr;gap:14px;align-items:start;background:#f9f9f7;border-radius:10px;padding:14px;border:1px solid #e5e5e0;margin-bottom:16px;"><div id="ob-qr-wrap" style="width:140px;height:140px;background:#fff;border-radius:8px;border:1px solid #e0e0e0;display:flex;align-items:center;justify-content:center;overflow:hidden;flex-shrink:0;"><div style="text-align:center;font-size:11px;color:#aaa;">กำลังสร้าง...</div></div><div><div style="font-size:12px;color:#555;line-height:1.8;margin-bottom:8px;"><b>1.</b> เปิดแอป <b>Google Authenticator</b><br><b>2.</b> กด + → สแกน QR Code<br><b>3.</b> กรอกรหัส 6 หลักด้านล่าง</div><div style="font-size:10px;color:#888;margin-bottom:3px;">Secret Key</div><div style="display:flex;align-items:center;gap:6px;"><code id="ob-secret-display" style="background:#f1f5f9;padding:4px 8px;border-radius:5px;font-size:11px;font-weight:700;letter-spacing:2px;color:#1a1a1a;font-family:monospace;border:1px solid #e0e0e0;">—</code><button onclick="_obCopySecret()" style="padding:3px 8px;background:#fff;border:1px solid #e0e0e0;border-radius:5px;font-size:10px;cursor:pointer;">📋</button></div></div></div><div id="ob-2fa-err" style="display:none;background:#fff5f5;border:1px solid #fca5a5;border-radius:8px;padding:8px 12px;font-size:12px;color:#dc2626;font-family:'Kanit',sans-serif;margin-bottom:10px;"></div><div style="font-family:'Kanit',sans-serif;font-weight:700;font-size:12px;color:#666;margin-bottom:8px;">กรอกรหัส OTP เพื่อยืนยัน</div><div style="display:flex;gap:7px;justify-content:center;margin-bottom:16px;"><input class="otp-sm" id="ob-otp-0" maxlength="1" type="text" inputmode="numeric" oninput="_obOtpNext(this,1)" onkeydown="_obOtpKey(event,0)"><input class="otp-sm" id="ob-otp-1" maxlength="1" type="text" inputmode="numeric" oninput="_obOtpNext(this,2)" onkeydown="_obOtpKey(event,1)"><input class="otp-sm" id="ob-otp-2" maxlength="1" type="text" inputmode="numeric" oninput="_obOtpNext(this,3)" onkeydown="_obOtpKey(event,2)"><input class="otp-sm" id="ob-otp-3" maxlength="1" type="text" inputmode="numeric" oninput="_obOtpNext(this,4)" onkeydown="_obOtpKey(event,3)"><input class="otp-sm" id="ob-otp-4" maxlength="1" type="text" inputmode="numeric" oninput="_obOtpNext(this,5)" onkeydown="_obOtpKey(event,4)"><input class="otp-sm" id="ob-otp-5" maxlength="1" type="text" inputmode="numeric" oninput="_obOtpNext(this,-1)" onkeydown="_obOtpKey(event,5)"></div><button onclick="_obSubmitTwoFA()" style="width:100%;padding:13px;background:linear-gradient(135deg,#dc2626,#b91c1c);color:#fff;border:none;border-radius:10px;font-family:'Kanit',sans-serif;font-weight:900;font-size:15px;cursor:pointer;">🔐 เปิดใช้งาน 2FA และเข้าสู่ระบบ</button></div>
+          <div style="background:linear-gradient(135deg,#7c3aed,#6d28d9);padding:18px 24px;"><div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;"><div style="font-family:'Kanit',sans-serif;font-size:16px;font-weight:900;color:#fff;">🎉 ยินดีต้อนรับ!</div><div id="ob-step-label" style="font-size:11px;color:rgba(255,255,255,0.6);font-family:'Kanit',sans-serif;"></div></div><div style="display:flex;gap:8px;"><div id="ob-dot-1" style="height:4px;flex:1;border-radius:4px;background:rgba(255,255,255,0.9);"></div><div id="ob-dot-2" style="height:4px;flex:1;border-radius:4px;background:rgba(255,255,255,0.3);"></div></div></div>
+          <div id="ob-step-1" style="padding:24px;"><div style="text-align:center;margin-bottom:20px;"><div style="font-size:40px;margin-bottom:8px;">🔑</div><div style="font-family:'Kanit',sans-serif;font-weight:900;font-size:18px;color:#1a1a1a;">ตั้งรหัสผ่านใหม่</div><div style="font-size:13px;color:#888;margin-top:4px;">รหัสผ่านชั่วคราวต้องถูกเปลี่ยน</div></div><div id="ob-pass-err" style="display:none;background:#fff5f5;border:1px solid #fca5a5;border-radius:8px;padding:8px 12px;font-size:12px;color:#dc2626;font-family:'Kanit',sans-serif;margin-bottom:12px;"></div><div style="display:flex;flex-direction:column;gap:10px;"><input type="password" id="ob-new-pass" placeholder="รหัสผ่านใหม่ (≥6 ตัว)" style="width:100%;padding:11px 14px;border:1px solid #e0e0e0;border-radius:9px;font-family:'Kanit',sans-serif;font-size:14px;box-sizing:border-box;"><input type="password" id="ob-confirm-pass" placeholder="ยืนยันรหัสผ่าน" style="width:100%;padding:11px 14px;border:1px solid #e0e0e0;border-radius:9px;font-family:'Kanit',sans-serif;font-size:14px;box-sizing:border-box;" onkeydown="if(event.key==='Enter'&&typeof _obSubmitPassword==='function')_obSubmitPassword()"></div><button onclick="if(typeof _obSubmitPassword==='function')_obSubmitPassword()" style="width:100%;margin-top:12px;padding:13px;background:linear-gradient(135deg,#7c3aed,#6d28d9);color:#fff;border:none;border-radius:10px;font-family:'Kanit',sans-serif;font-weight:900;font-size:15px;cursor:pointer;">ถัดไป →</button></div>
+          <div id="ob-step-2" style="padding:24px;display:none;"><div style="text-align:center;margin-bottom:20px;"><div style="font-size:40px;margin-bottom:8px;">🔐</div><div style="font-family:'Kanit',sans-serif;font-weight:900;font-size:18px;color:#1a1a1a;">ตั้งค่า Google Authenticator</div></div><div style="display:grid;grid-template-columns:auto 1fr;gap:14px;background:#f9f9f7;border-radius:10px;padding:14px;border:1px solid #e5e5e0;margin-bottom:16px;"><div id="ob-qr-wrap" style="width:140px;height:140px;background:#fff;border-radius:8px;border:1px solid #e0e0e0;display:flex;align-items:center;justify-content:center;overflow:hidden;flex-shrink:0;"><div style="font-size:11px;color:#aaa;text-align:center;">กำลังสร้าง...</div></div><div><div style="font-size:12px;color:#555;line-height:1.8;margin-bottom:8px;"><b>1.</b> เปิด Google Authenticator<br><b>2.</b> กด + → สแกน QR<br><b>3.</b> กรอก OTP</div><code id="ob-secret-display" style="background:#f1f5f9;padding:4px 8px;border-radius:5px;font-size:11px;font-weight:700;color:#1a1a1a;font-family:monospace;border:1px solid #e0e0e0;">—</code></div></div><div id="ob-2fa-err" style="display:none;background:#fff5f5;border:1px solid #fca5a5;border-radius:8px;padding:8px 12px;font-size:12px;color:#dc2626;font-family:'Kanit',sans-serif;margin-bottom:10px;"></div><div style="display:flex;gap:7px;justify-content:center;margin-bottom:16px;"><input class="otp-sm" id="ob-otp-0" maxlength="1" type="text" inputmode="numeric" oninput="_obOtpNext&&_obOtpNext(this,1)" onkeydown="_obOtpKey&&_obOtpKey(event,0)"><input class="otp-sm" id="ob-otp-1" maxlength="1" type="text" inputmode="numeric" oninput="_obOtpNext&&_obOtpNext(this,2)" onkeydown="_obOtpKey&&_obOtpKey(event,1)"><input class="otp-sm" id="ob-otp-2" maxlength="1" type="text" inputmode="numeric" oninput="_obOtpNext&&_obOtpNext(this,3)" onkeydown="_obOtpKey&&_obOtpKey(event,2)"><input class="otp-sm" id="ob-otp-3" maxlength="1" type="text" inputmode="numeric" oninput="_obOtpNext&&_obOtpNext(this,4)" onkeydown="_obOtpKey&&_obOtpKey(event,3)"><input class="otp-sm" id="ob-otp-4" maxlength="1" type="text" inputmode="numeric" oninput="_obOtpNext&&_obOtpNext(this,5)" onkeydown="_obOtpKey&&_obOtpKey(event,4)"><input class="otp-sm" id="ob-otp-5" maxlength="1" type="text" inputmode="numeric" oninput="_obOtpNext&&_obOtpNext(this,-1)" onkeydown="_obOtpKey&&_obOtpKey(event,5)"></div><button onclick="if(typeof _obSubmitTwoFA==='function')_obSubmitTwoFA()" style="width:100%;padding:13px;background:linear-gradient(135deg,#dc2626,#b91c1c);color:#fff;border:none;border-radius:10px;font-family:'Kanit',sans-serif;font-weight:900;font-size:15px;cursor:pointer;">🔐 เปิดใช้งาน 2FA</button></div>
         </div>
       </div>
 
@@ -2479,54 +2402,6 @@ let currentPanel = 'overview';
 let allMembers = [], allMatches = [], allDeposits = [], allWithdrawals = [], allBets = [];
 let notifCount = 0;
 
-
-async function adminLogin(){
-  const user=sanitizeInput(document.getElementById('admin-user').value.trim());
-  const pass=document.getElementById('admin-pass').value.trim();
-  const err=document.getElementById('login-err');err.style.display='none';
-  if(!user||!pass){err.style.display='block';err.textContent='❌ กรุณากรอก Username และรหัสผ่านครับ';return;}
-  const bc=_checkLoginAttempts(user);if(bc!==true){err.style.display='block';err.textContent=bc;return;}
-
-  // แสดง loading
-  const btn=document.querySelector('.btn-login');if(btn){btn.disabled=true;btn.textContent='กำลังตรวจสอบ...';}
-
-  try{
-    await loadAdminPass();
-    const ph=await hashPassword(pass),sm=(ADMIN_PASS===pass)||(ADMIN_PASS===ph);
-
-    if(user==='admin'&&sm){
-      _clearLoginAttempts(user);
-      _pUser='admin';_pRole='superadmin';_pStaffRow=null;
-      // ตรวจ 2FA ก่อน — ถ้าเปิดอยู่ค่อยถาม OTP
-      const twofaOn=await _checkTwofaEnabled();
-      if(twofaOn){_goOTPStep();}
-      else{await _finishLogin();}
-      return;
-    }
-
-    const{data:sr}=await sb.from('staff').select('*').eq('username',user).eq('is_active',true).maybeSingle();
-    const sh=await hashPassword(pass),stm=sr&&(sr.password===pass||sr.password===sh);
-    if(stm){
-      _clearLoginAttempts(user);
-      _pUser=sr.username;_pRole='staff';_pStaffRow=sr;
-      // Staff: ถ้ามี must_change_password → เข้า dashboard ก่อน แล้ว trigger onboarding
-      // (ไม่ต้องถาม 2FA ถ้ายังไม่ได้ตั้ง)
-      const staffTwofaOn = sr.totp_secret && await _checkTwofaEnabled();
-      if(staffTwofaOn){_goOTPStep();}
-      else{await _finishLogin();}
-      return;
-    }
-
-    _recordFailedLogin(user);
-    const att=_loginAttempts[user]?.count||0,rem=MAX_ATTEMPTS-att;
-    err.style.display='block';
-    err.textContent=rem>0?'❌ Username หรือรหัสผ่านไม่ถูกต้อง (เหลืออีก '+rem+' ครั้ง)':'🔒 Login ผิดเกินกำหนด — ถูกล็อค 15 นาทีครับ';
-  }finally{
-    if(btn){btn.disabled=false;btn.textContent='เข้าสู่ระบบ →';}
-  }
-}
-
-
 // ── Staff Auth ──
 let currentStaff = null; // null = super admin, object = staff
 
@@ -2631,8 +2506,7 @@ async function loadAdminPass() {
   if (data?.value) ADMIN_PASS = data.value;
 }
 
-// adminLogin moved to injected block below
-
+/* adminLogin defined in injected block */
 
 function adminLogout() {
   if (currentStaff) logStaffAction(currentStaff.username, 'logout', 'ออกจากระบบ');
@@ -4606,81 +4480,57 @@ async function loadFinanceTable() {
 }
 
 
-// ══════════════════════════════════════════════════════════════════════
-// BLOCK 1 — TOTP ENGINE (RFC 6238, Web Crypto, no dependencies)
-// ══════════════════════════════════════════════════════════════════════
-const _B32 = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ234567';
+// ── window aliases (safe call from HTML before script loads) ──
+window._doAdminLogin  = function(){ if(typeof adminLogin==='function') adminLogin(); };
+window._doVerifyOTP   = function(){ if(typeof verifyLoginOTP==='function') verifyLoginOTP(); };
+
+// ── TOTP ENGINE ──
+const _B32='ABCDEFGHIJKLMNOPQRSTUVWXYZ234567';
 function _b32enc(b){let bits=0,val=0,o='';for(let i=0;i<b.length;i++){val=(val<<8)|b[i];bits+=8;while(bits>=5){o+=_B32[(val>>>(bits-5))&31];bits-=5;}}if(bits>0)o+=_B32[(val<<(5-bits))&31];return o;}
 function _b32dec(s){s=s.replace(/[^A-Z2-7]/gi,'').toUpperCase();const b=[];let bits=0,val=0;for(let i=0;i<s.length;i++){val=(val<<5)|_B32.indexOf(s[i]);bits+=5;if(bits>=8){b.push((val>>>(bits-8))&255);bits-=8;}}return new Uint8Array(b);}
 async function _hmacSha1(key,msg){const k=await crypto.subtle.importKey('raw',key,{name:'HMAC',hash:'SHA-1'},false,['sign']);return new Uint8Array(await crypto.subtle.sign('HMAC',k,msg));}
 async function _totpFrom(secret,counter){const key=_b32dec(secret),buf=new ArrayBuffer(8),v=new DataView(buf);v.setUint32(0,Math.floor(counter/0x100000000),false);v.setUint32(4,counter>>>0,false);const h=await _hmacSha1(key,new Uint8Array(buf)),off=h[19]&0x0f;const code=((h[off]&0x7f)<<24)|(h[off+1]<<16)|(h[off+2]<<8)|h[off+3];return String(code%1000000).padStart(6,'0');}
 async function _verifyTOTP(input){const s=await _getTOTPSecret();if(!s)return false;const now=Math.floor(Date.now()/1000/30);for(let d=-1;d<=1;d++)if(input.trim()===await _totpFrom(s,now+d))return true;return false;}
 function _genTOTPSecret(){return _b32enc(crypto.getRandomValues(new Uint8Array(20)));}
-function _buildOtpURI(secret,label,issuer){return 'otpauth://totp/'+encodeURIComponent(issuer)+':'+encodeURIComponent(label)+'?secret='+secret+'&issuer='+encodeURIComponent(issuer)+'&algorithm=SHA1&digits=6&period=30';}
-function _qrUrl(uri){return 'https://api.qrserver.com/v1/create-qr-code/?size=160x160&data='+encodeURIComponent(uri)+'&bgcolor=ffffff&qzone=1';}
 async function _getTOTPSecret(){try{const{data}=await sb.from('settings').select('value').eq('key','totp_secret').maybeSingle();return data?.value?.secret||null;}catch(_){return null;}}
 async function _checkTwofaEnabled(){try{const{data}=await sb.from('settings').select('value').eq('key','totp_config').maybeSingle();return data?.value?.enabled===true;}catch(_){return false;}}
 async function _saveTwofaConfig(cfg){await sb.from('settings').upsert({key:'totp_config',value:cfg});}
+function _buildOtpURI(secret,label,issuer){return 'otpauth://totp/'+encodeURIComponent(issuer)+':'+encodeURIComponent(label)+'?secret='+secret+'&issuer='+encodeURIComponent(issuer)+'&algorithm=SHA1&digits=6&period=30';}
+function _qrUrl(uri){return 'https://api.qrserver.com/v1/create-qr-code/?size=160x160&data='+encodeURIComponent(uri)+'&bgcolor=ffffff&qzone=1';}
 
-// ══════════════════════════════════════════════════════════════════════
-// BLOCK 2 — 2FA SETUP PANEL (loadTwofaPanel, initTOTPSetup, activateTOTP…)
-// ══════════════════════════════════════════════════════════════════════
-let _pendingTOTPSecret=null;
-async function loadTwofaPanel(){
-  const en=await _checkTwofaEnabled(),sec=await _getTOTPSecret();
-  const badge=document.getElementById('twofa-badge'),icon=document.getElementById('twofa-status-icon'),lbl=document.getElementById('twofa-status-label'),sub=document.getElementById('twofa-status-sub');
-  const initS=document.getElementById('twofa-init-section'),setupS=document.getElementById('twofa-setup-section'),activeS=document.getElementById('twofa-active-section');
-  if(en&&sec){if(badge){badge.textContent='✅ เปิดอยู่';badge.style.background='#dcfce7';badge.style.color='#15803d';}if(icon)icon.textContent='🛡️';if(lbl)lbl.textContent='2FA เปิดใช้งานแล้ว';if(sub)sub.textContent='ทุก Login และการอนุมัติเงินต้องใช้ OTP';if(initS)initS.style.display='none';if(setupS)setupS.style.display='none';if(activeS)activeS.style.display='block';}
-  else{if(badge){badge.textContent='❌ ปิดอยู่';badge.style.background='#fee2e2';badge.style.color='#dc2626';}if(icon)icon.textContent='⚠️';if(lbl)lbl.textContent='ยังไม่ได้เปิดใช้ 2FA';if(sub)sub.textContent='แนะนำให้ตั้งค่าทันที';if(initS)initS.style.display='block';if(setupS)setupS.style.display='none';if(activeS)activeS.style.display='none';}
-  try{const{data}=await sb.from('settings').select('value').eq('key','totp_config').maybeSingle();const cfg=data?.value||{};const ol=document.getElementById('twofa-on-login'),oa=document.getElementById('twofa-on-approve');if(ol)ol.checked=cfg.onLogin!==false;if(oa)oa.checked=cfg.onApprove!==false;}catch(_){}
-}
-async function initTOTPSetup(){
-  _pendingTOTPSecret=_genTOTPSecret();
-  const label=currentStaff?.username||'SuperAdmin';
-  const uri=_buildOtpURI(_pendingTOTPSecret,label,'วัวชนไทย');
-  const qrWrap=document.getElementById('twofa-qr-wrap');
-  if(qrWrap)qrWrap.innerHTML='<img src="'+_qrUrl(uri)+'" width="160" height="160" alt="QR Code" onerror="this.parentElement.innerHTML=\'<div style=padding:8px;font-size:11px;color:#888;text-align:center>สแกน QR ไม่ได้<br>ใช้ Secret Key แทน</div>\'">';
-  const sd=document.getElementById('twofa-secret-display');if(sd)sd.textContent=(_pendingTOTPSecret.match(/.{1,4}/g)||[]).join(' ');
-  for(let i=0;i<6;i++){const b=document.getElementById('tv-'+i);if(b){b.value='';b.classList.remove('filled');}}
-  document.getElementById('twofa-verify-err').style.display='none';
-  document.getElementById('twofa-init-section').style.display='none';
-  document.getElementById('twofa-setup-section').style.display='block';
-  document.getElementById('twofa-active-section').style.display='none';
-  setTimeout(()=>document.getElementById('tv-0')?.focus(),200);
-}
-async function activateTOTP(){
-  const code=Array.from({length:6},(_,i)=>document.getElementById('tv-'+i)?.value||'').join('');
-  const err=document.getElementById('twofa-verify-err');err.style.display='none';
-  if(!code||code.length<6||!_pendingTOTPSecret){err.style.display='block';return;}
-  const now=Math.floor(Date.now()/1000/30);let valid=false;
-  for(let d=-1;d<=1;d++)if(code===await _totpFrom(_pendingTOTPSecret,now+d)){valid=true;break;}
-  if(!valid){err.style.display='block';for(let i=0;i<6;i++){const b=document.getElementById('tv-'+i);if(b){b.value='';b.classList.remove('filled');}}document.getElementById('tv-0')?.focus();return;}
-  await sb.from('settings').upsert({key:'totp_secret',value:{secret:_pendingTOTPSecret,created_at:new Date().toISOString()}});
-  await _saveTwofaConfig({enabled:true,onLogin:true,onApprove:true});
-  _pendingTOTPSecret=null;showToast('🔐 เปิดใช้งาน 2FA สำเร็จ! ทุก Login และการอนุมัติต้องใช้ OTP ครับ');await loadTwofaPanel();
-}
-async function regenerateTOTP(){if(!confirm('สร้าง Secret ใหม่? ต้องสแกน QR ใหม่ครับ'))return;await sb.from('settings').delete().eq('key','totp_secret');await _saveTwofaConfig({enabled:false});showToast('ลบ Secret เก่าแล้ว — กรุณาตั้งค่าใหม่');await loadTwofaPanel();}
-async function disableTOTP(){if(!confirm('ปิด 2FA?'))return;const code=prompt('กรอกรหัส OTP เพื่อยืนยัน:');if(!code)return;if(!await _verifyTOTP(code.trim())){showToast('❌ รหัส OTP ไม่ถูกต้อง','error');return;}await _saveTwofaConfig({enabled:false});showToast('2FA ถูกปิดแล้วครับ');await loadTwofaPanel();}
-async function saveTwofaSettings(){const ol=document.getElementById('twofa-on-login'),oa=document.getElementById('twofa-on-approve');const en=await _checkTwofaEnabled();await _saveTwofaConfig({enabled:en,onLogin:ol?.checked!==false,onApprove:oa?.checked!==false});showToast('💾 บันทึกการตั้งค่า 2FA แล้ว');}
-function _copySecret(){const el=document.getElementById('twofa-secret-display');const t=(el?.textContent||'').replace(/\s/g,'');if(navigator.clipboard)navigator.clipboard.writeText(t).then(()=>showToast('✅ คัดลอก Secret Key แล้ว'));}
-
-// ══════════════════════════════════════════════════════════════════════
-// BLOCK 3 — switchCfgTab (loads 2FA panel)
-// ══════════════════════════════════════════════════════════════════════
-function switchCfgTab(tab){
-  document.querySelectorAll('.cfg-tab').forEach(b=>b.classList.remove('active'));
-  document.querySelectorAll('.cfg-pane').forEach(p=>{p.classList.remove('active');p.style.display='none';});
-  document.getElementById('cfg-tab-'+tab)?.classList.add('active');
-  const pane=document.getElementById('cfg-pane-'+tab);if(pane){pane.classList.add('active');pane.style.display='block';}
-  if(tab==='twofa')loadTwofaPanel();
-}
-
-// ══════════════════════════════════════════════════════════════════════
-// BLOCK 4 — LOGIN 2-STEP (adminLogin → OTP → _finishLogin)
-// ══════════════════════════════════════════════════════════════════════
+// ── adminLogin (NEW — 2FA aware, no duplicate) ──
 let _pUser=null,_pRole=null,_pStaffRow=null,_otpTimer=null;
 
-// adminLogin defined at top of script
+async function adminLogin(){
+  const user=sanitizeInput(document.getElementById('admin-user').value.trim());
+  const pass=document.getElementById('admin-pass').value.trim();
+  const err=document.getElementById('login-err');err.style.display='none';
+  if(!user||!pass){err.style.display='block';err.textContent='❌ กรุณากรอก Username และรหัสผ่านครับ';return;}
+  const bc=_checkLoginAttempts(user);if(bc!==true){err.style.display='block';err.textContent=bc;return;}
+  const btn=document.getElementById('btn-do-login');if(btn){btn.disabled=true;btn.textContent='กำลังตรวจสอบ...';}
+  try{
+    await loadAdminPass();
+    const ph=await hashPassword(pass),sm=(ADMIN_PASS===pass)||(ADMIN_PASS===ph);
+    if(user==='admin'&&sm){
+      _clearLoginAttempts(user);_pUser='admin';_pRole='superadmin';_pStaffRow=null;
+      const twofaOn=await _checkTwofaEnabled();
+      if(twofaOn){_goOTPStep();}else{await _finishLogin();}
+      return;
+    }
+    const{data:sr}=await sb.from('staff').select('*').eq('username',user).eq('is_active',true).maybeSingle();
+    const sh=await hashPassword(pass),stm=sr&&(sr.password===pass||sr.password===sh);
+    if(stm){
+      _clearLoginAttempts(user);_pUser=sr.username;_pRole='staff';_pStaffRow=sr;
+      const staffHas2FA=sr.totp_secret&&await _checkTwofaEnabled();
+      if(staffHas2FA){_goOTPStep();}else{await _finishLogin();}
+      return;
+    }
+    _recordFailedLogin(user);
+    const att=_loginAttempts[user]?.count||0,rem=MAX_ATTEMPTS-att;
+    err.style.display='block';
+    err.textContent=rem>0?'❌ Username หรือรหัสผ่านไม่ถูกต้อง (เหลืออีก '+rem+' ครั้ง)':'🔒 Login ผิดเกินกำหนด — ถูกล็อค 15 นาทีครับ';
+  }finally{if(btn){btn.disabled=false;btn.textContent='เข้าสู่ระบบ →';}}
+}
 
 function _goOTPStep(){
   document.getElementById('login-step-1').style.display='none';
@@ -4706,53 +4556,36 @@ async function verifyLoginOTP(){
   const en=await _checkTwofaEnabled();
   if(!en){clearInterval(_otpTimer);await _finishLogin();return;}
   if(await _verifyTOTP(code)){clearInterval(_otpTimer);await _finishLogin();}
-  else{err.style.display='block';err.textContent='❌ รหัส OTP ไม่ถูกต้อง หรือหมดอายุแล้วครับ';for(let i=0;i<6;i++){const b=document.getElementById('otp-'+i);if(b){b.value='';b.classList.remove('filled');}}document.getElementById('otp-0')?.focus();_recordFailedLogin(_pUser||'?');}
+  else{err.style.display='block';err.textContent='❌ รหัส OTP ไม่ถูกต้องครับ';for(let i=0;i<6;i++){const b=document.getElementById('otp-'+i);if(b){b.value='';b.classList.remove('filled');}}document.getElementById('otp-0')?.focus();}
 }
 async function _finishLogin(){
   if(!_pUser)return;
-
-  // ซ่อน login page, แสดง dashboard
   document.getElementById('login-page').style.display='none';
   document.getElementById('dashboard').style.display='flex';
-
   if(_pRole==='superadmin'){
-    currentStaff=null;
-    document.getElementById('sb-staff').style.display='';
-    showStaffBadge();
-    _startSessionTimer();
+    currentStaff=null;document.getElementById('sb-staff').style.display='';
+    showStaffBadge();_startSessionTimer();
     await _logLoginActivity('admin','superadmin','success').catch(()=>{});
-    if(ADMIN_PASS==='wuachon2568'){
-      setTimeout(()=>showToast('⚠️ กรุณาเปลี่ยนรหัสผ่าน default ใน ⚙️ Settings ด่วนครับ','error'),1000);
-    }
+    if(ADMIN_PASS==='wuachon2568')setTimeout(()=>showToast('⚠️ กรุณาเปลี่ยนรหัสผ่าน default ด่วนครับ','error'),1000);
     loadAll();
-
   }else if(_pRole==='staff'&&_pStaffRow){
-    currentStaff=_pStaffRow;
-    showStaffBadge();
-    _startSessionTimer();
-    // update last_login (silent)
-    sb.from('staff').update({last_login:new Date().toISOString()}).eq('id',_pStaffRow.id).then(()=>{}).catch(()=>{});
-    await logStaffAction(_pStaffRow.username,'login','เข้าสู่ระบบ').catch(()=>{});
-    await _logLoginActivity(_pStaffRow.username,'staff','success').catch(()=>{});
-    loadAll();
-    applyStaffPermissions(_pStaffRow.role);
-    // ── First Login Onboarding ──
-    // ตรวจ must_change_password หรือ must_setup_2fa
-    setTimeout(()=>_checkStaffOnboarding(_pStaffRow), 1000);
+    currentStaff=_pStaffRow;showStaffBadge();_startSessionTimer();
+    sb.from('staff').update({last_login:new Date().toISOString()}).eq('id',_pStaffRow.id).catch(()=>{});
+    logStaffAction(_pStaffRow.username,'login','เข้าสู่ระบบ').catch(()=>{});
+    _logLoginActivity(_pStaffRow.username,'staff','success').catch(()=>{});
+    loadAll();applyStaffPermissions(_pStaffRow.role);
+    setTimeout(()=>_checkStaffOnboarding(_pStaffRow),1000);
   }
-
   _pUser=null;_pRole=null;_pStaffRow=null;
 }
-async function _skipOTPFirstTime(){clearInterval(_otpTimer);await _finishLogin();setTimeout(()=>{switchPanel('settings');setTimeout(()=>switchCfgTab('twofa'),400);showToast('⚠️ กรุณาตั้งค่า 2FA ทันที','error');},500);}
+async function _skipOTPFirstTime(){clearInterval(_otpTimer);await _finishLogin();setTimeout(()=>{switchPanel('settings');setTimeout(()=>{if(typeof switchCfgTab==='function')switchCfgTab('twofa');},400);showToast('⚠️ กรุณาตั้งค่า 2FA ทันที','error');},500);}
 function _otpAutoSubmit(){const c=Array.from({length:6},(_,i)=>document.getElementById('otp-'+i)?.value||'').join('');if(c.length===6)verifyLoginOTP();}
 function _otpNext(el,n){el.classList.toggle('filled',el.value!=='');if(el.value&&n>=0)document.getElementById('otp-'+n)?.focus();}
 function _otpKey(e,i){if(e.key==='Backspace'&&!e.target.value&&i>0)document.getElementById('otp-'+(i-1))?.focus();else if(e.key==='Enter')verifyLoginOTP();else if(!/[0-9]/.test(e.key)&&!['Backspace','Tab','ArrowLeft','ArrowRight'].includes(e.key))e.preventDefault();}
 function _tvNext(el,n){el.classList.toggle('filled',el.value!=='');if(el.value&&n>=0)document.getElementById('tv-'+n)?.focus();}
 function _tvKey(e,i){if(e.key==='Backspace'&&!e.target.value&&i>0)document.getElementById('tv-'+(i-1))?.focus();else if(!/[0-9]/.test(e.key)&&!['Backspace','Tab','ArrowLeft','ArrowRight'].includes(e.key))e.preventDefault();}
 
-// ══════════════════════════════════════════════════════════════════════
-// BLOCK 5 — ACTION OTP MODAL (อนุมัติเงิน)
-// ══════════════════════════════════════════════════════════════════════
+// ── ACTION OTP MODAL ──
 let _pendingActionFn=null;
 async function _requireActionOTP(label,fn){
   try{const{data}=await sb.from('settings').select('value').eq('key','totp_config').maybeSingle();const cfg=data?.value||{};if(!cfg.enabled||cfg.onApprove===false){await fn();return;}}catch(_){await fn();return;}
@@ -4760,43 +4593,213 @@ async function _requireActionOTP(label,fn){
 }
 function _showActionModal(label){
   let m=document.getElementById('action-otp-modal');
-  if(!m){m=document.createElement('div');m.id='action-otp-modal';m.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,0.6);z-index:9999;display:flex;align-items:center;justify-content:center;padding:16px;';m.innerHTML='<div style="background:#fff;border-radius:16px;padding:28px;width:100%;max-width:360px;box-shadow:0 20px 60px rgba(0,0,0,0.3);"><div style="text-align:center;margin-bottom:20px;"><div style="font-size:36px;margin-bottom:8px;">🔐</div><div style="font-family:\'Kanit\',sans-serif;font-weight:900;font-size:16px;color:#1a1a1a;">ยืนยัน OTP</div><div style="font-size:12px;color:#888;margin-top:4px;" id="ao-label"></div></div><div id="ao-err" style="display:none;background:#fff5f5;border:1px solid #fca5a5;border-radius:8px;padding:8px 12px;font-size:12px;color:#dc2626;font-family:\'Kanit\',sans-serif;margin-bottom:12px;text-align:center;">❌ รหัส OTP ไม่ถูกต้องครับ</div><div style="display:flex;gap:8px;justify-content:center;margin-bottom:16px;"><input class="otp-sm" id="ao-0" maxlength="1" type="text" inputmode="numeric" oninput="_aoNext(this,1)" onkeydown="_aoKey(event,0)"><input class="otp-sm" id="ao-1" maxlength="1" type="text" inputmode="numeric" oninput="_aoNext(this,2)" onkeydown="_aoKey(event,1)"><input class="otp-sm" id="ao-2" maxlength="1" type="text" inputmode="numeric" oninput="_aoNext(this,3)" onkeydown="_aoKey(event,2)"><input class="otp-sm" id="ao-3" maxlength="1" type="text" inputmode="numeric" oninput="_aoNext(this,4)" onkeydown="_aoKey(event,3)"><input class="otp-sm" id="ao-4" maxlength="1" type="text" inputmode="numeric" oninput="_aoNext(this,5)" onkeydown="_aoKey(event,4)"><input class="otp-sm" id="ao-5" maxlength="1" type="text" inputmode="numeric" oninput="_aoNext(this,-1)" onkeydown="_aoKey(event,5)" onkeyup="_aoAutoSubmit()"></div><div style="display:flex;gap:10px;"><button onclick="_closeActionModal()" style="flex:1;padding:11px;background:#f5f5f3;color:#555;border:none;border-radius:9px;font-family:\'Kanit\',sans-serif;font-weight:700;font-size:13px;cursor:pointer;">ยกเลิก</button><button onclick="_submitActionOTP()" style="flex:2;padding:11px;background:#1B6B2F;color:#fff;border:none;border-radius:9px;font-family:\'Kanit\',sans-serif;font-weight:700;font-size:13px;cursor:pointer;">✅ ยืนยัน</button></div></div>';document.body.appendChild(m);}
+  if(!m){
+    m=document.createElement('div');m.id='action-otp-modal';
+    m.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,0.6);z-index:9999;display:flex;align-items:center;justify-content:center;padding:16px;';
+    const inner=document.createElement('div');
+    inner.style.cssText='background:#fff;border-radius:16px;padding:28px;width:100%;max-width:360px;box-shadow:0 20px 60px rgba(0,0,0,0.3);';
+    inner.innerHTML=[
+      '<div style="text-align:center;margin-bottom:20px;">',
+      '<div style="font-size:36px;margin-bottom:8px;">🔐</div>',
+      '<div style="font-family:Kanit,sans-serif;font-weight:900;font-size:16px;">ยืนยัน OTP</div>',
+      '<div style="font-size:12px;color:#888;margin-top:4px;" id="ao-label"></div>',
+      '</div>',
+      '<div id="ao-err" style="display:none;background:#fff5f5;border:1px solid #fca5a5;border-radius:8px;padding:8px 12px;font-size:12px;color:#dc2626;font-family:Kanit,sans-serif;margin-bottom:12px;text-align:center;">❌ รหัส OTP ไม่ถูกต้อง</div>',
+      '<div style="display:flex;gap:8px;justify-content:center;margin-bottom:16px;">',
+      '<input class="otp-sm" id="ao-0" maxlength="1" type="text" inputmode="numeric" oninput="_aoNext(this,1)" onkeydown="_aoKey(event,0)">',
+      '<input class="otp-sm" id="ao-1" maxlength="1" type="text" inputmode="numeric" oninput="_aoNext(this,2)" onkeydown="_aoKey(event,1)">',
+      '<input class="otp-sm" id="ao-2" maxlength="1" type="text" inputmode="numeric" oninput="_aoNext(this,3)" onkeydown="_aoKey(event,2)">',
+      '<input class="otp-sm" id="ao-3" maxlength="1" type="text" inputmode="numeric" oninput="_aoNext(this,4)" onkeydown="_aoKey(event,3)">',
+      '<input class="otp-sm" id="ao-4" maxlength="1" type="text" inputmode="numeric" oninput="_aoNext(this,5)" onkeydown="_aoKey(event,4)">',
+      '<input class="otp-sm" id="ao-5" maxlength="1" type="text" inputmode="numeric" oninput="_aoNext(this,-1)" onkeydown="_aoKey(event,5)" onkeyup="_aoAutoSubmit()">',
+      '</div>',
+      '<div style="display:flex;gap:10px;">',
+      '<button onclick="_closeActionModal()" style="flex:1;padding:11px;background:#f5f5f3;color:#555;border:none;border-radius:9px;font-family:Kanit,sans-serif;font-weight:700;cursor:pointer;">ยกเลิก</button>',
+      '<button onclick="_submitActionOTP()" style="flex:2;padding:11px;background:#1B6B2F;color:#fff;border:none;border-radius:9px;font-family:Kanit,sans-serif;font-weight:700;cursor:pointer;">✅ ยืนยัน</button>',
+      '</div>'
+    ].join('');
+    m.appendChild(inner);document.body.appendChild(m);
+  }
   const lEl=document.getElementById('ao-label');if(lEl)lEl.textContent=label;
   document.getElementById('ao-err').style.display='none';
   for(let i=0;i<6;i++){const b=document.getElementById('ao-'+i);if(b){b.value='';b.classList.remove('filled');}}
   m.style.display='flex';setTimeout(()=>document.getElementById('ao-0')?.focus(),100);
 }
 function _closeActionModal(){const m=document.getElementById('action-otp-modal');if(m)m.style.display='none';_pendingActionFn=null;}
-async function _submitActionOTP(){
-  const code=Array.from({length:6},(_,i)=>document.getElementById('ao-'+i)?.value||'').join('');
-  const err=document.getElementById('ao-err');err.style.display='none';
-  if(code.length<6){err.style.display='block';err.textContent='❌ กรุณากรอกรหัส 6 หลักครับ';return;}
-  if(await _verifyTOTP(code)){_closeActionModal();if(_pendingActionFn)await _pendingActionFn();_pendingActionFn=null;}
-  else{err.style.display='block';err.textContent='❌ รหัส OTP ไม่ถูกต้องครับ';for(let i=0;i<6;i++){const b=document.getElementById('ao-'+i);if(b){b.value='';b.classList.remove('filled');}}document.getElementById('ao-0')?.focus();}
-}
+async function _submitActionOTP(){const code=Array.from({length:6},(_,i)=>document.getElementById('ao-'+i)?.value||'').join('');const err=document.getElementById('ao-err');err.style.display='none';if(code.length<6){err.style.display='block';return;}if(await _verifyTOTP(code)){_closeActionModal();if(_pendingActionFn)await _pendingActionFn();_pendingActionFn=null;}else{err.style.display='block';for(let i=0;i<6;i++){const b=document.getElementById('ao-'+i);if(b){b.value='';b.classList.remove('filled');}}document.getElementById('ao-0')?.focus();}}
 function _aoAutoSubmit(){const c=Array.from({length:6},(_,i)=>document.getElementById('ao-'+i)?.value||'').join('');if(c.length===6)_submitActionOTP();}
 function _aoNext(el,n){el.classList.toggle('filled',el.value!=='');if(el.value&&n>=0)document.getElementById('ao-'+n)?.focus();}
 function _aoKey(e,i){if(e.key==='Backspace'&&!e.target.value&&i>0)document.getElementById('ao-'+(i-1))?.focus();else if(e.key==='Enter')_submitActionOTP();else if(!/[0-9]/.test(e.key)&&!['Backspace','Tab','ArrowLeft','ArrowRight'].includes(e.key))e.preventDefault();}
 
-// ══════════════════════════════════════════════════════════════════════
-// BLOCK 6 — MEMBER DETAIL OVERLAY
-// ══════════════════════════════════════════════════════════════════════
-let _currentMemberNick=null;
-async function openMember(nick){
-  _currentMemberNick=nick;
-  const ov=document.getElementById('member-overlay');if(!ov)return;
+// ── DEPOSITS / WITHDRAWALS (OTP-gated) ──
+function approveDeposit(id,nick,amount){_requireActionOTP('อนุมัติเติมเงิน '+Number(amount).toLocaleString()+' ₭ ให้ "'+nick+'"',()=>_approveDepositReal(id,nick,amount));}
+function rejectDeposit(id,nick){_requireActionOTP('ปฏิเสธเติมเงินของ "'+nick+'"',()=>_rejectDepositReal(id,nick));}
+async function _approveDepositReal(id,nick,amount){if(!await checkFlagBeforeDeposit(nick))return;try{const{error:e1}=await sb.from('deposits').update({status:'approved',approved_at:new Date().toISOString(),approved_by:_adminNick()}).eq('id',id);if(e1)throw e1;const mem=allMembers.find(m=>m.nick===nick);await sb.from('members').update({balance:(mem?.balance||0)+Number(amount)}).eq('nick',nick);await sb.from('worklog').insert({admin:_adminNick(),action:'approve_deposit',nick,amount:Number(amount),note:'อนุมัติเติมเงิน (2FA ✓)',created_at:new Date().toISOString()}).select().maybeSingle();showToast('✅ อนุมัติ '+Number(amount).toLocaleString()+' ₭ ให้ "'+nick+'" (2FA ✓)');await loadDeposits();loadOverview();loadMembers();}catch(err){showToast('❌ '+err.message,'error');}}
+async function _rejectDepositReal(id,nick){const r=prompt('เหตุผล:');if(r===null)return;try{await sb.from('deposits').update({status:'rejected',reject_reason:r,approved_by:_adminNick()}).eq('id',id);await sb.from('worklog').insert({admin:_adminNick(),action:'reject_deposit',nick,note:'ปฏิเสธ (2FA ✓): '+r,created_at:new Date().toISOString()}).select().maybeSingle();showToast('ปฏิเสธ "'+nick+'" (2FA ✓)');await loadDeposits();loadOverview();}catch(err){showToast('❌ '+err.message,'error');}}
+function approveWithdraw(id,nick,amount,bank,accNo){_requireActionOTP('โอนเงิน '+Number(amount).toLocaleString()+' ₭ ให้ "'+nick+'"',()=>_approveWithdrawReal(id,nick,amount,bank,accNo));}
+function rejectWithdraw(id,nick,amount){_requireActionOTP('ปฏิเสธถอนเงินของ "'+nick+'"',()=>_rejectWithdrawReal(id,nick,amount));}
+async function _approveWithdrawReal(id,nick,amount,bank,accNo){if(!await checkFlagBeforeWithdraw(nick))return;try{await sb.from('withdrawals').update({status:'approved',approved_at:new Date().toISOString(),approved_by:_adminNick()}).eq('id',id);const mem=allMembers.find(m=>m.nick===nick);await sb.from('members').update({balance:Math.max(0,(mem?.balance||0)-Number(amount))}).eq('nick',nick);await sb.from('worklog').insert({admin:_adminNick(),action:'approve_withdraw',nick,amount:Number(amount),note:'โอน (2FA ✓)',created_at:new Date().toISOString()}).select().maybeSingle();showToast('✅ โอน '+Number(amount).toLocaleString()+' ₭ (2FA ✓)');await loadWithdrawals();loadOverview();loadMembers();}catch(err){showToast('❌ '+err.message,'error');}}
+async function _rejectWithdrawReal(id,nick,amount){const r=prompt('เหตุผล:');if(r===null)return;try{await sb.from('withdrawals').update({status:'rejected',reject_reason:r,approved_by:_adminNick()}).eq('id',id);const mem=allMembers.find(m=>m.nick===nick);if(mem)await sb.from('members').update({balance:(mem.balance||0)+Number(amount)}).eq('nick',nick);await sb.from('worklog').insert({admin:_adminNick(),action:'reject_withdraw',nick,amount:Number(amount),note:'ปฏิเสธ (2FA ✓)',created_at:new Date().toISOString()}).select().maybeSingle();showToast('ปฏิเสธ + คืน balance (2FA ✓)');await loadWithdrawals();loadOverview();loadMembers();}catch(err){showToast('❌ '+err.message,'error');}}
+
+// ── DEPOSITS core ──
+async function loadDeposits(){const res=await sb.from('deposits').select('*').order('created_at',{ascending:false});allDeposits=res.data||[];const sc=(id,n)=>{const e=document.getElementById(id);if(e)e.textContent=n?'('+n+')':'';}; sc('dep-pending-count',allDeposits.filter(d=>d.status==='pending').length);sc('dep-done-count',allDeposits.filter(d=>d.status==='approved').length);sc('dep-reject-count',allDeposits.filter(d=>d.status==='rejected').length);filterDeposits();filterDepDone();filterDepReject();}
+function switchDepSec(sec){document.querySelectorAll('#panel-deposits .match-sec').forEach(s=>s.classList.remove('active'));document.querySelectorAll('#panel-deposits .match-nav-item').forEach(i=>i.classList.remove('active'));document.getElementById('dep-sec-'+sec)?.classList.add('active');document.getElementById('dnav-'+sec)?.classList.add('active');}
+function filterDeposits(){
+  updateDateTag('dep');
+  var from=document.getElementById('dep-date-from')?.value||'',to=document.getElementById('dep-date-to')?.value||'';
+  var rows=allDeposits.filter(function(d){return d.status==='pending'&&(!from||(d.created_at||'').slice(0,10)>=from)&&(!to||(d.created_at||'').slice(0,10)<=to);});
+  var tb=document.getElementById('dep-tbody');if(!tb)return;
+  if(!rows.length){tb.innerHTML='<tr><td colspan="7" style="text-align:center;padding:28px;color:#aaa;">ไม่มีรายการ</td></tr>';return;}
+  var html2=rows.map(function(d){
+    var a=Number(d.amount||0);
+    var slip=d.slip_url?('<a href="'+d.slip_url+'" target="_blank" style="color:#3b82f6">🧾</a>'):'—';
+    var row='<tr>';
+    row+='<td style="font-weight:700;cursor:pointer;color:var(--green)" onclick="openMember(\''+(d.nick||'')+'\')">'+( d.nick||'—')+'</td>';
+    row+='<td style="text-align:right;font-weight:700;color:#16a34a">'+(a/1000).toFixed(1)+'K</td>';
+    row+='<td style="font-size:12px">'+(d.bank||'—')+'</td>';
+    row+='<td style="font-size:11px;color:#888">'+(d.txn||'—')+'</td>';
+    row+='<td style="text-align:center">'+slip+'</td>';
+    row+='<td style="font-size:11px;color:#888">'+fmtDate(d.created_at)+'</td>';
+    row+='<td>';
+    row+='<button onclick="approveDeposit(\''+(d.id||'')+'\',\''+(d.nick||'')+'\','+a+')" style="padding:4px 10px;background:#16a34a;color:#fff;border:none;border-radius:6px;font-size:12px;font-weight:700;cursor:pointer;margin-right:4px">✅ อนุมัติ</button>';
+    row+='<button onclick="rejectDeposit(\''+(d.id||'')+'\',\''+(d.nick||'')+'\' )" style="padding:4px 9px;background:#fff;color:#dc2626;border:1px solid #dc2626;border-radius:6px;font-size:12px;font-weight:700;cursor:pointer">❌ ปฏิเสธ</button>';
+    row+='</td></tr>';
+    return row;
+  }).join('');
+  tb.innerHTML=html2;
+}
+function filterDepDone(){
+  var from=document.getElementById('dep-done-from')?.value||'',to=document.getElementById('dep-done-to')?.value||'';
+  var rows=allDeposits.filter(function(d){return d.status==='approved'&&(!from||(d.approved_at||d.created_at||'').slice(0,10)>=from)&&(!to||(d.approved_at||d.created_at||'').slice(0,10)<=to);});
+  var tb=document.getElementById('dep-done-tbody');if(!tb)return;
+  if(!rows.length){tb.innerHTML='<tr><td colspan="5" style="text-align:center;padding:28px;color:#aaa;">ไม่มีรายการ</td></tr>';return;}
+  tb.innerHTML=rows.map(function(d){return'<tr><td style="font-weight:700;cursor:pointer;color:var(--green)" onclick="openMember(\''+( d.nick||'')+'\')">'+( d.nick||'—')+'</td><td style="font-weight:700;color:#16a34a">'+Number(d.amount||0).toLocaleString()+' ₭</td><td style="font-size:12px">'+(d.bank||'—')+'</td><td style="font-size:11px;color:#888">'+(d.txn||'—')+'</td><td style="font-size:11px;color:#888">'+fmtDate(d.approved_at||d.created_at)+'</td></tr>';}).join('');
+}
+function filterDepReject(){
+  var from=document.getElementById('dep-reject-from')?.value||'',to=document.getElementById('dep-reject-to')?.value||'';
+  var rows=allDeposits.filter(function(d){return d.status==='rejected'&&(!from||(d.created_at||'').slice(0,10)>=from)&&(!to||(d.created_at||'').slice(0,10)<=to);});
+  var tb=document.getElementById('dep-reject-tbody');if(!tb)return;
+  if(!rows.length){tb.innerHTML='<tr><td colspan="4" style="text-align:center;padding:28px;color:#aaa;">ไม่มีรายการ</td></tr>';return;}
+  tb.innerHTML=rows.map(function(d){return'<tr><td style="font-weight:700;cursor:pointer;color:var(--green)" onclick="openMember(\''+( d.nick||'')+'\')">'+( d.nick||'—')+'</td><td style="font-weight:700;color:#dc2626">'+Number(d.amount||0).toLocaleString()+' ₭</td><td style="font-size:12px;color:#888">'+(d.reject_reason||d.note||'—')+'</td><td style="font-size:11px;color:#888">'+fmtDate(d.created_at)+'</td></tr>';}).join('');
+}
+
+// ── WITHDRAWALS core ──
+async function loadWithdrawals(){const res=await sb.from('withdrawals').select('*').order('created_at',{ascending:false});allWithdrawals=res.data||[];const sc=(id,n)=>{const e=document.getElementById(id);if(e)e.textContent=n?'('+n+')':'';}; sc('with-pending-count',allWithdrawals.filter(w=>w.status==='pending').length);sc('with-done-count',allWithdrawals.filter(w=>w.status==='approved').length);sc('with-reject-count',allWithdrawals.filter(w=>w.status==='rejected').length);filterWithdrawals();filterWithDone();filterWithReject();}
+function switchWithSec(sec){document.querySelectorAll('#panel-withdrawals .match-sec').forEach(s=>s.classList.remove('active'));document.querySelectorAll('#panel-withdrawals .match-nav-item').forEach(i=>i.classList.remove('active'));document.getElementById('with-sec-'+sec)?.classList.add('active');document.getElementById('wnav-'+sec)?.classList.add('active');}
+function filterWithdrawals(){
+  updateDateTag('with');
+  var from=document.getElementById('with-date-from')?.value||'',to=document.getElementById('with-date-to')?.value||'';
+  var rows=allWithdrawals.filter(function(w){return w.status==='pending'&&(!from||(w.created_at||'').slice(0,10)>=from)&&(!to||(w.created_at||'').slice(0,10)<=to);});
+  var tb=document.getElementById('with-tbody');if(!tb)return;
+  if(!rows.length){tb.innerHTML='<tr><td colspan="7" style="text-align:center;padding:28px;color:#aaa;">ไม่มีรายการ</td></tr>';return;}
+  var html2=rows.map(function(w){
+    var a=Number(w.amount||0);
+    var bk=(w.bank||'').replace(/'/g,"\'"),ac=(w.acc_no||'').replace(/'/g,"\'");
+    var row='<tr>';
+    row+='<td style="font-weight:700;cursor:pointer;color:var(--green)" onclick="openMember(\''+(w.nick||'')+'\')">'+( w.nick||'—')+'</td>';
+    row+='<td style="text-align:right;font-weight:700;color:#3b82f6">'+(a/1000).toFixed(1)+'K</td>';
+    row+='<td style="font-size:12px">'+(w.bank||'—')+'</td>';
+    row+='<td style="font-size:12px">'+(w.acc_no||'—')+'</td>';
+    row+='<td style="font-size:11px;color:#888">'+(w.txn||'—')+'</td>';
+    row+='<td style="font-size:11px;color:#888">'+fmtDate(w.created_at)+'</td>';
+    row+='<td>';
+    row+='<button onclick="approveWithdraw(\''+(w.id||'')+'\',\''+(w.nick||'')+'\','+a+',\''+bk+'\',\''+ac+'\' )" style="padding:4px 10px;background:#3b82f6;color:#fff;border:none;border-radius:6px;font-size:12px;font-weight:700;cursor:pointer;margin-right:4px">✅ โอนแล้ว</button>';
+    row+='<button onclick="rejectWithdraw(\''+(w.id||'')+'\',\''+(w.nick||'')+'\','+a+')" style="padding:4px 9px;background:#fff;color:#dc2626;border:1px solid #dc2626;border-radius:6px;font-size:12px;font-weight:700;cursor:pointer">❌ ปฏิเสธ</button>';
+    row+='</td></tr>';
+    return row;
+  }).join('');
+  tb.innerHTML=html2;
+}
+function filterWithDone(){
+  var from=document.getElementById('with-done-from')?.value||'',to=document.getElementById('with-done-to')?.value||'';
+  var rows=allWithdrawals.filter(function(w){return w.status==='approved'&&(!from||(w.approved_at||w.created_at||'').slice(0,10)>=from)&&(!to||(w.approved_at||w.created_at||'').slice(0,10)<=to);});
+  var tb=document.getElementById('with-done-tbody');if(!tb)return;
+  if(!rows.length){tb.innerHTML='<tr><td colspan="5" style="text-align:center;padding:28px;color:#aaa;">ไม่มีรายการ</td></tr>';return;}
+  tb.innerHTML=rows.map(function(w){return'<tr><td style="font-weight:700;cursor:pointer;color:var(--green)" onclick="openMember(\''+( w.nick||'')+'\')">'+( w.nick||'—')+'</td><td style="font-weight:700;color:#3b82f6">'+Number(w.amount||0).toLocaleString()+' ₭</td><td style="font-size:12px">'+(w.bank||'—')+'</td><td style="font-size:11px;color:#888">'+(w.txn||'—')+'</td><td style="font-size:11px;color:#888">'+fmtDate(w.approved_at||w.created_at)+'</td></tr>';}).join('');
+}
+function filterWithReject(){
+  var from=document.getElementById('with-reject-from')?.value||'',to=document.getElementById('with-reject-to')?.value||'';
+  var rows=allWithdrawals.filter(function(w){return w.status==='rejected'&&(!from||(w.created_at||'').slice(0,10)>=from)&&(!to||(w.created_at||'').slice(0,10)<=to);});
+  var tb=document.getElementById('with-reject-tbody');if(!tb)return;
+  if(!rows.length){tb.innerHTML='<tr><td colspan="4" style="text-align:center;padding:28px;color:#aaa;">ไม่มีรายการ</td></tr>';return;}
+  tb.innerHTML=rows.map(function(w){return'<tr><td style="font-weight:700;cursor:pointer;color:var(--green)" onclick="openMember(\''+( w.nick||'')+'\')">'+( w.nick||'—')+'</td><td style="font-weight:700;color:#dc2626">'+Number(w.amount||0).toLocaleString()+' ₭</td><td style="font-size:12px;color:#888">'+(w.reject_reason||w.note||'—')+'</td><td style="font-size:11px;color:#888">'+fmtDate(w.created_at)+'</td></tr>';}).join('');
+}
+
+// ── BETS / NEWS / SETTINGS / WORKLOG / REFERRAL / ACTIVITY ──
+async function loadBets(){const res=await sb.from('bets').select('*').order('created_at',{ascending:false});allBets=res.data||[];filterBets();}
+function filterBets(){
+  var from=document.getElementById('bet-date-from')?.value||'',to=document.getElementById('bet-date-to')?.value||'';
+  var status=document.getElementById('bet-status-filter')?.value||'all';
+  updateDateTag('bet');
+  var rows=allBets.filter(function(b){return(!from||(b.created_at||'').slice(0,10)>=from)&&(!to||(b.created_at||'').slice(0,10)<=to)&&(status==='all'||b.status===status);});
+  var tb=document.getElementById('bet-tbody');if(!tb)return;
+  if(!rows.length){tb.innerHTML='<tr><td colspan="8" style="text-align:center;padding:28px;color:#aaa;">ไม่มีรายการ</td></tr>';return;}
+  var bx={pending:'<span style="background:#fef9c3;color:#854d0e;padding:2px 8px;border-radius:12px;font-size:11px;font-weight:700">⏳ รอ</span>',matched:'<span style="background:#dbeafe;color:#1d4ed8;padding:2px 8px;border-radius:12px;font-size:11px;font-weight:700">🎯 จับคู่</span>',won:'<span style="background:#dcfce7;color:#15803d;padding:2px 8px;border-radius:12px;font-size:11px;font-weight:700">🏆 ชนะ</span>',lost:'<span style="background:#fee2e2;color:#991b1b;padding:2px 8px;border-radius:12px;font-size:11px;font-weight:700">💔 แพ้</span>'};
+  tb.innerHTML=rows.map(function(b){
+    var sideBg=b.side==='A'?'#fee2e2':'#dbeafe',sideCol=b.side==='A'?'#991b1b':'#1d4ed8',sideIcon=b.side==='A'?'🔴':'🔵';
+    return'<tr><td style="font-weight:700;cursor:pointer;color:var(--green)" onclick="openMember(\''+( b.nick||'')+'\')">'+( b.nick||'—')+'</td><td style="font-size:12px">'+(b.match_code||b.match_id||'—')+'</td><td><span style="padding:2px 8px;border-radius:12px;font-size:11px;font-weight:700;background:'+sideBg+';color:'+sideCol+'">'+sideIcon+'</span></td><td style="font-weight:700">'+Number(b.amount||0).toLocaleString()+' ₭</td><td style="color:#888;font-size:12px">× '+(b.odds||'—')+'</td><td>'+(bx[b.status]||b.status||'—')+'</td><td style="font-size:11px;color:#888">'+fmtDate(b.created_at)+'</td><td style="font-size:11px;color:#888">'+(b.matched_nick||'—')+'</td></tr>';
+  }).join('');
+}
+let _nl=[];
+async function loadNews(){try{const r=await sb.from('settings').select('value').eq('key','newsTicker').maybeSingle();_nl=r.data?.value||[];_rnl();}catch(e){}}
+function _rnl(){const tb=document.getElementById('news-list-tbody');if(!tb)return;if(!_nl.length){tb.innerHTML='<tr><td colspan="3" style="text-align:center;padding:24px;color:#aaa;">ยังไม่มีข่าว</td></tr>';return;}tb.innerHTML=_nl.map((x,i)=>'<tr><td>'+(typeof x==='object'?x.title||x:x)+'</td><td style="text-align:center;color:#aaa;">'+(i+1)+'</td><td><button onclick="_dn('+i+')" style="padding:3px 10px;background:#fff;color:#dc2626;border:1px solid #dc2626;border-radius:6px;font-size:11px;cursor:pointer;">🗑</button></td></tr>').join('');}
+async function addNews(){const inp=document.getElementById('news-input');const t=inp?.value?.trim();if(!t){showToast('กรุณากรอกข้อความ','error');return;}_nl.push(t);await sb.from('settings').upsert({key:'newsTicker',value:_nl});if(inp)inp.value='';showToast('เพิ่มข่าว ✅');_rnl();}
+async function _dn(i){if(!confirm('ลบ?'))return;_nl.splice(i,1);await sb.from('settings').upsert({key:'newsTicker',value:_nl});showToast('ลบสำเร็จ');_rnl();}
+async function loadSettings(){try{const res=await sb.from('settings').select('*');const rows=res.data||[];const find=k=>rows.find(r=>r.key===k)?.value||{};const sv=(id,val)=>{const e=document.getElementById(id);if(e&&val!==undefined)e.value=val;};const c=find('contact'),fee=find('feeRate'),ref=find('referralRate');sv('set-line-id',c?.lineId||'');sv('set-fb-url',c?.fbUrl||'');sv('set-tel',c?.phone1||'');sv('set-fee-rate',typeof fee==='number'?fee*100:fee||7);sv('set-ref-rate',typeof ref==='number'?ref*100:ref||5);}catch(e){}}
+async function saveSettings(section){const get=id=>document.getElementById(id)?.value?.trim()??'';let key='',value={};if(section==='contact'){key='contact';value={lineId:get('set-line-id'),fbUrl:get('set-fb-url'),phone1:get('set-tel')};}else if(section==='fee'){key='feeRate';value=parseFloat(get('set-fee-rate'))/100||0.07;}else if(section==='referral'){key='referralRate';value=parseFloat(get('set-ref-rate'))/100||0.05;}else{showToast('ไม่รู้จัก: '+section,'error');return;}const{error}=await sb.from('settings').upsert({key,value});if(error){showToast('❌ '+error.message,'error');return;}showToast('💾 บันทึก ✅');}
+async function loadWorklogPanel(){
+  var tb=document.getElementById('worklog-tbody');if(!tb)return;
+  tb.innerHTML='<tr><td colspan="6" style="text-align:center;padding:24px;color:#aaa;">กำลังโหลด...</td></tr>';
+  try{
+    var res=await sb.from('worklog').select('*').order('created_at',{ascending:false}).limit(200);
+    var rows=res.data||[];
+    if(!rows.length){tb.innerHTML='<tr><td colspan="6" style="text-align:center;padding:24px;color:#aaa;">ยังไม่มี</td></tr>';return;}
+    var lbl={approve_deposit:'✅ อนุมัติเติมเงิน',reject_deposit:'❌ ปฏิเสธ',approve_withdraw:'✅ โอนเงิน',reject_withdraw:'❌ ปฏิเสธถอน',admin_login:'🔑 Login'};
+    tb.innerHTML=rows.map(function(r2){
+      return'<tr><td style="font-size:11px;color:#888">'+fmtDate(r2.created_at)+'</td><td style="font-weight:700;font-size:12px;color:var(--green)">'+(r2.admin||'—')+'</td><td style="font-size:12px">'+(lbl[r2.action]||r2.action||'—')+'</td><td style="font-size:12px;cursor:pointer;color:var(--green)" onclick="openMember(\''+(r2.nick||'')+'\')">'+( r2.nick||'—')+'</td><td style="font-size:12px;font-weight:700;color:'+(r2.amount>0?'#16a34a':'#888')+'">'+( r2.amount?Number(r2.amount).toLocaleString()+' ₭':'—')+'</td><td style="font-size:11px;color:#888">'+(r2.note||'—')+'</td></tr>';
+    }).join('');
+  }catch(err){tb.innerHTML='<tr><td colspan="6" style="text-align:center;color:#dc2626">❌ '+err.message+'</td></tr>';}
+}
+function setWorklogTab(btn,type){document.querySelectorAll('.wl-tab').forEach(b=>b.classList.remove('active'));btn?.classList.add('active');loadWorklogPanel();}
+function clearWorklogFilter(){loadWorklogPanel();}
+async function loadReferralPanel(){
+  var tb=document.getElementById('ref-summary-tbody');if(!tb)return;
+  try{
+    var r1=await sb.from('members').select('nick,referred_by').not('referred_by','is',null);
+    var r2=await sb.from('deposits').select('nick,amount').eq('status','approved');
+    var r3=await sb.from('settings').select('value').eq('key','referralRate').maybeSingle();
+    var dM={};(r2.data||[]).forEach(function(d){dM[d.nick]=(dM[d.nick]||0)+Number(d.amount||0);});
+    var rM={};(r1.data||[]).forEach(function(m2){if(!rM[m2.referred_by])rM[m2.referred_by]={count:0,totalDep:0};rM[m2.referred_by].count++;rM[m2.referred_by].totalDep+=dM[m2.nick]||0;});
+    var rate=r3.data?.value||0.05;
+    var rows=Object.entries(rM).sort(function(a,b){return b[1].totalDep-a[1].totalDep;});
+    if(!rows.length){tb.innerHTML='<tr><td colspan="5" style="text-align:center;padding:24px;color:#aaa;">ยังไม่มีข้อมูล</td></tr>';return;}
+    tb.innerHTML=rows.map(function(e2){var ref=e2[0],d2=e2[1];return'<tr><td style="font-weight:700;cursor:pointer;color:var(--green)" onclick="openMember(\''+ref+'\')">'+ref+'</td><td style="text-align:center">'+d2.count+'</td><td style="text-align:right;font-weight:700;color:#16a34a">'+d2.totalDep.toLocaleString()+' ₭</td><td style="text-align:right;font-weight:700;color:#854d0e">'+Math.round(d2.totalDep*rate).toLocaleString()+' ₭</td><td style="font-size:11px;color:#888">'+(rate*100).toFixed(1)+'%</td></tr>';}).join('');
+  }catch(err){tb.innerHTML='<tr><td colspan="5" style="text-align:center;color:#dc2626">❌ '+err.message+'</td></tr>';}
+}
+async function loadActivityPanel(){
+  var tb=document.getElementById('activity-log-tbody');if(!tb)return;
+  try{
+    var res=await sb.from('worklog').select('*').eq('action','activity_reward').order('created_at',{ascending:false}).limit(100);
+    var rows=res.data||[];
+    if(!rows.length){tb.innerHTML='<tr><td colspan="5" style="text-align:center;padding:24px;color:#aaa;">ยังไม่มี</td></tr>';return;}
+    tb.innerHTML=rows.map(function(r2){return'<tr><td style="font-size:11px;color:#888">'+fmtDate(r2.created_at)+'</td><td style="font-weight:700">'+(r2.admin||'—')+'</td><td style="cursor:pointer;color:var(--green)" onclick="openMember(\''+( r2.nick||'')+'\')">'+( r2.nick||'—')+'</td><td style="font-weight:700;color:#16a34a">'+( r2.amount?Number(r2.amount).toLocaleString()+' ₭':'—')+'</td><td style="font-size:11px;color:#888">'+(r2.note||'—')+'</td></tr>';}).join('');
+  }catch(e){}
+}
+function loadActivityLogs(){loadActivityPanel();}
+async function loadRefRateLevels(){try{const r=await sb.from('settings').select('value').eq('key','referralRate').maybeSingle();const rate=r.data?.value||0.05;const el=document.getElementById('set-ref-rate');if(el)el.value=(rate*100).toFixed(1);}catch(e){}}
+function subscribeNotifications(){sb.channel('adm-dep').on('postgres_changes',{event:'INSERT',schema:'public',table:'deposits'},p=>{if(p.new?.status==='pending'){const b=document.getElementById('notif-badge');if(b){b.textContent=(parseInt(b.textContent)||0)+1;b.style.display='inline';}showToast('💰 เติมเงินใหม่: '+p.new.nick+' — '+Number(p.new.amount).toLocaleString()+' ₭');if(_currentPanel==='deposits')loadDeposits();loadOverview();}}).subscribe();sb.channel('adm-with').on('postgres_changes',{event:'INSERT',schema:'public',table:'withdrawals'},p=>{if(p.new?.status==='pending'){showToast('🏧 ถอนเงินใหม่: '+p.new.nick+' — '+Number(p.new.amount).toLocaleString()+' ₭');if(_currentPanel==='withdrawals')loadWithdrawals();loadOverview();}}).subscribe();}
+
+// ── MEMBER OVERLAY ──
+function _adminNick(){return currentStaff?.username||currentStaff?.nick||'admin';}
+function openMember(nick){
+  var ov=document.getElementById('member-overlay');if(!ov)return;
+  var m=allMembers.find(function(x){return x.nick===nick;});if(!m)return;
   ov.style.display='block';document.body.style.overflow='hidden';
-  document.querySelectorAll('.mo-tab').forEach(t=>t.classList.remove('active'));
-  document.querySelectorAll('.mo-pane').forEach(p=>p.classList.remove('active'));
-  document.querySelector('.mo-tab[data-tab="info"]')?.classList.add('active');
-  document.getElementById('mo-pane-info')?.classList.add('active');
-  const m=allMembers.find(x=>x.nick===nick);if(!m){closeMemberOverlay();return;}
-  const av=document.getElementById('mo-avatar');if(av)av.textContent=(m.nick||'?')[0].toUpperCase();
-  const nk=document.getElementById('mo-nick');if(nk)nk.textContent=m.nick||'—';
-  const vip=typeof getVipLevel==='function'?getVipLevel(m._totalDep||0):{icon:'',name:'',tier:0};
-  const vb=document.getElementById('mo-vip-badge');if(vb)vb.textContent=vip.icon+' '+vip.name;
-  const fb=document.getElementById('mo-flag-badges');if(fb&&typeof buildFlagBadgeHtml==='function')fb.innerHTML=(m.flags||[]).map(f=>buildFlagBadgeHtml(f)).join('');
-  const se=(id,v)=>{const e=document.getElementById(id);if(e)e.textContent=v;};
+  var se=function(id,v){var e=document.getElementById(id);if(e)e.textContent=v;};
+  var av=document.getElementById('mo-avatar');if(av)av.textContent=(m.nick||'?')[0].toUpperCase();
+  var nk=document.getElementById('mo-nick');if(nk)nk.textContent=m.nick||'—';
+  var vip=typeof getVipLevel==='function'?getVipLevel(m._totalDep||0):{icon:'',name:''};
+  var vb=document.getElementById('mo-vip-badge');if(vb)vb.textContent=vip.icon+' '+vip.name;
   se('mo-balance',Number(m.balance||0).toLocaleString());
   se('mo-dep-total',Number(m._totalDep||0).toLocaleString());
   se('mo-with-total',Number(m._totalWith||0).toLocaleString());
@@ -4804,300 +4807,298 @@ async function openMember(nick){
   se('mo-phone',m.phone||'—');
   se('mo-created',typeof fmtDate==='function'?fmtDate(m.created_at):m.created_at||'—');
   se('mo-referred',m.referred_by||'—');
-  const ni=document.getElementById('mo-note-input');if(ni)ni.value=m.admin_note||'';
-  const fc=document.getElementById('mo-flag-controls');
-  if(fc){const fl=['vip','suspicious','blocked','high_roller'],fl2={vip:'⭐ VIP พิเศษ',suspicious:'⚠️ น่าสงสัย',blocked:'🚫 บล็อก',high_roller:'💎 HighRoller'};fc.innerHTML=fl.map(f=>{const a=(m.flags||[]).includes(f);return'<button onclick="toggleMemberFlag(\''+f+'\')" style="padding:6px 14px;border-radius:20px;font-size:11px;font-weight:700;cursor:pointer;font-family:\'Kanit\',sans-serif;border:1.5px solid '+(a?'#dc2626':'#e0e0e0')+';background:'+(a?'#fee2e2':'#fff')+';color:'+(a?'#dc2626':'#888')+';">'+fl2[f]+'</button>';}).join('');}
+  var ni=document.getElementById('mo-note-input');if(ni)ni.value=m.admin_note||'';
+  var fc=document.getElementById('mo-flag-controls');
+  if(fc){
+    var fl=['vip','suspicious','blocked','high_roller'];
+    var fl2={vip:'⭐ VIP',suspicious:'⚠️ น่าสงสัย',blocked:'🚫 บล็อก',high_roller:'💎 HighRoller'};
+    fc.innerHTML=fl.map(function(f2){
+      var a=(m.flags||[]).includes(f2);
+      return'<button onclick="toggleMemberFlag(\''+f2+'\')" style="padding:6px 14px;border-radius:20px;font-size:11px;font-weight:700;cursor:pointer;border:1.5px solid '+(a?'#dc2626':'#e0e0e0')+';background:'+(a?'#fee2e2':'#fff')+';color:'+(a?'#dc2626':'#888')+'">'+fl2[f2]+'</button>';
+    }).join('');
+  }
   _loadMemberTxns(nick);
 }
 async function _loadMemberTxns(nick){
-  const renderTb=(id,cols,rows,renderRow)=>{const tb=document.getElementById(id);if(!tb)return;tb.innerHTML=rows.length?rows.map(renderRow).join(''):'<tr><td colspan="'+cols+'" style="text-align:center;padding:24px;color:#aaa;">ยังไม่มีรายการ</td></tr>';};
-  const sbadge=s=>s==='approved'?'<span style="background:#dcfce7;color:#15803d;padding:2px 8px;border-radius:12px;font-size:11px;font-weight:700;">✅ สำเร็จ</span>':s==='rejected'?'<span style="background:#fee2e2;color:#991b1b;padding:2px 8px;border-radius:12px;font-size:11px;font-weight:700;">❌ ปฏิเสธ</span>':'<span style="background:#fef9c3;color:#854d0e;padding:2px 8px;border-radius:12px;font-size:11px;font-weight:700;">⏳ รอ</span>';
-  try{const{data:deps}=await sb.from('deposits').select('*').eq('nick',nick).order('created_at',{ascending:false}).limit(50);renderTb('mo-dep-tbody',5,deps||[],d=>'<tr style="border-bottom:1px solid #f5f5f3;"><td style="padding:9px 12px;font-size:11px;color:#888;">'+fmtDate(d.created_at)+'</td><td style="padding:9px 12px;text-align:right;font-weight:700;color:#16a34a;">'+Number(d.amount||0).toLocaleString()+' ₭</td><td style="padding:9px 12px;font-size:12px;">'+(d.bank||'—')+'</td><td style="padding:9px 12px;font-size:11px;color:#888;">'+(d.txn||'—')+'</td><td style="padding:9px 12px;text-align:center;">'+sbadge(d.status)+'</td></tr>');}catch(e){}
-  try{const{data:ws}=await sb.from('withdrawals').select('*').eq('nick',nick).order('created_at',{ascending:false}).limit(50);renderTb('mo-with-tbody',4,ws||[],w=>'<tr style="border-bottom:1px solid #f5f5f3;"><td style="padding:9px 12px;font-size:11px;color:#888;">'+fmtDate(w.created_at)+'</td><td style="padding:9px 12px;text-align:right;font-weight:700;color:#dc2626;">'+Number(w.amount||0).toLocaleString()+' ₭</td><td style="padding:9px 12px;font-size:12px;">'+(w.bank||'—')+'</td><td style="padding:9px 12px;text-align:center;">'+sbadge(w.status)+'</td></tr>');}catch(e){}
-  try{const{data:bs}=await sb.from('bets').select('*').eq('nick',nick).order('created_at',{ascending:false}).limit(50);const bc=document.getElementById('mo-bets-count');if(bc)bc.textContent=(bs||[]).length;renderTb('mo-bets-tbody',5,bs||[],b=>{const res=b.status==='won'?'<span style="background:#dcfce7;color:#15803d;padding:2px 8px;border-radius:12px;font-size:11px;font-weight:700;">🏆 ชนะ</span>':b.status==='lost'?'<span style="background:#fee2e2;color:#991b1b;padding:2px 8px;border-radius:12px;font-size:11px;font-weight:700;">💔 แพ้</span>':'<span style="background:#f1f5f9;color:#64748b;padding:2px 8px;border-radius:12px;font-size:11px;font-weight:700;">⏳ รอ</span>';return'<tr style="border-bottom:1px solid #f5f5f3;"><td style="padding:9px 12px;font-size:11px;color:#888;">'+fmtDate(b.created_at)+'</td><td style="padding:9px 12px;font-size:12px;">'+(b.match_code||b.match_id||'—')+'</td><td style="padding:9px 12px;"><span style="padding:2px 8px;border-radius:12px;font-size:11px;font-weight:700;background:'+(b.side==='A'?'#fee2e2':'#dbeafe')+';color:'+(b.side==='A'?'#991b1b':'#1d4ed8')+';">'+(b.side==='A'?'🔴':'🔵')+' '+(b.side||'—')+'</span></td><td style="padding:9px 12px;text-align:right;font-weight:700;">'+Number(b.amount||0).toLocaleString()+' ₭</td><td style="padding:9px 12px;text-align:center;">'+res+'</td></tr>';});}catch(e){}
+  var sb2=function(s){return s==='approved'?'<span style="background:#dcfce7;color:#15803d;padding:2px 8px;border-radius:12px;font-size:11px;font-weight:700">✅</span>':s==='rejected'?'<span style="background:#fee2e2;color:#991b1b;padding:2px 8px;border-radius:12px;font-size:11px;font-weight:700">❌</span>':'<span style="background:#fef9c3;color:#854d0e;padding:2px 8px;border-radius:12px;font-size:11px;font-weight:700">⏳</span>';};
+  try{var r1=await sb.from('deposits').select('*').eq('nick',nick).order('created_at',{ascending:false}).limit(50);var dt=document.getElementById('mo-dep-tbody');if(dt)dt.innerHTML=(r1.data||[]).length?(r1.data||[]).map(function(d){return'<tr><td style="padding:9px 12px;font-size:11px;color:#888">'+fmtDate(d.created_at)+'</td><td style="padding:9px 12px;text-align:right;font-weight:700;color:#16a34a">'+Number(d.amount||0).toLocaleString()+' ₭</td><td style="padding:9px 12px;font-size:12px">'+(d.bank||'—')+'</td><td style="padding:9px 12px;font-size:11px;color:#888">'+(d.txn||'—')+'</td><td style="padding:9px 12px;text-align:center">'+sb2(d.status)+'</td></tr>';}).join(''):'<tr><td colspan="5" style="text-align:center;padding:24px;color:#aaa">ยังไม่มีรายการ</td></tr>';}catch(e){}
+  try{var r2=await sb.from('withdrawals').select('*').eq('nick',nick).order('created_at',{ascending:false}).limit(50);var wt=document.getElementById('mo-with-tbody');if(wt)wt.innerHTML=(r2.data||[]).length?(r2.data||[]).map(function(w){return'<tr><td style="padding:9px 12px;font-size:11px;color:#888">'+fmtDate(w.created_at)+'</td><td style="padding:9px 12px;text-align:right;font-weight:700;color:#dc2626">'+Number(w.amount||0).toLocaleString()+' ₭</td><td style="padding:9px 12px;font-size:12px">'+(w.bank||'—')+'</td><td style="padding:9px 12px;text-align:center">'+sb2(w.status)+'</td></tr>';}).join(''):'<tr><td colspan="4" style="text-align:center;padding:24px;color:#aaa">ยังไม่มีรายการ</td></tr>';}catch(e){}
+  try{var r3=await sb.from('bets').select('*').eq('nick',nick).order('created_at',{ascending:false}).limit(50);var bc=document.getElementById('mo-bets-count');if(bc)bc.textContent=(r3.data||[]).length;var bt=document.getElementById('mo-bets-tbody');if(bt)bt.innerHTML=(r3.data||[]).length?(r3.data||[]).map(function(b){var res=b.status==='won'?'🏆':b.status==='lost'?'💔':'⏳';return'<tr><td style="padding:9px 12px;font-size:11px;color:#888">'+fmtDate(b.created_at)+'</td><td style="padding:9px 12px;font-size:12px">'+(b.match_code||'—')+'</td><td style="padding:9px 12px"><span style="padding:2px 8px;border-radius:12px;font-size:11px;background:'+(b.side==='A'?'#fee2e2':'#dbeafe')+';color:'+(b.side==='A'?'#991b1b':'#1d4ed8')+'">'+(b.side==='A'?'🔴':'🔵')+'</span></td><td style="padding:9px 12px;text-align:right;font-weight:700">'+Number(b.amount||0).toLocaleString()+' ₭</td><td style="padding:9px 12px;text-align:center">'+res+'</td></tr>';}).join(''):'<tr><td colspan="5" style="text-align:center;padding:24px;color:#aaa">ยังไม่มีรายการ</td></tr>';}catch(e){}
 }
-function closeMemberOverlay(){const ov=document.getElementById('member-overlay');if(ov)ov.style.display='none';document.body.style.overflow='';_currentMemberNick=null;}
+function closeMemberOverlay(){const ov=document.getElementById('member-overlay');if(ov)ov.style.display='none';document.body.style.overflow='';}
+function closeMember(){closeMemberOverlay();}
 function switchMoTab(btn,tab){document.querySelectorAll('.mo-tab').forEach(t=>t.classList.remove('active'));document.querySelectorAll('.mo-pane').forEach(p=>p.classList.remove('active'));btn.classList.add('active');const pane=document.getElementById('mo-pane-'+tab);if(pane)pane.classList.add('active');}
-async function saveMemberNote(){const note=document.getElementById('mo-note-input')?.value||'';if(!_currentMemberNick)return;const{error}=await sb.from('members').update({admin_note:note}).eq('nick',_currentMemberNick);if(error){showToast('❌ '+error.message,'error');return;}showToast('💾 บันทึกหมายเหตุสำเร็จ');await loadMembers();}
-async function toggleMemberFlag(flag){if(!_currentMemberNick)return;const m=allMembers.find(x=>x.nick===_currentMemberNick);if(!m)return;const flags=Array.isArray(m.flags)?[...m.flags]:[];const idx=flags.indexOf(flag);if(idx!==-1)flags.splice(idx,1);else flags.push(flag);const{error}=await sb.from('members').update({flags}).eq('nick',_currentMemberNick);if(error){showToast('❌ '+error.message,'error');return;}showToast(idx!==-1?'✅ ลบ flag แล้ว':'✅ เพิ่ม flag แล้ว');await loadMembers();const up=allMembers.find(x=>x.nick===_currentMemberNick);if(up)openMember(up.nick);}
-async function adjustMemberBalance(){const ai=document.getElementById('mo-adjust-amount'),ri=document.getElementById('mo-adjust-reason');const amount=parseFloat(ai?.value||'0'),reason=ri?.value?.trim()||'';if(!_currentMemberNick||!amount){showToast('⚠️ กรุณากรอกจำนวนครับ','error');return;}if(!reason){showToast('⚠️ กรุณากรอกเหตุผลครับ','error');return;}const m=allMembers.find(x=>x.nick===_currentMemberNick);if(!m)return;const nb=Math.max(0,(m.balance||0)+amount);const{error}=await sb.from('members').update({balance:nb}).eq('nick',_currentMemberNick);if(error){showToast('❌ '+error.message,'error');return;}await sb.from('worklog').insert({admin:_adminNick(),action:'balance_adjust',nick:_currentMemberNick,amount,note:'ปรับยอดด้วยตนเอง: '+reason,created_at:new Date().toISOString()}).select().maybeSingle();showToast('✅ ปรับยอดเงินสำเร็จ '+(amount>0?'+':'')+amount.toLocaleString()+' ₭');if(ai)ai.value='';if(ri)ri.value='';await loadMembers();const up=allMembers.find(x=>x.nick===_currentMemberNick);if(up)openMember(up.nick);}
-async function deleteMemberFromOverlay(){if(!_currentMemberNick)return;const m=allMembers.find(x=>x.nick===_currentMemberNick);if(!m)return;if(!confirm('ลบบัญชีสมาชิก "'+_currentMemberNick+'" ถาวร?'))return;const{error}=await sb.from('members').delete().eq('id',m.id);if(error){showToast('❌ '+error.message,'error');return;}showToast('🗑 ลบสมาชิก "'+_currentMemberNick+'" แล้ว');closeMemberOverlay();await loadMembers();}
+async function saveMemberNote(){const note=document.getElementById('mo-note-input')?.value||'';const nick=document.getElementById('mo-nick')?.textContent;if(!nick||nick==='—')return;const{error}=await sb.from('members').update({admin_note:note}).eq('nick',nick);if(error){showToast('❌ '+error.message,'error');return;}showToast('💾 บันทึก ✅');await loadMembers();}
+async function toggleMemberFlag(flag){const nick=document.getElementById('mo-nick')?.textContent;if(!nick||nick==='—')return;const m=allMembers.find(x=>x.nick===nick);if(!m)return;const flags=Array.isArray(m.flags)?[...m.flags]:[];const idx=flags.indexOf(flag);if(idx!==-1)flags.splice(idx,1);else flags.push(flag);await sb.from('members').update({flags}).eq('nick',nick).catch(()=>{});showToast(idx!==-1?'✅ ลบ flag':'✅ เพิ่ม flag');await loadMembers();openMember(nick);}
+async function adjustMemberBalance(){const nick=document.getElementById('mo-nick')?.textContent;const ai=document.getElementById('mo-adjust-amount'),ri=document.getElementById('mo-adjust-reason');const amount=parseFloat(ai?.value||'0'),reason=ri?.value?.trim()||'';if(!nick||nick==='—'||!amount){showToast('⚠️ กรุณากรอกจำนวน','error');return;}if(!reason){showToast('⚠️ กรุณากรอกเหตุผล','error');return;}const m=allMembers.find(x=>x.nick===nick);if(!m)return;const nb=Math.max(0,(m.balance||0)+amount);await sb.from('members').update({balance:nb}).eq('nick',nick);await sb.from('worklog').insert({admin:_adminNick(),action:'balance_adjust',nick,amount,note:'ปรับยอด: '+reason,created_at:new Date().toISOString()}).select().maybeSingle();showToast('✅ ปรับยอด '+(amount>0?'+':'')+amount.toLocaleString()+' ₭');if(ai)ai.value='';if(ri)ri.value='';await loadMembers();openMember(nick);}
+async function deleteMemberFromOverlay(){const nick=document.getElementById('mo-nick')?.textContent;if(!nick||nick==='—')return;const m=allMembers.find(x=>x.nick===nick);if(!m)return;if(!confirm('ลบบัญชี "'+nick+'" ถาวร?'))return;await sb.from('members').delete().eq('id',m.id);showToast('🗑 ลบ "'+nick+'" แล้ว');closeMemberOverlay();await loadMembers();}
 document.addEventListener('click',e=>{const ov=document.getElementById('member-overlay');if(ov&&e.target===ov)closeMemberOverlay();});
 
-// ══════════════════════════════════════════════════════════════════════
-// BLOCK 7 — ADD STAFF + LOAD STAFF PANEL + SWITCH STAFF SEC
-// ══════════════════════════════════════════════════════════════════════
-function _adminNick(){return currentStaff?.username||currentStaff?.nick||'admin';}
+// ── ADD STAFF (schema-safe) ──
+function _adminNickAlias(){return typeof _adminNick==='function'?_adminNick():'admin';}
 async function addStaff(){
-  const nameVal = document.getElementById('new-staff-name')?.value?.trim()||'';
-  const user    = document.getElementById('new-staff-user')?.value?.trim()?.toLowerCase()||'';
-  const pass    = document.getElementById('new-staff-pass')?.value||'';
-  const role    = document.getElementById('new-staff-role')?.value||'financial';
-
-  // Validate
-  if(!nameVal){showToast('⚠️ กรุณากรอกชื่อ-นามสกุลครับ','error');return;}
-  if(!user||user.length<3){showToast('⚠️ Username ต้องมีอย่างน้อย 3 ตัวอักษรครับ','error');return;}
-  if(!/^[a-z0-9_]+$/.test(user)){showToast('⚠️ Username ใช้ได้เฉพาะ a-z, 0-9, _ ครับ','error');return;}
-  if(!pass||pass.length<6){showToast('⚠️ รหัสผ่านต้องมีอย่างน้อย 6 ตัวอักษรครับ','error');return;}
-
-  // ตรวจ username ซ้ำ
+  const nameVal=document.getElementById('new-staff-name')?.value?.trim()||'';
+  const user=document.getElementById('new-staff-user')?.value?.trim()?.toLowerCase()||'';
+  const pass=document.getElementById('new-staff-pass')?.value||'';
+  const role=document.getElementById('new-staff-role')?.value||'financial';
+  if(!nameVal){showToast('⚠️ กรุณากรอกชื่อ','error');return;}
+  if(!user||user.length<3){showToast('⚠️ Username ≥3 ตัว','error');return;}
+  if(!/^[a-z0-9_]+$/.test(user)){showToast('⚠️ Username ใช้ a-z, 0-9, _ เท่านั้น','error');return;}
+  if(!pass||pass.length<6){showToast('⚠️ รหัสผ่าน ≥6 ตัว','error');return;}
   const{data:ex}=await sb.from('staff').select('id').eq('username',user).maybeSingle();
-  if(ex){showToast('❌ Username "'+user+'" มีอยู่แล้วครับ','error');return;}
-
+  if(ex){showToast('❌ Username "'+user+'" มีอยู่แล้ว','error');return;}
   const hash=await hashPassword(pass);
-
-  // ── Insert เฉพาะ columns ที่มีอยู่จริงใน table ──
-  const{data:newStaff, error:e1}=await sb.from('staff').insert({
-    username:   user,
-    password:   hash,
-    role,
-    is_active:  true,
-    created_at: new Date().toISOString(),
-  }).select().maybeSingle();
-
-  if(e1){showToast('❌ เพิ่มพนักงานไม่ได้: '+e1.message,'error');return;}
-
-  // ── Try update columns ใหม่ (silent — ถ้า schema ยังไม่มีก็ไม่ crash) ──
-  if(newStaff?.id){
-    sb.from('staff').update({
-      name:                 nameVal,
-      must_change_password: true,
-      must_setup_2fa:       true,
-      totp_secret:          null,
-    }).eq('id',newStaff.id).then(()=>{}).catch(()=>{});
-  }
-
-  // ── Log ──
-  await sb.from('worklog').insert({
-    admin:      _adminNick(),
-    action:     'add_staff',
-    nick:       user,
-    note:       'เพิ่มพนักงาน "'+nameVal+'" ('+user+') Role: '+role,
-    created_at: new Date().toISOString(),
-  }).select().maybeSingle();
-
-  // ── แสดง popup รหัสชั่วคราวให้ admin เห็น ──
-  _showStaffCreatedPopup(nameVal, user, pass, role);
-
-  ['new-staff-name','new-staff-user','new-staff-pass'].forEach(id=>{
-    const el=document.getElementById(id);if(el)el.value='';
-  });
-
-  await loadStaffPanel();
-  switchStaffSec('list');
+  const{data:newStaff,error:e1}=await sb.from('staff').insert({username:user,password:hash,role,is_active:true,created_at:new Date().toISOString()}).select().maybeSingle();
+  if(e1){showToast('❌ '+e1.message,'error');return;}
+  if(newStaff?.id){sb.from('staff').update({name:nameVal,must_change_password:true,must_setup_2fa:true,totp_secret:null}).eq('id',newStaff.id).catch(()=>{});}
+  await sb.from('worklog').insert({admin:_adminNick(),action:'add_staff',nick:user,note:'เพิ่มพนักงาน "'+nameVal+'" ('+user+')',created_at:new Date().toISOString()}).select().maybeSingle();
+  _showStaffCreatedPopup(nameVal,user,pass,role);
+  ['new-staff-name','new-staff-user','new-staff-pass'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
+  await loadStaffPanel();switchStaffSec('list');
+}
+function _showStaffCreatedPopup(name,username,tempPass,role){
+  var ex=document.getElementById('staff-created-popup');if(ex)ex.remove();
+  var rl={financial:'💰 Financial',cs:'🎯 CS',all:'⭐ ทั่วไป'};
+  var div=document.createElement('div');div.id='staff-created-popup';
+  div.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,0.65);z-index:99998;display:flex;align-items:center;justify-content:center;padding:16px';
+  var box=document.createElement('div');
+  box.style.cssText='background:#fff;border-radius:16px;padding:28px;width:100%;max-width:420px';
+  var rows=[
+    ['ชื่อ', name],
+    ['Username', '<span style="color:var(--green);font-weight:900">'+username+'</span>'],
+    ['รหัสผ่านชั่วคราว', '<code style="font-size:15px;font-weight:900;color:#dc2626;background:#fff5f5;padding:4px 10px;border-radius:6px;border:1px solid #fca5a5">'+tempPass+'</code>'],
+    ['ตำแหน่ง', rl[role]||role],
+  ].map(function(r2){return'<div style="display:contents"><div style="font-size:12px;color:#888;padding:6px 0">'+r2[0]+'</div><div style="font-size:14px;font-weight:700;padding:6px 0">'+r2[1]+'</div></div>';}).join('');
+  box.innerHTML=[
+    '<div style="text-align:center;margin-bottom:20px"><div style="font-size:40px">✅</div>',
+    '<div style="font-family:Kanit,sans-serif;font-weight:900;font-size:18px">เพิ่มพนักงานสำเร็จ!</div></div>',
+    '<div style="background:#f9f9f7;border-radius:10px;padding:16px;border:1px solid #e5e5e0;margin-bottom:16px;display:grid;grid-template-columns:auto 1fr;gap:4px 16px;font-family:Kanit,sans-serif">'+rows+'</div>',
+    '<div style="background:#fffbeb;border-radius:8px;padding:10px;border:1px solid #fde68a;font-size:12px;color:#92400e;font-family:Kanit,sans-serif;margin-bottom:16px">⚠️ พนักงานต้องเข้าด้วยรหัสนี้ ระบบจะบังคับตั้งรหัสใหม่และ 2FA</div>',
+    '<button onclick="document.getElementById(\'staff-created-popup\').remove()" style="width:100%;padding:12px;background:#1B6B2F;color:#fff;border:none;border-radius:10px;font-family:Kanit,sans-serif;font-weight:700;font-size:14px;cursor:pointer">✅ รับทราบ</button>',
+  ].join('');
+  div.appendChild(box);document.body.appendChild(div);
 }
 
-// Popup แสดงข้อมูลพนักงานใหม่ให้ Super Admin เห็น
-function _showStaffCreatedPopup(name, username, tempPass, role){
-  const existing = document.getElementById('staff-created-popup');
-  if(existing) existing.remove();
-
-  const roleLabel={financial:'💰 Financial',cs:'🎯 CS',all:'⭐ ทั่วไป'};
-  const div=document.createElement('div');
-  div.id='staff-created-popup';
-  div.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,0.65);z-index:99998;display:flex;align-items:center;justify-content:center;padding:16px;';
-  div.innerHTML=`
-    <div style="background:#fff;border-radius:16px;padding:28px;width:100%;max-width:420px;box-shadow:0 20px 60px rgba(0,0,0,0.3);">
-      <div style="text-align:center;margin-bottom:20px;">
-        <div style="font-size:40px;margin-bottom:8px;">✅</div>
-        <div style="font-family:'Kanit',sans-serif;font-weight:900;font-size:18px;color:#1a1a1a;">เพิ่มพนักงานสำเร็จ!</div>
-        <div style="font-size:13px;color:#888;margin-top:4px;">แจ้ง Login ชั่วคราวนี้ให้พนักงาน</div>
-      </div>
-      <div style="background:#f9f9f7;border-radius:10px;padding:16px;border:1px solid #e5e5e0;margin-bottom:16px;">
-        <div style="display:grid;grid-template-columns:auto 1fr;gap:8px 16px;font-family:'Kanit',sans-serif;">
-          <div style="font-size:12px;color:#888;">ชื่อ</div>
-          <div style="font-size:14px;font-weight:700;color:#1a1a1a;">${name}</div>
-          <div style="font-size:12px;color:#888;">Username</div>
-          <div style="font-size:14px;font-weight:700;color:var(--green);">${username}</div>
-          <div style="font-size:12px;color:#888;">รหัสผ่านชั่วคราว</div>
-          <div style="display:flex;align-items:center;gap:8px;">
-            <code style="font-size:15px;font-weight:900;color:#dc2626;background:#fff5f5;padding:4px 10px;border-radius:6px;border:1px solid #fca5a5;letter-spacing:1px;">${tempPass}</code>
-            <button onclick="navigator.clipboard&&navigator.clipboard.writeText('${tempPass}').then(()=>showToast('✅ คัดลอกแล้ว'))" style="padding:4px 10px;background:#fff;border:1px solid #e0e0e0;border-radius:6px;font-size:11px;cursor:pointer;font-family:'Kanit',sans-serif;">📋</button>
-          </div>
-          <div style="font-size:12px;color:#888;">ตำแหน่ง</div>
-          <div style="font-size:13px;color:#555;">${roleLabel[role]||role}</div>
-        </div>
-      </div>
-      <div style="background:#fffbeb;border-radius:8px;padding:10px 14px;border:1px solid #fde68a;font-size:12px;color:#92400e;font-family:'Kanit',sans-serif;margin-bottom:16px;">
-        ⚠️ พนักงานต้องเข้าระบบด้วยรหัสนี้ แล้วจะถูกบังคับให้ตั้งรหัสใหม่และตั้งค่า 2FA เองทันที
-      </div>
-      <button onclick="document.getElementById('staff-created-popup').remove()" style="width:100%;padding:12px;background:#1B6B2F;color:#fff;border:none;border-radius:10px;font-family:'Kanit',sans-serif;font-weight:700;font-size:14px;cursor:pointer;">✅ รับทราบแล้ว</button>
-    </div>
-  `;
-  document.body.appendChild(div);
-}
-
-
+// ── LOAD STAFF PANEL ──
+let _allStaff=[];
 async function loadStaffPanel(){
   try{
     const[sRes,lRes]=await Promise.all([sb.from('staff').select('*').order('created_at',{ascending:false}),sb.from('worklog').select('*',{count:'exact',head:true})]);
     _allStaff=sRes.data||[];
+    if(_allStaff.length&&!_allStaff[0].hasOwnProperty('name')){
+      const{data:wlogs}=await sb.from('worklog').select('nick,note').eq('action','add_staff');
+      const nm={};(wlogs||[]).forEach(w=>{const m=w.note?.match(/เพิ่มพนักงาน "([^"]+)"/);if(m)nm[w.nick]=m[1];});
+      _allStaff=_allStaff.map(s=>({...s,name:s.name||nm[s.username]||s.username}));
+    }
     const ac=_allStaff.filter(s=>s.is_active).length;
     const se=(id,v)=>{const e=document.getElementById(id);if(e)e.textContent=v;};
     se('staff-total',_allStaff.length);se('staff-active',ac);se('staff-logs-count',lRes.count||0);
     se('staff-total-badge',_allStaff.length?'('+_allStaff.length+')':'');
     _renderStaffList();
-  }catch(err){showToast('❌ โหลดข้อมูลพนักงานไม่ได้: '+err.message,'error');}
+  }catch(err){showToast('❌ '+err.message,'error');}
 }
 function _renderStaffList(){
-  const tb=document.getElementById('staff-tbody');if(!tb)return;
-  if(!_allStaff.length){tb.innerHTML='<tr><td colspan="6" style="text-align:center;padding:28px;color:#aaa;">ยังไม่มีพนักงาน</td></tr>';return;}
-  const rl={financial:'💰 Financial',cs:'🎯 CS',all:'⭐ ทั่วไป'},rb={financial:'background:#f0fdf4;color:#15803d;',cs:'background:#eff6ff;color:#1d4ed8;',all:'background:#faf5ff;color:#7c3aed;'};
-  tb.innerHTML=_allStaff.map(s=>{
-    const sb2=s.is_active?'<span style="background:#dcfce7;color:#15803d;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:700;font-family:\'Kanit\',sans-serif;">✅ ใช้งาน</span>':'<span style="background:#f1f5f9;color:#94a3b8;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:700;font-family:\'Kanit\',sans-serif;">⏸ ปิด</span>';
-    const ob=[];if(s.must_change_password)ob.push('<span style="background:#fffbeb;color:#92400e;padding:2px 7px;border-radius:6px;font-size:10px;font-weight:700;font-family:\'Kanit\',sans-serif;">⚠️ ยังไม่เปลี่ยน Pass</span>');if(s.must_setup_2fa)ob.push('<span style="background:#fff5f5;color:#dc2626;padding:2px 7px;border-radius:6px;font-size:10px;font-weight:700;font-family:\'Kanit\',sans-serif;">🔐 ยังไม่ตั้ง 2FA</span>');
-    return'<tr style="border-bottom:1px solid #f5f5f3;"><td style="padding:10px 12px;"><div style="font-weight:700;font-size:13px;font-family:\'Kanit\',sans-serif;">'+(s.name||'—')+'</div>'+(ob.length?'<div style="display:flex;gap:4px;margin-top:4px;flex-wrap:wrap;">'+ob.join('')+'</div>':'')+'</td><td style="padding:10px 12px;font-family:\'Kanit\',sans-serif;font-size:13px;color:#555;">'+(s.username||'—')+'</td><td style="padding:10px 12px;"><span style="padding:3px 10px;border-radius:20px;font-size:11px;font-weight:700;font-family:\'Kanit\',sans-serif;'+(rb[s.role]||'')+'">'+(rl[s.role]||s.role||'—')+'</span></td><td style="padding:10px 12px;text-align:center;">'+sb2+'</td><td style="padding:10px 12px;font-size:11px;color:#aaa;">'+(s.last_login?fmtDate(s.last_login):'—')+'</td><td style="padding:10px 12px;"><div style="display:flex;gap:4px;"><button onclick="toggleStaff(\''+s.id+'\',\''+s.is_active+'\')" style="padding:4px 10px;background:'+(s.is_active?'#fff':'#f0fdf4')+';color:'+(s.is_active?'#dc2626':'#16a34a')+';border:1px solid '+(s.is_active?'#dc2626':'#16a34a')+';border-radius:6px;font-size:11px;font-weight:700;cursor:pointer;font-family:\'Kanit\',sans-serif;">'+(s.is_active?'⏸ ปิด':'▶ เปิด')+'</button><button onclick="resetStaffPassword(\''+s.id+'\',\''+s.username+'\')" style="padding:4px 10px;background:#fff;color:#d97706;border:1px solid #d97706;border-radius:6px;font-size:11px;font-weight:700;cursor:pointer;font-family:\'Kanit\',sans-serif;">🔑 Reset</button></div></td></tr>';
+  var tb=document.getElementById('staff-tbody');if(!tb)return;
+  if(!_allStaff.length){tb.innerHTML='<tr><td colspan="6" style="text-align:center;padding:28px;color:#aaa">ยังไม่มีพนักงาน</td></tr>';return;}
+  var rl={financial:'💰 Financial',cs:'🎯 CS',all:'⭐ ทั่วไป'};
+  var rb={financial:'background:#f0fdf4;color:#15803d',cs:'background:#eff6ff;color:#1d4ed8',all:'background:#faf5ff;color:#7c3aed'};
+  tb.innerHTML=_allStaff.map(function(s){
+    var sb2=s.is_active?'<span style="background:#dcfce7;color:#15803d;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:700">✅ ใช้งาน</span>':'<span style="background:#f1f5f9;color:#94a3b8;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:700">⏸ ปิด</span>';
+    var ob=[];
+    if(s.must_change_password)ob.push('<span style="background:#fffbeb;color:#92400e;padding:2px 7px;border-radius:6px;font-size:10px;font-weight:700">⚠️ ยังไม่เปลี่ยน Pass</span>');
+    if(s.must_setup_2fa)ob.push('<span style="background:#fff5f5;color:#dc2626;padding:2px 7px;border-radius:6px;font-size:10px;font-weight:700">🔐 ยังไม่ตั้ง 2FA</span>');
+    return'<tr style="border-bottom:1px solid #f5f5f3"><td style="padding:10px 12px"><div style="font-weight:700;font-size:13px">'+(s.name||s.username||'—')+'</div>'+(ob.length?'<div style="display:flex;gap:4px;margin-top:4px;flex-wrap:wrap">'+ob.join('')+'</div>':'')+'</td><td style="padding:10px 12px;font-size:13px;color:#555">'+(s.username||'—')+'</td><td style="padding:10px 12px"><span style="padding:3px 10px;border-radius:20px;font-size:11px;font-weight:700;'+(rb[s.role]||'')+'">'+(rl[s.role]||s.role||'—')+'</span></td><td style="padding:10px 12px;text-align:center">'+sb2+'</td><td style="padding:10px 12px;font-size:11px;color:#aaa">'+(s.last_login?fmtDate(s.last_login):'—')+'</td><td style="padding:10px 12px"><div style="display:flex;gap:4px"><button onclick="toggleStaff(\''+s.id+'\',\''+s.is_active+'\')" style="padding:4px 10px;background:'+(s.is_active?'#fff':'#f0fdf4')+';color:'+(s.is_active?'#dc2626':'#16a34a')+';border:1px solid '+(s.is_active?'#dc2626':'#16a34a')+';border-radius:6px;font-size:11px;font-weight:700;cursor:pointer">'+(s.is_active?'⏸':'▶')+'</button><button onclick="resetStaffPassword(\''+s.id+'\',\''+s.username+'\')" style="padding:4px 10px;background:#fff;color:#d97706;border:1px solid #d97706;border-radius:6px;font-size:11px;font-weight:700;cursor:pointer">🔑</button></div></td></tr>';
   }).join('');
 }
-async function toggleStaff(id,isActive){const ns=isActive==='true'||isActive===true?false:true;const{error}=await sb.from('staff').update({is_active:ns}).eq('id',id);if(error){showToast('❌ '+error.message,'error');return;}showToast(ns?'✅ เปิดใช้งานแล้ว':'⏸ ปิดใช้งานแล้ว');await loadStaffPanel();}
-async function resetStaffPassword(id,username){const np=prompt('รหัสผ่านชั่วคราวใหม่สำหรับ "'+username+'":');if(!np||np.length<6){showToast('⚠️ รหัสผ่านต้องมีอย่างน้อย 6 ตัวครับ','error');return;}const hash=await hashPassword(np);const{error}=await sb.from('staff').update({password:hash,must_change_password:true}).eq('id',id);if(error){showToast('❌ '+error.message,'error');return;}showToast('✅ Reset รหัสผ่าน "'+username+'" แล้ว');await loadStaffPanel();}
+async function toggleStaff(id,isActive){const ns=isActive==='true'||isActive===true?false:true;await sb.from('staff').update({is_active:ns}).eq('id',id);showToast(ns?'✅ เปิด':'⏸ ปิด');await loadStaffPanel();}
+async function resetStaffPassword(id,username){const np=prompt('รหัสผ่านชั่วคราวใหม่สำหรับ "'+username+'":');if(!np||np.length<6){showToast('⚠️ ≥6 ตัว','error');return;}const hash=await hashPassword(np);await sb.from('staff').update({password:hash,must_change_password:true}).eq('id',id);showToast('✅ Reset รหัสผ่าน "'+username+'" แล้ว');await loadStaffPanel();}
 function switchStaffSec(sec){document.querySelectorAll('#panel-staff .match-sec').forEach(s=>s.classList.remove('active'));document.querySelectorAll('#panel-staff .match-nav-item').forEach(i=>i.classList.remove('active'));const pane=document.getElementById('staff-sec-'+sec),nav=document.getElementById('sfnav-'+sec);if(pane)pane.classList.add('active');if(nav)nav.classList.add('active');if(sec==='list')loadStaffPanel();if(sec==='logs')loadStaffLogs();}
-async function loadStaffLogs(){const tb=document.getElementById('staff-logs-tbody');if(!tb)return;tb.innerHTML='<tr><td colspan="4" style="text-align:center;padding:24px;color:#aaa;">กำลังโหลด...</td></tr>';try{const res=await sb.from('worklog').select('*').order('created_at',{ascending:false}).limit(100);const rows=res.data||[];if(!rows.length){tb.innerHTML='<tr><td colspan="4" style="text-align:center;padding:24px;color:#aaa;">ยังไม่มีประวัติ</td></tr>';return;}const rl={financial:'💰 Financial',cs:'🎯 CS',all:'⭐ ทั่วไป'};tb.innerHTML=rows.map(r=>{const s=_allStaff.find(x=>x.username===r.admin);const role=s?(rl[s.role]||s.role):(r.admin==='admin'?'👑 Super Admin':'—');return'<tr style="border-bottom:1px solid #f5f5f3;"><td style="padding:9px 12px;font-weight:700;font-size:12px;color:var(--green);">'+(r.admin||'—')+'</td><td style="padding:9px 12px;font-size:11px;color:#888;">'+role+'</td><td style="padding:9px 12px;font-size:12px;">'+(r.note||r.action||'—')+'</td><td style="padding:9px 12px;font-size:11px;color:#aaa;text-align:right;">'+fmtDate(r.created_at)+'</td></tr>';}).join('');}catch(err){tb.innerHTML='<tr><td colspan="4" style="text-align:center;color:#dc2626;">❌ '+err.message+'</td></tr>';}}
+async function loadStaffLogs(){
+  var tb=document.getElementById('staff-logs-tbody');if(!tb)return;
+  tb.innerHTML='<tr><td colspan="4" style="text-align:center;padding:24px;color:#aaa;">กำลังโหลด...</td></tr>';
+  try{
+    var res=await sb.from('worklog').select('*').order('created_at',{ascending:false}).limit(100);
+    var rows=res.data||[];
+    if(!rows.length){tb.innerHTML='<tr><td colspan="4" style="text-align:center;padding:24px;color:#aaa;">ยังไม่มี</td></tr>';return;}
+    tb.innerHTML=rows.map(function(r2){return'<tr style="border-bottom:1px solid #f5f5f3"><td style="padding:9px 12px;font-weight:700;font-size:12px;color:var(--green)">'+(r2.admin||'—')+'</td><td style="padding:9px 12px;font-size:11px;color:#888">—</td><td style="padding:9px 12px;font-size:12px">'+(r2.note||r2.action||'—')+'</td><td style="padding:9px 12px;font-size:11px;color:#aaa;text-align:right">'+fmtDate(r2.created_at)+'</td></tr>';}).join('');
+  }catch(err){tb.innerHTML='<tr><td colspan="4" style="text-align:center;color:#dc2626">❌ '+err.message+'</td></tr>';}
+}
 function filterStaffLogs(){loadStaffLogs();}
-function clearStaffLogFilter(){const s=document.getElementById("log-search-staff");if(s)s.value="";loadStaffLogs();}
-function openStaffProfile(u){const s=_allStaff.find(x=>x.username===u);if(!s)return;const m=document.getElementById('staff-profile-modal');if(!m)return;m.style.display='block';const se=(id,v)=>{const e=document.getElementById(id);if(e)e.textContent=v;};se('sp-name',s.name||s.username);const av=document.getElementById('sp-avatar');if(av)av.textContent=(s.name||'?')[0].toUpperCase();const rl={financial:'💰 Financial',cs:'🎯 CS',all:'⭐ ทั่วไป'};se('sp-role-badge',rl[s.role]||s.role||'—');se('sp-status-badge',s.is_active?'✅ ใช้งาน':'⏸ ปิด');}
+function clearStaffLogFilter(){loadStaffLogs();}
+function openStaffProfile(u){const s=_allStaff.find(x=>x.username===u);if(!s)return;const m=document.getElementById('staff-profile-modal');if(!m)return;m.style.display='block';const se=(id,v)=>{const e=document.getElementById(id);if(e)e.textContent=v;};se('sp-name',s.name||s.username);const av=document.getElementById('sp-avatar');if(av)av.textContent=(s.name||'?')[0].toUpperCase();}
 function closeStaffProfile(){const m=document.getElementById('staff-profile-modal');if(m)m.style.display='none';}
 function switchSpTab(btn,tab){document.querySelectorAll('.sp-tab').forEach(t=>t.classList.remove('active'));btn.classList.add('active');}
-function clearSpFilter(){['sp-search','sp-from','sp-to'].forEach(id=>{const e=document.getElementById(id);if(e)e.value='';});}
+function clearSpFilter(){}
 function renderSpLogs(){}
 
-// ══════════════════════════════════════════════════════════════════════
-// BLOCK 8 — STAFF ONBOARDING FLOW (First Login)
-// ══════════════════════════════════════════════════════════════════════
+// ── STAFF ONBOARDING ──
 let _obSecret=null;
 async function _checkStaffOnboarding(staffRow){
-  // ดึงข้อมูล staff ล่าสุดจาก DB (อาจมีการอัพเดตหลัง insert)
-  let latestStaff = staffRow;
-  try{
-    const{data}=await sb.from('staff').select('*').eq('id',staffRow.id).maybeSingle();
-    if(data) latestStaff=data;
-  }catch(_){}
-
-  const needPassChange = latestStaff.must_change_password === true;
-  const need2FA        = latestStaff.must_setup_2fa === true;
-
-  // ถ้าไม่ต้อง onboard → ออกไปเลย
-  if(!needPassChange && !need2FA) return;
-
-  const modal=document.getElementById('staff-onboarding-modal');
-  if(!modal) return;
-
-  // แสดง modal
+  let latest=staffRow;
+  try{const{data}=await sb.from('staff').select('*').eq('id',staffRow.id).maybeSingle();if(data)latest=data;}catch(_){}
+  if(!latest.must_change_password&&!latest.must_setup_2fa)return;
+  const modal=document.getElementById('staff-onboarding-modal');if(!modal)return;
   modal.style.display='flex';
-
-  if(needPassChange){
-    // Step 1: เปลี่ยนรหัสผ่าน
+  if(latest.must_change_password){
     document.getElementById('ob-step-1').style.display='block';
     document.getElementById('ob-step-2').style.display='none';
-    _obUpdateDots(1);
-    const sl=document.getElementById('ob-step-label');
-    if(sl) sl.textContent = need2FA ? 'ขั้นตอน 1/2' : 'ขั้นตอน 1/1';
+    const d1=document.getElementById('ob-dot-1'),d2=document.getElementById('ob-dot-2');
+    if(d1)d1.style.background='rgba(255,255,255,0.9)';if(d2)d2.style.background='rgba(255,255,255,0.3)';
+    const sl=document.getElementById('ob-step-label');if(sl)sl.textContent=latest.must_setup_2fa?'ขั้นตอน 1/2':'ขั้นตอน 1/1';
     setTimeout(()=>document.getElementById('ob-new-pass')?.focus(),200);
-  } else if(need2FA){
-    // ข้ามไป Step 2: ตั้ง 2FA ทันที
-    await _obGoStep2();
-  }
-}
-function _obUpdateDots(step){
-  const d1=document.getElementById('ob-dot-1'),d2=document.getElementById('ob-dot-2');
-  if(d1)d1.style.background=step>=1?'rgba(255,255,255,0.9)':'rgba(255,255,255,0.3)';
-  if(d2)d2.style.background=step>=2?'rgba(255,255,255,0.9)':'rgba(255,255,255,0.3)';
-  const lbl=document.getElementById('ob-step-label');if(lbl)lbl.textContent='ขั้นตอน '+step+'/2';
+  }else if(latest.must_setup_2fa){await _obGoStep2();}
 }
 async function _obSubmitPassword(){
-  const p1=document.getElementById('ob-new-pass')?.value||'';
-  const p2=document.getElementById('ob-confirm-pass')?.value||'';
-  const err=document.getElementById('ob-pass-err');
-  if(err) err.style.display='none';
-
-  // Validate password
-  if(p1.length<6){if(err){err.style.display='block';err.textContent='⚠️ รหัสผ่านต้องมีอย่างน้อย 6 ตัวอักษรครับ';}return;}
-  if(p1!==p2){if(err){err.style.display='block';err.textContent='⚠️ รหัสผ่านไม่ตรงกันครับ';}return;}
-
-  const btn=document.querySelector('#ob-step-1 button:last-child');
-  if(btn){btn.disabled=true;btn.textContent='กำลังบันทึก...';}
-
-  try{
-    const hash=await hashPassword(p1);
-    // บันทึกรหัสผ่านใหม่ + ปิด flag
-    const{error}=await sb.from('staff').update({
-      password:             hash,
-      must_change_password: false,
-    }).eq('id',currentStaff.id);
-
-    if(error && !error.message.includes('column')){
-      if(err){err.style.display='block';err.textContent='❌ '+error.message;}
-      return;
-    }
-
-    // อัพเดต currentStaff
-    currentStaff = {...currentStaff, password: hash, must_change_password: false};
-
-    // ── ตรวจว่าต้อง setup 2FA ด้วยไหม ──
-    const need2FA = currentStaff.must_setup_2fa === true;
-    if(need2FA){
-      await _obGoStep2();
-    } else {
-      // เสร็จแล้ว — ปิด modal
-      document.getElementById('staff-onboarding-modal').style.display='none';
-      showToast('✅ เปลี่ยนรหัสผ่านสำเร็จแล้วครับ! ยินดีต้อนรับสู่ระบบ');
-    }
-  } finally {
-    if(btn){btn.disabled=false;btn.textContent='ถัดไป →';}
-  }
+  const p1=document.getElementById('ob-new-pass')?.value||'',p2=document.getElementById('ob-confirm-pass')?.value||'';
+  const err=document.getElementById('ob-pass-err');if(err)err.style.display='none';
+  if(p1.length<6){if(err){err.style.display='block';err.textContent='⚠️ รหัสผ่าน ≥6 ตัว';}return;}
+  if(p1!==p2){if(err){err.style.display='block';err.textContent='⚠️ รหัสผ่านไม่ตรงกัน';}return;}
+  const hash=await hashPassword(p1);
+  await sb.from('staff').update({password:hash,must_change_password:false}).eq('id',currentStaff.id).catch(()=>{});
+  currentStaff={...currentStaff,password:hash,must_change_password:false};
+  if(currentStaff.must_setup_2fa){await _obGoStep2();}
+  else{document.getElementById('staff-onboarding-modal').style.display='none';showToast('✅ เปลี่ยนรหัสผ่านสำเร็จ!');}
 }
 async function _obGoStep2(){
   document.getElementById('ob-step-1').style.display='none';
   document.getElementById('ob-step-2').style.display='block';
-  _obUpdateDots(2);
+  var d1=document.getElementById('ob-dot-1'),d2=document.getElementById('ob-dot-2');
+  if(d1)d1.style.background='rgba(255,255,255,0.9)';if(d2)d2.style.background='rgba(255,255,255,0.9)';
+  var sl=document.getElementById('ob-step-label');if(sl)sl.textContent='ขั้นตอน 2/2';
   _obSecret=_genTOTPSecret();
-  const label=currentStaff?.username||'Staff',issuer='วัวชนไทย';
-  const uri='otpauth://totp/'+encodeURIComponent(issuer)+':'+encodeURIComponent(label)+'?secret='+_obSecret+'&issuer='+encodeURIComponent(issuer)+'&algorithm=SHA1&digits=6&period=30';
-  const qrUrl='https://api.qrserver.com/v1/create-qr-code/?size=140x140&data='+encodeURIComponent(uri)+'&bgcolor=ffffff&qzone=1';
-  const qrWrap=document.getElementById('ob-qr-wrap');if(qrWrap)qrWrap.innerHTML='<img src="'+qrUrl+'" width="140" height="140" alt="QR Code">';
-  const sd=document.getElementById('ob-secret-display');if(sd)sd.textContent=(_obSecret.match(/.{1,4}/g)||[]).join(' ');
-  for(let i=0;i<6;i++){const b=document.getElementById('ob-otp-'+i);if(b){b.value='';b.classList.remove('filled');}}
+  var label=currentStaff?.username||'Staff',issuer='วัวชนไทย';
+  var uri='otpauth://totp/'+encodeURIComponent(issuer)+':'+encodeURIComponent(label)+'?secret='+_obSecret+'&issuer='+encodeURIComponent(issuer)+'&algorithm=SHA1&digits=6&period=30';
+  var qrUrl='https://api.qrserver.com/v1/create-qr-code/?size=140x140&data='+encodeURIComponent(uri)+'&bgcolor=ffffff&qzone=1';
+  var qrWrap=document.getElementById('ob-qr-wrap');
+  if(qrWrap){var img=document.createElement('img');img.src=qrUrl;img.width=140;img.height=140;img.alt='QR';qrWrap.innerHTML='';qrWrap.appendChild(img);}
+  var sd=document.getElementById('ob-secret-display');
+  if(sd)sd.textContent=(_obSecret.match(/.{1,4}/g)||[]).join(' ');
+  for(var i=0;i<6;i++){var b=document.getElementById('ob-otp-'+i);if(b){b.value='';b.classList.remove('filled');}}
   document.getElementById('ob-2fa-err').style.display='none';
-  setTimeout(()=>document.getElementById('ob-otp-0')?.focus(),200);
+  setTimeout(function(){document.getElementById('ob-otp-0')?.focus();},200);
 }
 async function _obSubmitTwoFA(){
   const code=Array.from({length:6},(_,i)=>document.getElementById('ob-otp-'+i)?.value||'').join('');
   const err=document.getElementById('ob-2fa-err');if(err)err.style.display='none';
-  if(code.length<6||!_obSecret){if(err){err.style.display='block';err.textContent='⚠️ กรุณากรอกรหัส 6 หลักครับ';}return;}
-
+  if(code.length<6||!_obSecret){if(err){err.style.display='block';err.textContent='⚠️ กรุณากรอก OTP 6 หลัก';}return;}
   const now=Math.floor(Date.now()/1000/30);let valid=false;
-  for(let d=-1;d<=1;d++) if(code===await _totpFrom(_obSecret,now+d)){valid=true;break;}
-
-  if(!valid){
-    if(err){err.style.display='block';err.textContent='❌ รหัสไม่ถูกต้อง กรุณาตรวจสอบเวลาในมือถือครับ';}
-    for(let i=0;i<6;i++){const b=document.getElementById('ob-otp-'+i);if(b){b.value='';b.classList.remove('filled');}}
-    document.getElementById('ob-otp-0')?.focus();
-    return;
-  }
-
-  const btn=document.querySelector('#ob-step-2 button:last-child');
-  if(btn){btn.disabled=true;btn.textContent='กำลังบันทึก...';}
-
-  try{
-    // บันทึก TOTP secret + ปิด flag
-    await sb.from('staff').update({
-      must_setup_2fa: false,
-      totp_secret:    _obSecret,
-    }).eq('id',currentStaff.id).catch(()=>{});
-
-    // อัพเดต currentStaff
-    currentStaff={...currentStaff, must_setup_2fa:false, totp_secret:_obSecret};
-
-    // บันทึก TOTP ใน settings เพื่อให้ _verifyTOTP ใช้ได้
-    // (staff มี totp_secret ของตัวเอง, admin ใช้ totp_config/totp_secret)
-    // ถ้า currentStaff มี totp_secret → ใช้ของตัวเอง
-    _obSecret=null;
-
-    document.getElementById('staff-onboarding-modal').style.display='none';
-    showToast('🎉 Setup เสร็จสมบูรณ์! ยินดีต้อนรับสู่ระบบครับ');
-  }finally{
-    if(btn){btn.disabled=false;btn.textContent='🔐 เปิดใช้งาน 2FA และเข้าสู่ระบบ';}
-  }
+  for(let d=-1;d<=1;d++)if(code===await _totpFrom(_obSecret,now+d)){valid=true;break;}
+  if(!valid){if(err){err.style.display='block';err.textContent='❌ รหัสไม่ถูกต้อง';}for(let i=0;i<6;i++){const b=document.getElementById('ob-otp-'+i);if(b){b.value='';b.classList.remove('filled');}}document.getElementById('ob-otp-0')?.focus();return;}
+  await sb.from('staff').update({must_setup_2fa:false,totp_secret:_obSecret}).eq('id',currentStaff.id).catch(()=>{});
+  currentStaff={...currentStaff,must_setup_2fa:false,totp_secret:_obSecret};_obSecret=null;
+  document.getElementById('staff-onboarding-modal').style.display='none';
+  showToast('🎉 Setup เสร็จ! ยินดีต้อนรับครับ');
 }
+function _obOtpNext(el,n){el.classList.toggle('filled',el.value!=='');if(el.value&&n>=0)document.getElementById('ob-otp-'+n)?.focus();}
+function _obOtpKey(e,i){if(e.key==='Backspace'&&!e.target.value&&i>0)document.getElementById('ob-otp-'+(i-1))?.focus();else if(!/[0-9]/.test(e.key)&&!['Backspace','Tab','ArrowLeft','ArrowRight'].includes(e.key))e.preventDefault();}
 
+// ── 2FA SETUP PANEL ──
+let _pendingTOTPSecret=null;
+async function loadTwofaPanel(){
+  const en=await _checkTwofaEnabled(),sec=await _getTOTPSecret();
+  const badge=document.getElementById('twofa-badge'),icon=document.getElementById('twofa-status-icon'),lbl=document.getElementById('twofa-status-label');
+  const initS=document.getElementById('twofa-init-section'),setupS=document.getElementById('twofa-setup-section'),activeS=document.getElementById('twofa-active-section');
+  if(en&&sec){if(badge){badge.textContent='✅ เปิดอยู่';badge.style.background='#dcfce7';badge.style.color='#15803d';}if(icon)icon.textContent='🛡️';if(lbl)lbl.textContent='2FA เปิดใช้งานแล้ว';if(initS)initS.style.display='none';if(setupS)setupS.style.display='none';if(activeS)activeS.style.display='block';}
+  else{if(badge){badge.textContent='❌ ปิดอยู่';badge.style.background='#fee2e2';badge.style.color='#dc2626';}if(icon)icon.textContent='⚠️';if(lbl)lbl.textContent='ยังไม่ได้เปิดใช้ 2FA';if(initS)initS.style.display='block';if(setupS)setupS.style.display='none';if(activeS)activeS.style.display='none';}
+  try{const{data}=await sb.from('settings').select('value').eq('key','totp_config').maybeSingle();const cfg=data?.value||{};const ol=document.getElementById('twofa-on-login'),oa=document.getElementById('twofa-on-approve');if(ol)ol.checked=cfg.onLogin!==false;if(oa)oa.checked=cfg.onApprove!==false;}catch(_){}
+}
+async function initTOTPSetup(){
+  _pendingTOTPSecret=_genTOTPSecret();
+  var label=currentStaff?.username||'SuperAdmin';
+  var uri='otpauth://totp/'+encodeURIComponent('วัวชนไทย')+':'+encodeURIComponent(label)+'?secret='+_pendingTOTPSecret+'&issuer='+encodeURIComponent('วัวชนไทย')+'&algorithm=SHA1&digits=6&period=30';
+  var qrWrap=document.getElementById('twofa-qr-wrap');
+  if(qrWrap){
+    var img=document.createElement('img');
+    img.src=_qrUrl(uri);img.width=160;img.height=160;img.alt='QR Code';
+    img.onerror=function(){qrWrap.textContent='สแกน QR ไม่ได้ ใช้ Secret Key แทน';};
+    qrWrap.innerHTML='';qrWrap.appendChild(img);
+  }
+  var sd=document.getElementById('twofa-secret-display');
+  if(sd)sd.textContent=(_pendingTOTPSecret.match(/.{1,4}/g)||[]).join(' ');
+  for(var i=0;i<6;i++){var b=document.getElementById('tv-'+i);if(b){b.value='';b.classList.remove('filled');}}
+  document.getElementById('twofa-verify-err').style.display='none';
+  document.getElementById('twofa-init-section').style.display='none';
+  document.getElementById('twofa-setup-section').style.display='block';
+  document.getElementById('twofa-active-section').style.display='none';
+  setTimeout(function(){document.getElementById('tv-0')?.focus();},200);
+}
+async function activateTOTP(){
+  const code=Array.from({length:6},(_,i)=>document.getElementById('tv-'+i)?.value||'').join('');
+  const err=document.getElementById('twofa-verify-err');err.style.display='none';
+  if(!code||code.length<6||!_pendingTOTPSecret){err.style.display='block';return;}
+  const now=Math.floor(Date.now()/1000/30);let valid=false;
+  for(let d=-1;d<=1;d++)if(code===await _totpFrom(_pendingTOTPSecret,now+d)){valid=true;break;}
+  if(!valid){err.style.display='block';for(let i=0;i<6;i++){const b=document.getElementById('tv-'+i);if(b){b.value='';b.classList.remove('filled');}}document.getElementById('tv-0')?.focus();return;}
+  await sb.from('settings').upsert({key:'totp_secret',value:{secret:_pendingTOTPSecret,created_at:new Date().toISOString()}});
+  await _saveTwofaConfig({enabled:true,onLogin:true,onApprove:true});
+  _pendingTOTPSecret=null;showToast('🔐 เปิดใช้งาน 2FA สำเร็จ!');await loadTwofaPanel();
+}
+async function regenerateTOTP(){if(!confirm('สร้าง Secret ใหม่? ต้องสแกน QR ใหม่ครับ'))return;await sb.from('settings').delete().eq('key','totp_secret');await _saveTwofaConfig({enabled:false});showToast('ลบ Secret เก่าแล้ว');await loadTwofaPanel();}
+async function disableTOTP(){if(!confirm('ปิด 2FA?'))return;const code=prompt('กรอก OTP เพื่อยืนยัน:');if(!code)return;if(!await _verifyTOTP(code.trim())){showToast('❌ OTP ไม่ถูกต้อง','error');return;}await _saveTwofaConfig({enabled:false});showToast('2FA ปิดแล้ว');await loadTwofaPanel();}
+async function saveTwofaSettings(){const ol=document.getElementById('twofa-on-login'),oa=document.getElementById('twofa-on-approve');const en=await _checkTwofaEnabled();await _saveTwofaConfig({enabled:en,onLogin:ol?.checked!==false,onApprove:oa?.checked!==false});showToast('💾 บันทึกแล้ว');}
+function _copySecret(){const el=document.getElementById('twofa-secret-display');const t=(el?.textContent||'').replace(/\s/g,'');if(navigator.clipboard)navigator.clipboard.writeText(t).then(()=>showToast('✅ คัดลอกแล้ว'));}
+function switchCfgTab(tab){document.querySelectorAll('.cfg-tab').forEach(b=>b.classList.remove('active'));document.querySelectorAll('.cfg-pane').forEach(p=>{p.classList.remove('active');p.style.display='none';});document.getElementById('cfg-tab-'+tab)?.classList.add('active');const pane=document.getElementById('cfg-pane-'+tab);if(pane){pane.classList.add('active');pane.style.display='block';}if(tab==='twofa')loadTwofaPanel();}
 
+// ── SECURITY LOG ──
+async function _logLoginActivity(u,role,r){try{let ip='unknown';try{const x=await Promise.race([fetch('https://api.ipify.org?format=json').then(x=>x.json()),new Promise((_,rej)=>setTimeout(rej,2000))]);ip=x?.ip||'unknown';}catch(_){}await sb.from('worklog').insert({admin:u,action:r==='success'?'admin_login':'admin_login_failed',nick:u,note:(r==='success'?'✅':'❌')+' | Role:'+role+' | IP:'+ip,created_at:new Date().toISOString()}).select().maybeSingle();}catch(e){}}
+async function loadSecurityLog(){
+  var tb=document.getElementById('sec-log-tbody');if(!tb)return;
+  tb.innerHTML='<tr><td colspan="4" style="text-align:center;padding:24px;color:#aaa;">กำลังโหลด...</td></tr>';
+  try{
+    var today=new Date();today.setHours(0,0,0,0);
+    var lR=await sb.from('worklog').select('*').in('action',['admin_login','admin_login_failed']).order('created_at',{ascending:false}).limit(30);
+    var aR=await sb.from('worklog').select('*',{count:'exact',head:true}).in('action',['approve_deposit','approve_withdraw']).gte('created_at',today.toISOString());
+    var logs=lR.data||[];
+    var se=function(id,v){var e=document.getElementById(id);if(e)e.textContent=v;};
+    se('sec-login-ok',logs.filter(function(l){return l.action==='admin_login';}).length);
+    se('sec-login-fail',logs.filter(function(l){return l.action==='admin_login_failed';}).length);
+    se('sec-act-today',aR.count||0);
+    if(!logs.length){tb.innerHTML='<tr><td colspan="4" style="text-align:center;padding:24px;color:#aaa;">ยังไม่มี log</td></tr>';return;}
+    tb.innerHTML=logs.map(function(log){
+      var ok=log.action==='admin_login';
+      var badge=ok?'<span style="background:#dcfce7;color:#15803d;padding:2px 9px;border-radius:12px;font-size:11px">✅</span>':'<span style="background:#fee2e2;color:#991b1b;padding:2px 9px;border-radius:12px;font-size:11px">❌</span>';
+      var ipM=(log.note||'').match(/IP:([^\s|]+)/);var ip=ipM?ipM[1]:'—';
+      return'<tr style="border-bottom:1px solid #f0f0ee"><td style="padding:9px 12px;font-size:11px;color:#888">'+fmtDate(log.created_at)+'</td><td style="padding:9px 12px;font-weight:700;font-size:12px;color:var(--green)">'+(log.admin||'—')+'</td><td style="padding:9px 12px">'+badge+'</td><td style="padding:9px 12px;font-size:11px;color:#888">IP: '+ip+'</td></tr>';
+    }).join('');
+  }catch(err){tb.innerHTML='<tr><td colspan="4" style="text-align:center;color:#dc2626">❌ '+err.message+'</td></tr>';}
+}
+async function _forceLogoutAll(){if(!confirm('Force Logout?'))return;const token=(typeof crypto.randomUUID==='function')?crypto.randomUUID():Date.now().toString(36);await sb.from('settings').upsert({key:'session_token',value:token});showToast('✅ Force Logout');setTimeout(()=>adminLogout(),1500);}
+async function _clearSecurityLogs(){if(!confirm('ลบ Log เก่า?'))return;await sb.from('worklog').delete().in('action',['admin_login','admin_login_failed']).lt('created_at',new Date(Date.now()-30*86400000).toISOString());showToast('✅ ล้างแล้ว');loadSecurityLog();}
+document.addEventListener('visibilitychange',()=>{if(document.hidden){window._ht=setTimeout(()=>{const d=document.getElementById('dashboard');if(d&&d.style.display!=='none')_showLockScreen();},5*60*1000);}else{clearTimeout(window._ht);}});
+function _showLockScreen(){
+  if(document.getElementById('lock-screen'))return;
+  var div=document.createElement('div');div.id='lock-screen';
+  div.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,0.93);z-index:99999;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:16px';
+  var em=document.createElement('div');em.textContent='🔒';em.style.fontSize='48px';
+  var title=document.createElement('div');title.textContent='หน้าจอถูกล็อค';title.style.cssText='color:#fff;font-family:Kanit,sans-serif;font-size:18px;font-weight:700';
+  var inp=document.createElement('input');inp.type='password';inp.id='lock-pi';inp.placeholder='รหัสผ่าน';
+  inp.style.cssText='padding:12px 18px;border-radius:10px;border:1.5px solid rgba(255,255,255,0.2);background:rgba(255,255,255,0.08);color:#fff;font-size:15px;font-family:Kanit,sans-serif;width:260px;outline:none;text-align:center';
+  inp.addEventListener('keydown',function(e){if(e.key==='Enter')_unlockScreen();});
+  var btn=document.createElement('button');btn.textContent='ปลดล็อค';
+  btn.style.cssText='padding:11px 32px;background:#1B6B2F;color:#fff;border:none;border-radius:10px;font-family:Kanit,sans-serif;font-weight:700;font-size:15px;cursor:pointer';
+  btn.addEventListener('click',_unlockScreen);
+  div.appendChild(em);div.appendChild(title);div.appendChild(inp);div.appendChild(btn);
+  document.body.appendChild(div);setTimeout(function(){inp.focus();},100);
+}
+async function _unlockScreen(){const inp=document.getElementById('lock-pi');const p=inp?.value||'';if(!p)return;const ph=await hashPassword(p);if((ADMIN_PASS===p||ADMIN_PASS===ph)||(currentStaff&&(currentStaff.password===p||currentStaff.password===ph))){document.getElementById('lock-screen')?.remove();_resetSessionTimer();}else{if(inp){inp.value='';inp.focus();}}}
+let _st=null;
+async function _initSessionToken(){try{const{data}=await sb.from('settings').select('value').eq('key','session_token').maybeSingle();_st=data?.value||null;}catch(_){}}
+async function _checkSessionToken(){if(!_st)return true;try{const{data}=await sb.from('settings').select('value').eq('key','session_token').maybeSingle();if(data?.value&&data.value!==_st){showToast('⚠️ Session หมดอายุ','error');setTimeout(()=>adminLogout(),2000);return false;}}catch(_){}return true;}
+setTimeout(async()=>{await _initSessionToken();setInterval(_checkSessionToken,2*60*1000);},3000);
+
+// ── STUBS ──
+function switchRefSec(sec){document.querySelectorAll('#panel-referral .match-sec').forEach(s=>s.classList.remove('active'));document.querySelectorAll('#panel-referral .match-nav-item').forEach(i=>i.classList.remove('active'));document.getElementById('ref-sec-'+sec)?.classList.add('active');document.getElementById('rnav-'+sec)?.classList.add('active');}
+function loadRefCommissionLogs(){} function _refLogToday(){} function _refLogMonth(){} function _refLogClear(){}
+function switchSubNav(p,s){document.querySelectorAll('#panel-'+p+' .match-sec').forEach(x=>x.classList.remove('active'));document.querySelectorAll('#panel-'+p+' .sub-nav-item').forEach(i=>i.classList.remove('active'));document.getElementById('sec-'+s)?.classList.add('active');document.querySelector('[data-sec="'+s+'"]')?.classList.add('active');}
+function switchActSec(sec){document.querySelectorAll('#panel-activity .match-sec').forEach(s=>s.classList.remove('active'));document.querySelectorAll('#panel-activity .match-nav-item').forEach(i=>i.classList.remove('active'));document.getElementById('act-sec-'+sec)?.classList.add('active');document.getElementById('anav-'+sec)?.classList.add('active');}
+function sendActivity(){showToast('กำลังส่ง...');} function loadActivityLogs(){loadActivityPanel();}
+function switchVerdictSport(s){} function switchVerdictFootballSec(s){} function addFootballMatch(){showToast('กำลังพัฒนา');} function switchAddSport(s){} function resetVerdict(){loadVerdict();}
+function saveTxLimits(){saveSettings('fee');} function loadTxLimits(){loadSettings();} function saveRefRateLevels(){saveSettings('referral');} function previewRefExample(){}
+function addBankAccount(){showToast('กำลังพัฒนา');} function loadBankAccounts(){}
+function clearHeroBull(){} function clearLogoUpload(){}
+function setDateSection2(s){setDateSection(s);} function clearDateSection2(s){clearDateSection(s);} function setChartRange(p){switchChartPeriod(p);}
+function showMemberDetail(row){}
+
+</script>
+</body>
+</html>
