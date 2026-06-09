@@ -4765,28 +4765,90 @@ document.addEventListener('click',e=>{const ov=document.getElementById('member-o
 // ══════════════════════════════════════════════════════════════════════
 function _adminNick(){return currentStaff?.username||currentStaff?.nick||'admin';}
 async function addStaff(){
-  const name=document.getElementById('new-staff-name')?.value?.trim()||'';
-  const user=document.getElementById('new-staff-user')?.value?.trim()?.toLowerCase()||'';
-  const pass=document.getElementById('new-staff-pass')?.value||'';
-  const role=document.getElementById('new-staff-role')?.value||'financial';
-  if(!name){showToast('⚠️ กรุณากรอกชื่อ-นามสกุลครับ','error');return;}
+  const nameVal = document.getElementById('new-staff-name')?.value?.trim()||'';
+  const user    = document.getElementById('new-staff-user')?.value?.trim()?.toLowerCase()||'';
+  const pass    = document.getElementById('new-staff-pass')?.value||'';
+  const role    = document.getElementById('new-staff-role')?.value||'financial';
+
+  // Validate
+  if(!nameVal){showToast('⚠️ กรุณากรอกชื่อ-นามสกุลครับ','error');return;}
   if(!user||user.length<3){showToast('⚠️ Username ต้องมีอย่างน้อย 3 ตัวอักษรครับ','error');return;}
   if(!/^[a-z0-9_]+$/.test(user)){showToast('⚠️ Username ใช้ได้เฉพาะ a-z, 0-9, _ ครับ','error');return;}
   if(!pass||pass.length<6){showToast('⚠️ รหัสผ่านต้องมีอย่างน้อย 6 ตัวอักษรครับ','error');return;}
+
+  // ตรวจ username ซ้ำ
   const{data:ex}=await sb.from('staff').select('id').eq('username',user).maybeSingle();
   if(ex){showToast('❌ Username "'+user+'" มีอยู่แล้วครับ','error');return;}
-  const hash=await hashPassword(pass);
-  const{error}=await sb.from('staff').insert({name,username:user,password:hash,role,is_active:true,must_change_password:true,must_setup_2fa:true,totp_secret:null,created_at:new Date().toISOString(),last_login:null});
-  if(error){
-    const{error:e2}=await sb.from('staff').insert({name,username:user,password:hash,role,is_active:true,created_at:new Date().toISOString()});
-    if(e2){showToast('❌ เพิ่มพนักงานไม่ได้: '+(e2.message||error.message),'error');return;}
+
+  const hash = await hashPassword(pass);
+
+  // ── Try insert with all columns first ──
+  // ถ้า schema ไม่มี name / must_change_password ฯลฯ → fallback ไป minimal insert
+  let insertErr = null;
+  
+  // Attempt 1: full insert (หลังรัน SQL fix แล้ว)
+  const {error: e1} = await sb.from('staff').insert({
+    name:                 nameVal,
+    username:             user,
+    password:             hash,
+    role,
+    is_active:            true,
+    must_change_password: true,
+    must_setup_2fa:       true,
+    totp_secret:          null,
+    created_at:           new Date().toISOString(),
+    last_login:           null,
+  });
+  
+  if(e1){
+    // Attempt 2: ถ้า error เกี่ยวกับ column ที่ไม่มี → ใช้ minimal columns
+    if(e1.message && (e1.message.includes('column') || e1.message.includes('schema'))){
+      // Attempt 2a: ไม่มี must_change_password/must_setup_2fa
+      const {error: e2} = await sb.from('staff').insert({
+        name:       nameVal,
+        username:   user,
+        password:   hash,
+        role,
+        is_active:  true,
+        created_at: new Date().toISOString(),
+      });
+      if(e2){
+        // Attempt 2b: ไม่มีแม้แต่ name → ใช้แค่ columns หลัก
+        if(e2.message && e2.message.includes('name')){
+          const {error: e3} = await sb.from('staff').insert({
+            username:   user,
+            password:   hash,
+            role,
+            is_active:  true,
+            created_at: new Date().toISOString(),
+          });
+          if(e3){showToast('❌ เพิ่มพนักงานไม่ได้: '+e3.message,'error');return;}
+          showToast('⚠️ เพิ่มพนักงานสำเร็จ แต่ table ยังขาด column name — กรุณารัน SQL Fix ที่ Supabase ด้วยครับ');
+        } else {
+          showToast('❌ เพิ่มพนักงานไม่ได้: '+e2.message,'error');return;
+        }
+      }
+    } else {
+      showToast('❌ เพิ่มพนักงานไม่ได้: '+e1.message,'error');return;
+    }
   }
-  await sb.from('worklog').insert({admin:_adminNick(),action:'add_staff',nick:user,note:'เพิ่มพนักงาน "'+name+'"',created_at:new Date().toISOString()}).select().maybeSingle();
-  showToast('✅ เพิ่มพนักงาน "'+name+'" สำเร็จแล้วครับ');
+
+  // Log
+  await sb.from('worklog').insert({
+    admin:      _adminNick(),
+    action:     'add_staff',
+    nick:       user,
+    note:       'เพิ่มพนักงาน "'+nameVal+'" ('+user+') — '+role,
+    created_at: new Date().toISOString(),
+  }).select().maybeSingle();
+
+  showToast('✅ เพิ่มพนักงาน "'+nameVal+'" ('+user+') สำเร็จครับ');
   ['new-staff-name','new-staff-user','new-staff-pass'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
-  await loadStaffPanel();switchStaffSec('list');
+  await loadStaffPanel();
+  switchStaffSec('list');
 }
-let _allStaff=[];
+
+
 async function loadStaffPanel(){
   try{
     const[sRes,lRes]=await Promise.all([sb.from('staff').select('*').order('created_at',{ascending:false}),sb.from('worklog').select('*',{count:'exact',head:true})]);
