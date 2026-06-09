@@ -434,6 +434,7 @@ input, textarea, select, button {
     .dt-combined-row .dt-picker-wrap:first-child{flex:1.4;}
   </style>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/flatpickr/4.6.13/flatpickr.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/flatpickr/4.6.13/l10n/th.js"></script>
 </head>
 <body>
@@ -581,7 +582,12 @@ input, textarea, select, button {
           <div style="padding:16px 20px 20px;">
             <div id="chart-summary-row" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:10px;margin-bottom:16px;"></div>
             <div style="position:relative;width:100%;height:280px;">
-              <canvas id="growth-chart" role="img" aria-label="กราฟแนวโน้มการเติบโตของระบบวัวชน">กำลังโหลดข้อมูล...</canvas>
+              <div style="display:flex;gap:6px;margin-bottom:8px;">
+              <button id="chart-btn-weekly" onclick="switchChartPeriod('weekly')" style="padding:4px 10px;border-radius:6px;border:1px solid #e5e5e0;background:#fff;font-family:'Kanit',sans-serif;font-size:11px;cursor:pointer;">7 วัน</button>
+              <button id="chart-btn-monthly" onclick="switchChartPeriod('monthly')" class="active" style="padding:4px 10px;border-radius:6px;border:1px solid #C8102E;background:#C8102E;color:#fff;font-family:'Kanit',sans-serif;font-size:11px;cursor:pointer;">30 วัน</button>
+              <button id="chart-btn-yearly" onclick="switchChartPeriod('yearly')" style="padding:4px 10px;border-radius:6px;border:1px solid #e5e5e0;background:#fff;font-family:'Kanit',sans-serif;font-size:11px;cursor:pointer;">ปีนี้</button>
+            </div>
+            <canvas id="growth-chart" role="img" aria-label="กราฟแนวโน้มการเติบโตของระบบวัวชน">กำลังโหลดข้อมูล...</canvas>
             </div>
             <div id="chart-legend" style="display:flex;gap:16px;flex-wrap:wrap;margin-top:12px;font-size:12px;color:#888;"></div>
           </div>
@@ -2665,6 +2671,7 @@ function loadAll() {
   ensureFlagColumns();
   subscribeNotifications();
   scheduleAutoRefresh();
+  startAutoRefresh();
 }
 
 // ===== OVERVIEW =====
@@ -2758,6 +2765,9 @@ async function loadOverview() {
       </div>`;
   }).join('');
 }
+
+// render chart
+  setTimeout(() => renderGrowthChart(), 200);
 
 // ===== OVERVIEW DETAIL MODAL =====
 let _ovDetailType = '';
@@ -4139,6 +4149,191 @@ async function payoutBets(matchId, winner, FEE_RATE = 0.07) {
 }
 
 
+
+
+// ═══════════════════════════════════════════════
+// CHART — Growth Chart
+// ═══════════════════════════════════════════════
+let _growthChart = null;
+
+async function renderGrowthChart(period = 'monthly') {
+  const canvas = document.getElementById('growth-chart');
+  if (!canvas) return;
+
+  // ดึงข้อมูลย้อนหลัง 30 วัน
+  const days = period === 'weekly' ? 7 : period === 'yearly' ? 365 : 30;
+  const since = new Date(Date.now() - days * 86400000).toISOString();
+
+  const [deps, withs, mems] = await Promise.all([
+    sb.from('deposits').select('created_at,amount').eq('status','approved').gte('created_at', since),
+    sb.from('withdrawals').select('created_at,amount').eq('status','approved').gte('created_at', since),
+    sb.from('members').select('created_at').gte('created_at', since),
+  ]);
+
+  // Group by date
+  const fmt = d => new Date(d).toLocaleDateString('th-TH',{day:'2-digit',month:'2-digit'});
+  const groupSum = (rows, field) => {
+    const map = {};
+    (rows||[]).forEach(r => { const k = fmt(r.created_at); map[k] = (map[k]||0) + Number(r[field]||0); });
+    return map;
+  };
+  const groupCount = (rows) => {
+    const map = {};
+    (rows||[]).forEach(r => { const k = fmt(r.created_at); map[k] = (map[k]||0) + 1; });
+    return map;
+  };
+
+  // สร้าง labels (N วันที่ผ่านมา)
+  const labels = [];
+  for (let i = Math.min(days,30)-1; i >= 0; i--) {
+    const d = new Date(Date.now() - i*86400000);
+    labels.push(fmt(d.toISOString()));
+  }
+
+  const depMap  = groupSum(deps.data,  'amount');
+  const withMap = groupSum(withs.data, 'amount');
+  const memMap  = groupCount(mems.data);
+
+  const depData  = labels.map(l => (depMap[l]  || 0) / 1000);
+  const withData = labels.map(l => (withMap[l] || 0) / 1000);
+  const memData  = labels.map(l => memMap[l]   || 0);
+
+  // Destroy old chart
+  if (_growthChart) { _growthChart.destroy(); _growthChart = null; }
+
+  const ctx = canvas.getContext('2d');
+  _growthChart = new Chart(ctx, {
+    type: 'line',
+    data: {
+      labels,
+      datasets: [
+        {
+          label: 'เติมเงิน (K₭)', data: depData,
+          borderColor: '#22c55e', backgroundColor: 'rgba(34,197,94,0.1)',
+          tension: 0.4, fill: true, pointRadius: 3,
+        },
+        {
+          label: 'ถอนเงิน (K₭)', data: withData,
+          borderColor: '#f87171', backgroundColor: 'rgba(248,113,113,0.08)',
+          tension: 0.4, fill: true, pointRadius: 3,
+        },
+        {
+          label: 'สมาชิกใหม่ (คน)', data: memData,
+          borderColor: '#F5C842', backgroundColor: 'rgba(245,200,66,0.08)',
+          tension: 0.4, fill: false, pointRadius: 3,
+          yAxisID: 'y2',
+        },
+      ]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      interaction: { mode: 'index', intersect: false },
+      plugins: {
+        legend: { labels: { color: '#666', font: { family: 'Kanit', size: 11 } } },
+        tooltip: { callbacks: {
+          label: ctx => {
+            const v = ctx.parsed.y;
+            return ctx.dataset.yAxisID === 'y2'
+              ? ` ${ctx.dataset.label}: ${v} คน`
+              : ` ${ctx.dataset.label}: ${v.toFixed(1)}K ₭`;
+          }
+        }}
+      },
+      scales: {
+        x: { ticks: { color: '#999', font: { size: 10 }, maxTicksLimit: 10 }, grid: { color: 'rgba(0,0,0,0.05)' } },
+        y: { ticks: { color: '#999', font: { size: 10 } }, grid: { color: 'rgba(0,0,0,0.05)' }, title: { display: true, text: 'K₭', color: '#aaa' } },
+        y2: { position: 'right', ticks: { color: '#F5C842', font: { size: 10 } }, grid: { display: false }, title: { display: true, text: 'คน', color: '#F5C842' } },
+      }
+    }
+  });
+}
+
+// ── ปุ่ม period selector ──
+function switchChartPeriod(period) {
+  ['weekly','monthly','yearly'].forEach(p => {
+    const btn = document.getElementById('chart-btn-'+p);
+    if (btn) btn.classList.toggle('active', p === period);
+  });
+  renderGrowthChart(period);
+}
+
+// ═══════════════════════════════════════════════
+// DATE-TIME PICKER — Match Form
+// ═══════════════════════════════════════════════
+function initMatchDatePickers() {
+  const dateEl = document.getElementById('m-date');
+  const timeEl = document.getElementById('m-time');
+  if (dateEl && !dateEl._flatpickr) {
+    flatpickr('#m-date', {
+      locale: 'th', dateFormat: 'd/m/Y',
+      allowInput: false, disableMobile: true,
+      minDate: 'today',
+    });
+  }
+  if (timeEl && !timeEl._flatpickr) {
+    flatpickr('#m-time', {
+      locale: 'th', enableTime: true, noCalendar: true,
+      dateFormat: 'H:i', time_24hr: true,
+      minuteIncrement: 15, allowInput: false, disableMobile: true,
+      defaultHour: 13, defaultMinute: 0,
+    });
+  }
+}
+
+// ── init pickers เมื่อเปิด add match section ──
+const _origSwitchMatchSec = typeof switchMatchSec === 'function' ? switchMatchSec : null;
+if (_origSwitchMatchSec) {
+  window.switchMatchSec = function(sec) {
+    _origSwitchMatchSec(sec);
+    if (sec === 'add') setTimeout(initMatchDatePickers, 100);
+  };
+}
+
+// ═══════════════════════════════════════════════
+// AUTO-REFRESH — Realtime
+// ═══════════════════════════════════════════════
+let _autoRefreshTimer = null;
+const AUTO_REFRESH_MS = 30000; // 30 วินาที
+
+function startAutoRefresh() {
+  stopAutoRefresh();
+  _autoRefreshTimer = setInterval(async () => {
+    const panel = document.querySelector('.panel.active') || document.getElementById('panel-overview');
+    const panelId = panel?.id || 'panel-overview';
+
+    // refresh ตาม panel ที่กำลังดูอยู่
+    if (panelId === 'panel-overview')     await loadOverview();
+    else if (panelId === 'panel-matches') await loadMatches();
+    else if (panelId === 'panel-members') await loadMembers();
+    else if (panelId === 'panel-deposits')    loadDeposits?.();
+    else if (panelId === 'panel-withdrawals') loadWithdrawals?.();
+    else if (panelId === 'panel-bets')    await loadBets();
+    else if (panelId === 'panel-verdict') await loadVerdict();
+
+    // อัปเดต realtime dot
+    const dot = document.getElementById('realtime-dot');
+    if (dot) {
+      dot.style.background = '#22c55e';
+      setTimeout(() => { if(dot) dot.style.background = '#22c55e'; }, 500);
+    }
+  }, AUTO_REFRESH_MS);
+  console.log('Auto-refresh started:', AUTO_REFRESH_MS/1000, 's interval');
+}
+
+function stopAutoRefresh() {
+  if (_autoRefreshTimer) { clearInterval(_autoRefreshTimer); _autoRefreshTimer = null; }
+}
+
+// เริ่ม auto-refresh หลัง login
+document.addEventListener('DOMContentLoaded', () => {
+  // init pickers เมื่อหน้า add match แสดง
+  const observer = new MutationObserver(() => {
+    if (document.getElementById('m-date') && !document.getElementById('m-date')._flatpickr) {
+      initMatchDatePickers();
+    }
+  });
+  observer.observe(document.body, { childList: true, subtree: true });
+});
 
 </script>
 </body>
