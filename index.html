@@ -2906,6 +2906,10 @@ input, textarea, select, button {
     <option value="la">🇱🇦 ລາວ</option>
     <option value="en">🇬🇧 EN</option>
   </select>
+  <!-- Mobile Account Button (top nav, mobile only) -->
+  <button id="nav-mobile-acc-btn" onclick="mobNavAccount()" aria-label="บัญชีของฉัน">
+    <span id="nav-mob-acc-icon">👤</span>
+  </button>
   <span id="nav-logo-big-wrap" style="display:inline-flex;width:44px;height:44px;border-radius:50%;overflow:hidden;flex-shrink:0;">
   <svg id="nav-logo-big" viewBox="0 0 240 240" width="44" height="44" xmlns="http://www.w3.org/2000/svg" style="flex-shrink:0;">
     <circle cx="120" cy="120" r="116" fill="#1A0A00" stroke="#F5A800" stroke-width="8"/>
@@ -2986,6 +2990,37 @@ input, textarea, select, button {
     <button class="btn-outline" onclick="showSchedule()" data-i18n="hero.btn.schedule">ดูตารางแข่ง</button>
   </div>
 </section>
+
+<!-- ══ Mobile Account Shortcut Bar ══ -->
+<div id="mob-acc-bar" style="display:none;">
+  <!-- State A: ยังไม่ login -->
+  <div id="mob-acc-bar-guest" style="display:flex;align-items:center;gap:10px;padding:10px 16px;background:rgba(10,20,10,0.95);border-bottom:1px solid rgba(245,200,66,0.12);">
+    <div style="flex:1;min-width:0;">
+      <div style="font-family:'Phetsarath OT','Phetsarath','Noto Sans Lao','Kanit',sans-serif;font-size:12px;font-weight:700;color:rgba(240,255,232,0.5);">ยังไม่ได้เข้าสู่ระบบ</div>
+    </div>
+    <button onclick="showRegister();switchAuthTab('login',document.querySelector('.auth-tab'))" style="padding:8px 18px;background:transparent;color:var(--gold);border:1.5px solid rgba(245,200,66,0.5);border-radius:8px;font-family:'Phetsarath OT','Phetsarath','Noto Sans Lao','Kanit',sans-serif;font-size:13px;font-weight:700;cursor:pointer;white-space:nowrap;">🔑 เข้าสู่ระบบ</button>
+    <button onclick="showRegister()" style="padding:8px 18px;background:var(--gold);color:#1a0a00;border:none;border-radius:8px;font-family:'Phetsarath OT','Phetsarath','Noto Sans Lao','Kanit',sans-serif;font-size:13px;font-weight:900;cursor:pointer;white-space:nowrap;">สมัครฟรี</button>
+  </div>
+
+  <!-- State B: login แล้ว -->
+  <div id="mob-acc-bar-user" style="display:none;padding:8px 14px;background:rgba(10,20,10,0.95);border-bottom:1px solid rgba(245,200,66,0.12);">
+    <div style="display:flex;align-items:center;gap:10px;">
+      <!-- Avatar -->
+      <div id="mob-bar-avatar" onclick="showMyAccount();mobNavActive('account')" style="width:38px;height:38px;border-radius:50%;background:rgba(245,200,66,0.15);border:2px solid rgba(245,200,66,0.5);display:flex;align-items:center;justify-content:center;font-size:16px;font-weight:900;color:var(--gold);cursor:pointer;flex-shrink:0;overflow:hidden;font-family:'Kanit',sans-serif;">👤</div>
+      <!-- Name + Balance -->
+      <div style="flex:1;min-width:0;cursor:pointer;" onclick="showMyAccount();mobNavActive('account')">
+        <div id="mob-bar-nick" style="font-family:'Phetsarath OT','Phetsarath','Noto Sans Lao','Kanit',sans-serif;font-weight:900;font-size:14px;color:var(--cream);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">—</div>
+        <div style="display:flex;align-items:center;gap:6px;margin-top:1px;">
+          <span style="font-size:10px;color:rgba(240,255,232,0.45);font-family:'Kanit',sans-serif;">ยอดเงิน</span>
+          <span id="mob-bar-balance" style="font-family:'Kanit',sans-serif;font-weight:900;font-size:14px;color:#4ade80;">0 ₭</span>
+        </div>
+      </div>
+      <!-- Quick action buttons -->
+      <button onclick="showMyAccount();setTimeout(()=>switchAccTab('deposit',document.getElementById('dep-tab-btn')),200)" style="padding:7px 13px;background:rgba(74,222,128,0.12);color:#4ade80;border:1px solid rgba(74,222,128,0.35);border-radius:8px;font-family:'Phetsarath OT','Phetsarath','Noto Sans Lao','Kanit',sans-serif;font-size:12px;font-weight:700;cursor:pointer;white-space:nowrap;">💰 เติมเงิน</button>
+      <button onclick="showMyAccount();mobNavActive('account')" style="padding:7px 13px;background:rgba(245,200,66,0.12);color:var(--gold);border:1px solid rgba(245,200,66,0.3);border-radius:8px;font-family:'Phetsarath OT','Phetsarath','Noto Sans Lao','Kanit',sans-serif;font-size:12px;font-weight:700;cursor:pointer;white-space:nowrap;">👤 บัญชี</button>
+    </div>
+  </div>
+</div>
 
 <!-- COUNTDOWN -->
 <div class="countdown-bar">
@@ -6504,6 +6539,79 @@ function applyLang() {
 
   50%{ box-shadow:0 4px 24px rgba(245,200,66,0.7); transform:scale(1.03); }
 }
+
+/* ═══════════════════════════════════════════════
+   MOBILE ACCOUNT SHORTCUT — show only on mobile
+   ═══════════════════════════════════════════════ */
+@media (min-width: 769px) {
+  #mob-acc-bar { display: none !important; }
+}
+@media (max-width: 768px) {
+  #mob-acc-bar { display: block !important; }
+
+  /* ── Upgrade bottom nav account button ── */
+  .mob-nav-item.mob-acc-btn {
+    flex: 1.6;
+    position: relative;
+  }
+  .mob-nav-item.mob-acc-btn .mob-nav-icon {
+    width: 38px;
+    height: 38px;
+    border-radius: 50%;
+    background: rgba(245,200,66,0.18);
+    border: 2px solid rgba(245,200,66,0.6);
+    font-size: 20px;
+    box-shadow: 0 0 12px rgba(245,200,66,0.2);
+    transition: all .2s;
+  }
+  .mob-nav-item.mob-acc-btn:not(.active) .mob-nav-icon {
+    animation: mob-acc-pulse 3s ease-in-out infinite;
+  }
+  @keyframes mob-acc-pulse {
+    0%,100% { box-shadow: 0 0 8px rgba(245,200,66,0.15); border-color: rgba(245,200,66,0.5); }
+    50%      { box-shadow: 0 0 18px rgba(245,200,66,0.45); border-color: rgba(245,200,66,0.9); }
+  }
+  .mob-nav-item.mob-acc-btn .mob-nav-label {
+    font-size: 11px;
+    color: var(--gold) !important;
+    font-weight: 900;
+  }
+  .mob-nav-item.mob-acc-btn.active .mob-nav-icon {
+    background: rgba(245,200,66,0.3);
+    border-color: var(--gold);
+    box-shadow: 0 0 20px rgba(245,200,66,0.5);
+    animation: none;
+  }
+
+  /* ── Nav top: เพิ่ม account icon ด้านขวา ── */
+  #nav-mobile-acc-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    background: rgba(245,200,66,0.1);
+    border: 1.5px solid rgba(245,200,66,0.4);
+    cursor: pointer;
+    flex-shrink: 0;
+    font-size: 17px;
+    transition: all .2s;
+    -webkit-tap-highlight-color: transparent;
+  }
+  #nav-mobile-acc-btn:active {
+    background: rgba(245,200,66,0.25);
+    transform: scale(0.93);
+  }
+  #nav-mobile-acc-btn.logged-in {
+    background: rgba(245,200,66,0.18);
+    border-color: rgba(245,200,66,0.7);
+    box-shadow: 0 0 10px rgba(245,200,66,0.2);
+  }
+}
+@media (min-width: 769px) {
+  #nav-mobile-acc-btn { display: none !important; }
+}
 </style>
       <div style="background:linear-gradient(160deg,#0f2e18,#1a4a28);border:2px solid #F5C842;border-radius:22px;padding:32px 28px;width:100%;max-width:320px;text-align:center;box-shadow:0 0 60px rgba(245,200,66,.25);animation:popIn .4s cubic-bezier(.34,1.56,.64,1);position:relative;">
         <button onclick="document.getElementById('reward-popup').remove()" style="position:absolute;top:12px;right:14px;background:rgba(255,255,255,.1);border:none;color:#fff;font-size:16px;width:28px;height:28px;border-radius:50%;cursor:pointer;line-height:1;">✕</button>
@@ -7496,8 +7604,57 @@ setInterval(() => {
     const navReg = document.getElementById('nav-register');
     if (navAcc) { navAcc.style.display = 'inline'; navAcc.textContent = `👤 ${nick}`; }
     if (navReg) navReg.style.display = 'none';
-    // expose currentUser ให้ functions นอก IIFE เข้าถึงได้
     window._currentUser = currentUser;
+    // ── Update mobile account bar ──
+    _updateMobAccBar();
+  }
+
+  function _updateMobAccBar() {
+    const user = currentUser;
+    const guest   = document.getElementById('mob-acc-bar-guest');
+    const userBar = document.getElementById('mob-acc-bar-user');
+    const navBtn  = document.getElementById('nav-mobile-acc-btn');
+    const navIcon = document.getElementById('nav-mob-acc-icon');
+
+    if (user) {
+      if (guest)   guest.style.display   = 'none';
+      if (userBar) userBar.style.display = 'block';
+
+      // ชื่อบัญชี
+      const nickEl = document.getElementById('mob-bar-nick');
+      if (nickEl) nickEl.textContent = user.nick || '—';
+
+      // ยอดเงิน
+      const balEl = document.getElementById('mob-bar-balance');
+      if (balEl) balEl.textContent = Number(user.balance || 0).toLocaleString() + ' ₭';
+
+      // Avatar
+      const avatarEl = document.getElementById('mob-bar-avatar');
+      if (avatarEl) {
+        if (user.avatar_url) {
+          avatarEl.innerHTML = `<img src="${user.avatar_url}" style="width:100%;height:100%;object-fit:cover;border-radius:50%;" onerror="this.parentElement.textContent='${(user.nick||'').slice(0,2).toUpperCase()||'👤'}'">`;
+        } else {
+          const init = (user.nick || '').slice(0,2).toUpperCase() || '👤';
+          avatarEl.textContent = init;
+        }
+      }
+
+      // Nav top button
+      if (navBtn)  navBtn.classList.add('logged-in');
+      if (navIcon) {
+        if (user.avatar_url) {
+          navIcon.innerHTML = `<img src="${user.avatar_url}" style="width:28px;height:28px;object-fit:cover;border-radius:50%;" onerror="this.textContent='👤'">`;
+        } else {
+          const init = (user.nick || '').slice(0,1).toUpperCase() || '👤';
+          navIcon.innerHTML = `<span style="font-family:'Kanit',sans-serif;font-weight:900;font-size:13px;color:var(--gold);">${init}</span>`;
+        }
+      }
+    } else {
+      if (guest)   guest.style.display   = 'flex';
+      if (userBar) userBar.style.display = 'none';
+      if (navBtn)  navBtn.classList.remove('logged-in');
+      if (navIcon) navIcon.innerHTML = '👤';
+    }
   }
 
   // ── Logout ──
@@ -7508,6 +7665,8 @@ setInterval(() => {
     document.body.classList.remove('flag-no-game','flag-no-deposit','flag-no-withdraw','flag-no-reward','flag-blacklist');
     currentUser = null;
     window._currentUser = null;
+    // reset mobile account bar
+    if (typeof _updateMobAccBar === 'function') _updateMobAccBar();
     _safeStorage.removeItem('bw_user');
     const navAcc = document.getElementById('nav-myaccount');
     const navReg = document.getElementById('nav-register');
@@ -7687,12 +7846,16 @@ setInterval(() => {
   function updateAccBalance(amount) {
     if (!currentUser) return;
     currentUser.balance = amount;
+    window._currentUser = currentUser;
     const fmt = amount.toLocaleString();
     document.getElementById('acc-balance').textContent      = fmt;
     document.getElementById('acc-info-bal').textContent     = fmt + ' ₭';
     document.getElementById('acc-with-balance').textContent = fmt + ' ₭';
     const depBal = document.getElementById('dep-current-bal');
     if (depBal) depBal.textContent = fmt + ' ₭';
+    // ── sync mobile account bar balance ──
+    const mobBal = document.getElementById('mob-bar-balance');
+    if (mobBal) mobBal.textContent = fmt + ' ₭';
   }
 
   window.setDepAmount = window._real_setDepAmount = function setDepAmount(n) {
@@ -9273,6 +9436,14 @@ function mobNavAccount() {
 }
 
 function updateMobNavUser() {
+  // sync account bar ด้วย
+  if (typeof _updateMobAccBar === 'function') _updateMobAccBar();
+  // sync mob-bar-balance ถ้า currentUser มีข้อมูล
+  if (currentUser || window._currentUser) {
+    const u = currentUser || window._currentUser;
+    const balEl = document.getElementById('mob-bar-balance');
+    if (balEl) balEl.textContent = Number(u.balance || 0).toLocaleString() + ' ₭';
+  }
   const iconEl  = document.getElementById('mobnav-acc-icon');
   const labelEl = document.getElementById('mobnav-acc-label');
   const btn     = document.getElementById('mobnav-account');
@@ -9321,7 +9492,11 @@ Object.entries(_mobNavPatches).forEach(([fnName, tab]) => {
 });
 
 document.addEventListener('DOMContentLoaded', () => {
-  setTimeout(updateMobNavUser, 600);
+  setTimeout(() => {
+    updateMobNavUser();
+    // init account bar state
+    if (typeof _updateMobAccBar === 'function') _updateMobAccBar();
+  }, 600);
 });
 
 
