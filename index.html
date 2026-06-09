@@ -6645,16 +6645,21 @@ function applyLang() {
       const dateStr  = b.created_at ? new Date(b.created_at).toLocaleDateString('th-TH',{day:'numeric',month:'short'}) : '';
 
       // ── คำนวณรายละเอียดการจ่าย ──
-      const stake        = Number(b.order_amount || b.amount || 0);   // เงินต้นที่วาง
-      const matched      = Number(b.matched_amount || 0);             // ยอดที่มีคู่จับ
-      const remaining    = Number(b.remaining_amount || 0);           // ยอดที่ยังไม่มีคู่
+      const stake        = Number(b.order_amount || b.amount || 0);   // ทุน A ที่วาง
+      const matched      = Number(b.matched_amount || 0);             // ทุน A ที่ถูกจับ
+      const remaining    = Number(b.remaining_amount || 0);           // ทุน A ที่ยังไม่มีคู่
       const odds         = Number(b.odds || 1);
-      // กำไรสุทธิ = matched × odds (เฉพาะส่วนที่มีคู่จับ)
-      const profitGross  = Math.floor(matched * odds);
+
+      // ฝั่งตรงข้าม (B) วางเงินจริง = matched × odds  (ไขว้ตามอัตราค่าน้ำ)
+      // เช่น A ต่อ 10/5 (odds=0.5): matched=40,000 → B จับ = 40,000×0.5 = 20,000
+      const oppJoined    = Math.floor(matched * odds);
+
+      // กำไร A = เงิน B ที่เข้ามาสู้ (สมมาตร P2P)
+      const profitGross  = oppJoined;
       const FEE          = 0.07;
       const feeAmt       = Math.floor(profitGross * FEE);
       const profitNet    = profitGross - feeAmt;
-      // รับรวม = ต้นทุนทั้งหมด + กำไรสุทธิ (remaining คืนกลับด้วย)
+      // รับรวม = ทุนทั้งหมด (รวม remaining ที่คืน) + กำไรสุทธิ
       const totalReturn  = stake + profitNet;
 
       const payout = isDraw
@@ -6688,11 +6693,21 @@ function applyLang() {
             <div style="font-family:'Kanit',sans-serif;width:100%;">
               <div style="font-size:13px;color:#4ade80;font-weight:900;margin-bottom:6px;">🏆 ชนะ!</div>
               <div style="display:grid;grid-template-columns:1fr 1fr;gap:4px 12px;font-size:11px;color:rgba(240,255,232,0.6);">
-                <span>💰 เงินต้นที่วาง</span><span style="color:#fff;font-weight:700;text-align:right;">${stake.toLocaleString()} ₭</span>
-                <span>🤝 ฝั่งตรงข้ามจับ</span><span style="color:var(--gold);font-weight:700;text-align:right;">${matched.toLocaleString()} ₭</span>
-                ${remaining>0?`<span>↩️ ส่วนที่ไม่มีคู่</span><span style="color:#a0aec0;font-weight:700;text-align:right;">${remaining.toLocaleString()} ₭</span>`:''}
-                <span>📈 กำไรสุทธิ (หัก fee)</span><span style="color:#4ade80;font-weight:900;text-align:right;">+${profitNet.toLocaleString()} ₭</span>
-                <span style="border-top:1px solid rgba(255,255,255,0.1);padding-top:4px;">💵 รับรวมทั้งสิ้น</span><span style="color:var(--gold);font-weight:900;font-size:14px;text-align:right;border-top:1px solid rgba(255,255,255,0.1);padding-top:4px;">${totalReturn.toLocaleString()} ₭</span>
+                <span>💰 เงินต้นที่วาง</span>
+                <span style="color:#fff;font-weight:700;text-align:right;">${stake.toLocaleString()} ₭</span>
+
+                <span>🤝 ฝั่งตรงข้ามเข้าสู้จริง</span>
+                <span style="color:var(--gold);font-weight:700;text-align:right;">${oppJoined.toLocaleString()} ₭</span>
+
+                ${remaining>0?`
+                <span>📦 ยอดเงินคงเหลือ (คืนกลับ)</span>
+                <span style="color:#a0aec0;font-weight:700;text-align:right;">${remaining.toLocaleString()} ₭</span>`:''}
+
+                <span>📈 กำไรสุทธิ (หักค่าบริการ ${Math.round(FEE*100)}%)</span>
+                <span style="color:#4ade80;font-weight:900;text-align:right;">+${profitNet.toLocaleString()} ₭</span>
+
+                <span style="border-top:1px solid rgba(255,255,255,0.1);padding-top:4px;font-weight:700;">💵 รับรวมทั้งสิ้น</span>
+                <span style="color:var(--gold);font-weight:900;font-size:14px;text-align:right;border-top:1px solid rgba(255,255,255,0.1);padding-top:4px;">${totalReturn.toLocaleString()} ₭</span>
               </div>
             </div>` : isDraw ? `
             <div style="font-family:'Kanit',sans-serif;width:100%;">
@@ -6701,7 +6716,9 @@ function applyLang() {
             </div>` : isLost ? `
             <div style="font-family:'Kanit',sans-serif;width:100%;">
               <div style="font-size:13px;color:#f87171;font-weight:900;margin-bottom:4px;">❌ แพ้</div>
-              <div style="font-size:11px;color:rgba(240,255,232,0.5);">เสียเงินส่วนที่ถูกจับ ${matched.toLocaleString()} ₭${remaining>0?' · คืน remaining '+remaining.toLocaleString()+' ₭':''}</div>
+              <div style="font-size:11px;color:rgba(240,255,232,0.5);">
+                เสียเงินส่วนที่ถูกจับ <b style="color:#f87171;">${oppJoined.toLocaleString()} ₭</b>
+                ${remaining>0?` · ได้คืน <b style="color:#a0aec0;">${remaining.toLocaleString()} ₭</b> (ส่วนที่ไม่มีคู่)`:''}</div>
             </div>` : `
             <div style="font-family:'Kanit',sans-serif;font-size:13px;color:var(--gold);">⏳ รอผลการแข่งขัน</div>`}
             <div style="font-family:Kanit,sans-serif;font-weight:900;font-size:16px;color:${isWon?'var(--gold)':'rgba(240,255,232,0.4)'};">${payout}</div>
