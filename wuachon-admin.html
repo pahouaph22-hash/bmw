@@ -5110,35 +5110,45 @@ function _closePwdModal(){
 }
 
 async function _submitPasswordVerify(){
-  var inp=document.getElementById('pwd-modal-input');
-  var errEl=document.getElementById('pwd-modal-err');
-  var pass=(inp?.value||'').trim();
-  if(!pass){ if(errEl) errEl.style.display='block'; return; }
+  const inp   = document.getElementById('pwd-modal-input');
+  const errEl = document.getElementById('pwd-modal-err');
+  const pass  = (inp?.value || '').trim();
+  if (!pass) { if (errEl) errEl.style.display = 'block'; return; }
 
-  // ตรวจ password ของ admin ปัจจุบัน
-  var isValid=false;
-  try{
-    if(_pRole==='superadmin'){
-      // superadmin: เทียบกับ ADMIN_PASS
-      isValid=(pass===ADMIN_PASS);
-    } else if(_pStaffRow){
-      // staff: เทียบกับ hash ใน database
-      var hashPass=btoa(unescape(encodeURIComponent((_pStaffRow.phone||_pStaffRow.username||'')+':'+pass)));
-      var hashPassAlt=btoa((_pStaffRow.phone||_pStaffRow.username||'')+':'+pass);
-      isValid=(_pStaffRow.password===hashPass||_pStaffRow.password===hashPassAlt||_pStaffRow.password===pass);
+  let isValid = false;
+  try {
+    if (_pRole === 'superadmin') {
+      // ADMIN_PASS เก็บ plaintext ใน settings
+      // login ใช้: ADMIN_PASS===pass OR ADMIN_PASS===sha256(pass)
+      // → เปรียบทั้ง 2 แบบ
+      await loadAdminPass(); // reload ให้แน่ใจว่า ADMIN_PASS เป็นล่าสุด
+      const passHash = await hashPassword(pass);
+      isValid = (pass === ADMIN_PASS) || (passHash === ADMIN_PASS);
+    } else if (_pStaffRow) {
+      // staff: password เก็บเป็น btoa hash
+      const staffUser = _pStaffRow.username || _pStaffRow.phone || '';
+      const h1 = btoa(unescape(encodeURIComponent(staffUser + ':' + pass)));
+      const h2 = btoa(staffUser + ':' + pass);
+      const h3 = await hashPassword(pass);
+      isValid = (
+        _pStaffRow.password === pass ||
+        _pStaffRow.password === h1   ||
+        _pStaffRow.password === h2   ||
+        _pStaffRow.password === h3
+      );
     }
-  }catch(e){ isValid=false; }
+  } catch(e) { isValid = false; }
 
-  if(!isValid){
-    if(errEl) errEl.style.display='block';
-    if(inp){ inp.value=''; inp.focus(); }
+  if (!isValid) {
+    if (errEl) errEl.style.display = 'block';
+    if (inp)   { inp.value = ''; inp.focus(); }
     return;
   }
 
-  // ผ่าน → execute
+  const _fn = _pendingActionFn;
+  _pendingActionFn = null;
   _closePwdModal();
-  if(_pendingActionFn) await _pendingActionFn();
-  _pendingActionFn=null;
+  if (_fn) await _fn();
 }
 
 function _showActionModal(label){
@@ -5175,8 +5185,8 @@ function _showActionModal(label){
   for(let i=0;i<6;i++){const b=document.getElementById('ao-'+i);if(b){b.value='';b.classList.remove('filled');}}
   m.style.display='flex';setTimeout(()=>document.getElementById('ao-0')?.focus(),100);
 }
-function _closeActionModal(){const m=document.getElementById('action-otp-modal');if(m)m.style.display='none';_pendingActionFn=null;}
-async function _submitActionOTP(){const code=Array.from({length:6},(_,i)=>document.getElementById('ao-'+i)?.value||'').join('');const err=document.getElementById('ao-err');err.style.display='none';if(code.length<6){err.style.display='block';return;}if(await _verifyTOTP(code)){_closeActionModal();if(_pendingActionFn)await _pendingActionFn();_pendingActionFn=null;}else{err.style.display='block';for(let i=0;i<6;i++){const b=document.getElementById('ao-'+i);if(b){b.value='';b.classList.remove('filled');}}document.getElementById('ao-0')?.focus();}}
+function _closeActionModal(){const m=document.getElementById('action-otp-modal');if(m)m.style.display='none';}
+async function _submitActionOTP(){const code=Array.from({length:6},(_,i)=>document.getElementById('ao-'+i)?.value||'').join('');const err=document.getElementById('ao-err');err.style.display='none';if(code.length<6){err.style.display='block';return;}if(await _verifyTOTP(code)){const fn=_pendingActionFn;_pendingActionFn=null;_closeActionModal();if(fn)await fn();}else{err.style.display='block';for(let i=0;i<6;i++){const b=document.getElementById('ao-'+i);if(b){b.value='';b.classList.remove('filled');}}document.getElementById('ao-0')?.focus();}}
 function _aoAutoSubmit(){const c=Array.from({length:6},(_,i)=>document.getElementById('ao-'+i)?.value||'').join('');if(c.length===6)_submitActionOTP();}
 function _aoNext(el,n){el.classList.toggle('filled',el.value!=='');if(el.value&&n>=0)document.getElementById('ao-'+n)?.focus();}
 function _aoKey(e,i){if(e.key==='Backspace'&&!e.target.value&&i>0)document.getElementById('ao-'+(i-1))?.focus();else if(e.key==='Enter')_submitActionOTP();else if(!/[0-9]/.test(e.key)&&!['Backspace','Tab','ArrowLeft','ArrowRight'].includes(e.key))e.preventDefault();}
@@ -6163,7 +6173,7 @@ async function regenerateTOTP(){if(!confirm('สร้าง Secret ใหม่
 async function disableTOTP(){if(!confirm('ปิด 2FA?'))return;const code=prompt('กรอก OTP เพื่อยืนยัน:');if(!code)return;if(!await _verifyTOTP(code.trim())){showToast('❌ OTP ไม่ถูกต้อง','error');return;}await _saveTwofaConfig({enabled:false});showToast('2FA ปิดแล้ว');await loadTwofaPanel();}
 async function saveTwofaSettings(){const ol=document.getElementById('twofa-on-login'),oa=document.getElementById('twofa-on-approve');const en=await _checkTwofaEnabled();await _saveTwofaConfig({enabled:en,onLogin:ol?.checked!==false,onApprove:oa?.checked!==false});showToast('💾 บันทึกแล้ว');}
 function _copySecret(){const el=document.getElementById('twofa-secret-display');const t=(el?.textContent||'').replace(/\s/g,'');if(navigator.clipboard)navigator.clipboard.writeText(t).then(()=>showToast('✅ คัดลอกแล้ว'));}
-function switchCfgTab(tab){document.querySelectorAll('.cfg-tab').forEach(b=>b.classList.remove('active'));document.querySelectorAll('.cfg-pane').forEach(p=>{p.classList.remove('active');p.style.display='none';});document.getElementById('cfg-tab-'+tab)?.classList.add('active');const pane=document.getElementById('cfg-pane-'+tab);if(pane){pane.classList.add('active');pane.style.display='block';}if(tab==='twofa')loadTwofaPanel();}
+function switchCfgTab(tab){document.querySelectorAll('.cfg-tab').forEach(b=>b.classList.remove('active'));document.querySelectorAll('.cfg-pane').forEach(p=>{p.classList.remove('active');p.style.display='none';});document.getElementById('cfg-tab-'+tab)?.classList.add('active');const pane=document.getElementById('cfg-pane-'+tab);if(pane){pane.classList.add('active');pane.style.display='block';}if(tab==='twofa')loadTwofaPanel();if(tab==='bank')loadBankAccounts();}
 
 // ── SECURITY LOG ──
 async function _logLoginActivity(u,role,r){
@@ -6373,3 +6383,4 @@ function showMemberDetail(row){}
 </script>
 </body>
 </html>
+  loadBankAccounts();
