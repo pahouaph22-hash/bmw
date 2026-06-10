@@ -4634,12 +4634,12 @@ function _aoKey(e,i){if(e.key==='Backspace'&&!e.target.value&&i>0)document.getEl
 // ── DEPOSITS / WITHDRAWALS (OTP-gated) ──
 function approveDeposit(id,nick,amount){_requireActionOTP('อนุมัติเติมเงิน '+Number(amount).toLocaleString()+' ₭ ให้ "'+nick+'"',()=>_approveDepositReal(id,nick,amount));}
 function rejectDeposit(id,nick){_requireActionOTP('ปฏิเสธเติมเงินของ "'+nick+'"',()=>_rejectDepositReal(id,nick));}
-async function _approveDepositReal(id,nick,amount){if(!await checkFlagBeforeDeposit(nick))return;try{const{error:e1}=await sb.from('deposits').update({status:'approved',approved_at:new Date().toISOString(),approved_by:_adminNick()}).eq('id',id);if(e1)throw e1;const mem=allMembers.find(m=>m.nick===nick);await sb.from('members').update({balance:(mem?.balance||0)+Number(amount)}).eq('nick',nick);await sb.from('worklog').insert({admin:_adminNick(),action:'approve_deposit',nick,amount:Number(amount),note:'อนุมัติเติมเงิน (2FA ✓)',created_at:new Date().toISOString()}).select().maybeSingle();showToast('✅ อนุมัติ '+Number(amount).toLocaleString()+' ₭ ให้ "'+nick+'" (2FA ✓)');await loadDeposits();loadOverview();loadMembers();}catch(err){showToast('❌ '+err.message,'error');}}
-async function _rejectDepositReal(id,nick){const r=prompt('เหตุผล:');if(r===null)return;try{await sb.from('deposits').update({status:'rejected',reject_reason:r,approved_by:_adminNick()}).eq('id',id);await sb.from('worklog').insert({admin:_adminNick(),action:'reject_deposit',nick,note:'ปฏิเสธ (2FA ✓): '+r,created_at:new Date().toISOString()}).select().maybeSingle();showToast('ปฏิเสธ "'+nick+'" (2FA ✓)');await loadDeposits();loadOverview();}catch(err){showToast('❌ '+err.message,'error');}}
+async function _approveDepositReal(id,nick,amount){if(!await checkFlagBeforeDeposit(nick))return;try{const{error:e1}=await sb.from('deposits').update({status:'approved',approved_at:new Date().toISOString(),approved_by:_adminNick()}).eq('id',id);if(e1)throw e1;const mem=allMembers.find(m=>m.nick===nick);await sb.from('members').update({balance:(mem?.balance||0)+Number(amount)}).eq('nick',nick);await sb.from('staff_logs').insert({admin:_adminNick(),action:'approve_deposit',nick,amount:Number(amount),note:'อนุมัติเติมเงิน (2FA ✓)',created_at:new Date().toISOString()}).select().maybeSingle();showToast('✅ อนุมัติ '+Number(amount).toLocaleString()+' ₭ ให้ "'+nick+'" (2FA ✓)');await loadDeposits();loadOverview();loadMembers();}catch(err){showToast('❌ '+err.message,'error');}}
+async function _rejectDepositReal(id,nick){const r=prompt('เหตุผล:');if(r===null)return;try{await sb.from('deposits').update({status:'rejected',reject_reason:r,approved_by:_adminNick()}).eq('id',id);await sb.from('staff_logs').insert({admin:_adminNick(),action:'reject_deposit',nick,note:'ปฏิเสธ (2FA ✓): '+r,created_at:new Date().toISOString()}).select().maybeSingle();showToast('ปฏิเสธ "'+nick+'" (2FA ✓)');await loadDeposits();loadOverview();}catch(err){showToast('❌ '+err.message,'error');}}
 function approveWithdraw(id,nick,amount,bank,accNo){_requireActionOTP('โอนเงิน '+Number(amount).toLocaleString()+' ₭ ให้ "'+nick+'"',()=>_approveWithdrawReal(id,nick,amount,bank,accNo));}
 function rejectWithdraw(id,nick,amount){_requireActionOTP('ปฏิเสธถอนเงินของ "'+nick+'"',()=>_rejectWithdrawReal(id,nick,amount));}
-async function _approveWithdrawReal(id,nick,amount,bank,accNo){if(!await checkFlagBeforeWithdraw(nick))return;try{await sb.from('withdrawals').update({status:'approved',approved_at:new Date().toISOString(),approved_by:_adminNick()}).eq('id',id);const mem=allMembers.find(m=>m.nick===nick);await sb.from('members').update({balance:Math.max(0,(mem?.balance||0)-Number(amount))}).eq('nick',nick);await sb.from('worklog').insert({admin:_adminNick(),action:'approve_withdraw',nick,amount:Number(amount),note:'โอน (2FA ✓)',created_at:new Date().toISOString()}).select().maybeSingle();showToast('✅ โอน '+Number(amount).toLocaleString()+' ₭ (2FA ✓)');await loadWithdrawals();loadOverview();loadMembers();}catch(err){showToast('❌ '+err.message,'error');}}
-async function _rejectWithdrawReal(id,nick,amount){const r=prompt('เหตุผล:');if(r===null)return;try{await sb.from('withdrawals').update({status:'rejected',reject_reason:r,approved_by:_adminNick()}).eq('id',id);const mem=allMembers.find(m=>m.nick===nick);if(mem)await sb.from('members').update({balance:(mem.balance||0)+Number(amount)}).eq('nick',nick);await sb.from('worklog').insert({admin:_adminNick(),action:'reject_withdraw',nick,amount:Number(amount),note:'ปฏิเสธ (2FA ✓)',created_at:new Date().toISOString()}).select().maybeSingle();showToast('ปฏิเสธ + คืน balance (2FA ✓)');await loadWithdrawals();loadOverview();loadMembers();}catch(err){showToast('❌ '+err.message,'error');}}
+async function _approveWithdrawReal(id,nick,amount,bank,accNo){if(!await checkFlagBeforeWithdraw(nick))return;try{await sb.from('withdrawals').update({status:'approved',approved_at:new Date().toISOString(),approved_by:_adminNick()}).eq('id',id);const mem=allMembers.find(m=>m.nick===nick);await sb.from('members').update({balance:Math.max(0,(mem?.balance||0)-Number(amount))}).eq('nick',nick);await sb.from('staff_logs').insert({admin:_adminNick(),action:'approve_withdraw',nick,amount:Number(amount),note:'โอน (2FA ✓)',created_at:new Date().toISOString()}).select().maybeSingle();showToast('✅ โอน '+Number(amount).toLocaleString()+' ₭ (2FA ✓)');await loadWithdrawals();loadOverview();loadMembers();}catch(err){showToast('❌ '+err.message,'error');}}
+async function _rejectWithdrawReal(id,nick,amount){const r=prompt('เหตุผล:');if(r===null)return;try{await sb.from('withdrawals').update({status:'rejected',reject_reason:r,approved_by:_adminNick()}).eq('id',id);const mem=allMembers.find(m=>m.nick===nick);if(mem)await sb.from('members').update({balance:(mem.balance||0)+Number(amount)}).eq('nick',nick);await sb.from('staff_logs').insert({admin:_adminNick(),action:'reject_withdraw',nick,amount:Number(amount),note:'ปฏิเสธ (2FA ✓)',created_at:new Date().toISOString()}).select().maybeSingle();showToast('ปฏิเสธ + คืน balance (2FA ✓)');await loadWithdrawals();loadOverview();loadMembers();}catch(err){showToast('❌ '+err.message,'error');}}
 
 // ── DEPOSITS core ──
 async function loadDeposits(){const res=await sb.from('deposits').select('*').order('created_at',{ascending:false});allDeposits=res.data||[];const sc=(id,n)=>{const e=document.getElementById(id);if(e)e.textContent=n?'('+n+')':'';}; sc('dep-pending-count',allDeposits.filter(d=>d.status==='pending').length);sc('dep-done-count',allDeposits.filter(d=>d.status==='approved').length);sc('dep-reject-count',allDeposits.filter(d=>d.status==='rejected').length);filterDeposits();filterDepDone();filterDepReject();}
@@ -4751,7 +4751,7 @@ async function loadWorklogPanel(){
   var tb=document.getElementById('worklog-tbody');if(!tb)return;
   tb.innerHTML='<tr><td colspan="6" style="text-align:center;padding:24px;color:#aaa;">กำลังโหลด...</td></tr>';
   try{
-    var res=await sb.from('worklog').select('*').order('created_at',{ascending:false}).limit(200);
+    var res=await sb.from('staff_logs').select('*').order('created_at',{ascending:false}).limit(200);
     var rows=res.data||[];
     if(!rows.length){tb.innerHTML='<tr><td colspan="6" style="text-align:center;padding:24px;color:#aaa;">ยังไม่มี</td></tr>';return;}
     var lbl={approve_deposit:'✅ อนุมัติเติมเงิน',reject_deposit:'❌ ปฏิเสธ',approve_withdraw:'✅ โอนเงิน',reject_withdraw:'❌ ปฏิเสธถอน',admin_login:'🔑 Login'};
@@ -4779,7 +4779,7 @@ async function loadReferralPanel(){
 async function loadActivityPanel(){
   var tb=document.getElementById('activity-log-tbody');if(!tb)return;
   try{
-    var res=await sb.from('worklog').select('*').eq('action','activity_reward').order('created_at',{ascending:false}).limit(100);
+    var res=await sb.from('staff_logs').select('*').eq('action','activity_reward').order('created_at',{ascending:false}).limit(100);
     var rows=res.data||[];
     if(!rows.length){tb.innerHTML='<tr><td colspan="5" style="text-align:center;padding:24px;color:#aaa;">ยังไม่มี</td></tr>';return;}
     tb.innerHTML=rows.map(function(r2){return'<tr><td style="font-size:11px;color:#888">'+fmtDate(r2.created_at)+'</td><td style="font-weight:700">'+(r2.admin||'—')+'</td><td style="cursor:pointer;color:var(--green)" onclick="openMember(\''+( r2.nick||'')+'\')">'+( r2.nick||'—')+'</td><td style="font-weight:700;color:#16a34a">'+( r2.amount?Number(r2.amount).toLocaleString()+' ₭':'—')+'</td><td style="font-size:11px;color:#888">'+(r2.note||'—')+'</td></tr>';}).join('');
@@ -4830,7 +4830,7 @@ function closeMember(){closeMemberOverlay();}
 function switchMoTab(btn,tab){document.querySelectorAll('.mo-tab').forEach(t=>t.classList.remove('active'));document.querySelectorAll('.mo-pane').forEach(p=>p.classList.remove('active'));btn.classList.add('active');const pane=document.getElementById('mo-pane-'+tab);if(pane)pane.classList.add('active');}
 async function saveMemberNote(){const note=document.getElementById('mo-note-input')?.value||'';const nick=document.getElementById('mo-nick')?.textContent;if(!nick||nick==='—')return;const{error}=await sb.from('members').update({admin_note:note}).eq('nick',nick);if(error){showToast('❌ '+error.message,'error');return;}showToast('💾 บันทึก ✅');await loadMembers();}
 async function toggleMemberFlag(flag){const nick=document.getElementById('mo-nick')?.textContent;if(!nick||nick==='—')return;const m=allMembers.find(x=>x.nick===nick);if(!m)return;const flags=Array.isArray(m.flags)?[...m.flags]:[];const idx=flags.indexOf(flag);if(idx!==-1)flags.splice(idx,1);else flags.push(flag);await sb.from('members').update({flags}).eq('nick',nick).catch(()=>{});showToast(idx!==-1?'✅ ลบ flag':'✅ เพิ่ม flag');await loadMembers();openMember(nick);}
-async function adjustMemberBalance(){const nick=document.getElementById('mo-nick')?.textContent;const ai=document.getElementById('mo-adjust-amount'),ri=document.getElementById('mo-adjust-reason');const amount=parseFloat(ai?.value||'0'),reason=ri?.value?.trim()||'';if(!nick||nick==='—'||!amount){showToast('⚠️ กรุณากรอกจำนวน','error');return;}if(!reason){showToast('⚠️ กรุณากรอกเหตุผล','error');return;}const m=allMembers.find(x=>x.nick===nick);if(!m)return;const nb=Math.max(0,(m.balance||0)+amount);await sb.from('members').update({balance:nb}).eq('nick',nick);await sb.from('worklog').insert({admin:_adminNick(),action:'balance_adjust',nick,amount,note:'ปรับยอด: '+reason,created_at:new Date().toISOString()}).select().maybeSingle();showToast('✅ ปรับยอด '+(amount>0?'+':'')+amount.toLocaleString()+' ₭');if(ai)ai.value='';if(ri)ri.value='';await loadMembers();openMember(nick);}
+async function adjustMemberBalance(){const nick=document.getElementById('mo-nick')?.textContent;const ai=document.getElementById('mo-adjust-amount'),ri=document.getElementById('mo-adjust-reason');const amount=parseFloat(ai?.value||'0'),reason=ri?.value?.trim()||'';if(!nick||nick==='—'||!amount){showToast('⚠️ กรุณากรอกจำนวน','error');return;}if(!reason){showToast('⚠️ กรุณากรอกเหตุผล','error');return;}const m=allMembers.find(x=>x.nick===nick);if(!m)return;const nb=Math.max(0,(m.balance||0)+amount);await sb.from('members').update({balance:nb}).eq('nick',nick);await sb.from('staff_logs').insert({admin:_adminNick(),action:'balance_adjust',nick,amount,note:'ปรับยอด: '+reason,created_at:new Date().toISOString()}).select().maybeSingle();showToast('✅ ปรับยอด '+(amount>0?'+':'')+amount.toLocaleString()+' ₭');if(ai)ai.value='';if(ri)ri.value='';await loadMembers();openMember(nick);}
 async function deleteMemberFromOverlay(){const nick=document.getElementById('mo-nick')?.textContent;if(!nick||nick==='—')return;const m=allMembers.find(x=>x.nick===nick);if(!m)return;if(!confirm('ลบบัญชี "'+nick+'" ถาวร?'))return;await sb.from('members').delete().eq('id',m.id);showToast('🗑 ลบ "'+nick+'" แล้ว');closeMemberOverlay();await loadMembers();}
 document.addEventListener('click',e=>{const ov=document.getElementById('member-overlay');if(ov&&e.target===ov)closeMemberOverlay();});
 
@@ -4851,7 +4851,7 @@ async function addStaff(){
   const{data:newStaff,error:e1}=await sb.from('staff').insert({username:user,password:hash,role,is_active:true,created_at:new Date().toISOString()}).select().maybeSingle();
   if(e1){showToast('❌ '+e1.message,'error');return;}
   if(newStaff?.id){sb.from('staff').update({name:nameVal,must_change_password:true,must_setup_2fa:true,totp_secret:null}).eq('id',newStaff.id).catch(()=>{});}
-  await sb.from('worklog').insert({admin:_adminNick(),action:'add_staff',nick:user,note:'เพิ่มพนักงาน "'+nameVal+'" ('+user+')',created_at:new Date().toISOString()}).select().maybeSingle();
+  await sb.from('staff_logs').insert({admin:_adminNick(),action:'add_staff',nick:user,note:'เพิ่มพนักงาน "'+nameVal+'" ('+user+')',created_at:new Date().toISOString()}).select().maybeSingle();
   _showStaffCreatedPopup(nameVal,user,pass,role);
   ['new-staff-name','new-staff-user','new-staff-pass'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
   await loadStaffPanel();switchStaffSec('list');
@@ -4883,10 +4883,10 @@ function _showStaffCreatedPopup(name,username,tempPass,role){
 let _allStaff=[];
 async function loadStaffPanel(){
   try{
-    const[sRes,lRes]=await Promise.all([sb.from('staff').select('*').order('created_at',{ascending:false}),sb.from('worklog').select('*',{count:'exact',head:true})]);
+    const[sRes,lRes]=await Promise.all([sb.from('staff').select('*').order('created_at',{ascending:false}),sb.from('staff_logs').select('*',{count:'exact',head:true})]);
     _allStaff=sRes.data||[];
     if(_allStaff.length&&!_allStaff[0].hasOwnProperty('name')){
-      const{data:wlogs}=await sb.from('worklog').select('nick,note').eq('action','add_staff');
+      const{data:wlogs}=await sb.from('staff_logs').select('nick,note').eq('action','add_staff');
       const nm={};(wlogs||[]).forEach(w=>{const m=w.note?.match(/เพิ่มพนักงาน "([^"]+)"/);if(m)nm[w.nick]=m[1];});
       _allStaff=_allStaff.map(s=>({...s,name:s.name||nm[s.username]||s.username}));
     }
@@ -4917,7 +4917,7 @@ async function loadStaffLogs(){
   var tb=document.getElementById('staff-logs-tbody');if(!tb)return;
   tb.innerHTML='<tr><td colspan="4" style="text-align:center;padding:24px;color:#aaa;">กำลังโหลด...</td></tr>';
   try{
-    var res=await sb.from('worklog').select('*').order('created_at',{ascending:false}).limit(100);
+    var res=await sb.from('staff_logs').select('*').order('created_at',{ascending:false}).limit(100);
     var rows=res.data||[];
     if(!rows.length){tb.innerHTML='<tr><td colspan="4" style="text-align:center;padding:24px;color:#aaa;">ยังไม่มี</td></tr>';return;}
     tb.innerHTML=rows.map(function(r2){return'<tr style="border-bottom:1px solid #f5f5f3"><td style="padding:9px 12px;font-weight:700;font-size:12px;color:var(--green)">'+(r2.admin||'—')+'</td><td style="padding:9px 12px;font-size:11px;color:#888">—</td><td style="padding:9px 12px;font-size:12px">'+(r2.note||r2.action||'—')+'</td><td style="padding:9px 12px;font-size:11px;color:#aaa;text-align:right">'+fmtDate(r2.created_at)+'</td></tr>';}).join('');
@@ -5040,14 +5040,14 @@ function _copySecret(){const el=document.getElementById('twofa-secret-display');
 function switchCfgTab(tab){document.querySelectorAll('.cfg-tab').forEach(b=>b.classList.remove('active'));document.querySelectorAll('.cfg-pane').forEach(p=>{p.classList.remove('active');p.style.display='none';});document.getElementById('cfg-tab-'+tab)?.classList.add('active');const pane=document.getElementById('cfg-pane-'+tab);if(pane){pane.classList.add('active');pane.style.display='block';}if(tab==='twofa')loadTwofaPanel();}
 
 // ── SECURITY LOG ──
-async function _logLoginActivity(u,role,r){try{let ip='unknown';try{const x=await Promise.race([fetch('https://api.ipify.org?format=json').then(x=>x.json()),new Promise((_,rej)=>setTimeout(rej,2000))]);ip=x?.ip||'unknown';}catch(_){}await sb.from('worklog').insert({admin:u,action:r==='success'?'admin_login':'admin_login_failed',nick:u,note:(r==='success'?'✅':'❌')+' | Role:'+role+' | IP:'+ip,created_at:new Date().toISOString()}).select().maybeSingle();}catch(e){}}
+async function _logLoginActivity(u,role,r){try{let ip='unknown';try{const x=await Promise.race([fetch('https://api.ipify.org?format=json').then(x=>x.json()),new Promise((_,rej)=>setTimeout(rej,2000))]);ip=x?.ip||'unknown';}catch(_){}await sb.from('staff_logs').insert({admin:u,action:r==='success'?'admin_login':'admin_login_failed',nick:u,note:(r==='success'?'✅':'❌')+' | Role:'+role+' | IP:'+ip,created_at:new Date().toISOString()}).select().maybeSingle();}catch(e){}}
 async function loadSecurityLog(){
   var tb=document.getElementById('sec-log-tbody');if(!tb)return;
   tb.innerHTML='<tr><td colspan="4" style="text-align:center;padding:24px;color:#aaa;">กำลังโหลด...</td></tr>';
   try{
     var today=new Date();today.setHours(0,0,0,0);
-    var lR=await sb.from('worklog').select('*').in('action',['admin_login','admin_login_failed']).order('created_at',{ascending:false}).limit(30);
-    var aR=await sb.from('worklog').select('*',{count:'exact',head:true}).in('action',['approve_deposit','approve_withdraw']).gte('created_at',today.toISOString());
+    var lR=await sb.from('staff_logs').select('*').in('action',['admin_login','admin_login_failed']).order('created_at',{ascending:false}).limit(30);
+    var aR=await sb.from('staff_logs').select('*',{count:'exact',head:true}).in('action',['approve_deposit','approve_withdraw']).gte('created_at',today.toISOString());
     var logs=lR.data||[];
     var se=function(id,v){var e=document.getElementById(id);if(e)e.textContent=v;};
     se('sec-login-ok',logs.filter(function(l){return l.action==='admin_login';}).length);
@@ -5063,7 +5063,7 @@ async function loadSecurityLog(){
   }catch(err){tb.innerHTML='<tr><td colspan="4" style="text-align:center;color:#dc2626">❌ '+err.message+'</td></tr>';}
 }
 async function _forceLogoutAll(){if(!confirm('Force Logout?'))return;const token=(typeof crypto.randomUUID==='function')?crypto.randomUUID():Date.now().toString(36);await sb.from('settings').upsert({key:'session_token',value:token});showToast('✅ Force Logout');setTimeout(()=>adminLogout(),1500);}
-async function _clearSecurityLogs(){if(!confirm('ลบ Log เก่า?'))return;await sb.from('worklog').delete().in('action',['admin_login','admin_login_failed']).lt('created_at',new Date(Date.now()-30*86400000).toISOString());showToast('✅ ล้างแล้ว');loadSecurityLog();}
+async function _clearSecurityLogs(){if(!confirm('ลบ Log เก่า?'))return;await sb.from('staff_logs').delete().in('action',['admin_login','admin_login_failed']).lt('created_at',new Date(Date.now()-30*86400000).toISOString());showToast('✅ ล้างแล้ว');loadSecurityLog();}
 document.addEventListener('visibilitychange',()=>{if(document.hidden){window._ht=setTimeout(()=>{const d=document.getElementById('dashboard');if(d&&d.style.display!=='none')_showLockScreen();},5*60*1000);}else{clearTimeout(window._ht);}});
 function _showLockScreen(){
   if(document.getElementById('lock-screen'))return;
