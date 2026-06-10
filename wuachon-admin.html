@@ -727,6 +727,7 @@ input, textarea, select, button {
             <input type="date" class="date-input" id="mem-date-from" onchange="filterMembers()">
             <label>ถึง</label>
             <input type="date" class="date-input" id="mem-date-to" onchange="filterMembers()">
+            <button class="btn-date-clear" onclick="clearDateMem()" style="background:#374151;color:#fff;border:none;padding:5px 12px;border-radius:6px;font-family:'Kanit',sans-serif;font-size:12px;cursor:pointer;">ทั้งหมด</button>
             <button class="btn-date-today" onclick="setDateToday('mem')">วันนี้</button>
             <button class="btn-date-clear" onclick="clearDate('mem')">✕ ล้าง</button>
             <span class="date-tag" id="mem-date-tag" style="display:none;"></span>
@@ -2152,6 +2153,10 @@ input, textarea, select, button {
             <button class="mo-tab" data-tab="adjust"
               onclick="if(typeof switchMoTab==='function')switchMoTab(this,'adjust')"
               style="padding:11px 16px;border:none;border-bottom:3px solid transparent;background:transparent;font-family:'Kanit',sans-serif;font-size:12px;font-weight:700;color:#9ca3af;cursor:pointer;white-space:nowrap;margin-bottom:-2px;flex-shrink:0;">⚙️ การปรับยอด</button>
+            <button class="mo-tab" data-tab="flags"
+              onclick="if(typeof switchMoTab==='function')switchMoTab(this,'flags')"
+              style="padding:11px 16px;border:none;border-bottom:3px solid transparent;background:transparent;font-family:'Kanit',sans-serif;font-size:12px;font-weight:700;color:#9ca3af;cursor:pointer;white-space:nowrap;margin-bottom:-2px;flex-shrink:0;">🏷️ ป้ายกำกับ</button>
+            
           </div>
 
           <!-- ════ TAB CONTENT ════ -->
@@ -2480,6 +2485,92 @@ input, textarea, select, button {
                     </div>
 
                   </div>
+              </div>
+              <div class="mo-pane" id="mo-pane-flags" style="display:none;padding:4px 0 16px;">
+
+  <!-- Header -->
+  <div style="padding:16px 20px 12px;border-bottom:1px solid #f3f4f6;margin-bottom:16px;">
+    <div style="font-family:'Kanit',sans-serif;font-weight:900;font-size:14px;color:#374151;">🏷️ ป้ายกำกับบัญชี</div>
+    <div style="font-size:11px;color:#9ca3af;margin-top:3px;">เลือกป้ายเพื่อกำหนดสิทธิ์ — มีผลทันทีหลังบันทึก</div>
+  </div>
+
+  <div style="padding:0 20px;">
+
+    <!-- Active flags row -->
+    <div id="mo-flags-list" style="display:flex;flex-wrap:wrap;gap:8px;min-height:36px;margin-bottom:20px;padding:10px 14px;background:#f9fafb;border-radius:10px;align-items:center;">
+      <span class="flags-placeholder" style="font-size:12px;color:#9ca3af;font-family:'Kanit',sans-serif;">ยังไม่มีป้ายกำกับ</span>
+    </div>
+
+    <!-- Flag cards grid -->
+    <div id="mo-flag-toggles" style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:20px;">
+      <!-- Rendered by JS -->
+    </div>
+
+    <!-- Save / Clear buttons -->
+    <div style="display:flex;gap:8px;">
+      <button onclick="_saveMemberFlags()"
+        style="flex:1;background:linear-gradient(135deg,#1B6B2F,#27943F);color:#fff;border:none;padding:11px 0;border-radius:9px;font-family:'Kanit',sans-serif;font-weight:700;font-size:13px;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px;">
+        💾 บันทึกป้ายกำกับ
+      </button>
+      <button onclick="_clearAllFlags()"
+        style="background:#fff;color:#dc2626;border:1.5px solid #fca5a5;padding:11px 18px;border-radius:9px;font-family:'Kanit',sans-serif;font-weight:700;font-size:13px;cursor:pointer;">
+        🗑 ล้าง
+      </button>
+    </div>
+
+  </div>
+</div>
+
+                <!-- Active flags display -->
+                <div style="background:#f9fafb;border-radius:10px;padding:12px;margin-bottom:14px;">
+                  <div style="font-size:11px;font-weight:700;color:#6b7280;margin-bottom:8px;font-family:'Kanit',sans-serif;">ป้ายที่ติดอยู่ตอนนี้:</div>
+                  <div id="mo-flags-list" style="display:flex;flex-wrap:wrap;gap:8px;min-height:28px;">
+                    <span style="font-size:12px;color:#9ca3af;font-family:'Kanit',sans-serif;">กำลังโหลด...</span>
+                  </div>
+                </div>
+
+                <!-- Toggle buttons -->
+                <div style="background:#fff;border:1px solid #e5e7eb;border-radius:10px;padding:14px;margin-bottom:14px;">
+                  <div style="font-family:'Kanit',sans-serif;font-weight:700;font-size:12px;color:#374151;margin-bottom:10px;">🔧 คลิกเพื่อเปิด/ปิดป้าย:</div>
+                  <div style="display:flex;flex-wrap:wrap;gap:8px;" id="mo-flag-toggles">
+                    <span style="font-size:12px;color:#9ca3af;">กำลังโหลด...</span>
+                  </div>
+                </div>
+
+                <!-- Action buttons -->
+                <div style="display:flex;gap:8px;flex-wrap:wrap;">
+                  <button onclick="_saveMemberFlags()"
+                    style="background:linear-gradient(135deg,#1B6B2F,#27943F);color:#fff;border:none;padding:10px 24px;border-radius:8px;font-family:'Kanit',sans-serif;font-weight:700;font-size:13px;cursor:pointer;flex:1;">
+                    💾 บันทึกป้ายกำกับ
+                  </button>
+                  <button onclick="_clearAllFlags()"
+                    style="background:#fff;color:#dc2626;border:1.5px solid #fca5a5;padding:10px 20px;border-radius:8px;font-family:'Kanit',sans-serif;font-weight:700;font-size:13px;cursor:pointer;">
+                    🗑 ล้างทั้งหมด
+                  </button>
+                </div>
+              </div>
+
+                <div id="mo-flags-list" style="display:flex;flex-wrap:wrap;gap:10px;margin-bottom:20px;">
+                  <!-- flags จะถูก render ด้วย JS -->
+                </div>
+
+                <div style="background:#f9fafb;border-radius:10px;padding:14px;margin-bottom:12px;">
+                  <div style="font-family:'Kanit',sans-serif;font-weight:700;font-size:12px;color:#374151;margin-bottom:10px;">🔧 จัดการป้ายกำกับ</div>
+                  <div style="display:flex;flex-wrap:wrap;gap:8px;" id="mo-flag-toggles">
+                    <!-- toggle buttons จะถูก render ด้วย JS -->
+                  </div>
+                </div>
+
+                <div style="display:flex;gap:8px;flex-wrap:wrap;">
+                  <button onclick="_saveMemberFlags()" 
+                    style="background:linear-gradient(135deg,#1B6B2F,#27943F);color:#fff;border:none;padding:10px 20px;border-radius:8px;font-family:'Kanit',sans-serif;font-weight:700;font-size:13px;cursor:pointer;">
+                    💾 บันทึกป้ายกำกับ
+                  </button>
+                  <button onclick="_clearAllFlags()"
+                    style="background:#fff;color:#dc2626;border:1px solid #fca5a5;padding:10px 20px;border-radius:8px;font-family:'Kanit',sans-serif;font-weight:700;font-size:13px;cursor:pointer;">
+                    🗑 ล้างทั้งหมด
+                  </button>
+                </div>
               </div>
             </div>
 
@@ -3109,22 +3200,17 @@ function inDateRange(row, prefix, field = 'created_at') {
 }
 
 // ===== AUTO REFRESH ทุกวัน =====
-function scheduleAutoRefresh() {
-  const now  = new Date();
-  const next = new Date(now);
-  next.setHours(0,1,0,0); // เที่ยงคืน + 1 นาที
-  if (next <= now) next.setDate(next.getDate() + 1);
-  const ms = next - now;
-  console.log(`Auto-refresh ครั้งถัดไปใน ${Math.round(ms/60000)} นาที`);
-  setTimeout(() => {
-    loadAll();
-    showToast(`🔄 อัปเดตข้อมูลแล้ว (${new Date().toLocaleDateString('th-TH')})`);
-    scheduleAutoRefresh(); // ตั้งรอบถัดไป
-  }, ms);
-}
+
 
 function loadAll() {
   loadOverview();
+  // clear date filters on initial load
+  try {
+    var mFrom = document.getElementById('mem-date-from');
+    var mTo   = document.getElementById('mem-date-to');
+    if (mFrom) mFrom.value = '';
+    if (mTo)   mTo.value   = '';
+  } catch(_) {}
   loadMembers();
   loadMatches();
   loadVerdict();
@@ -3539,7 +3625,7 @@ async function saveVipSettings() {
 }
 
 // ===== FLAG / BAN SYSTEM =====
-const FLAG_DEFS = {
+var FLAG_DEFS_LEGACY = {
   no_game:    { icon:'🚫', label:'ห้ามเข้าเกม',           cls:'flag-no_game'    },
   no_reward:  { icon:'🎁', label:'ห้ามรับรางวัล',          cls:'flag-no_reward'  },
   no_withdraw:{ icon:'🏧', label:'ห้ามถอนเงิน',            cls:'flag-no_withdraw'},
@@ -3550,6 +3636,49 @@ const FLAG_DEFS = {
   chg_pass:   { icon:'🔑', label:'เปลี่ยนรหัสผ่าน',        cls:'flag-chg_pass'   },
   chg_bank:   { icon:'🏦', label:'เปลี่ยนบัญชีธนาคาร',     cls:'flag-chg_bank'   },
 };
+
+
+  var FLAG_DEFS = [
+    {
+      id: 'suspend', label: '🚫 ระงับบัญชี', icon: '🚫',
+      color: '#dc2626', bg: '#fee2e2', border: '#fca5a5',
+      desc: 'ระงับการใช้งานทั้งหมด ไม่สามารถ login หรือทำธุรกรรมได้',
+      effect: 'บล็อกทุกอย่าง',
+    },
+    {
+      id: 'fraud', label: '⚠️ ต้องสงสัย', icon: '⚠️',
+      color: '#b45309', bg: '#fef9c3', border: '#fde68a',
+      desc: 'บัญชีอยู่ระหว่างการตรวจสอบพฤติกรรม',
+      effect: 'แสดง banner เตือน',
+    },
+    {
+      id: 'vip', label: '👑 VIP', icon: '👑',
+      color: '#7c3aed', bg: '#ede9fe', border: '#c4b5fd',
+      desc: 'สมาชิก VIP ได้รับสิทธิพิเศษ',
+      effect: 'สิทธิ์พิเศษ',
+    },
+    {
+      id: 'new', label: '🆕 สมาชิกใหม่', icon: '🆕',
+      color: '#0284c7', bg: '#e0f2fe', border: '#7dd3fc',
+      desc: 'สมาชิกที่เพิ่งสมัครใหม่',
+      effect: 'ไม่มี',
+    },
+    {
+      id: 'bot', label: '🤖 Bot', icon: '🤖',
+      color: '#64748b', bg: '#f1f5f9', border: '#cbd5e1',
+      desc: 'บัญชีที่ตรวจพบพฤติกรรม Bot',
+      effect: 'จำกัดฟีเจอร์',
+    },
+    {
+      id: 'staff', label: '👷 Staff', icon: '👷',
+      color: '#059669', bg: '#d1fae5', border: '#6ee7b7',
+      desc: 'บัญชีพนักงาน ใช้ทดสอบระบบ',
+      effect: 'bypass บางระบบ',
+    },
+  ];
+
+  var _currentMoFlags = [];
+
 
 function buildFlagBadgeHtml(key) {
   const d = FLAG_DEFS[key];
@@ -3940,15 +4069,25 @@ async function saveAdminNote(nick) {
 }
 
 // ─── ตรวจสอบป้ายเตือนก่อน approveDeposit ───
-async function checkFlagBeforeDeposit(nick) {
-  const mem = allMembers.find(m => m.nick === nick);
-  const flags = mem?.flags || [];
-  if (flags.includes('no_deposit') || flags.includes('blacklist')) {
-    const f = flags.includes('blacklist') ? 'บัญชีดำ' : 'ห้ามเติมเงิน';
-    showToast(`⛔ ${nick} มีป้ายเตือน "${f}" — ไม่สามารถอนุมัติได้ครับ`, 'error');
+async function checkFlagBeforeDeposit(nick){
+  var mem=allMembers.find(function(m){return m.nick===nick;});
+  if(!mem)return true; // ไม่พบ member → อนุมัติผ่าน
+  var f=Array.isArray(mem.flags)?mem.flags:[];
+  if(f.includes('suspend')||f.includes('blacklist')){
+    showToast('❌ บัญชี "'+nick+'" ถูกระงับการใช้งาน (suspend)','error');
     return false;
-  }
-  return true;
+  }  return true;
+}
+
+// ตรวจ flag ก่อนอนุมัติถอนเงิน
+async function checkFlagBeforeWithdraw(nick){
+  var mem=allMembers.find(function(m){return m.nick===nick;});
+  if(!mem)return true;
+  var f=Array.isArray(mem.flags)?mem.flags:[];
+  if(f.includes('suspend')||f.includes('blacklist')){
+    showToast('❌ บัญชี "'+nick+'" ถูกระงับการใช้งาน (suspend)','error');
+    return false;
+  }  return true;
 }
 
 // ─── ตรวจสอบป้ายเตือนก่อน confirmSlipUpload (ถอนเงิน) ───
@@ -3968,32 +4107,43 @@ function showFlagSqlHelper() { showFlagSqlModal(); }
 
 // ===== MEMBERS =====
 async function loadMembers() {
-  const [memRes, depRes, withRes] = await Promise.all([
-    sb.from('members').select('*').order('created_at',{ascending:false}),
-    sb.from('deposits').select('nick,amount').eq('status','approved'),
-    sb.from('withdrawals').select('nick,amount').eq('status','approved'),
-  ]);
-  allMembers = memRes.data || [];
+  const tb = document.getElementById('members-tbody');
+  try {
+    const [memRes, depRes, withRes] = await Promise.all([
+      sb.from('members').select('*').order('created_at',{ascending:false}),
+      sb.from('deposits').select('nick,amount').eq('status','approved'),
+      sb.from('withdrawals').select('nick,amount').eq('status','approved'),
+    ]);
 
-  // รวมยอดเติมสะสมต่อ nick
-  const depMap = {};
-  (depRes.data||[]).forEach(d => {
-    depMap[d.nick] = (depMap[d.nick]||0) + Number(d.amount||0);
-  });
-  // รวมยอดถอนสะสมต่อ nick
-  const withMap = {};
-  (withRes.data||[]).forEach(w => {
-    withMap[w.nick] = (withMap[w.nick]||0) + Number(w.amount||0);
-  });
-  // แนบเข้าแต่ละสมาชิก
-  allMembers = allMembers.map(m => ({
-    ...m,
-    _totalDep:  depMap[m.nick]  || 0,
-    _totalWith: withMap[m.nick] || 0,
-  }));
+    if (memRes.error) throw memRes.error;
 
-  document.getElementById('members-count').textContent = `(${allMembers.length} คน)`;
-  filterMembers();
+    allMembers = memRes.data || [];
+
+    const depMap = {};
+    (depRes.data||[]).forEach(d => {
+      depMap[d.nick] = (depMap[d.nick]||0) + Number(d.amount||0);
+    });
+    const withMap = {};
+    (withRes.data||[]).forEach(w => {
+      withMap[w.nick] = (withMap[w.nick]||0) + Number(w.amount||0);
+    });
+    allMembers = allMembers.map(m => ({
+      ...m,
+      _totalDep:  depMap[m.nick]  || 0,
+      _totalWith: withMap[m.nick] || 0,
+    }));
+
+    const countEl = document.getElementById('members-count');
+    if (countEl) countEl.textContent = `(${allMembers.length} คน)`;
+    filterMembers();
+
+  } catch(e) {
+    console.error('loadMembers error:', e);
+    if (tb) tb.innerHTML = `<tr><td colspan="10" style="text-align:center;padding:24px;color:#dc2626;">
+      ❌ โหลดข้อมูลไม่ได้: ${e.message || 'Unknown error'}<br>
+      <small style="color:#aaa;">กรุณา deploy บน server (ไม่รองรับการเปิดจาก file://)</small>
+    </td></tr>`;
+  }
 }
 
 function filterMembers() {
@@ -5259,6 +5409,7 @@ async function _rejectDepositReal(id,nick){
 async function approveWithdraw(id,nick,amount,bank,accNo){_approveWithdrawReal(id,nick,amount,bank,accNo);}
 async function rejectWithdraw(id,nick,amount){await _rejectWithdrawReal(id,nick,amount);}
 async function _approveWithdrawReal(id,nick,amount,bank,accNo){
+  if(!await checkFlagBeforeWithdraw(nick))return;
   let success=false;
   try{
     const{error:e1}=await sb.from('withdrawals').update({
@@ -5320,7 +5471,11 @@ async function _rejectWithdrawReal(id,nick,amount){
 }
 
 // ── DEPOSITS core ──
-async function loadDeposits(){const res=await sb.from('deposits').select('*').order('created_at',{ascending:false});allDeposits=res.data||[];const sc=(id,n)=>{const e=document.getElementById(id);if(e)e.textContent=n?'('+n+')':'';}; sc('dep-pending-count',allDeposits.filter(d=>d.status==='pending').length);sc('dep-done-count',allDeposits.filter(d=>d.status==='approved').length);sc('dep-reject-count',allDeposits.filter(d=>d.status==='rejected').length);filterDeposits();filterDepDone();filterDepReject();}
+async function loadDeposits(){
+  try {
+const res=await sb.from('deposits').select('*').order('created_at',{ascending:false});allDeposits=res.data||[];const sc=(id,n)=>{const e=document.getElementById(id);if(e)e.textContent=n?'('+n+')':'';}; sc('dep-pending-count',allDeposits.filter(d=>d.status==='pending').length);sc('dep-done-count',allDeposits.filter(d=>d.status==='approved').length);sc('dep-reject-count',allDeposits.filter(d=>d.status==='rejected').length);filterDeposits();filterDepDone();filterDepReject();
+  } catch(e) { console.error('loadDeposits:', e); }
+}
 function switchDepSec(sec){document.querySelectorAll('#panel-deposits .match-sec').forEach(s=>s.classList.remove('active'));document.querySelectorAll('#panel-deposits .match-nav-item').forEach(i=>i.classList.remove('active'));document.getElementById('dep-sec-'+sec)?.classList.add('active');document.getElementById('dnav-'+sec)?.classList.add('active');}
 function filterDeposits(){
   updateDateTag('dep');
@@ -5374,7 +5529,11 @@ function filterDepReject(){
 }
 
 // ── WITHDRAWALS core ──
-async function loadWithdrawals(){const res=await sb.from('withdrawals').select('*').order('created_at',{ascending:false});allWithdrawals=res.data||[];const sc=(id,n)=>{const e=document.getElementById(id);if(e)e.textContent=n?'('+n+')':'';}; sc('with-pending-count',allWithdrawals.filter(w=>w.status==='pending').length);sc('with-done-count',allWithdrawals.filter(w=>w.status==='approved').length);sc('with-reject-count',allWithdrawals.filter(w=>w.status==='rejected').length);filterWithdrawals();filterWithDone();filterWithReject();}
+async function loadWithdrawals(){
+  try {
+const res=await sb.from('withdrawals').select('*').order('created_at',{ascending:false});allWithdrawals=res.data||[];const sc=(id,n)=>{const e=document.getElementById(id);if(e)e.textContent=n?'('+n+')':'';}; sc('with-pending-count',allWithdrawals.filter(w=>w.status==='pending').length);sc('with-done-count',allWithdrawals.filter(w=>w.status==='approved').length);sc('with-reject-count',allWithdrawals.filter(w=>w.status==='rejected').length);filterWithdrawals();filterWithDone();filterWithReject();
+  } catch(e) { console.error('loadWithdrawals:', e); }
+}
 function switchWithSec(sec){document.querySelectorAll('#panel-withdrawals .match-sec').forEach(s=>s.classList.remove('active'));document.querySelectorAll('#panel-withdrawals .match-nav-item').forEach(i=>i.classList.remove('active'));document.getElementById('with-sec-'+sec)?.classList.add('active');document.getElementById('wnav-'+sec)?.classList.add('active');}
 function filterWithdrawals(){
   updateDateTag('with');
@@ -5602,6 +5761,9 @@ function openMember(nick){
   // ── โหลดธุรกรรม ──
   _loadMemberTxns(nick);
   setTimeout(function(){_loadTxnHistory(nick);},300);
+  // pre-load flags
+  var _memF=allMembers.find(function(m){return m.nick===nick;});
+  _renderFlagsPane(nick,_memF?.flags||[]);
   // โหลดประวัติปรับยอด
   setTimeout(function(){_loadBalanceHistory(nick);}, 400);
 }
@@ -5944,6 +6106,12 @@ function switchMoTab(btn,tab){
   if(tab==='bets'){
     var nick2=document.getElementById('mo-nick')?.textContent;
     if(nick2&&nick2!=='—') _loadTxnHistory(nick2);
+  }
+  // load flags tab
+  if(tab==='flags'){
+    var nick3=document.getElementById('mo-nick')?.textContent;
+    var mem3=allMembers.find(function(m){return m.nick===nick3;});
+    _renderFlagsPane(nick3, mem3?.flags||[]);
   }
 }
 async function saveMemberNote(){const note=document.getElementById('mo-note-input')?.value||'';const nick=document.getElementById('mo-nick')?.textContent;if(!nick||nick==='—')return;const{error}=await sb.from('members').update({admin_note:note}).eq('nick',nick);if(error){showToast('❌ '+error.message,'error');return;}showToast('💾 บันทึก ✅');await loadMembers();}
@@ -6547,7 +6715,129 @@ async function runSchemaMigration(){
   }
   showToast(ok+' คอลัมน์เพิ่มสำเร็จ'+(fail?' | '+fail+' อาจมีแล้ว':'✅'),'info');
 }
+
+  loadBankAccounts();
+  // ══ FLAGS MANAGEMENT ══
+  
+  // เก็บ flags ปัจจุบันของ member ที่เปิดอยู่
+  
+  
+
+  
+
+  
+
+  
+
+  async 
+
+
+
+
+
+  // ══════════════════════════════════════════
+  // FLAGS SYSTEM — definitions + management
+  // ══════════════════════════════════════════
+  
+  function _renderFlagsPane(nick, flags) {
+    _currentMoFlags = Array.isArray(flags) ? [...flags] : [];
+    var listEl    = document.getElementById('mo-flags-list');
+    var togglesEl = document.getElementById('mo-flag-toggles');
+    if (!listEl || !togglesEl) return;
+
+    // ── Active flags ──
+    if (_currentMoFlags.length) {
+      listEl.innerHTML = _currentMoFlags.map(function(f) {
+        var def = FLAG_DEFS.find(function(d){ return d.id === f; }) ||
+                  { label: f, color: '#374151', bg: '#f3f4f6', border: '#e5e7eb', icon: '🏷️' };
+        return '<span style="background:' + def.bg + ';color:' + def.color + ';border:1.5px solid ' + def.border + ';'
+          + 'padding:4px 12px;border-radius:20px;font-size:12px;font-weight:700;font-family:Kanit,sans-serif;'
+          + 'display:inline-flex;align-items:center;gap:5px;">'
+          + def.label
+          + '<span onclick="_removeFlag(\'' + f + '\')" style="cursor:pointer;font-size:9px;opacity:0.6;'
+          + 'background:' + def.color + ';color:#fff;border-radius:50%;width:14px;height:14px;'
+          + 'display:inline-flex;align-items:center;justify-content:center;margin-left:2px;">✕</span>'
+          + '</span>';
+      }).join('');
+    } else {
+      listEl.innerHTML = '<span style="font-size:12px;color:#9ca3af;font-family:Kanit,sans-serif;">'
+        + '— ยังไม่มีป้ายกำกับ —</span>';
+    }
+
+    // ── Flag cards ──
+    togglesEl.innerHTML = FLAG_DEFS.map(function(def) {
+      var active = _currentMoFlags.indexOf(def.id) !== -1;
+      return '<div onclick="_toggleFlag(\'' + def.id + '\')" style="'
+        + 'background:' + (active ? def.bg : '#fff') + ';'
+        + 'border:2px solid ' + (active ? def.color : '#e5e7eb') + ';'
+        + 'border-radius:10px;padding:12px;cursor:pointer;transition:all .15s;'
+        + 'display:flex;flex-direction:column;gap:4px;user-select:none;'
+        + (active ? 'box-shadow:0 0 0 3px ' + def.bg + ';' : '') + '">'
+        + '<div style="display:flex;align-items:center;justify-content:space-between;">'
+          + '<span style="font-size:13px;font-weight:900;font-family:Kanit,sans-serif;color:' + (active ? def.color : '#374151') + ';">'
+          + def.label + '</span>'
+          + '<span style="width:18px;height:18px;border-radius:50%;border:2px solid ' + (active ? def.color : '#d1d5db') + ';'
+          + 'background:' + (active ? def.color : 'transparent') + ';display:flex;align-items:center;justify-content:center;'
+          + 'font-size:9px;color:#fff;flex-shrink:0;">' + (active ? '✓' : '') + '</span>'
+        + '</div>'
+        + '<div style="font-size:10px;color:#9ca3af;font-family:Kanit,sans-serif;line-height:1.4;">' + def.desc + '</div>'
+        + '<div style="font-size:10px;font-weight:700;font-family:Kanit,sans-serif;color:' + (active ? def.color : '#9ca3af') + ';">'
+        + 'ผล: ' + def.effect + '</div>'
+        + '</div>';
+    }).join('');
+  }
+
+  function _toggleFlag(flagId) {
+    var idx = _currentMoFlags.indexOf(flagId);
+    if (idx === -1) _currentMoFlags.push(flagId);
+    else _currentMoFlags.splice(idx, 1);
+    var nick = document.getElementById('mo-nick') ? document.getElementById('mo-nick').textContent : '';
+    _renderFlagsPane(nick, _currentMoFlags);
+  }
+
+  function _removeFlag(flagId) {
+    _currentMoFlags = _currentMoFlags.filter(function(f){ return f !== flagId; });
+    var nick = document.getElementById('mo-nick') ? document.getElementById('mo-nick').textContent : '';
+    _renderFlagsPane(nick, _currentMoFlags);
+  }
+
+  function _clearAllFlags() {
+    if (!_currentMoFlags.length) { showToast('ไม่มีป้ายกำกับที่จะล้างครับ'); return; }
+    if (!confirm('ล้างป้ายกำกับทั้งหมดของสมาชิกคนนี้?')) return;
+    _currentMoFlags = [];
+    var nick = document.getElementById('mo-nick') ? document.getElementById('mo-nick').textContent : '';
+    _renderFlagsPane(nick, _currentMoFlags);
+  }
+
+  async function _saveMemberFlags() {
+    var nick = document.getElementById('mo-nick') ? document.getElementById('mo-nick').textContent.trim() : '';
+    if (!nick || nick === '—') { showToast('ไม่พบ nick ครับ', 'error'); return; }
+    try {
+      var res = await sb.from('members').update({ flags: _currentMoFlags }).eq('nick', nick);
+      if (res.error) throw res.error;
+      var mem = allMembers.find(function(m){ return m.nick === nick; });
+      if (mem) mem.flags = [..._currentMoFlags];
+      showToast('✅ บันทึกป้ายกำกับ [' + (_currentMoFlags.join(', ') || 'ล้างแล้ว') + '] สำเร็จ');
+      try { await sb.from('staff_logs').insert({
+        staff_username: _adminNick(),
+        action: 'set_flags',
+        detail: 'ตั้งป้ายกำกับ "' + nick + '": [' + _currentMoFlags.join(',') + '] โดย ' + _adminNick(),
+      }); } catch(_) {}
+    } catch(e) {
+      showToast('❌ บันทึกไม่ได้: ' + e.message, 'error');
+    }
+  }
 </script>
 </body>
-</html>
-  loadBankAccounts();
+</html
+
+
+  function clearDateMem() {
+    var from = document.getElementById('mem-date-from');
+    var to   = document.getElementById('mem-date-to');
+    if (from) from.value = '';
+    if (to)   to.value   = '';
+    updateDateTag('mem');
+    filterMembers();
+  }
+>
