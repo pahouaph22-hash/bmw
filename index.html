@@ -7839,7 +7839,17 @@ setInterval(() => {
       }
 
       const banksData   = data.value?.accounts || [];
-      const activeBanks = banksData.filter(b => b.active === true);
+      // normalize field names เก่า → ใหม่
+      const activeBanks = banksData
+        .filter(b => b.active !== false)
+        .map(b => ({
+          name:    b.name    || b.bankName || '',
+          accno:   b.accno   || b.accNo   || '',
+          accname: b.accname || b.accName || '',
+          note:    b.note    || '',
+          active:  true,
+          qr_url:  b.qr_url  || b.qrUrl  || '',
+        }));
 
       if (activeBanks.length > 0) {
         _renderDepBankAccounts(activeBanks);

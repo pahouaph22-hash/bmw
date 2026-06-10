@@ -6254,7 +6254,12 @@ async function addBankAccount(){
   const accname=(document.getElementById('new-bank-accname')?.value||'').trim();
   const note   =(document.getElementById('new-bank-note')?.value||'').trim();
   const active = document.getElementById('new-bank-active')?.checked!==false;
-  const qr_url =(document.getElementById('new-bank-qr-url')?.value||'').trim();
+  const qr_url_raw =(document.getElementById('new-bank-qr-url')?.value||'').trim();
+  // ถ้า base64 ใหญ่เกิน 500KB → warn แต่ยังบันทึกได้
+  if(qr_url_raw.startsWith('data:') && qr_url_raw.length > 500000){
+    if(!confirm('⚠️ QR Code มีขนาดใหญ่ ('+Math.round(qr_url_raw.length/1024)+'KB) อาจทำให้บันทึกช้า — ดำเนินการต่อ?'))return;
+  }
+  const qr_url = qr_url_raw;
 
   if(!name)  {showToast('⚠️ กรุณากรอกชื่อธนาคาร/ช่องทางครับ','error');return;}
   if(!accno) {showToast('⚠️ กรุณากรอกเลขบัญชีครับ','error');return;}
@@ -6293,7 +6298,17 @@ async function addBankAccount(){
 } async function loadBankAccounts(){
   try{
     const{data}=await sb.from('settings').select('value').eq('key','bankAccounts').maybeSingle();
-    const banks=(data?.value?.accounts||[]);
+    const raw=(data?.value?.accounts||[]);
+    // normalize field names เก่า → ใหม่
+    const banks=raw.map(b=>({
+      name:    b.name    || b.bankName || '',
+      accno:   b.accno   || b.accNo   || '',
+      accname: b.accname || b.accName || '',
+      note:    b.note    || '',
+      active:  b.active  !== false,
+      qr_url:  b.qr_url  || b.qrUrl  || '',
+      created_at: b.created_at || '',
+    }));
     _renderBankList(banks);
   }catch(e){showToast('โหลดบัญชีไม่ได้: '+e.message,'error');}
 }
@@ -6301,22 +6316,35 @@ async function addBankAccount(){
 function _renderBankList(banks){
   const list=document.getElementById('bank-accounts-list');
   if(!list)return;
-  if(!banks.length){list.innerHTML='<div style="text-align:center;padding:20px;color:#aaa;font-family:Kanit,sans-serif;font-size:13px;">ยังไม่มีบัญชีครับ</div>';return;}
+  if(!banks.length){
+    list.innerHTML='<div style="text-align:center;padding:20px;color:#aaa;font-family:Kanit,sans-serif;font-size:13px;">ยังไม่มีบัญชีครับ</div>';
+    return;
+  }
   list.innerHTML=banks.map((b,idx)=>{
-    const activeColor=b.active?'#16a34a':'#9ca3af';
-    const activeTxt=b.active?'✅ เปิด':'⏸ ปิด';
+    // รองรับ field names ทั้งเก่า (bankName/accNo/accName/qrUrl) และใหม่ (name/accno/accname/qr_url)
+    const bName    = b.name     || b.bankName || '—';
+    const bAccno   = b.accno    || b.accNo    || '';
+    const bAccname = b.accname  || b.accName  || '';
+    const bNote    = b.note     || '';
+    const bQr      = b.qr_url   || b.qrUrl    || '';
+    const bActive  = b.active   !== false;
+    const activeColor = bActive ? '#16a34a' : '#9ca3af';
+    const activeTxt   = bActive ? '✅ เปิด' : '⏸ ปิด';
+    const qrHtml = bQr
+      ? `<img src="${bQr}" style="width:52px;height:52px;object-fit:contain;border-radius:6px;border:1px solid #e5e7eb;" onerror="this.style.display='none'">`
+      : `<div style="width:52px;height:52px;border:1.5px dashed #d1d5db;border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:22px;color:#d1d5db;">📷</div>`;
     return `<div style="background:#fff;border:1px solid #e5e7eb;border-radius:10px;padding:14px;display:flex;align-items:center;gap:12px;">
-      ${b.qr_url?`<img src="${b.qr_url}" style="width:52px;height:52px;object-fit:contain;border-radius:6px;border:1px solid #e5e7eb;" onerror="this.style.display='none'">`:'<div style="width:52px;height:52px;border:1.5px dashed #d1d5db;border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:22px;color:#d1d5db;">📷</div>'}
+      ${qrHtml}
       <div style="flex:1;min-width:0;">
-        <div style="font-family:Kanit,sans-serif;font-weight:700;font-size:13px;">${b.name||'—'}</div>
-        <div style="font-size:12px;color:#6b7280;">${b.accno||''} ${b.accname?'· '+b.accname:''}</div>
-        ${b.note?`<div style="font-size:11px;color:#9ca3af;">${b.note}</div>`:''}
+        <div style="font-family:Kanit,sans-serif;font-weight:700;font-size:13px;">${bName}</div>
+        <div style="font-size:12px;color:#6b7280;">${bAccno}${bAccname?' · '+bAccname:''}</div>
+        ${bNote?`<div style="font-size:11px;color:#9ca3af;">${bNote}</div>`:''}
       </div>
       <div style="display:flex;flex-direction:column;gap:6px;align-items:flex-end;">
-        <span style="font-size:11px;font-weight:700;color:${activeColor};background:${b.active?'#dcfce7':'#f3f4f6'};padding:2px 8px;border-radius:8px;">${activeTxt}</span>
+        <span style="font-size:11px;font-weight:700;color:${activeColor};background:${bActive?'#dcfce7':'#f3f4f6'};padding:2px 8px;border-radius:8px;">${activeTxt}</span>
         <div style="display:flex;gap:6px;">
           <button onclick="_toggleBank(${idx})" style="font-size:11px;padding:4px 10px;border-radius:6px;border:1px solid #e5e7eb;background:#fff;cursor:pointer;font-family:Kanit,sans-serif;">
-            ${b.active?'⏸ ปิด':'▶️ เปิด'}
+            ${bActive?'⏸ ปิด':'▶️ เปิด'}
           </button>
           <button onclick="_deleteBank(${idx})" style="font-size:11px;padding:4px 10px;border-radius:6px;border:1px solid #fca5a5;background:#fff;color:#dc2626;cursor:pointer;font-family:Kanit,sans-serif;">🗑</button>
         </div>
