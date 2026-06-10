@@ -4558,6 +4558,20 @@ async function verifyLoginOTP(){
   if(await _verifyTOTP(code)){clearInterval(_otpTimer);await _finishLogin();}
   else{err.style.display='block';err.textContent='❌ รหัส OTP ไม่ถูกต้องครับ';for(let i=0;i<6;i++){const b=document.getElementById('otp-'+i);if(b){b.value='';b.classList.remove('filled');}}document.getElementById('otp-0')?.focus();}
 }
+
+// ── logStaffAction — บันทึก action ของ staff ใน staff_logs ──
+async function logStaffAction(username, action, note){
+  try{
+    await sb.from('staff_logs').insert({
+      staff_username: username,
+      action:         action,
+      detail:         note || '',
+    });
+  }catch(e){
+    console.warn('[logStaffAction]', e.message);
+  }
+}
+
 async function _finishLogin(){
   if(!_pUser)return;
   document.getElementById('login-page').style.display='none';
@@ -4757,7 +4771,7 @@ async function loadWorklogPanel(){
     if(!rows.length){tb.innerHTML='<tr><td colspan="6" style="text-align:center;padding:24px;color:#aaa;">ยังไม่มี</td></tr>';return;}
     var lbl={approve_deposit:'✅ อนุมัติเติมเงิน',reject_deposit:'❌ ปฏิเสธ',approve_withdraw:'✅ โอนเงิน',reject_withdraw:'❌ ปฏิเสธถอน',admin_login:'🔑 Login'};
     tb.innerHTML=rows.map(function(r2){
-      return'<tr><td style="font-size:11px;color:#888">'+fmtDate(r2.created_at)+'</td><td style="font-weight:700;font-size:12px;color:var(--green)">'+(r2.admin||'—')+'</td><td style="font-size:12px">'+(lbl[r2.action]||r2.action||'—')+'</td><td style="font-size:12px;cursor:pointer;color:var(--green)" onclick="openMember(\''+(r2.nick||'')+'\')">'+( r2.nick||'—')+'</td><td style="font-size:12px;font-weight:700;color:'+(r2.amount>0?'#16a34a':'#888')+'">'+( r2.amount?Number(r2.amount).toLocaleString()+' ₭':'—')+'</td><td style="font-size:11px;color:#888">'+(r2.note||'—')+'</td></tr>';
+      return'<tr><td style="font-size:11px;color:#888">'+fmtDate(r2.created_at)+'</td><td style="font-weight:700;font-size:12px;color:var(--green)">'+(r2.staff_username||r2.admin||'—')+'</td><td style="font-size:12px">'+(lbl[r2.action]||r2.action||'—')+'</td><td style="font-size:12px;cursor:pointer;color:var(--green)" onclick="openMember(\''+(r2.nick||'')+'\')">'+( r2.nick||'—')+'</td><td style="font-size:12px;font-weight:700;color:'+(r2.amount>0?'#16a34a':'#888')+'">'+( r2.amount?Number(r2.amount).toLocaleString()+' ₭':'—')+'</td><td style="font-size:11px;color:#888">'+(r2.detail||r2.note||'—')+'</td></tr>';
     }).join('');
   }catch(err){tb.innerHTML='<tr><td colspan="6" style="text-align:center;color:#dc2626">❌ '+err.message+'</td></tr>';}
 }
@@ -4931,7 +4945,7 @@ async function loadStaffLogs(){
     var res=await sb.from('staff_logs').select('*').order('created_at',{ascending:false}).limit(100);
     var rows=res.data||[];
     if(!rows.length){tb.innerHTML='<tr><td colspan="4" style="text-align:center;padding:24px;color:#aaa;">ยังไม่มี</td></tr>';return;}
-    tb.innerHTML=rows.map(function(r2){return'<tr style="border-bottom:1px solid #f5f5f3"><td style="padding:9px 12px;font-weight:700;font-size:12px;color:var(--green)">'+(r2.admin||'—')+'</td><td style="padding:9px 12px;font-size:11px;color:#888">—</td><td style="padding:9px 12px;font-size:12px">'+(r2.note||r2.action||'—')+'</td><td style="padding:9px 12px;font-size:11px;color:#aaa;text-align:right">'+fmtDate(r2.created_at)+'</td></tr>';}).join('');
+    tb.innerHTML=rows.map(function(r2){return'<tr style="border-bottom:1px solid #f5f5f3"><td style="padding:9px 12px;font-weight:700;font-size:12px;color:var(--green)">'+(r2.staff_username||r2.admin||'—')+'</td><td style="padding:9px 12px;font-size:11px;color:#888">—</td><td style="padding:9px 12px;font-size:12px">'+(r2.detail||r2.note||r2.action||'—')+'</td><td style="padding:9px 12px;font-size:11px;color:#aaa;text-align:right">'+fmtDate(r2.created_at)+'</td></tr>';}).join('');
   }catch(err){tb.innerHTML='<tr><td colspan="4" style="text-align:center;color:#dc2626">❌ '+err.message+'</td></tr>';}
 }
 function filterStaffLogs(){loadStaffLogs();}
@@ -5051,7 +5065,23 @@ function _copySecret(){const el=document.getElementById('twofa-secret-display');
 function switchCfgTab(tab){document.querySelectorAll('.cfg-tab').forEach(b=>b.classList.remove('active'));document.querySelectorAll('.cfg-pane').forEach(p=>{p.classList.remove('active');p.style.display='none';});document.getElementById('cfg-tab-'+tab)?.classList.add('active');const pane=document.getElementById('cfg-pane-'+tab);if(pane){pane.classList.add('active');pane.style.display='block';}if(tab==='twofa')loadTwofaPanel();}
 
 // ── SECURITY LOG ──
-async function _logLoginActivity(u,role,r){try{let ip='unknown';try{const x=await Promise.race([fetch('https://api.ipify.org?format=json').then(x=>x.json()),new Promise((_,rej)=>setTimeout(rej,2000))]);ip=x?.ip||'unknown';}catch(_){}await sb.from('staff_logs').insert({admin:u,action:r==='success'?'admin_login':'admin_login_failed',nick:u,note:(r==='success'?'✅':'❌')+' | Role:'+role+' | IP:'+ip,created_at:new Date().toISOString()}).select().maybeSingle();}catch(e){}}
+async function _logLoginActivity(u,role,r){
+  try{
+    var ip='unknown';
+    try{
+      var x=await Promise.race([
+        fetch('https://api.ipify.org?format=json').then(function(x){return x.json();}),
+        new Promise(function(_,rej){setTimeout(rej,2000);}),
+      ]);
+      ip=x?.ip||'unknown';
+    }catch(_){}
+    await sb.from('staff_logs').insert({
+      staff_username: u,
+      action:         r==='success'?'admin_login':'admin_login_failed',
+      detail:         (r==='success'?'✅':'❌')+' | Role:'+role+' | IP:'+ip,
+    });
+  }catch(e){console.warn('[logLoginActivity]',e.message);}
+}
 async function loadSecurityLog(){
   var tb=document.getElementById('sec-log-tbody');if(!tb)return;
   tb.innerHTML='<tr><td colspan="4" style="text-align:center;padding:24px;color:#aaa;">กำลังโหลด...</td></tr>';
@@ -5068,8 +5098,10 @@ async function loadSecurityLog(){
     tb.innerHTML=logs.map(function(log){
       var ok=log.action==='admin_login';
       var badge=ok?'<span style="background:#dcfce7;color:#15803d;padding:2px 9px;border-radius:12px;font-size:11px">✅</span>':'<span style="background:#fee2e2;color:#991b1b;padding:2px 9px;border-radius:12px;font-size:11px">❌</span>';
-      var ipM=(log.note||'').match(/IP:([^\s|]+)/);var ip=ipM?ipM[1]:'—';
-      return'<tr style="border-bottom:1px solid #f0f0ee"><td style="padding:9px 12px;font-size:11px;color:#888">'+fmtDate(log.created_at)+'</td><td style="padding:9px 12px;font-weight:700;font-size:12px;color:var(--green)">'+(log.admin||'—')+'</td><td style="padding:9px 12px">'+badge+'</td><td style="padding:9px 12px;font-size:11px;color:#888">IP: '+ip+'</td></tr>';
+      var detail=log.detail||log.note||'';
+      var ipM=detail.match(/IP:([^\s|]+)/);var ip=ipM?ipM[1]:'—';
+      var admin=log.staff_username||log.admin||'—';
+      return'<tr style="border-bottom:1px solid #f0f0ee"><td style="padding:9px 12px;font-size:11px;color:#888">'+fmtDate(log.created_at)+'</td><td style="padding:9px 12px;font-weight:700;font-size:12px;color:var(--green)">'+admin+'</td><td style="padding:9px 12px">'+badge+'</td><td style="padding:9px 12px;font-size:11px;color:#888">IP: '+ip+'</td></tr>';
     }).join('');
   }catch(err){tb.innerHTML='<tr><td colspan="4" style="text-align:center;color:#dc2626">❌ '+err.message+'</td></tr>';}
 }
