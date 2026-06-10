@@ -1180,7 +1180,7 @@ input, textarea, select, button {
                 </div>
                 <div style="overflow-x:auto;">
                   <table>
-                    <thead><tr><th>Nick</th><th>จำนวน</th><th>ธนาคาร</th><th>TXN</th><th>อนุมัติเมื่อ</th></tr></thead>
+                    <thead><tr><th>Nick</th><th>จำนวน</th><th>ธนาคาร</th><th>TXN</th><th>อนุมัติเมื่อ</th><th>อนุมัติโดย</th></tr></thead>
                     <tbody id="dep-done-tbody"><tr><td colspan="5" style="text-align:center;padding:24px;color:#aaa;">กำลังโหลด...</td></tr></tbody>
                   </table>
                 </div>
@@ -1281,7 +1281,7 @@ input, textarea, select, button {
                 </div>
                 <div style="overflow-x:auto;">
                   <table>
-                    <thead><tr><th>Nick</th><th>จำนวน</th><th>ธนาคาร</th><th>เลขบัญชี</th><th>สลิป</th><th>โอนเมื่อ</th></tr></thead>
+                    <thead><tr><th>Nick</th><th>จำนวน</th><th>ธนาคาร</th><th>เลขบัญชี</th><th>สลิป</th><th>โอนเมื่อ</th><th>อนุมัติโดย</th></tr></thead>
                     <tbody id="with-done-tbody"><tr><td colspan="6" style="text-align:center;padding:24px;color:#aaa;">กำลังโหลด...</td></tr></tbody>
                   </table>
                 </div>
@@ -4647,14 +4647,14 @@ function _aoNext(el,n){el.classList.toggle('filled',el.value!=='');if(el.value&&
 function _aoKey(e,i){if(e.key==='Backspace'&&!e.target.value&&i>0)document.getElementById('ao-'+(i-1))?.focus();else if(e.key==='Enter')_submitActionOTP();else if(!/[0-9]/.test(e.key)&&!['Backspace','Tab','ArrowLeft','ArrowRight'].includes(e.key))e.preventDefault();}
 
 // ── DEPOSITS / WITHDRAWALS (OTP-gated) ──
-function approveDeposit(id,nick,amount){_requireActionOTP('อนุมัติเติมเงิน '+Number(amount).toLocaleString()+' ₭ ให้ "'+nick+'"',()=>_approveDepositReal(id,nick,amount));}
-function rejectDeposit(id,nick){_requireActionOTP('ปฏิเสธเติมเงินของ "'+nick+'"',()=>_rejectDepositReal(id,nick));}
-async function _approveDepositReal(id,nick,amount){if(!await checkFlagBeforeDeposit(nick))return;try{const{error:e1}=await sb.from('deposits').update({status:'approved',approved_at:new Date().toISOString(),approved_by:_adminNick()}).eq('id',id);if(e1)throw e1;const mem=allMembers.find(m=>m.nick===nick);await sb.from('members').update({balance:(mem?.balance||0)+Number(amount)}).eq('nick',nick);await sb.from('staff_logs').insert({admin:_adminNick(),action:'approve_deposit',nick,amount:Number(amount),note:'อนุมัติเติมเงิน (2FA ✓)',created_at:new Date().toISOString()}).select().maybeSingle();showToast('✅ อนุมัติ '+Number(amount).toLocaleString()+' ₭ ให้ "'+nick+'" (2FA ✓)');await loadDeposits();loadOverview();loadMembers();}catch(err){showToast('❌ '+err.message,'error');}}
-async function _rejectDepositReal(id,nick){const r=prompt('เหตุผล:');if(r===null)return;try{await sb.from('deposits').update({status:'rejected',reject_reason:r,approved_by:_adminNick()}).eq('id',id);await sb.from('staff_logs').insert({admin:_adminNick(),action:'reject_deposit',nick,note:'ปฏิเสธ (2FA ✓): '+r,created_at:new Date().toISOString()}).select().maybeSingle();showToast('ปฏิเสธ "'+nick+'" (2FA ✓)');await loadDeposits();loadOverview();}catch(err){showToast('❌ '+err.message,'error');}}
-function approveWithdraw(id,nick,amount,bank,accNo){_requireActionOTP('โอนเงิน '+Number(amount).toLocaleString()+' ₭ ให้ "'+nick+'"',()=>_approveWithdrawReal(id,nick,amount,bank,accNo));}
-function rejectWithdraw(id,nick,amount){_requireActionOTP('ปฏิเสธถอนเงินของ "'+nick+'"',()=>_rejectWithdrawReal(id,nick,amount));}
-async function _approveWithdrawReal(id,nick,amount,bank,accNo){if(!await checkFlagBeforeWithdraw(nick))return;try{await sb.from('withdrawals').update({status:'approved',approved_at:new Date().toISOString(),approved_by:_adminNick()}).eq('id',id);const mem=allMembers.find(m=>m.nick===nick);await sb.from('members').update({balance:Math.max(0,(mem?.balance||0)-Number(amount))}).eq('nick',nick);await sb.from('staff_logs').insert({admin:_adminNick(),action:'approve_withdraw',nick,amount:Number(amount),note:'โอน (2FA ✓)',created_at:new Date().toISOString()}).select().maybeSingle();showToast('✅ โอน '+Number(amount).toLocaleString()+' ₭ (2FA ✓)');await loadWithdrawals();loadOverview();loadMembers();}catch(err){showToast('❌ '+err.message,'error');}}
-async function _rejectWithdrawReal(id,nick,amount){const r=prompt('เหตุผล:');if(r===null)return;try{await sb.from('withdrawals').update({status:'rejected',reject_reason:r,approved_by:_adminNick()}).eq('id',id);const mem=allMembers.find(m=>m.nick===nick);if(mem)await sb.from('members').update({balance:(mem.balance||0)+Number(amount)}).eq('nick',nick);await sb.from('staff_logs').insert({admin:_adminNick(),action:'reject_withdraw',nick,amount:Number(amount),note:'ปฏิเสธ (2FA ✓)',created_at:new Date().toISOString()}).select().maybeSingle();showToast('ปฏิเสธ + คืน balance (2FA ✓)');await loadWithdrawals();loadOverview();loadMembers();}catch(err){showToast('❌ '+err.message,'error');}}
+function approveDeposit(id,nick,amount){_approveDepositReal(id,nick,amount);}
+function rejectDeposit(id,nick){_rejectDepositReal(id,nick);}
+async function _approveDepositReal(id,nick,amount){if(!await checkFlagBeforeDeposit(nick))return;try{const{error:e1}=await sb.from('deposits').update({status:'approved',approved_at:new Date().toISOString(),approved_by:_adminNick()}).eq('id',id);if(e1)throw e1;const mem=allMembers.find(m=>m.nick===nick);await sb.from('members').update({balance:(mem?.balance||0)+Number(amount)}).eq('nick',nick);await sb.from('staff_logs').insert({staff_username:_adminNick(),action:'approve_deposit',detail:'อนุมัติเติมเงิน '+Number(amount).toLocaleString()+' ₭ ให้ "'+nick+'" โดย '+_adminNick()}).select().maybeSingle();showToast('✅ อนุมัติ '+Number(amount).toLocaleString()+' ₭ ให้ "'+nick+'" (2FA ✓)');await loadDeposits();loadOverview();loadMembers();}catch(err){showToast('❌ '+err.message,'error');}}
+async function _rejectDepositReal(id,nick){const r=prompt('เหตุผล:');if(r===null)return;try{await sb.from('deposits').update({status:'rejected',reject_reason:r,approved_by:_adminNick()}).eq('id',id);await sb.from('staff_logs').insert({staff_username:_adminNick(),action:'reject_deposit',detail:'ปฏิเสธเติมเงิน "'+nick+'" โดย '+_adminNick()}).select().maybeSingle();showToast('ปฏิเสธ "'+nick+'" (2FA ✓)');await loadDeposits();loadOverview();}catch(err){showToast('❌ '+err.message,'error');}}
+function approveWithdraw(id,nick,amount,bank,accNo){_approveWithdrawReal(id,nick,amount,bank,accNo);}
+function rejectWithdraw(id,nick,amount){_rejectWithdrawReal(id,nick,amount);}
+async function _approveWithdrawReal(id,nick,amount,bank,accNo){if(!await checkFlagBeforeWithdraw(nick))return;try{await sb.from('withdrawals').update({status:'approved',approved_at:new Date().toISOString(),approved_by:_adminNick()}).eq('id',id);const mem=allMembers.find(m=>m.nick===nick);await sb.from('members').update({balance:Math.max(0,(mem?.balance||0)-Number(amount))}).eq('nick',nick);await sb.from('staff_logs').insert({staff_username:_adminNick(),action:'approve_withdraw',detail:'โอนเงิน '+Number(amount).toLocaleString()+' ₭ ให้ "'+nick+'" โดย '+_adminNick()}).select().maybeSingle();showToast('✅ โอน '+Number(amount).toLocaleString()+' ₭ (2FA ✓)');await loadWithdrawals();loadOverview();loadMembers();}catch(err){showToast('❌ '+err.message,'error');}}
+async function _rejectWithdrawReal(id,nick,amount){const r=prompt('เหตุผล:');if(r===null)return;try{await sb.from('withdrawals').update({status:'rejected',reject_reason:r,approved_by:_adminNick()}).eq('id',id);const mem=allMembers.find(m=>m.nick===nick);if(mem)await sb.from('members').update({balance:(mem.balance||0)+Number(amount)}).eq('nick',nick);await sb.from('staff_logs').insert({staff_username:_adminNick(),action:'reject_withdraw',detail:'ปฏิเสธถอนเงิน "'+nick+'" โดย '+_adminNick()}).select().maybeSingle();showToast('ปฏิเสธ + คืน balance (2FA ✓)');await loadWithdrawals();loadOverview();loadMembers();}catch(err){showToast('❌ '+err.message,'error');}}
 
 // ── DEPOSITS core ──
 async function loadDeposits(){const res=await sb.from('deposits').select('*').order('created_at',{ascending:false});allDeposits=res.data||[];const sc=(id,n)=>{const e=document.getElementById(id);if(e)e.textContent=n?'('+n+')':'';}; sc('dep-pending-count',allDeposits.filter(d=>d.status==='pending').length);sc('dep-done-count',allDeposits.filter(d=>d.status==='approved').length);sc('dep-reject-count',allDeposits.filter(d=>d.status==='rejected').length);filterDeposits();filterDepDone();filterDepReject();}
@@ -4687,8 +4687,11 @@ function filterDepDone(){
   var from=document.getElementById('dep-done-from')?.value||'',to=document.getElementById('dep-done-to')?.value||'';
   var rows=allDeposits.filter(function(d){return d.status==='approved'&&(!from||(d.approved_at||d.created_at||'').slice(0,10)>=from)&&(!to||(d.approved_at||d.created_at||'').slice(0,10)<=to);});
   var tb=document.getElementById('dep-done-tbody');if(!tb)return;
-  if(!rows.length){tb.innerHTML='<tr><td colspan="5" style="text-align:center;padding:28px;color:#aaa;">ไม่มีรายการ</td></tr>';return;}
-  tb.innerHTML=rows.map(function(d){return'<tr><td style="font-weight:700;cursor:pointer;color:var(--green)" onclick="openMember(\''+( d.nick||'')+'\')">'+( d.nick||'—')+'</td><td style="font-weight:700;color:#16a34a">'+Number(d.amount||0).toLocaleString()+' ₭</td><td style="font-size:12px">'+(d.bank||'—')+'</td><td style="font-size:11px;color:#888">'+(d.txn||'—')+'</td><td style="font-size:11px;color:#888">'+fmtDate(d.approved_at||d.created_at)+'</td></tr>';}).join('');
+  if(!rows.length){tb.innerHTML='<tr><td colspan="6" style="text-align:center;padding:28px;color:#aaa;">ไม่มีรายการ</td></tr>';return;}
+  tb.innerHTML=rows.map(function(d){
+    var approvedBy=d.approved_by||'—';
+    return'<tr><td style="font-weight:700;cursor:pointer;color:var(--green)" onclick="openMember(\''+( d.nick||'')+'\')">'+( d.nick||'—')+'</td><td style="font-weight:700;color:#16a34a">'+Number(d.amount||0).toLocaleString()+' ₭</td><td style="font-size:12px">'+(d.bank||'—')+'</td><td style="font-size:11px;color:#888">'+(d.txn||'—')+'</td><td style="font-size:11px;color:#888">'+fmtDate(d.approved_at||d.created_at)+'</td><td style="font-size:11px"><span style="background:#f0fdf4;color:#15803d;padding:2px 8px;border-radius:10px;font-weight:700">👤 '+approvedBy+'</span></td></tr>';
+  }).join('');
 }
 function filterDepReject(){
   var from=document.getElementById('dep-reject-from')?.value||'',to=document.getElementById('dep-reject-to')?.value||'';
@@ -4729,8 +4732,11 @@ function filterWithDone(){
   var from=document.getElementById('with-done-from')?.value||'',to=document.getElementById('with-done-to')?.value||'';
   var rows=allWithdrawals.filter(function(w){return w.status==='approved'&&(!from||(w.approved_at||w.created_at||'').slice(0,10)>=from)&&(!to||(w.approved_at||w.created_at||'').slice(0,10)<=to);});
   var tb=document.getElementById('with-done-tbody');if(!tb)return;
-  if(!rows.length){tb.innerHTML='<tr><td colspan="5" style="text-align:center;padding:28px;color:#aaa;">ไม่มีรายการ</td></tr>';return;}
-  tb.innerHTML=rows.map(function(w){return'<tr><td style="font-weight:700;cursor:pointer;color:var(--green)" onclick="openMember(\''+( w.nick||'')+'\')">'+( w.nick||'—')+'</td><td style="font-weight:700;color:#3b82f6">'+Number(w.amount||0).toLocaleString()+' ₭</td><td style="font-size:12px">'+(w.bank||'—')+'</td><td style="font-size:11px;color:#888">'+(w.txn||'—')+'</td><td style="font-size:11px;color:#888">'+fmtDate(w.approved_at||w.created_at)+'</td></tr>';}).join('');
+  if(!rows.length){tb.innerHTML='<tr><td colspan="6" style="text-align:center;padding:28px;color:#aaa;">ไม่มีรายการ</td></tr>';return;}
+  tb.innerHTML=rows.map(function(w){
+    var approvedBy=w.approved_by||'—';
+    return'<tr><td style="font-weight:700;cursor:pointer;color:var(--green)" onclick="openMember(\''+( w.nick||'')+'\')">'+( w.nick||'—')+'</td><td style="font-weight:700;color:#3b82f6">'+Number(w.amount||0).toLocaleString()+' ₭</td><td style="font-size:12px">'+(w.bank||'—')+'</td><td style="font-size:11px;color:#888">'+(w.txn||'—')+'</td><td style="font-size:11px;color:#888">'+fmtDate(w.approved_at||w.created_at)+'</td><td style="font-size:11px"><span style="background:#eff6ff;color:#1d4ed8;padding:2px 8px;border-radius:10px;font-weight:700">👤 '+approvedBy+'</span></td></tr>';
+  }).join('');
 }
 function filterWithReject(){
   var from=document.getElementById('with-reject-from')?.value||'',to=document.getElementById('with-reject-to')?.value||'';
@@ -4833,6 +4839,8 @@ function openMember(nick){
     }).join('');
   }
   _loadMemberTxns(nick);
+  // โหลด transaction history อัตโนมัติเมื่อเปิด admin tab
+  setTimeout(function(){_showBalanceHistory(nick);}, 300);
 }
 async function _loadMemberTxns(nick){
   var sb2=function(s){return s==='approved'?'<span style="background:#dcfce7;color:#15803d;padding:2px 8px;border-radius:12px;font-size:11px;font-weight:700">✅</span>':s==='rejected'?'<span style="background:#fee2e2;color:#991b1b;padding:2px 8px;border-radius:12px;font-size:11px;font-weight:700">❌</span>':'<span style="background:#fef9c3;color:#854d0e;padding:2px 8px;border-radius:12px;font-size:11px;font-weight:700">⏳</span>';};
@@ -4855,7 +4863,82 @@ async function toggleMemberFlag(flag){
   showToast(idx!==-1?'✅ ลบ flag':'✅ เพิ่ม flag');
   await loadMembers();openMember(nick);
 }
-async function adjustMemberBalance(){const nick=document.getElementById('mo-nick')?.textContent;const ai=document.getElementById('mo-adjust-amount'),ri=document.getElementById('mo-adjust-reason');const amount=parseFloat(ai?.value||'0'),reason=ri?.value?.trim()||'';if(!nick||nick==='—'||!amount){showToast('⚠️ กรุณากรอกจำนวน','error');return;}if(!reason){showToast('⚠️ กรุณากรอกเหตุผล','error');return;}const m=allMembers.find(x=>x.nick===nick);if(!m)return;const nb=Math.max(0,(m.balance||0)+amount);await sb.from('members').update({balance:nb}).eq('nick',nick);await sb.from('staff_logs').insert({admin:_adminNick(),action:'balance_adjust',nick,amount,note:'ปรับยอด: '+reason,created_at:new Date().toISOString()}).select().maybeSingle();showToast('✅ ปรับยอด '+(amount>0?'+':'')+amount.toLocaleString()+' ₭');if(ai)ai.value='';if(ri)ri.value='';await loadMembers();openMember(nick);}
+async function adjustMemberBalance(){
+  const nick=document.getElementById('mo-nick')?.textContent;
+  const ai=document.getElementById('mo-adjust-amount');
+  const ri=document.getElementById('mo-adjust-reason');
+  const amount=parseFloat(ai?.value||'0');
+  const reason=ri?.value?.trim()||'';
+
+  if(!nick||nick==='—'||!amount){showToast('⚠️ กรุณากรอกจำนวนครับ','error');return;}
+  if(!reason){showToast('⚠️ กรุณากรอกเหตุผลครับ','error');return;}
+
+  // ── บังคับ OTP ก่อนปรับยอด ──
+  _requireActionOTP('ปรับยอดเงิน '+(amount>0?'+':'')+amount.toLocaleString()+' ₭ ให้ "'+nick+'"', async function(){
+    const m=allMembers.find(x=>x.nick===nick);if(!m)return;
+    const nb=Math.max(0,(m.balance||0)+amount);
+    const staffName=_adminNick();
+
+    // อัพเดต balance
+    const{error:be}=await sb.from('members').update({balance:nb}).eq('nick',nick);
+    if(be){showToast('❌ '+be.message,'error');return;}
+
+    // บันทึก Transaction History ใน staff_logs
+    await sb.from('staff_logs').insert({
+      staff_username: staffName,
+      action:         'balance_adjust',
+      detail:         'ปรับยอด "'+nick+'" '+(amount>0?'+':'')+amount.toLocaleString()+' ₭ | เหตุผล: '+reason,
+    }).catch(()=>{});
+
+    showToast('✅ ปรับยอด '+(amount>0?'+':'')+amount.toLocaleString()+' ₭ ให้ "'+nick+'" โดย '+staffName);
+    if(ai)ai.value='';if(ri)ri.value='';
+    await loadMembers();
+    openMember(nick);
+
+    // แสดง Transaction History modal
+    _showBalanceHistory(nick);
+  });
+}
+
+// ── Transaction History popup หลัง adjust balance ──
+async function _showBalanceHistory(nick){
+  // โหลด staff_logs ที่เกี่ยวกับ nick นี้
+  let logs=[];
+  try{
+    const{data}=await sb.from('staff_logs')
+      .select('*')
+      .ilike('detail','%"'+nick+'"%')
+      .order('created_at',{ascending:false})
+      .limit(20);
+    logs=data||[];
+  }catch(_){}
+
+  // แสดงใน mo-pane-admin (ล่างช่อง adjust)
+  let histDiv=document.getElementById('mo-balance-history');
+  if(!histDiv){
+    histDiv=document.createElement('div');
+    histDiv.id='mo-balance-history';
+    histDiv.style.cssText='background:#fafaf8;border-radius:10px;padding:14px;border:1px solid #e5e5e0;margin-top:14px;';
+    const adminPane=document.getElementById('mo-pane-admin');
+    if(adminPane)adminPane.appendChild(histDiv);
+  }
+
+  if(!logs.length){
+    histDiv.innerHTML='<div style="font-family:Kanit,sans-serif;font-weight:700;font-size:13px;margin-bottom:8px;color:#555">📋 ประวัติการปรับยอด</div><div style="font-size:12px;color:#aaa;text-align:center;padding:12px">ยังไม่มีประวัติ</div>';
+    return;
+  }
+
+  histDiv.innerHTML='<div style="font-family:Kanit,sans-serif;font-weight:700;font-size:13px;margin-bottom:10px;color:#555">📋 ประวัติการปรับยอด</div>'+
+    '<table style="width:100%;border-collapse:collapse;font-size:12px;">'+
+    '<thead><tr style="background:#f5f5f3"><th style="padding:7px 10px;text-align:left;font-weight:700">เวลา</th><th style="padding:7px 10px;text-align:left;font-weight:700">พนักงาน</th><th style="padding:7px 10px;text-align:left;font-weight:700">รายละเอียด</th></tr></thead>'+
+    '<tbody>'+
+    logs.map(function(l){
+      return'<tr style="border-bottom:1px solid #f0f0ee"><td style="padding:7px 10px;font-size:11px;color:#888;white-space:nowrap">'+fmtDate(l.created_at)+'</td>'+
+        '<td style="padding:7px 10px"><span style="background:#f0fdf4;color:#15803d;padding:2px 8px;border-radius:8px;font-weight:700">'+( l.staff_username||'—')+'</span></td>'+
+        '<td style="padding:7px 10px;font-size:11px;color:#555">'+(l.detail||'—')+'</td></tr>';
+    }).join('')+
+    '</tbody></table>';
+}
 async function deleteMemberFromOverlay(){const nick=document.getElementById('mo-nick')?.textContent;if(!nick||nick==='—')return;const m=allMembers.find(x=>x.nick===nick);if(!m)return;if(!confirm('ลบบัญชี "'+nick+'" ถาวร?'))return;await sb.from('members').delete().eq('id',m.id);showToast('🗑 ลบ "'+nick+'" แล้ว');closeMemberOverlay();await loadMembers();}
 document.addEventListener('click',e=>{const ov=document.getElementById('member-overlay');if(ov&&e.target===ov)closeMemberOverlay();});
 
