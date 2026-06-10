@@ -5448,11 +5448,13 @@ async function adjustMemberBalance(){
     if(res.error){showToast('❌ ปรับยอดไม่ได้: '+res.error.message,'error');return;}
 
     // ── Log ใน staff_logs ──
-    await sb.from('staff_logs').insert({
-      staff_username: staffName,
-      action:         'balance_adjust',
-      detail:         '"'+nick+'" '+(amount>0?'+':'')+amount.toLocaleString()+' ₭ ('+oldBalance.toLocaleString()+' → '+newBalance.toLocaleString()+') เหตุผล: '+reason+' | โดย: '+staffName,
-    }).catch(function(){});
+    try{
+      await sb.from('staff_logs').insert({
+        staff_username: staffName,
+        action:         'balance_adjust',
+        detail:         '"'+nick+'" '+(amount>0?'+':'')+amount.toLocaleString()+' ₭ ('+oldBalance.toLocaleString()+' → '+newBalance.toLocaleString()+') เหตุผล: '+reason+' | โดย: '+staffName,
+      });
+    }catch(_){}
 
     // ── Refresh UI ทันที ──
     // อัพ stats bar
