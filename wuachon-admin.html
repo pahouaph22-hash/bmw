@@ -4893,8 +4893,25 @@ function _tvKey(e,i){if(e.key==='Backspace'&&!e.target.value&&i>0)document.getEl
 // ── ACTION OTP MODAL ──
 let _pendingActionFn=null;
 async function _requireActionOTP(label,fn){
-  try{const{data}=await sb.from('settings').select('value').eq('key','totp_config').maybeSingle();const cfg=data?.value||{};if(!cfg.enabled||cfg.onApprove===false){await fn();return;}}catch(_){await fn();return;}
-  _pendingActionFn=fn;_showActionModal(label);
+  try{
+    // ตรวจ totp_config ก่อน
+    const{data:cfgData}=await sb.from('settings').select('value').eq('key','totp_config').maybeSingle();
+    const cfg=cfgData?.value||{};
+    // ถ้า 2FA ปิด หรือ onApprove ปิด → ทำงานเลย
+    if(!cfg.enabled||cfg.onApprove===false){await fn();return;}
+    // ตรวจว่ามี TOTP secret จริงๆ
+    const secret=await _getTOTPSecret();
+    if(!secret){
+      // ไม่มี secret → bypass (admin ยังไม่ได้ setup 2FA)
+      await fn();return;
+    }
+  }catch(_){
+    // error → bypass ให้ทำงานต่อ
+    await fn();return;
+  }
+  // มี secret → แสดง OTP modal
+  _pendingActionFn=fn;
+  _showActionModal(label);
 }
 function _showActionModal(label){
   let m=document.getElementById('action-otp-modal');
