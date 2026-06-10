@@ -28,7 +28,11 @@ var fns=['showRegister','hideRegister','showSchedule','hideSchedule',
 'loadDepHistory','loadWithHistory','loadBetHistory',
 'loadDashboard','loadWithdrawPanel','clearHistFilter',
 'setRating','submitSupport','renderHistory','loadHistory',
-'openHistoryDetail','hideHistory','toggleFAQ'];
+'openHistoryDetail','hideHistory','toggleFAQ',
+'goDepStep1','goDepStep2','goDepStep3',
+'updateDepAmount','loadDepBanks','copyDepAccNo',
+'goWithStep1','goWithStep2',
+'updateMobNavUser','_updateMobAccBar','mobNavActive','mobNavAccount','selectSupportType','supportFileChange'];
 fns.forEach(function(fn){
   window[fn]=function(){
     var a=arguments;
@@ -4317,6 +4321,9 @@ const _safeLocal = {
   }
 };
 
+let currentUser = null;
+let currentUserNick = null;
+
 var _lang = _safeLocal.getItem('bw_lang') || 'th';
 var I18N = {
   th: {
@@ -7870,10 +7877,17 @@ setInterval(() => {
     const amt  = parseInt(document.getElementById('dep-amount').value) || 0;
     const dMin = _txLimits.depMin  || 100;
     const dMax = _txLimits.depMax  || 0;
+    const fmt  = amt.toLocaleString() + ' ₭';
     if (amt < dMin) { showFEToast(`⚠️ จำนวนเงินขั้นต่ำสำหรับเติมเงินคือ ${dMin.toLocaleString()} ₭ ครับ`); return; }
     if (dMax && amt > dMax) { showFEToast(`⚠️ จำนวนเงินสูงสุดสำหรับเติมเงินคือ ${dMax.toLocaleString()} ₭ ครับ`); return; }
-    if (!_depBanks || _depBanks.length === 0) { showFEToast('⚠️ ยังไม่มีบัญชีรับเงิน กรุณาติดต่อ Admin ครับ'); return; }
-    const fmt = amt.toLocaleString() + ' ₭';
+    // ── ถ้าไม่มีบัญชีรับเงิน → ข้าม step 2 ไป step 3 ทันที ──
+    if (!_depBanks || _depBanks.length === 0) {
+      document.getElementById('dep-step3-amount').textContent = fmt;
+      document.getElementById('dep-step1').style.display = 'none';
+      document.getElementById('dep-step2').style.display = 'none';
+      document.getElementById('dep-step3').style.display = 'block';
+      return;
+    }
     document.getElementById('dep-confirm-amount').textContent  = fmt;
     document.getElementById('dep-notice-amount').textContent   = amt.toLocaleString() + ' ₭';
     document.getElementById('dep-step3-amount').textContent    = fmt;
@@ -7901,18 +7915,19 @@ setInterval(() => {
     const tabWrap = document.getElementById('dep-bank-tabs');
 
     if (banks.length > 1) {
-      // มีหลายบัญชี → แสดง tabs
       if (tabWrap) {
         tabWrap.style.display = 'flex';
-        tabWrap.innerHTML = banks.map((b,i) => `
-          <button id="dep-btab-${i}" onclick="_selectDepBank(${i})"
-            style="font-family:'Phetsarath OT','Phetsarath','Noto Sans Lao','Kanit',sans-serif;font-size:12px;font-weight:700;padding:6px 14px;border-radius:8px;cursor:pointer;transition:all .2s;
-            ${i===0 ? 'background:var(--gold);color:#1a1a1a;border:2px solid var(--gold);' : 'background:transparent;color:rgba(240,255,232,.6);border:1.5px solid rgba(240,255,232,.2);'}">
-            🏦 ${b.bankName}
-          </button>`).join('');
+        tabWrap.innerHTML = banks.map((b,i) => {
+          // รองรับทั้ง field names ใหม่ (name) และเก่า (bankName)
+          const label = b.name || b.bankName || 'บัญชี '+(i+1);
+          const active = i===0;
+          return `<button id="dep-btab-${i}" onclick="_selectDepBank(${i})"
+            style="font-family:'Phetsarath OT','Phetsarath','Noto Sans Lao','Kanit',sans-serif;font-size:12px;font-weight:700;padding:6px 14px;border-radius:8px;cursor:pointer;transition:all .2s;${active ? 'background:var(--gold);color:#1a1a1a;border:2px solid var(--gold);' : 'background:transparent;color:rgba(240,255,232,.6);border:1.5px solid rgba(240,255,232,.2);'}">
+            🏦 ${label}
+          </button>`;
+        }).join('');
       }
     } else {
-      // บัญชีเดียว — ซ่อน tab bar
       if (tabWrap) tabWrap.style.display = 'none';
     }
 
@@ -7936,17 +7951,25 @@ setInterval(() => {
   function _showDepBank(idx) {
     const b = _depBanks[idx];
     if (!b) return;
+    _depBankIdx = idx;
+
+    // รองรับ field names ทั้งแบบใหม่ (name/accno/accname/qr_url) และเก่า (bankName/accNo/accName/qrUrl)
+    const bankName = b.name     || b.bankName || '—';
+    const accNo    = b.accno    || b.accNo    || '—';
+    const accName  = b.accname  || b.accName  || '—';
+    const qrUrl    = b.qr_url   || b.qrUrl    || '';
+    const noteText = b.note     || '';
 
     const setTxt = (id, v) => { const el = document.getElementById(id); if (el) el.textContent = v || '—'; };
-    setTxt('dep-bank-name', b.bankName);
-    setTxt('dep-acc-no',    b.accNo);
-    setTxt('dep-acc-name',  b.accName);
+    setTxt('dep-bank-name', bankName);
+    setTxt('dep-acc-no',    accNo);
+    setTxt('dep-acc-name',  accName);
 
     // header
     const hdr = document.getElementById('dep-bank-header');
-    if (hdr) hdr.textContent = `🏦 ${b.bankName}`;
+    if (hdr) hdr.textContent = '🏦 ' + bankName;
 
-    // badge (แสดงถ้ามีหลายบัญชี)
+    // badge
     const badge = document.getElementById('dep-bank-badge');
     if (badge) badge.style.display = _depBanks.length > 1 ? 'block' : 'none';
 
@@ -7954,16 +7977,25 @@ setInterval(() => {
     const noteWrap = document.getElementById('dep-bank-note-wrap');
     const noteEl   = document.getElementById('dep-acc-note');
     if (noteWrap && noteEl) {
-      if (b.note) { noteEl.textContent = `📌 ${b.note}`; noteWrap.style.display = 'block'; }
-      else         { noteWrap.style.display = 'none'; }
+      if (noteText) { noteEl.textContent = '📌 ' + noteText; noteWrap.style.display = 'block'; }
+      else           { noteWrap.style.display = 'none'; }
     }
+
+    // tab active state
+    _depBanks.forEach(function(_,i) {
+      const btn = document.getElementById('dep-btab-'+i);
+      if (btn) {
+        if (i===idx) { btn.style.background='var(--gold)'; btn.style.color='#1a1a1a'; btn.style.border='2px solid var(--gold)'; }
+        else          { btn.style.background='transparent'; btn.style.color='rgba(240,255,232,.6)'; btn.style.border='1.5px solid rgba(240,255,232,.2)'; }
+      }
+    });
 
     // QR Code
     const qrImg = document.getElementById('dep-qr-img');
     const qrPh  = document.getElementById('dep-qr-placeholder');
     if (qrImg && qrPh) {
-      if (b.qrUrl) {
-        qrImg.src = b.qrUrl;
+      if (qrUrl) {
+        qrImg.src = qrUrl;
         qrImg.style.display = 'block';
         qrPh.style.display  = 'none';
       } else {
@@ -7971,11 +8003,18 @@ setInterval(() => {
         qrPh.style.display  = 'block';
       }
     }
+
+    // dep-notice-amount (ถ้ากด step2 มาแล้ว)
+    const noticeAmt = document.getElementById('dep-notice-amount');
+    const confirmAmt = document.getElementById('dep-confirm-amount');
+    if (noticeAmt && confirmAmt && confirmAmt.textContent !== '0 ₭') {
+      noticeAmt.textContent = confirmAmt.textContent;
+    }
   }
 
   function copyDepAccNo() {
     const b = _depBanks[_depBankIdx];
-    const accno = b?.accNo || document.getElementById('dep-acc-no')?.textContent || '';
+    const accno = b?.accno || b?.accNo || document.getElementById('dep-acc-no')?.textContent || '';
     if (navigator.clipboard) {
       navigator.clipboard.writeText(accno).then(() => showFEToast(`✅ คัดลอก ${accno} แล้วครับ`));
     } else {
@@ -8526,11 +8565,11 @@ setInterval(() => {
 
   window.submitDeposit = window._real_submitDeposit = async function submitDeposit() {
     const amount  = parseInt(document.getElementById('dep-amount').value);
-    const bank    = document.getElementById('dep-bank-from').value;
+    let bank      = document.getElementById('dep-bank-from').value;
     const slipFile = document.getElementById('dep-slip-file')?.files?.[0];
     const hasSlip = !!(slipFile && slipFile.size > 0);
     if (!amount || amount < 100) { showFEToast('⚠️ กรุณาระบุจำนวนเงินขั้นต่ำ 100 ₭ครับ'); return; }
-    if (!bank)    { showFEToast('⚠️ กรุณาเลือกธนาคารที่โอนจากครับ'); return; }
+    if (!bank)    bank = 'ไม่ระบุ'; // ถ้าไม่เลือกธนาคาร ใช้ค่า default
     if (!hasSlip) { showFEToast('⚠️ กรุณาแนบสลิปการโอนเงินครับ'); return; }
     if (!currentUser) { showFEToast('⚠️ กรุณา Login ก่อนครับ'); return; }
     // ── FLAG CHECK ──
@@ -9589,11 +9628,26 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
   // ── Pre-existing function stubs ──
-  function _selectDepBank(i){ /* deposit bank selector */ }
+  function _selectDepBank(i){ _showDepBank(i); }
   function joinBet(el,id,side,a,b,amt,odds){ showFEToast('ฟีเจอร์นี้กำลังพัฒนาครับ'); }
   function loadSupportHistory(){ /* load support tickets */ }
   function loginWithEmail(){ showLogin(); }
   function loginWithFacebook(){ showFEToast('Facebook login ยังไม่พร้อมครับ'); }
+
+
+  // ── Expose functions to window (for stubs) ──
+  window._real_goDepStep1 = window.goDepStep1 = goDepStep1;
+  window._real_goDepStep2 = window.goDepStep2 = goDepStep2;
+  window._real_goDepStep3 = window.goDepStep3 = goDepStep3;
+  window._real_updateDepAmount = window.updateDepAmount = updateDepAmount;
+  window._real_loadDepBanks = window.loadDepBanks = loadDepBanks;
+  window._real_copyDepAccNo = window.copyDepAccNo = copyDepAccNo;
+  window._real_updateMobNavUser = window.updateMobNavUser = updateMobNavUser;
+  window._real_mobNavActive = window.mobNavActive = mobNavActive;
+  window._real_mobNavAccount = window.mobNavAccount = mobNavAccount;
+  window._real_selectSupportType = window.selectSupportType = selectSupportType;
+  window._real_supportFileChange = window.supportFileChange = supportFileChange;
+  window._real__updateMobAccBar = window._updateMobAccBar = _updateMobAccBar;
 
 })();
 </script>
