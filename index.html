@@ -9611,6 +9611,102 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
 
+
+  // ════════════════════════════════
+  // 3-BANK SYSTEM HELPERS
+  // ════════════════════════════════
+  var _selectedBankSlot = 1;
+
+  function _selectBank(slot) {
+    _selectedBankSlot = slot;
+    [1,2,3].forEach(function(n) {
+      var card  = document.getElementById('bank-card-' + n);
+      var radio = document.getElementById('bank-radio-' + n);
+      var isMe  = (n === slot);
+      if (card) {
+        card.style.borderColor = isMe ? 'rgba(39,148,63,0.7)' : 'rgba(255,255,255,0.1)';
+        card.style.background  = isMe ? 'rgba(39,148,63,0.12)' : 'rgba(255,255,255,0.04)';
+      }
+      if (radio) {
+        radio.style.background  = isMe ? '#27943F' : 'transparent';
+        radio.style.borderColor = isMe ? '#27943F' : 'rgba(255,255,255,0.2)';
+        radio.innerHTML = isMe
+          ? '<div style="width:8px;height:8px;border-radius:50%;background:#fff;"></div>'
+          : '';
+      }
+    });
+  }
+
+  function _getSelectedBank() {
+    if (!currentUser) return { name:'', accno:'', accname:'' };
+    var s = _selectedBankSlot;
+    if (s === 1) return { name: currentUser.bank_name||'',  accno: currentUser.bank_accno||'',  accname: currentUser.bank_accname||'' };
+    if (s === 2) return { name: currentUser.bank2_name||'', accno: currentUser.bank2_accno||'', accname: currentUser.bank2_accname||'' };
+    if (s === 3) return { name: currentUser.bank3_name||'', accno: currentUser.bank3_accno||'', accname: currentUser.bank3_accname||'' };
+    return { name:'', accno:'', accname:'' };
+  }
+
+  var _addingBankSlot = 2;
+
+  function _showAddBankForm(slot) {
+    _addingBankSlot = slot;
+    var form  = document.getElementById('add-bank-inline-form');
+    var title = document.getElementById('add-bank-form-title');
+    if (form)  form.style.display = 'block';
+    if (title) title.textContent  = '➕ เพิ่มบัญชีที่ ' + slot;
+    ['add-bank-name-new','add-bank-accno-new','add-bank-accname-new'].forEach(function(id) {
+      var el = document.getElementById(id);
+      if (el) el.value = '';
+    });
+    setTimeout(function() {
+      if (form) form.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }, 100);
+  }
+
+  function _hideAddBankForm() {
+    var form = document.getElementById('add-bank-inline-form');
+    if (form) form.style.display = 'none';
+  }
+
+  async function _saveNewBank() {
+    var slot     = _addingBankSlot;
+    var bname    = (document.getElementById('add-bank-name-new')?.value || '').trim();
+    var baccno   = (document.getElementById('add-bank-accno-new')?.value || '').trim().replace(/-/g,'');
+    var baccname = (document.getElementById('add-bank-accname-new')?.value || '').trim();
+
+    if (!bname)   { showFEToast('⚠️ กรุณาเลือกธนาคารครับ'); return; }
+    if (!baccno)  { showFEToast('⚠️ กรุณากรอกเลขบัญชีครับ'); return; }
+    if (!baccname){ showFEToast('⚠️ กรุณากรอกชื่อเจ้าของบัญชีครับ'); return; }
+    if (!/^[0-9]{10,15}$/.test(baccno)) {
+      showFEToast('⚠️ เลขบัญชีไม่ถูกต้อง (ตัวเลข 10-15 หลัก)'); return;
+    }
+
+    // ตรวจเลขบัญชีซ้ำ
+    var exist_res = await sb.from('members')
+      .select('nick').eq('bank_accno', baccno).neq('nick', currentUser.nick).maybeSingle();
+    if (exist_res.data) { showFEToast('❌ เลขบัญชีนี้ใช้งานอยู่แล้วในระบบครับ'); return; }
+
+    var updates = {};
+    if (slot === 2) { updates.bank2_name = bname; updates.bank2_accno = baccno; updates.bank2_accname = baccname; }
+    if (slot === 3) { updates.bank3_name = bname; updates.bank3_accno = baccno; updates.bank3_accname = baccname; }
+
+    var save_res = await sb.from('members').update(updates).eq('nick', currentUser.nick);
+    if (save_res.error) { showFEToast('❌ เกิดข้อผิดพลาด: ' + save_res.error.message); return; }
+
+    Object.assign(currentUser, updates);
+    _safeStorage.setItem('bw_user', JSON.stringify(currentUser));
+    _hideAddBankForm();
+    showFEToast('✅ เพิ่มบัญชีที่ ' + slot + ' สำเร็จแล้วครับ!');
+    loadWithdrawPanel();
+  }
+
+
+  // ── Pre-existing function stubs ──
+  function _selectDepBank(i){ /* deposit bank selector */ }
+  function joinBet(el,id,side,a,b,amt,odds){ showFEToast('ฟีเจอร์นี้กำลังพัฒนาครับ'); }
+  function loadSupportHistory(){ /* load support tickets */ }
+  function loginWithEmail(){ showLogin(); }
+  function loginWithFacebook(){ showFEToast('Facebook login ยังไม่พร้อมครับ'); }
 </script>
 
 <!-- ══ Mobile Bottom Navigation ══ -->
@@ -9650,89 +9746,3 @@ document.addEventListener('DOMContentLoaded', () => {
 
 </body>
 </html>
-  // ── track selected bank slot (1/2/3) ──
-  let _selectedBankSlot = 1;
-
-  function _selectBank(slot) {
-    _selectedBankSlot = slot;
-    [1,2,3].forEach(function(n) {
-      const card  = document.getElementById('bank-card-'+n);
-      const radio = document.getElementById('bank-radio-'+n);
-      const isMe  = (n === slot);
-      if (card) {
-        card.style.borderColor = isMe ? 'rgba(39,148,63,0.7)' : 'rgba(255,255,255,0.1)';
-        card.style.background  = isMe ? 'rgba(39,148,63,0.12)' : 'rgba(255,255,255,0.04)';
-      }
-      if (radio) {
-        radio.style.background    = isMe ? '#27943F' : 'transparent';
-        radio.style.borderColor   = isMe ? '#27943F' : 'rgba(255,255,255,0.2)';
-        radio.innerHTML           = isMe ? '<div style="width:8px;height:8px;border-radius:50%;background:#fff;"></div>' : '';
-      }
-    });
-  }
-
-  function _getSelectedBank() {
-    const s = _selectedBankSlot;
-    if (s === 1) return { name: currentUser.bank_name||'', accno: currentUser.bank_accno||'', accname: currentUser.bank_accname||'' };
-    if (s === 2) return { name: currentUser.bank2_name||'', accno: currentUser.bank2_accno||'', accname: currentUser.bank2_accname||'' };
-    if (s === 3) return { name: currentUser.bank3_name||'', accno: currentUser.bank3_accno||'', accname: currentUser.bank3_accname||'' };
-    return { name:'', accno:'', accname:'' };
-  }
-
-  let _addingBankSlot = 2;
-  function _showAddBankForm(slot) {
-    _addingBankSlot = slot;
-    const form = document.getElementById('add-bank-inline-form');
-    const title = document.getElementById('add-bank-form-title');
-    if (form) form.style.display = 'block';
-    if (title) title.textContent = '➕ เพิ่มบัญชีที่ ' + slot;
-    // clear inputs
-    ['add-bank-name-new','add-bank-accno-new','add-bank-accname-new'].forEach(function(id){
-      const el = document.getElementById(id);
-      if (el) el.value = '';
-    });
-    // scroll into view
-    setTimeout(function(){ form && form.scrollIntoView({behavior:'smooth',block:'center'}); }, 100);
-  }
-
-  function _hideAddBankForm() {
-    const form = document.getElementById('add-bank-inline-form');
-    if (form) form.style.display = 'none';
-  }
-
-  async function _saveNewBank() {
-    const slot    = _addingBankSlot;
-    const bname   = document.getElementById('add-bank-name-new')?.value || '';
-    const baccno  = (document.getElementById('add-bank-accno-new')?.value || '').trim().replace(/-/g,'');
-    const baccname= (document.getElementById('add-bank-accname-new')?.value || '').trim();
-
-    if (!bname)   { showFEToast('⚠️ กรุณาเลือกธนาคารครับ'); return; }
-    if (!baccno)  { showFEToast('⚠️ กรุณากรอกเลขบัญชีครับ'); return; }
-    if (!baccname){ showFEToast('⚠️ กรุณากรอกชื่อเจ้าของบัญชีครับ'); return; }
-    if (!/^[0-9]{10,15}$/.test(baccno)) {
-      showFEToast('⚠️ เลขบัญชีไม่ถูกต้อง (10-15 หลัก)'); return;
-    }
-
-    // ตรวจเลขบัญชีซ้ำ
-    const { data: exist } = await sb.from('members')
-      .select('nick').eq('bank_accno', baccno).neq('nick', currentUser.nick).maybeSingle();
-    if (exist) { showFEToast('❌ เลขบัญชีนี้ใช้งานอยู่แล้วในระบบครับ'); return; }
-
-    // กำหนด field ตาม slot
-    const updates = {};
-    if (slot === 2) { updates.bank2_name = bname; updates.bank2_accno = baccno; updates.bank2_accname = baccname; }
-    if (slot === 3) { updates.bank3_name = bname; updates.bank3_accno = baccno; updates.bank3_accname = baccname; }
-
-    const { error } = await sb.from('members').update(updates).eq('nick', currentUser.nick);
-    if (error) { showFEToast('❌ เกิดข้อผิดพลาด: ' + error.message); return; }
-
-    // อัพ currentUser
-    Object.assign(currentUser, updates);
-    _safeStorage.setItem('bw_user', JSON.stringify(currentUser));
-
-    _hideAddBankForm();
-    showFEToast('✅ เพิ่มบัญชีที่ ' + slot + ' สำเร็จแล้วครับ!');
-    loadWithdrawPanel();
-  }
-
-
