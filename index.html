@@ -20,7 +20,7 @@
 var fns=['showRegister','hideRegister','showSchedule','hideSchedule',
 'showHistory','hideHistory','showMyAccount','hideMyAccount',
 'showAbout','hideAbout',
-'goToMyAccount','logout','openModal','closeModal',
+'goHome','goToMyAccount','logout','openModal','closeModal',
 'switchAuthTab','submitRegister','submitLogin',
 'switchAccTab','setDepAmount','setWithAmount','setWithAll',
 'submitDeposit','submitWithdraw','bindBankAccount',
@@ -3679,8 +3679,8 @@ input, textarea, select, button {
 
     <!-- Tabs (Mobile scroll) -->
     <div class="account-tabs" style="overflow-x:auto;-webkit-overflow-scrolling:touch;white-space:nowrap;display:flex;gap:6px;padding-bottom:4px;margin-bottom:14px;">
-      <button class="acc-tab active" onclick="switchAccTab('dashboard',this)" style="flex-shrink:0;" data-i18n="acc.tab.dashboard">📊 Dashboard</button>
-      <button class="acc-tab" onclick="switchAccTab('info',this)" style="flex-shrink:0;" data-i18n="acc.tab.info">👤 โปรไฟล์</button>
+      
+      <button class="acc-tab active" onclick="switchAccTab('info',this)" style="flex-shrink:0;" data-i18n="acc.tab.info">👤 โปรไฟล์</button>
       <button class="acc-tab" onclick="switchAccTab('deposit',this)" style="flex-shrink:0;" data-i18n="acc.tab.deposit">💰 เติมเงิน</button>
       <button class="acc-tab" onclick="switchAccTab('withdraw',this)" style="flex-shrink:0;" data-i18n="acc.tab.withdraw">🏧 ถอนเงิน</button>
       <button class="acc-tab" onclick="switchAccTab('bet',this)" style="flex-shrink:0;" data-i18n="acc.tab.bet">🎯 P2P</button>
@@ -3694,74 +3694,10 @@ input, textarea, select, button {
     </div>
 
     <!-- DASHBOARD TAB -->
-    <div class="acc-panel active" id="acc-dashboard">
-      <!-- header bar with refresh -->
-      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
-        <div style="font-family:'Phetsarath OT','Phetsarath','Noto Sans Lao','Kanit',sans-serif;font-weight:700;font-size:13px;color:rgba(240,255,232,0.6);">📊 Dashboard</div>
-        <button onclick="loadDashboard();refreshBalance();" style="font-family:'Phetsarath OT','Phetsarath','Noto Sans Lao','Kanit',sans-serif;font-size:11px;font-weight:700;padding:5px 12px;border-radius:8px;border:1px solid rgba(74,222,128,0.3);background:transparent;color:rgba(74,222,128,0.7);cursor:pointer;">🔄 รีเฟรช</button>
-      </div>
-      <!-- ยอดเงิน big display -->      <div style="background:linear-gradient(135deg,rgba(27,107,47,0.3),rgba(39,148,63,0.15));border:1px solid rgba(39,148,63,0.3);border-radius:16px;padding:20px;margin-bottom:14px;text-align:center;">
-        <div style="font-family:'Phetsarath OT','Phetsarath','Noto Sans Lao','Kanit',sans-serif;font-size:12px;color:rgba(240,255,232,0.5);margin-bottom:4px;">ยอดเงินคงเหลือ</div>
-        <div style="font-family:'Phetsarath OT','Phetsarath','Noto Sans Lao','Kanit',sans-serif;font-weight:900;font-size:36px;color:#4ade80;" id="dash-balance">0</div>
-        <div style="font-family:'Phetsarath OT','Phetsarath','Noto Sans Lao','Kanit',sans-serif;font-size:13px;color:rgba(240,255,232,0.4);">₭</div>
-        <div style="display:flex;gap:10px;margin-top:14px;justify-content:center;">
-          <button onclick="switchAccTab('deposit', null)" style="font-family:'Phetsarath OT','Phetsarath','Noto Sans Lao','Kanit',sans-serif;font-size:13px;font-weight:700;padding:10px 20px;border-radius:10px;border:none;background:var(--green);color:#fff;cursor:pointer;flex:1;max-width:140px;">💰 เติมเงิน</button>
-          <button onclick="switchAccTab('withdraw', null)" style="font-family:'Phetsarath OT','Phetsarath','Noto Sans Lao','Kanit',sans-serif;font-size:13px;font-weight:700;padding:10px 20px;border-radius:10px;border:1px solid rgba(248,113,113,0.4);background:transparent;color:#f87171;cursor:pointer;flex:1;max-width:140px;">🏧 ถอนเงิน</button>
-        </div>
-      </div>
-
-      <!-- สถิติการเดิมพัน -->
-      <div style="font-family:'Phetsarath OT','Phetsarath','Noto Sans Lao','Kanit',sans-serif;font-weight:700;font-size:13px;color:rgba(240,255,232,0.6);margin-bottom:10px;">📊 สถิติการเดิมพัน</div>
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px;">
-        <div style="background:rgba(74,222,128,0.08);border:1px solid rgba(74,222,128,0.2);border-radius:12px;padding:14px;text-align:center;">
-          <div style="font-size:24px;margin-bottom:4px;">🏆</div>
-          <div style="font-family:'Phetsarath OT','Phetsarath','Noto Sans Lao','Kanit',sans-serif;font-weight:900;font-size:22px;color:#4ade80;" id="dash-win">0</div>
-          <div style="font-size:11px;color:rgba(240,255,232,0.4);">ชนะ</div>
-        </div>
-        <div style="background:rgba(248,113,113,0.08);border:1px solid rgba(248,113,113,0.2);border-radius:12px;padding:14px;text-align:center;">
-          <div style="font-size:24px;margin-bottom:4px;">💔</div>
-          <div style="font-family:'Phetsarath OT','Phetsarath','Noto Sans Lao','Kanit',sans-serif;font-weight:900;font-size:22px;color:#f87171;" id="dash-lose">0</div>
-          <div style="font-size:11px;color:rgba(240,255,232,0.4);">แพ้</div>
-        </div>
-        <div style="background:rgba(245,200,66,0.08);border:1px solid rgba(245,200,66,0.15);border-radius:12px;padding:14px;text-align:center;">
-          <div style="font-size:24px;margin-bottom:4px;">🎯</div>
-          <div style="font-family:'Phetsarath OT','Phetsarath','Noto Sans Lao','Kanit',sans-serif;font-weight:900;font-size:22px;color:var(--gold);" id="dash-total-bets">0</div>
-          <div style="font-size:11px;color:rgba(240,255,232,0.4);">เดิมพันทั้งหมด</div>
-        </div>
-        <div style="background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);border-radius:12px;padding:14px;text-align:center;">
-          <div style="font-size:24px;margin-bottom:4px;">📈</div>
-          <div style="font-family:'Phetsarath OT','Phetsarath','Noto Sans Lao','Kanit',sans-serif;font-weight:900;font-size:18px;" id="dash-winrate" style="color:#fff;">—%</div>
-          <div style="font-size:11px;color:rgba(240,255,232,0.4);">อัตราชนะ</div>
-        </div>
-      </div>
-
-      <!-- กำไร/ขาดทุนสุทธิ -->
-      <div style="background:rgba(0,0,0,0.2);border:1px solid rgba(255,255,255,0.08);border-radius:12px;padding:14px;margin-bottom:14px;">
-        <div style="font-family:'Phetsarath OT','Phetsarath','Noto Sans Lao','Kanit',sans-serif;font-size:11px;color:rgba(240,255,232,0.4);margin-bottom:8px;">💵 สรุปการเงิน</div>
-        <div style="display:flex;justify-content:space-between;margin-bottom:6px;">
-          <span style="font-size:13px;color:rgba(240,255,232,0.6);">เติมเงินรวม</span>
-          <span style="font-family:'Phetsarath OT','Phetsarath','Noto Sans Lao','Kanit',sans-serif;font-weight:700;color:#4ade80;" id="dash-total-dep">0 ₭</span>
-        </div>
-        <div style="display:flex;justify-content:space-between;margin-bottom:6px;">
-          <span style="font-size:13px;color:rgba(240,255,232,0.6);">ถอนเงินรวม</span>
-          <span style="font-family:'Phetsarath OT','Phetsarath','Noto Sans Lao','Kanit',sans-serif;font-weight:700;color:#f87171;" id="dash-total-with">0 ₭</span>
-        </div>
-        <div style="height:1px;background:rgba(255,255,255,0.08);margin:8px 0;"></div>
-        <div style="display:flex;justify-content:space-between;">
-          <span style="font-size:13px;color:rgba(240,255,232,0.6);">กำไร/ขาดทุนจากเดิมพัน</span>
-          <span style="font-family:'Phetsarath OT','Phetsarath','Noto Sans Lao','Kanit',sans-serif;font-weight:900;font-size:15px;" id="dash-profit">0 ₭</span>
-        </div>
-      </div>
-
-      <!-- รายการล่าสุด -->
-      <div style="font-family:'Phetsarath OT','Phetsarath','Noto Sans Lao','Kanit',sans-serif;font-weight:700;font-size:13px;color:rgba(240,255,232,0.6);margin-bottom:10px;">🕐 รายการล่าสุด</div>
-      <div id="dash-recent-list">
-        <div style="text-align:center;padding:16px;color:rgba(240,255,232,0.25);font-size:13px;">กำลังโหลด...</div>
-      </div>
-    </div>
+    
 
     <!-- INFO TAB -->
-    <div class="acc-panel" id="acc-info">
+    <div class="acc-panel active" id="acc-info">
       <div class="acc-info-grid">
         <div class="acc-info-item">
           <div class="acc-info-label">ชื่อ-นามสกุล</div>
@@ -4385,1083 +4321,7 @@ input, textarea, select, button {
           <span id="support-file-name" style="font-size:12px;color:rgba(240,255,232,0.4);"></span>
         </div>
 
-        <button class="acc-btn acc-btn-dep" onclick="submitSupport()">📨 ส่งข้อความ</button>
-
-        <!-- ประวัติข้อความ -->
-        <div id="support-history" style="margin-top:20px;display:none;">
-          <div style="font-family:'Phetsarath OT','Phetsarath','Noto Sans Lao','Kanit',sans-serif;font-size:13px;font-weight:700;color:rgba(240,255,232,0.6);margin-bottom:12px;padding-top:16px;border-top:1px solid rgba(39,148,63,0.1);">ข้อความที่ส่งไปแล้ว</div>
-          <div id="support-history-list"></div>
-        </div>
-
-      </div>
-    </div>
-
-  </div>
-</div>
-
-<!-- FOOTER -->
-<footer>
-  <div class="footer-logo">วัวชน<span>ไทย</span></div>
-  <div class="footer-links">
-    <a href="#">นโยบาย</a>
-    <a href="#">ติดต่อ</a>
-    <a href="#">ข่าวสาร</a>
-  </div>
-  <div class="footer-copy">© 2568 ศึกชนโคทั่วประเทศลาว · สงวนลิขสิทธิ์</div>
-</footer>
-
-
-<script>
-// ===== i18n — MULTI LANGUAGE SYSTEM =====
-
-// ===== SAFE STORAGE WRAPPER =====
-// รองรับ browser ที่บล็อก localStorage/sessionStorage (Edge Tracking Prevention)
-const _safeStorage = {
-  _mem: {},
-  getItem(k) {
-    try { return sessionStorage.getItem(k); } catch(_) { return this._mem[k] ?? null; }
-  },
-  setItem(k, v) {
-    try { sessionStorage.setItem(k, v); } catch(_) { this._mem[k] = v; }
-  },
-  removeItem(k) {
-    try { sessionStorage.removeItem(k); } catch(_) { delete this._mem[k]; }
-  }
-};
-const _safeLocal = {
-  _mem: {},
-  getItem(k) {
-    try { return localStorage.getItem(k); } catch(_) { return this._mem[k] ?? null; }
-  },
-  setItem(k, v) {
-    try { localStorage.setItem(k, v); } catch(_) { this._mem[k] = v; }
-  },
-  removeItem(k) {
-    try { localStorage.removeItem(k); } catch(_) { delete this._mem[k]; }
-  }
-};
-
-var _lang = _safeLocal.getItem('bw_lang') || 'th';
-var I18N = {
-  th: {
-    // NAV
-    'nav.home': 'หน้าแรก',
-    'nav.schedule': 'ตารางแข่ง',
-    'nav.history': 'ประวัติการแข่งขัน',
-    'nav.register': 'สมัคร / Login',
-    'nav.myaccount': 'บัญชีของฉัน',
-    // HERO
-    'hero.event': '⚡ มหกรรมวัวชนแห่งปี',
-    'hero.title1': 'ศึก',
-    'hero.title2': 'วัวชน',
-    'hero.title3': 'ทั่วประเทศลาว',
-    'hero.sub': 'ประเพณีอันยิ่งใหญ่ · พลังแห่งสายเลือดของคนลาว · ความมันส์ที่หาที่ไหนไม่ได้',
-    'hero.btn.register': 'สมัครบัญชี',
-    'hero.btn.schedule': 'ดูตารางแข่ง',
-    // COUNTDOWN
-    'cd.label': '🔥 นับถอยหลังสู่การแข่งขัน',
-    'cd.day': 'วัน',
-    'cd.hour': 'ชั่วโมง',
-    'cd.min': 'นาที',
-    'cd.sec': 'วินาที',
-    // STATS
-    'stat.bulls': 'คู่วัวที่ลงทะเบียน',
-    'stat.days.val': '3 วัน',
-    'stat.provinces.val': '12 จังหวัด',
-    'stat.viewers': 'ผู้ชมที่คาดการณ์',
-    'stat.days': 'ระยะเวลาการแข่งขัน',
-    'stat.provinces': 'ทีมที่เข้าร่วม',
-    'auth.subtitle': 'กรอกข้อมูลจริงเพื่อลงทะเบียน',
-    'ph.fname': 'ชื่อจริงของคุณ', 'ph.lname': 'นามสกุลของคุณ',
-    'ph.nick': 'ชื่อบัญชี / ชื่อเล่น', 'ph.phone': 'เบอร์โทร / ชื่อบัญชี',
-    'ph.refcode': 'ใส่รหัสผู้แนะนำ (ไม่บังคับ)',
-    'schedule.bet.title': '🎯 วางเดิมพัน P2P',
-    'schedule.bet.queue.label': 'รอจับคู่', 'schedule.bet.matched': 'จับคู่แล้ว',
-    'dep.slip': 'แนบสลิปการโอนเงิน', 'dep.step1': 'ระบุจำนวนและธนาคาร',
-    'dep.step2': 'โอนเงินตามบัญชีด้านล่าง', 'dep.step3': 'แนบสลิปและยืนยัน',
-    'with.bank': 'ธนาคารปลายทาง', 'with.accno': 'เลขบัญชี', 'with.accname': 'ชื่อบัญชี',
-    'txn.title': '📋 ประวัติธุรกรรม', 'txn.empty': 'ยังไม่มีธุรกรรม',
-    'support.title': '💬 ติดต่อเรา', 'support.submit': 'ส่งข้อความ',
-    'ref.copy': 'คัดลอก', 'ref.code': 'รหัสแนะนำของคุณ',
-    'nav.about': 'เกี่ยวกับเรา',
-    // ABOUT
-    'hist.title': 'ผลการแข่งขัน',
-'hist.title.prefix': 'ผล',
-    'hist.title.suffix': 'การแข่งขัน',
-    'hist.back': '← กลับหน้าแรก',
-    'hist.from': 'ตั้งแต่',
-    'hist.to': 'ถึง',
-    'hist.clear': '✕ ล้าง',
-    'hist.showing': 'แสดง',
-    'hist.items': 'รายการ',
-    'hist.realtime': 'อัปเดตอัตโนมัติ',
-    'hist.loading': '<span data-i18n="hist.loading">กำลังโหลดผลการแข่งขัน...</span>',
-    'hist.empty': 'ยังไม่มีผลการแข่งขัน',
-    'hist.done': t('hist.done'),
-    'hist.done.all': 'จบแล้วทั้งหมด',
-    'hist.winner': 'ผู้ชนะ',
-    'hist.new': 'มีผลการแข่งขันใหม่!',
-    'hist.search': 'ค้นหาชื่อวัว / รุ่น...',
-    'hist.vs': 'VS',
-    'about.back': '← กลับหน้าแรก',
-    'about.title': 'เกี่ยวกับเรา',
-    'about.subtitle': 'แพลตฟอร์มวัวชน P2P ที่ได้รับความไว้วางใจจากสมาชิกทั่วประเทศลาว',
-    'about.story.title': 'ที่มาของเรา',
-    'about.story.text': 'วัวชนลาว เกิดจากความรักและความภาคภูมิใจในประเพณีวัวชนอันยาวนานของชาวลาว เราถูกก่อตั้งเพื่อนำประเพณีนี้เข้าสู่ยุคดิจิทัล P2P ปลอดภัย โปร่งใส ยุติธรรม',
-    'about.stat1': 'สมาชิกที่ไว้วางใจ',
-    'about.stat2': 'คู่การแข่งขัน',
-    'about.stat3': 'จังหวัดทั่วลาว',
-    'about.why.title': 'ทำไมต้องเลือกเรา',
-    'about.f1.title': 'ระบบ P2P — ไม่มีเจ้ามือ',
-    'about.f1.sub': 'เงินเดิมพันไหลตรงระหว่างผู้เล่น ยุติธรรม 100%',
-    'about.f2.title': 'ปลอดภัย — ข้อมูลเข้ารหัส',
-    'about.f2.sub': 'SSL ทุก transaction บันทึกและตรวจสอบได้',
-    'about.f3.title': 'ถอน-เติมเงินรวดเร็ว',
-    'about.f3.sub': 'ทีมงานพร้อม 7 วัน อนุมัติภายใน 5 นาที',
-    'about.f4.title': 'Support พร้อม 24 ชั่วโมง',
-    'about.f4.sub': 'ติดต่อได้ผ่าน Line / Facebook ทันที',
-    'about.f5.title': 'VIP และรางวัลสะสม',
-    'about.f5.sub': 'ยิ่งเล่นมาก ยิ่งได้สิทธิพิเศษ + โบนัสแนะนำเพื่อน 5 ชั้น',
-    'about.mission.title': 'พันธกิจของเรา',
-    'about.mission.text': 'มุ่งมั่นรักษาประเพณีวัวชนด้วยเทคโนโลยีสมัยใหม่ เพื่อให้ทุกคนเข้าถึงได้เท่าเทียม',
-    'about.cta.text': 'พร้อมร่วมสนุกกับเราแล้วหรือยัง?',
-    'about.cta.register': 'สมัครสมาชิกฟรี',
-    'about.cta.schedule': 'ดูตารางแข่งขัน',
-
-    // AUTH
-    'auth.title.register': 'สมัครสมาชิก',
-    'auth.title.login': 'เข้าสู่ระบบ',
-    'auth.tab.register': '📝 สมัครสมาชิก',
-    'auth.tab.login': '🔑 เข้าสู่ระบบ',
-    'auth.fname': 'ชื่อจริง',
-    'auth.lname': 'นามสกุล',
-    'auth.nick': 'ชื่อบัญชี (ชื่อเล่น)',
-    'auth.phone': 'เบอร์โทรศัพท์',
-    'auth.password': 'รหัสผ่าน',
-    'auth.confirm': 'ยืนยันรหัสผ่าน',
-    'auth.refcode': 'รหัสผู้แนะนำ (ถ้ามี)',
-    'auth.btn.register': 'สมัครสมาชิก →',
-    'auth.btn.login': '🔑 เข้าสู่ระบบ →',
-    'auth.or': 'หรือสมัครด้วย',
-    'auth.or.login': 'หรือเข้าด้วย',
-    'auth.have.account': 'มีบัญชีแล้ว?',
-    'auth.no.account': 'ยังไม่มีบัญชี?',
-    'auth.back': 'กลับหน้าแรก',
-    'auth.remember': 'จำบัญชีในอุปกรณ์นี้',
-    'auth.success': 'สมัครสมาชิกสำเร็จแล้วครับ',
-    'auth.goto.account': '👤 ไปยังบัญชีของฉัน',
-    // SCHEDULE
-    'schedule.title': 'ตารางการแข่งขัน',
-    'schedule.title.prefix': 'ตาราง',
-    'schedule.title.suffix': 'การแข่งขัน',
-    'schedule.loading': 'กำลังโหลด...',
-    'schedule.empty': 'ยังไม่มีรายการแข่งขันครับ',
-    'schedule.upcoming': '⏳ รอแข่ง',
-    'schedule.live': '🔴 กำลังแข่ง',
-    'schedule.done': '✅ จบแล้ว',
-    'bet.panel.title': '🎯 วางเดิมพัน P2P',
-    'bet.select': 'เลือกฝั่งที่ต้องการเดิมพัน',
-    'bet.amount.label': 'จำนวนเงิน (₭)',
-    'bet.odds.label': 'อัตราต่อรอง (x)',
-    'bet.submit': '🎯 วางเดิมพันและรอจับคู่',
-    'bet.queue.title': '📋 รายการเดิมพัน',
-    'bet.queue.empty': 'ยังไม่มีรายการเดิมพัน',
-    'bet.balance': 'ยอดเงินคงเหลือ',
-    'schedule.back': '← กลับหน้าแรก',
-    'schedule.bet.back': '← กลับรายการแข่งขัน',
-    'schedule.bet.balance': 'ยอดเงินคงเหลือ',
-    'schedule.bet.select': 'เลือกฝ่ายที่ต้องการเดิมพัน',
-    'schedule.bet.amount': 'จำนวนเงิน (₭)',
-    'schedule.bet.odds': 'อัตราต่อรอง (x)',
-    'schedule.bet.submit': '🎯 วางเดิมพันและรอจับคู่',
-    'schedule.bet.queue': '📋 รายการเดิมพัน',
-    // ACCOUNT
-    'acc.back': '← กลับหน้าแรก',
-    'acc.balance': 'ยอดเงินคงเหลือ',
-    'acc.logout': 'ออกจากระบบ',
-    'acc.tab.dashboard': '📊 Dashboard',
-    'acc.tab.info': '👤 โปรไฟล์',
-    'acc.tab.deposit': '💰 เติมเงิน',
-    'acc.tab.withdraw': '🏧 ถอนเงิน',
-    'acc.tab.bet': '🎯 P2P',
-    'acc.tab.txn': '📋 ธุรกรรม',
-    'acc.tab.support': '💬 ติดต่อ',
-    'acc.tab.referral': '🎁 แนะนำเพื่อน',
-    'acc.tab.notif': '🔔 แจ้งเตือน',
-    // DEPOSIT
-    'dep.bank.select': '— เลือกธนาคารที่โอนจาก —',
-    'dep.title': '💰 เติมเงิน',
-    'dep.amount': 'จำนวนเงิน',
-    'dep.bank': 'บัญชีรับเงิน',
-    'dep.copy': '📋 คัดลอก',
-    'dep.slip': 'แนบสลิปการโอนเงิน',
-    'dep.submit': '✅ ยืนยันการเติมเงิน',
-    // WITHDRAW
-    'with.title': '🏧 ถอนเงิน',
-    'with.amount': 'จำนวนที่ต้องการถอน',
-    'with.submit': '✅ ยืนยันการถอนเงิน',
-    // NOTIF
-    'notif.title': '🔔 การแจ้งเตือน',
-    'notif.empty': 'ยังไม่มีการแจ้งเตือนครับ',
-    'notif.all': '📋 ทั้งหมด',
-    'notif.success': '✅ สำเร็จ',
-    'notif.error': '❌ ปฏิเสธ',
-    'notif.slip': '🧾 มีสลิป',
-    'notif.clear': '🗑 ล้างทั้งหมด',
-    // REFERRAL
-    'ref.title': '🎁 แนะนำเพื่อน',
-    'ref.code': 'รหัสแนะนำของคุณ',
-    'ref.copy': 'คัดลอก',
-    // LANG
-    'lang.label': '🌐 ภาษา',
-  },
-  la: {
-    // NAV
-    'nav.home': 'ໜ້າຫຼັກ',
-    'nav.schedule': 'ຕາຕະລາງແຂ່ງ',
-    'nav.history': 'ປະຫວັດການແຂ່ງ',
-    'nav.register': 'ສະໝັກ / ເຂົ້າສູ່ລະບົບ',
-    'nav.myaccount': 'ບັນຊີຂອງຂ້ອຍ',
-    // HERO
-    'hero.event': '⚡ ມະຫາກຳງົວຊົນ',
-    'hero.title1': 'ສົງຄາມ',
-    'hero.title2': 'ງົວຊົນ',
-    'hero.title3': 'ທົ່ວປະເທດລາວ',
-    'hero.sub': 'ປະເພນີອັນຍິ່ງໃຫຍ່ · ພະລັງແຫ່ງສາຍເລືອດລາວ · ຄວາມສະໜຸກທີ່ຫາຢູ່ບ່ອນໃດບໍ່ໄດ້',
-    'hero.btn.register': 'ສະໝັກບັນຊີ',
-    'hero.btn.schedule': 'ເບິ່ງຕາຕະລາງ',
-    // COUNTDOWN
-    'cd.label': '🔥 ນັບຖອຍຫຼັງສູ່ການແຂ່ງ',
-    'cd.day': 'ວັນ',
-    'cd.hour': 'ຊົ່ວໂມງ',
-    'cd.min': 'ນາທີ',
-    'cd.sec': 'ວິນາທີ',
-    // STATS
-    'stat.bulls': 'ຄູ່ງົວທີ່ລົງທະບຽນ',
-    'stat.days.val': '3 ວັນ',
-    'stat.provinces.val': '12 ແຂວງ',
-    'stat.viewers': 'ຜູ້ຊົມທີ່ຄາດຄະເນ',
-    'stat.days': 'ໄລຍະເວລາການແຂ່ງ',
-    'stat.provinces': 'ທີມທີ່ເຂົ້າຮ່ວມ',
-    'auth.subtitle': 'ກົ້ວຂໍ້ມູນຈິງເພື່ອລົງທະບຽນ',
-    'ph.fname': 'ຊື່ຈິງຂອງທ່ານ', 'ph.lname': 'ນາມສະກຸນຂອງທ່ານ',
-    'ph.nick': 'ຊື່ບັນຊີ / ຊື່ຫຼິ້ນ', 'ph.phone': 'ເບີໂທ / ຊື່ບັນຊີ',
-    'ph.refcode': 'ໃສ່ລະຫັດຜູ້ແນະນຳ (ບໍ່ບັງຄັບ)',
-    'schedule.bet.title': '🎯 ວາງເດີມພັນ P2P',
-    'schedule.bet.queue.label': 'ລໍຖ້າຄູ່', 'schedule.bet.matched': 'ຈັບຄູ່ແລ້ວ',
-    'dep.slip': 'ແນບສລິບການໂອນ', 'dep.step1': 'ລະບຸຈຳນວນ', 
-    'dep.step2': 'ໂອນເງິນຕາມບັນຊີ', 'dep.step3': 'ແນບສລິບ ແລະ ຢືນຢັນ',
-    'with.bank': 'ທະນາຄານປາຍທາງ', 'with.accno': 'ເລກບັນຊີ', 'with.accname': 'ຊື່ບັນຊີ',
-    'txn.title': '📋 ປະຫວັດທຸລະກຳ', 'txn.empty': 'ຍັງບໍ່ມີທຸລະກຳ',
-    'support.title': '💬 ຕິດຕໍ່ເຮົາ', 'support.submit': 'ສົ່ງຂໍ້ຄວາມ',
-    'ref.copy': 'ສຳເນົາ', 'ref.code': 'ລະຫັດແນະນຳຂອງທ່ານ',
-    'nav.about': 'ກ່ຽວກັບເຮົາ',
-    // ABOUT
-    'hist.title': 'ຜົນການແຂ່ງ',
-'hist.title.prefix': 'ຜົນ',
-    'hist.title.suffix': 'ການແຂ່ງ',
-    'hist.back': '← ກັບໜ້າຫຼັກ',
-    'hist.from': 'ຕັ້ງແຕ່',
-    'hist.to': 'ຫາ',
-    'hist.clear': '✕ ລ້າງ',
-    'hist.showing': 'ສະແດງ',
-    'hist.items': 'ລາຍການ',
-    'hist.realtime': 'ອັບເດດອັດຕະໂນມັດ',
-    'hist.loading': 'ກຳລັງໂຫຼດຜົນການແຂ່ງ...',
-    'hist.empty': 'ຍັງບໍ່ມີຜົນການແຂ່ງ',
-    'hist.done': 'ຈົບແລ້ວ',
-    'hist.done.all': 'ຈົບແລ້ວທັງໝົດ',
-    'hist.winner': 'ຜູ້ຊະນະ',
-    'hist.new': 'ມີຜົນການແຂ່ງໃໝ່!',
-    'hist.search': 'ຄົ້ນຫາຊື່ງົວ / ຮຸ່ນ...',
-    'hist.vs': 'VS',
-    'about.back': '← ກັບໜ້າຫຼັກ',
-    'about.title': 'ກ່ຽວກັບເຮົາ',
-    'about.subtitle': 'ແພລດຟອມງົວຊົນ P2P ທີ່ໄດ້ຮັບຄວາມໄວ້ວາງໃຈຈາກສະມາຊິກທົ່ວລາວ',
-    'about.story.title': 'ທີ່ມາຂອງເຮົາ',
-    'about.story.text': 'ງົວຊົນລາວ ເກີດຈາກຄວາມຮັກໃນປະເພນີງົວຊົນອັນດົນນານ ເຮົາສ້າງຂຶ້ນເພື່ອນຳປະເພນີນີ້ສູ່ຍຸກດິຈິຕອນ P2P ປອດໄພ ໂປ່ງໃສ ຍຸຕິທຳ',
-    'about.stat1': 'ສະມາຊິກທີ່ໄວ້ວາງໃຈ',
-    'about.stat2': 'ຄູ່ການແຂ່ງ',
-    'about.stat3': 'ແຂວງທົ່ວລາວ',
-    'about.why.title': 'ເປັນຫຍັງຕ້ອງເລືອກເຮົາ',
-    'about.f1.title': 'ລະບົບ P2P — ບໍ່ມີເຈົ້າໝາກ',
-    'about.f1.sub': 'ເງິນເດີມພັນໄຫຼຕົງລະຫວ່າງຜູ້ຫຼິ້ນ ຍຸຕິທຳ 100%',
-    'about.f2.title': 'ປອດໄພ — ຂໍ້ມູນເຂົ້າລະຫັດ',
-    'about.f2.sub': 'SSL ທຸກ transaction ບັນທຶກ ແລະ ກວດສອບໄດ້',
-    'about.f3.title': 'ຖອນ-ເຕີມເງິນໄວ',
-    'about.f3.sub': 'ທີມງານພ້ອມ 7 ວັນ ອະນຸມັດພາຍໃນ 5 ນາທີ',
-    'about.f4.title': 'Support ພ້ອມ 24 ຊົ່ວໂມງ',
-    'about.f4.sub': 'ຕິດຕໍ່ໄດ້ຜ່ານ Line / Facebook ທັນທີ',
-    'about.f5.title': 'VIP ແລະ ລາງວັນສະສົມ',
-    'about.f5.sub': 'ຍິ່ງຫຼິ້ນຫຼາຍ ຍິ່ງໄດ້ສິດທິພິເສດ + ໂບນັດແນະນຳໝູ່ 5 ຊັ້ນ',
-    'about.mission.title': 'ພາລະກິດຂອງເຮົາ',
-    'about.mission.text': 'ມຸ່ງໝັ້ນຮັກສາປະເພນີງົວຊົນດ້ວຍເທກໂນໂລຊີສະໄໝໃໝ່ ເພື່ອໃຫ້ທຸກຄົນເຂົ້າເຖິງໄດ້ເທົ່າທຽມ',
-    'about.cta.text': 'ພ້ອມຮ່ວມສະໜຸກກັບເຮົາແລ້ວຫຼືຍັງ?',
-    'about.cta.register': 'ສະໝັກສະມາຊິກຟຣີ',
-    'about.cta.schedule': 'ເບິ່ງຕາຕະລາງແຂ່ງ',
-
-    // AUTH
-    'auth.title.register': 'ສະໝັກສະມາຊິກ',
-    'auth.title.login': 'ເຂົ້າສູ່ລະບົບ',
-    'auth.tab.register': '📝 ສະໝັກສະມາຊິກ',
-    'auth.tab.login': '🔑 ເຂົ້າສູ່ລະບົບ',
-    'auth.fname': 'ຊື່ຈິງ',
-    'auth.lname': 'ນາມສະກຸນ',
-    'auth.nick': 'ຊື່ບັນຊີ (ຊື່ຫຼິ້ນ)',
-    'auth.phone': 'ເບີໂທລະສັບ',
-    'auth.password': 'ລະຫັດຜ່ານ',
-    'auth.confirm': 'ຢືນຢັນລະຫັດຜ່ານ',
-    'auth.refcode': 'ລະຫັດຜູ້ແນະນຳ (ຖ້າມີ)',
-    'auth.btn.register': 'ສະໝັກສະມາຊິກ →',
-    'auth.btn.login': '🔑 ເຂົ້າສູ່ລະບົບ →',
-    'auth.or': 'ຫຼືສະໝັກດ້ວຍ',
-    'auth.or.login': 'ຫຼືເຂົ້າດ້ວຍ',
-    'auth.have.account': 'ມີບັນຊີແລ້ວ?',
-    'auth.no.account': 'ຍັງບໍ່ມີບັນຊີ?',
-    'auth.back': 'ກັບໜ້າຫຼັກ',
-    'auth.remember': 'ຈຳບັນຊີໃນອຸປະກອນນີ້',
-    'auth.success': 'ສະໝັກສະມາຊິກສຳເລັດແລ້ວ',
-    'auth.goto.account': '👤 ໄປຫາບັນຊີຂອງຂ້ອຍ',
-    // SCHEDULE
-    'schedule.title': 'ຕາຕະລາງການແຂ່ງ',
-    'schedule.title.prefix': 'ຕາຕະລາງ',
-    'schedule.title.suffix': 'ການແຂ່ງ',
-    'schedule.loading': 'ກຳລັງໂຫຼດ...',
-    'schedule.empty': 'ຍັງບໍ່ມີລາຍການແຂ່ງ',
-    'schedule.upcoming': '⏳ ລໍຖ້າ',
-    'schedule.live': '🔴 ກຳລັງແຂ່ງ',
-    'schedule.done': '✅ ຈົບແລ້ວ',
-    'bet.panel.title': '🎯 ວາງເດີມພັນ P2P',
-    'bet.select': 'ເລືອກຝ່າຍທີ່ຕ້ອງການ',
-    'bet.amount.label': 'ຈຳນວນເງິນ (₭)',
-    'bet.odds.label': 'ອັດຕາຕໍ່ລອງ (x)',
-    'bet.submit': '🎯 ວາງເດີມພັນ',
-    'bet.queue.title': '📋 ລາຍການເດີມພັນ',
-    'bet.queue.empty': 'ຍັງບໍ່ມີລາຍການ',
-    'bet.balance': 'ຍອດເງິນຄົງເຫຼືອ',
-    'schedule.back': '← ກັບໜ້າຫຼັກ',
-    'schedule.bet.back': '← ກັບລາຍການແຂ່ງ',
-    'schedule.bet.balance': 'ຍອດເງິນຄົງເຫຼືອ',
-    'schedule.bet.select': 'ເລືອກຝ່າຍທີ່ຕ້ອງການ',
-    'schedule.bet.amount': 'ຈຳນວນເງິນ (₭)',
-    'schedule.bet.odds': 'ອັດຕາຕໍ່ລອງ (x)',
-    'schedule.bet.submit': '🎯 ວາງເດີມພັນ',
-    'schedule.bet.queue': '📋 ລາຍການເດີມພັນ',
-    // ACCOUNT
-    'acc.back': '← ກັບໜ້າຫຼັກ',
-    'acc.balance': 'ຍອດເງິນຄົງເຫຼືອ',
-    'acc.logout': 'ອອກຈາກລະບົບ',
-    'acc.tab.dashboard': '📊 Dashboard',
-    'acc.tab.info': '👤 ໂປຣໄຟລ໌',
-    'acc.tab.deposit': '💰 ເຕີມເງິນ',
-    'acc.tab.withdraw': '🏧 ຖອນເງິນ',
-    'acc.tab.bet': '🎯 P2P',
-    'acc.tab.txn': '📋 ທຸລະກຳ',
-    'acc.tab.support': '💬 ຕິດຕໍ່',
-    'acc.tab.referral': '🎁 ແນະນຳໝູ່',
-    'acc.tab.notif': '🔔 ແຈ້ງເຕືອນ',
-    // DEPOSIT
-    'dep.bank.select': '— ເລືອກທະນາຄານທີ່ໂອນຈາກ —',
-    'dep.title': '💰 ເຕີມເງິນ',
-    'dep.amount': 'ຈຳນວນເງິນ',
-    'dep.bank': 'ບັນຊີຮັບເງິນ',
-    'dep.copy': '📋 ສຳເນົາ',
-    'dep.slip': 'ແນບສລິບການໂອນ',
-    'dep.submit': '✅ ຢືນຢັນການເຕີມ',
-    // WITHDRAW
-    'with.title': '🏧 ຖອນເງິນ',
-    'with.amount': 'ຈຳນວນທີ່ຕ້ອງການຖອນ',
-    'with.submit': '✅ ຢືນຢັນການຖອນ',
-    // NOTIF
-    'notif.title': '🔔 ການແຈ້ງເຕືອນ',
-    'notif.empty': 'ຍັງບໍ່ມີການແຈ້ງເຕືອນ',
-    'notif.all': '📋 ທັງໝົດ',
-    'notif.success': '✅ ສຳເລັດ',
-    'notif.error': '❌ ປະຕິເສດ',
-    'notif.slip': '🧾 ມີສລິບ',
-    'notif.clear': '🗑 ລ້າງທັງໝົດ',
-    // REFERRAL
-    'ref.title': '🎁 ແນະນຳໝູ່',
-    'ref.code': 'ລະຫັດແນະນຳຂອງທ່ານ',
-    'ref.copy': 'ສຳເນົາ',
-    // LANG
-    'lang.label': '🌐 ພາສາ',
-  },
-  en: {
-    // NAV
-    'nav.home': 'Home',
-    'nav.schedule': 'Schedule',
-    'nav.history': 'Match History',
-    'nav.register': 'Sign Up / Login',
-    'nav.myaccount': 'My Account',
-    // HERO
-    'hero.event': '⚡ Bull Fight Championship',
-    'hero.title1': 'Epic',
-    'hero.title2': 'Bull Fight',
-    'hero.title3': 'Across Laos',
-    'hero.sub': 'A grand tradition · The spirit of Lao bloodlines · Excitement unlike anywhere else',
-    'hero.btn.register': 'Create Account',
-    'hero.btn.schedule': 'View Schedule',
-    // COUNTDOWN
-    'cd.label': '🔥 Countdown to the Fight',
-    'cd.day': 'Days',
-    'cd.hour': 'Hours',
-    'cd.min': 'Mins',
-    'cd.sec': 'Secs',
-    // STATS
-    'stat.bulls': 'Registered Bull Pairs',
-    'stat.days.val': '3 Days',
-    'stat.provinces.val': '12 Provinces',
-    'stat.viewers': 'Expected Viewers',
-    'stat.days': 'Days of Competition',
-    'stat.provinces': 'Participating Teams',
-    'auth.subtitle': 'Enter your real information to register',
-    'ph.fname': 'Your first name', 'ph.lname': 'Your last name',
-    'ph.nick': 'Username / Nickname', 'ph.phone': 'Phone / Username',
-    'ph.refcode': 'Referral code (optional)',
-    'schedule.bet.title': '🎯 Place P2P Bet',
-    'schedule.bet.queue.label': 'Waiting', 'schedule.bet.matched': 'Matched',
-    'dep.slip': 'Attach transfer slip', 'dep.step1': 'Enter amount',
-    'dep.step2': 'Transfer to account below', 'dep.step3': 'Attach slip & confirm',
-    'with.bank': 'Destination Bank', 'with.accno': 'Account Number', 'with.accname': 'Account Name',
-    'txn.title': '📋 Transaction History', 'txn.empty': 'No transactions yet',
-    'support.title': '💬 Contact Us', 'support.submit': 'Send Message',
-    'ref.copy': 'Copy', 'ref.code': 'Your referral code',
-    'nav.about': 'About Us',
-    // ABOUT
-    'hist.title': 'Match Results',
-'hist.title.prefix': 'Match ',
-    'hist.title.suffix': 'Results',
-    'hist.back': '← Back to Home',
-    'hist.from': 'From',
-    'hist.to': 'To',
-    'hist.clear': '✕ Clear',
-    'hist.showing': 'Showing',
-    'hist.items': 'results',
-    'hist.realtime': 'Auto-update',
-    'hist.loading': 'Loading match results...',
-    'hist.empty': 'No match results yet',
-    'hist.done': 'Finished',
-    'hist.done.all': 'Finished',
-    'hist.winner': 'Winner',
-    'hist.new': 'New match results!',
-    'hist.search': 'Search bull name / round...',
-    'hist.vs': 'VS',
-    'about.back': '← Back to Home',
-    'about.title': 'About Us',
-    'about.subtitle': 'Trusted P2P Bull Fight Platform across Laos',
-    'about.story.title': 'Our Story',
-    'about.story.text': 'KawCai was born from a deep love for Lao bull fighting tradition. We built this platform to bring this ancient tradition into the digital age — P2P betting, safe, transparent and fair for everyone.',
-    'about.stat1': 'Trusted Members',
-    'about.stat2': 'Match Pairs',
-    'about.stat3': 'Provinces Across Laos',
-    'about.why.title': 'Why Choose Us',
-    'about.f1.title': 'P2P System — No House Edge',
-    'about.f1.sub': 'Bets flow directly between players. 100% fair.',
-    'about.f2.title': 'Secure — Encrypted Data',
-    'about.f2.sub': 'SSL on every transaction, fully auditable.',
-    'about.f3.title': 'Fast Deposits & Withdrawals',
-    'about.f3.sub': '7-day team, approvals within 5 minutes.',
-    'about.f4.title': '24/7 Support',
-    'about.f4.sub': 'Reach us instantly via Line or Facebook.',
-    'about.f5.title': 'VIP & Loyalty Rewards',
-    'about.f5.sub': 'More play = more perks + 5-tier referral bonus.',
-    'about.mission.title': 'Our Mission',
-    'about.mission.text': 'To preserve and modernize bull fighting traditions using cutting-edge technology, making it accessible to everyone equally.',
-    'about.cta.text': 'Ready to join us?',
-    'about.cta.register': 'Register Free',
-    'about.cta.schedule': 'View Schedule',
-
-    // AUTH
-    'auth.title.register': 'Create Account',
-    'auth.title.login': 'Login',
-    'auth.tab.register': '📝 Register',
-    'auth.tab.login': '🔑 Login',
-    'auth.fname': 'First Name',
-    'auth.lname': 'Last Name',
-    'auth.nick': 'Username',
-    'auth.phone': 'Phone Number',
-    'auth.password': 'Password',
-    'auth.confirm': 'Confirm Password',
-    'auth.refcode': 'Referral Code (optional)',
-    'auth.btn.register': 'Register →',
-    'auth.btn.login': '🔑 Login →',
-    'auth.or': 'or sign up with',
-    'auth.or.login': 'or login with',
-    'auth.have.account': 'Already have account?',
-    'auth.no.account': 'No account yet?',
-    'auth.back': 'Back to Home',
-    'auth.remember': 'Remember me on this device',
-    'auth.success': 'Registration successful!',
-    'auth.goto.account': '👤 Go to My Account',
-    // SCHEDULE
-    'schedule.title': 'Match Schedule',
-    'schedule.title.prefix': '',
-    'schedule.title.suffix': 'Match Schedule',
-    'schedule.loading': 'Loading...',
-    'schedule.empty': 'No matches available',
-    'schedule.upcoming': '⏳ Upcoming',
-    'schedule.live': '🔴 Live',
-    'schedule.done': '✅ Finished',
-    'bet.panel.title': '🎯 Place P2P Bet',
-    'bet.select': 'Select your side',
-    'bet.amount.label': 'Amount (₭)',
-    'bet.odds.label': 'Odds (x)',
-    'bet.submit': '🎯 Place Bet',
-    'bet.queue.title': '📋 Bet Queue',
-    'bet.queue.empty': 'No bets yet',
-    'bet.balance': 'Balance',
-    'schedule.back': '← Back to Home',
-    'schedule.bet.back': '← Back to Schedule',
-    'schedule.bet.balance': 'Balance',
-    'schedule.bet.select': 'Select your side',
-    'schedule.bet.amount': 'Amount (₭)',
-    'schedule.bet.odds': 'Odds (x)',
-    'schedule.bet.submit': '🎯 Place Bet',
-    'schedule.bet.queue': '📋 Bet Queue',
-    // ACCOUNT
-    'acc.back': '← Back to Home',
-    'acc.balance': 'Balance',
-    'acc.logout': 'Logout',
-    'acc.tab.dashboard': '📊 Dashboard',
-    'acc.tab.info': '👤 Profile',
-    'acc.tab.deposit': '💰 Deposit',
-    'acc.tab.withdraw': '🏧 Withdraw',
-    'acc.tab.bet': '🎯 P2P',
-    'acc.tab.txn': '📋 Transactions',
-    'acc.tab.support': '💬 Support',
-    'acc.tab.referral': '🎁 Referral',
-    'acc.tab.notif': '🔔 Notifications',
-    // DEPOSIT
-    'dep.bank.select': '— Select source bank —',
-    'dep.title': '💰 Deposit',
-    'dep.amount': 'Amount',
-    'dep.bank': 'Bank Account',
-    'dep.copy': '📋 Copy',
-    'dep.slip': 'Attach transfer slip',
-    'dep.submit': '✅ Confirm Deposit',
-    // WITHDRAW
-    'with.title': '🏧 Withdraw',
-    'with.amount': 'Amount to withdraw',
-    'with.submit': '✅ Confirm Withdrawal',
-    // NOTIF
-    'notif.title': '🔔 Notifications',
-    'notif.empty': 'No notifications yet',
-    'notif.all': '📋 All',
-    'notif.success': '✅ Success',
-    'notif.error': '❌ Rejected',
-    'notif.slip': '🧾 Has Slip',
-    'notif.clear': '🗑 Clear All',
-    // REFERRAL
-    'ref.title': '🎁 Refer a Friend',
-    'ref.code': 'Your referral code',
-    'ref.copy': 'Copy',
-    // LANG
-    'lang.label': '🌐 Language',
-  }
-};
-
-
-function t(key) {
-  if (!I18N || !_lang) return key;
-  return (I18N[_lang] && I18N[_lang][key]) || (I18N['th'] && I18N['th'][key]) || key;
-}
-
-function setLang(lang) {
-  _lang = lang;
-  _safeLocal.setItem('bw_lang', lang);
-  applyLang();
-  // อัปเดต dropdown
-  const sel = document.getElementById('lang-selector');
-  if (sel) sel.value = lang;
-}
-
-function applyLang() {
-  const L = _lang;
-
-  // ── 1. data-i18n attributes (เดิม) ──
-  document.querySelectorAll('[data-i18n]').forEach(el => {
-    const key = el.getAttribute('data-i18n');
-    const val = t(key);
-    if (el.getAttribute('data-i18n-attr')) {
-      el.setAttribute(el.getAttribute('data-i18n-attr'), val);
-    } else if (el.children.length === 0) {
-      el.textContent = val;
-    } else {
-      const tn = [...el.childNodes].find(n => n.nodeType === 3 && n.textContent.trim());
-      if (tn) tn.textContent = val;
-    }
-  });
-  document.querySelectorAll('[data-i18n-placeholder]').forEach(el => {
-    el.placeholder = t(el.getAttribute('data-i18n-placeholder'));
-  });
-
-  // ── 2. Register / Login form ──
-  const setText = (id, txt) => { const e = document.getElementById(id); if (e) e.textContent = txt; };
-  const setHTML = (id, html) => { const e = document.getElementById(id); if (e) e.innerHTML = html; };
-  const setPlaceholder = (id, txt) => { const e = document.getElementById(id); if (e) e.placeholder = txt; };
-  const setQS = (sel, txt) => { const e = document.querySelector(sel); if (e) e.textContent = txt; };
-  const setQSHTML = (sel, html) => { const e = document.querySelector(sel); if (e) e.innerHTML = html; };
-
-  // Register title & subtitle
-  setQS('.register-title', t('auth.title.register'));
-  setQS('.register-sub', t('auth.subtitle'));
-  // Login tab
-  const tabLogin = document.getElementById('tab-login');
-  if (tabLogin) tabLogin.textContent = t('auth.tab.login');
-
-  // Form labels — reg
-  const labelMap = {
-    'r-fname': t('auth.fname'), 'r-lname': t('auth.lname'),
-    'r-nick': t('auth.nick'),   'r-phone': t('auth.phone'),
-    'r-password': t('auth.password'), 'r-password2': t('auth.confirm'),
-    'r-refcode': t('auth.refcode'),
-    'l-phone': t('auth.phone'), 'l-password': t('auth.password'),
-  };
-  Object.entries(labelMap).forEach(([id, label]) => {
-    const inp = document.getElementById(id);
-    if (!inp) return;
-    const lbl = inp.previousElementSibling;
-    if (lbl && (lbl.tagName === 'LABEL' || lbl.classList.contains('reg-label'))) lbl.textContent = label;
-  });
-
-  // Placeholders
-  setPlaceholder('r-fname', t('ph.fname'));
-  setPlaceholder('r-lname', t('ph.lname'));
-  setPlaceholder('r-nick',  t('ph.nick'));
-  setPlaceholder('r-phone', t('ph.phone'));
-  setPlaceholder('r-refcode', t('ph.refcode'));
-
-  // Register button
-  const regBtn = document.querySelector('.reg-submit');
-  if (regBtn) regBtn.textContent = t('auth.btn.register');
-
-  // "or" divider
-  document.querySelectorAll('.auth-or-text').forEach(e => e.textContent = t('auth.or'));
-
-  // Register links
-  setQS('.reg-login', null); // handled below per element
-  document.querySelectorAll('.reg-login').forEach(el => {
-    if (el.innerHTML.includes('มีบัญชี') || el.innerHTML.includes('Already') || el.innerHTML.includes('ມີ')) {
-      el.innerHTML = `${t('auth.have.account')} <a href="#" onclick="switchAuthTab('login');return false;">${t('auth.tab.login')}</a> &nbsp;·&nbsp; <a href="#" onclick="hideRegister();return false;">${t('auth.back')}</a>`;
-    } else {
-      el.innerHTML = `${t('auth.no.account')} <a href="#" onclick="switchAuthTab('register');return false;">${t('auth.tab.register')}</a> &nbsp;·&nbsp; <a href="#" onclick="hideRegister();return false;">${t('auth.back')}</a>`;
-    }
-  });
-
-  // Remember me label
-  const remLabel = document.querySelector('#l-remember + span, label:has(#l-remember) span');
-  if (remLabel) remLabel.textContent = t('auth.remember');
-
-  // Success screen
-  setQS('.reg-success-sub', t('auth.success'));
-  const gotoBtn = document.querySelector('.reg-success-btn, #btn-goto-account');
-  if (gotoBtn) gotoBtn.textContent = t('auth.goto.account');
-
-  // ── 3. Schedule / Bet ──
-  setQS('.schedule-back', t('schedule.back'));
-  setQS('.bet-back-btn, .schedule-bet-back', t('schedule.bet.back'));
-  // Bet balance label
-  setQS('.bet-balance-label', t('schedule.bet.balance'));
-  // Bet section title
-  const betTitle = document.querySelector('.bet-section-title, .bet-panel-title');
-  if (betTitle) betTitle.textContent = t('schedule.bet.title');
-  // Queue section title
-  setQS('.bet-queue-title', t('schedule.bet.queue'));
-
-  // ── 4. Account tabs (ทำซ้ำเพื่อความปลอดภัย) ──
-  const tabKeys = {
-    'dashboard': t('acc.tab.dashboard'), 'info': t('acc.tab.info'),
-    'deposit': t('acc.tab.deposit'),     'withdraw': t('acc.tab.withdraw'),
-    'bet': t('acc.tab.bet'),             'txn': t('acc.tab.txn'),
-    'support': t('acc.tab.support'),     'referral': t('acc.tab.referral'),
-    'notifications': t('acc.tab.notif'),
-  };
-  document.querySelectorAll('.acc-tab').forEach(tab => {
-    const onclick = tab.getAttribute('onclick') || '';
-    const m = onclick.match(/switchAccTab\('(\w+)'/);
-    if (m && tabKeys[m[1]]) {
-      // เก็บ badge ไว้ถ้ามี
-      const badge = tab.querySelector('span');
-      tab.textContent = tabKeys[m[1]];
-      if (badge) tab.appendChild(badge);
-    }
-  });
-
-  // Account back
-  setText('acc-back-btn', t('acc.back'));
-  setQS('.account-back', t('acc.back'));
-
-  // Account balance label
-  setQS('.account-balance-label', t('acc.balance'));
-
-  // Logout
-  const logoutBtn = document.querySelector('.acc-logout-btn, #btn-logout');
-  if (logoutBtn) logoutBtn.textContent = t('acc.logout');
-
-  // ── 5. Deposit panel ──
-  setQS('#acc-deposit .panel-title, #acc-deposit .card-heading', t('dep.title'));
-  // bank-from dropdown — เปลี่ยน placeholder option แรก
-  const bankFrom = document.getElementById('dep-bank-from');
-  if (bankFrom && bankFrom.options[0]) bankFrom.options[0].text = t('dep.bank.select');
-  setQS('#dep-bank-header', `🏦 ${t('dep.bank')}`);
-  const copyBtn = document.querySelector('button[onclick="copyDepAccNo()"]');
-  if (copyBtn) copyBtn.textContent = t('dep.copy');
-  const depBtn = document.querySelector('#dep-step3 .reg-submit, button[onclick*="submitDeposit"]');
-  if (depBtn) depBtn.textContent = t('dep.submit');
-  // Slip label
-  setQS('.dep-slip-label', t('dep.slip'));
-
-  // ── 6. Withdraw panel ──
-  setQS('#acc-withdraw .panel-title, #acc-withdraw .card-heading', t('with.title'));
-  const withBtn = document.querySelector('button[onclick*="submitWithdraw"]');
-  if (withBtn) withBtn.textContent = t('with.submit');
-
-  // ── 7. Notification panel ──
-  setQS('#acc-notifications .card-title-text, #notif-panel-title', t('notif.title'));
-  document.querySelectorAll('.notif-chip').forEach(chip => {
-    const onclick = chip.getAttribute('onclick') || '';
-    if (onclick.includes("''"))        chip.textContent = t('notif.all');
-    else if (onclick.includes('success')) chip.textContent = t('notif.success');
-    else if (onclick.includes('error'))   chip.textContent = t('notif.error');
-    else if (onclick.includes('slip'))    chip.textContent = t('notif.slip');
-  });
-  const clearBtn = document.querySelector('button[onclick="clearNotifications()"]');
-  if (clearBtn) clearBtn.textContent = t('notif.clear');
-
-  // ── 8. Referral ──
-  setQS('#acc-referral .panel-title', t('ref.title'));
-
-  // ── 9. About page ──
-  setQS('#page-about .history-back', t('about.back'));
-
-  // ── 10. Schedule page ──
-  document.querySelectorAll('[data-i18n="schedule.back"]').forEach(e => e.textContent = t('schedule.back'));
-  document.querySelectorAll('[data-i18n="schedule.bet.back"]').forEach(e => e.textContent = t('schedule.bet.back'));
-  document.querySelectorAll('[data-i18n="schedule.title.prefix"]').forEach(e => e.textContent = t('schedule.title.prefix'));
-  document.querySelectorAll('[data-i18n="schedule.title.suffix"]').forEach(e => e.textContent = t('schedule.title.suffix'));
-  // Balance label
-  setQS('.bet-balance-label', t('bet.balance'));
-  // Submit button
-  document.querySelectorAll('.bet-submit-btn').forEach(b => b.textContent = t('bet.submit'));
-  // Queue title
-  setQS('.bet-queue-title', t('bet.queue.title'));
-  // Status badges
-  document.querySelectorAll('.status-upcoming').forEach(e => e.textContent = t('schedule.upcoming'));
-  document.querySelectorAll('.status-live').forEach(e => e.textContent = t('schedule.live'));
-  document.querySelectorAll('.status-done').forEach(e => e.textContent = t('schedule.done'));
-
-  // ── 11. History page ──
-  document.querySelectorAll('.history-back').forEach(e => {
-    if (!e.closest('#page-about')) e.textContent = t('hist.back');
-  });
-  // search placeholder
-  const hSearch = document.getElementById('hist-search');
-  if (hSearch) hSearch.placeholder = t('hist.search');
-  // filter labels
-  document.querySelectorAll('[data-i18n="hist.from"]').forEach(e => e.textContent = t('hist.from'));
-  document.querySelectorAll('[data-i18n="hist.to"]').forEach(e => e.textContent = t('hist.to'));
-  document.querySelectorAll('[data-i18n="hist.clear"]').forEach(e => e.textContent = t('hist.clear'));
-  document.querySelectorAll('[data-i18n="hist.showing"]').forEach(e => e.textContent = t('hist.showing'));
-  document.querySelectorAll('[data-i18n="hist.realtime"]').forEach(e => e.textContent = t('hist.realtime'));
-  document.querySelectorAll('[data-i18n="hist.loading"]').forEach(e => e.textContent = t('hist.loading'));
-  // title spans
-  document.querySelectorAll('[data-i18n="hist.title.prefix"]').forEach(e => e.textContent = t('hist.title.prefix'));
-  document.querySelectorAll('[data-i18n="hist.title.suffix"]').forEach(e => e.textContent = t('hist.title.suffix'));
-  // stat label
-  setQS('.history-stat-label', t('hist.done.all'));
-  // notif title
-  const rNotif = document.getElementById('result-notif-title');
-  if (rNotif) rNotif.textContent = t('hist.new');
-  // done badges & winner labels (rendered by JS)
-  document.querySelectorAll('.hist-done-badge').forEach(e => e.textContent = t('hist.done'));
-  document.querySelectorAll('.hist-winner-label').forEach(e => e.textContent = `🏆 ${t('hist.winner')}`);
-
-  // ── 12. html lang ──
-  document.documentElement.lang = L === 'th' ? 'th' : L === 'la' ? 'lo' : 'en';
-}
-
-  // ── Countdown: target ดึงจาก Supabase (match ถัดไป) ──
-  let target = new Date();
-  target.setDate(target.getDate() + 7); // fallback default
-
-  async function _loadNextMatchDate() {
-    try {
-      const { data } = await sb.from('matches')
-        .select('date,time')
-        .in('status', ['upcoming','live'])
-        .order('date', { ascending: true })
-        .limit(1)
-        .maybeSingle();
-      if (data?.date) {
-        const dateStr = data.date.includes('/')
-          ? data.date.split('/').reverse().join('-')
-          : data.date;
-        const timeStr = data.time ? data.time.replace(' น.','').trim() : '09:00';
-        target = new Date(`${dateStr}T${timeStr.length===5?timeStr:'09:00'}:00`);
-        if (isNaN(target.getTime())) target = new Date(Date.now() + 7*86400000);
-      }
-    } catch(_) {}
-  }
-  _loadNextMatchDate();
-
-  function tick() {
-    const now = new Date();
-    let diff = Math.max(0, Math.floor((target - now) / 1000));
-    const d = Math.floor(diff / 86400); diff %= 86400;
-    const h = Math.floor(diff / 3600); diff %= 3600;
-    const m = Math.floor(diff / 60);
-    const s = diff % 60;
-    document.getElementById('cd-d').textContent = String(d).padStart(2, '0');
-    document.getElementById('cd-h').textContent = String(h).padStart(2, '0');
-    document.getElementById('cd-m').textContent = String(m).padStart(2, '0');
-    document.getElementById('cd-s').textContent = String(s).padStart(2, '0');
-  }
-  // PARTICLES
-  const container = document.getElementById('particles');
-  if (container) {
-    for (let i = 0; i < 28; i++) {
-      const p = document.createElement('div');
-      p.className = 'particle';
-      p.style.cssText = `
-        left: ${Math.random()*100}%;
-        bottom: ${Math.random()*20}%;
-        --dur: ${4 + Math.random()*6}s;
-        --delay: ${Math.random()*6}s;
-        width: ${2 + Math.random()*4}px;
-        height: ${2 + Math.random()*4}px;
-        background: ${Math.random()>0.5 ? '#F5C842' : '#4ADE80'};
-      `;
-      container.appendChild(p);
-    }
-  }
-
-  tick();
-  setInterval(tick, 1000);
-
-  // ── Supabase Config ──
-  const SUPA_URL = 'https://xzlpdeqlfczjkospfqqi.supabase.co';
-  const SUPA_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inh6bHBkZXFsZmN6amtvc3BmcXFpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzk2NzgyMjAsImV4cCI6MjA5NTI1NDIyMH0.W0pDFJy3lFeO4ht9DpNzeDgVdGvSz94p0KWGfzc0Igw';
-  const sb = supabase.createClient(SUPA_URL, SUPA_KEY);
-
-  // ===== SUPABASE REAL-TIME SYNC (แทน Firebase) =====
-  (async () => {
-    // ── Settings: ดึงจาก Supabase ──
-    async function loadSettings() {
-      const { data } = await sb.from('settings').select('*');
-      if (!data) return;
-
-      // ===== SITE INFO =====
-      const siteInfo = data.find(s => s.key === 'siteInfo')?.value || {};
-      // รูปวัว hero — โหลดจาก siteInfo.heroBull
-      const heroBullImg = siteInfo.heroBull || null;
-      if (heroBullImg) {
-        const wrap = document.getElementById('hero-bull-wrap');
-        if (wrap) {
-          wrap.innerHTML = `<img src="${heroBullImg}" alt="hero bull" id="hero-bull-img" style="width:120px;height:120px;object-fit:contain;filter:drop-shadow(0 8px 24px rgba(245,200,66,0.4));">`;
-        }
-      }
-      // ── Logo ซ้าย + ขวา Navbar ──
-      if (siteInfo.logoUrl) {
-        const imgHtmlSm = `<img src="${siteInfo.logoUrl}" alt="logo"
-          style="width:40px;height:40px;object-fit:cover;border-radius:50%;"
-          onerror="this.style.display='none'">`;
-        const imgHtmlBig = `<img src="${siteInfo.logoUrl}" alt="logo"
-          style="width:44px;height:44px;object-fit:cover;border-radius:50%;"
-          onerror="this.style.display='none'">`;
-        // โลโก้ซ้าย
-        const wrapSm = document.getElementById('nav-logo-img-wrap');
-        if (wrapSm) wrapSm.innerHTML = imgHtmlSm;
-        // โลโก้ขวา
-        const wrapBig = document.getElementById('nav-logo-big-wrap');
-        if (wrapBig) wrapBig.innerHTML = imgHtmlBig;
-      }
-
-      if (siteInfo.name1 || siteInfo.name2) {
-        const n1 = siteInfo.name1 || 'วัวชน';
-        const n2 = siteInfo.name2 || 'ไทย';
-
-        // ── Navbar ── (id="nav-site-name")
-        const navSiteName = document.getElementById('nav-site-name');
-        if (navSiteName) navSiteName.innerHTML = `${n1}<span style="color:#C8102E;">${n2}</span>`;
-
-        // ── nav-logo fallback ──
-        const navSpan = document.querySelector('.nav-logo > span');
-        if (navSpan && !navSiteName) navSpan.innerHTML = `${n1}<span style="color:#C8102E;">${n2}</span>`;
-
-        // ── Footer logo ──
-        const fl = document.querySelector('.footer-logo');
-        if (fl) fl.innerHTML = `${n1}<span>${n2}</span>`;
-
-        // ── Register / Login logo ──
-        const rl = document.querySelector('.register-logo');
-        if (rl) rl.innerHTML = `${n1}<span>${n2}</span>`;
-
-        // ── Account back header ──
-        document.querySelectorAll('.account-site-name').forEach(el => {
-          el.innerHTML = `${n1}<span>${n2}</span>`;
-        });
-
-        // ── Page title ──
-        if (siteInfo.pageTitle) document.title = siteInfo.pageTitle;
-        else document.title = `${n1}${n2}`;
-      }
-      if (siteInfo.logoTop) {
-        const tp = document.querySelector('textPath[href="#nt"]');
-        if (tp) tp.textContent = siteInfo.logoTop;
-      }
-      if (siteInfo.logoBottom) {
-        const bp = document.querySelector('textPath[href="#nb"]');
-        if (bp) bp.textContent = siteInfo.logoBottom;
-      }
-      if (siteInfo.pageTitle) document.title = siteInfo.pageTitle;
-
-      const contact = data.find(s => s.key === 'contact')?.value || {};
-      const bank    = data.find(s => s.key === 'bankAccount')?.value || {};
-
-      // Contact
-      if (contact.phone1)    { const el = document.getElementById('contact-phone1');     if(el) el.textContent = contact.phone1; }
-      if (contact.lineId)    { const el = document.getElementById('contact-line-id');     if(el) el.textContent = contact.lineId; }
-      if (contact.fbName)    { const el = document.getElementById('contact-fb-name');     if(el) el.textContent = contact.fbName; }
-      if (contact.hoursTime) { const el = document.getElementById('contact-phone-hours'); if(el) el.textContent = contact.hoursTime; }
-
-      // ── Bank accounts — แสดงเฉพาะที่ active=true เท่านั้น ──
-      // (จะโหลดซ้ำเมื่อเปิด deposit tab ผ่าน loadDepBanks())
-      const banksData   = data.find(s => s.key === 'bankAccounts')?.value?.accounts || [];
-      const activeBanks = banksData.filter(b => b.active === true);
-      if (activeBanks.length > 0) {
-        _renderDepBankAccounts(activeBanks);
-      }
-      // ถ้าไม่มีบัญชี active ไม่ต้องแตะ UI ตรงนี้ — loadDepBanks() จะจัดการตอนเปิด tab
-    }
-    loadSettings();
-    loadHeroStats();
-
-    // ── Hero Stats: ดึงจาก Supabase ──
-    async function loadHeroStats() {
-      try {
-        const [matchRes, memRes, siteRes] = await Promise.all([
-          sb.from('matches').select('*', {count:'exact', head:true}).in('status',['upcoming','live']),
-          sb.from('members').select('*', {count:'exact', head:true}),
-          sb.from('settings').select('value').eq('key','siteStats').maybeSingle(),
-        ]);
-
-        const matchCount = matchRes.count || 0;
-        const memCount   = memRes.count   || 0;
-        const siteStats  = siteRes.data?.value || {};
-
-        const setHero = (id, val) => {
-          const el = document.getElementById(id);
-          if (el) el.textContent = val;
-        };
-
-        // คู่วัวที่ลงทะเบียน
-        if (matchCount > 0) setHero('hero-stat-matches', matchCount.toLocaleString());
-        // ผู้ชม / สมาชิก
-        if (memCount > 0) setHero('hero-stat-members', memCount.toLocaleString() + '+');
-        // ระยะเวลา (จาก siteStats หรือ hardcode)
-        if (siteStats.days)      setHero('hero-stat-days',      siteStats.days);
-        if (siteStats.provinces) setHero('hero-stat-provinces', siteStats.provinces);
-
-      } catch(e) {
-        console.warn('[loadHeroStats]', e.message);
-      }
-    }
-
-    // ── Matches: แสดงบนหน้าแรก ──
-    let _allResults = []; // เก็บข้อมูลทั้งหมดสำหรับ filter
-
-    async function loadHomeMatches() {
-      const { data } = await sb.from('matches').select('*').eq('status','done').order('created_at', { ascending: false }).limit(100);
-      if (!data) return;
-      _allResults = data; // บันทึกไว้สำหรับ filter
-      renderResults(_allResults);
-    }
-
-    function renderResults(data) {
-      const evGrid = document.getElementById('events-grid-fb');
-      if (!evGrid) return;
-      const countEl = document.getElementById('results-count');
-      if (countEl) countEl.textContent = data.length;
-      evGrid.innerHTML = '';
-      if (!data.length) {
-        evGrid.innerHTML = '<div style="text-align:center;padding:40px 20px;color:rgba(240,255,232,0.3);font-family:Kanit,sans-serif;"><div style="font-size:32px;margin-bottom:10px;">🏆</div>ไม่พบผลการแข่งขันที่ตรงกันครับ</div>';
-        return;
-      }
-      data.forEach((m, i) => {
-        const isLive   = m.status === 'live';
-        const isDone   = m.status === 'done';
-        const statusClass = isLive ? 'status-live' : isDone ? 'status-done' : 'status-upcoming';
-        const statusLabel = isLive ? '● LIVE' : isDone ? t('hist.done') : 'รอแข่ง';
-        const prizeNum = Number(m.prize || 0);
-        const card = document.createElement('div');
-        card.className = `match-card-fe${isLive ? ' live' : ''}`;
-        card.style.animationDelay = `${i * 0.08}s`;
-        card.onclick = () => openModal({
-          round: m.round||'', bullA: m.name_a, ownerA: m.owner_a, weightA: m.weight_a,
-          bullB: m.name_b, ownerB: m.owner_b, weightB: m.weight_b,
-          date: m.date, time: m.time, loc: m.location,
-          prize: `${prizeNum.toLocaleString()} ₭`,
-          photoA: m.photo_a||'', photoB: m.photo_b||'',
-          winner: m.winner||'', photoA: m.photo_a||'', photoB: m.photo_b||''
-        });
-        const winA = isDone && m.winner === m.name_a;
-        const winB = isDone && m.winner === m.name_b;
-        card.innerHTML = `
-          <!-- Header -->
-          <div class="match-header">
-            <div class="match-round">🏆 ${m.round||'รายการแข่งขัน'}</div>
-            <div class="match-meta">
-              ${m.date?`<span>📅 ${m.date}</span>`:''}
-              ${m.time?`<span>⏰ ${m.time}</span>`:''}
-              ${m.location?`<span>📍 ${m.location}</span>`:''}
-              ${prizeNum?`<span>💰 ${prizeNum.toLocaleString()} ₭</span>`:''}
-            </div>
-            <span class="match-status-badge ${statusClass}">${isLive?'<span class="live-dot"></span>':''}${statusLabel}</span>
-          </div>
-
-          <!-- Body: วัว 2 ฝ่าย -->
-          <div class="match-body">
-
-            <!-- ฝั่งแดง -->
-            <div class="team-side red-side">
-              ${winA?'<div class="winner-crown">🏆</div>':''}
-              <div class="team-photo red-photo">
-                ${m.photo_a?`<img src="${m.photo_a}" alt="${m.name_a||''}" style="width:100%;height:100%;object-fit:cover;border-radius:8px;">`:''}
-              </div>
-              <div class="team-info">
-                <div class="team-name${winA?' winner-name':''}">${m.name_a||'—'}</div>
-                ${m.owner_a?`<div class="team-owner">${m.owner_a}</div>`:''}
-                ${m.weight_a?`<div class="team-weight">⚖️ ${m.weight_a}</div>`:''}
-              </div>
-            </div>
-
-            <!-- กลาง VS -->
-            <div class="match-center">
-              <div class="vs-text">VS</div>
-              ${m.code?`<div style="font-size:9px;color:rgba(245,200,66,0.35);letter-spacing:2px;font-family:Kanit,sans-serif;margin-top:4px;">#${m.code}</div>`:''}
-            </div>
-
-            <!-- ฝั่งน้ำเงิน -->
-            <div class="team-side blue-side">
-              ${winB?'<div class="winner-crown">🏆</div>':''}
-              <div class="team-photo blue-photo">
-                ${m.photo_b?`<img src="${m.photo_b}" alt="${m.name_b||''}" style="width:100%;height:100%;object-fit:cover;border-radius:8px;">`:''}
-              </div>
-              <div class="team-info">
-                <div class="team-name${winB?' winner-name':''}">${m.name_b||'—'}</div>
-                ${m.owner_b?`<div class="team-owner">${m.owner_b}</div>`:''}
-                ${m.weight_b?`<div class="team-weight">⚖️ ${m.weight_b}</div>`:''}
-              </div>
-            </div>
-          </div>
-
-          <!-- Winner bar -->
-          ${isDone&&m.winner?`<div class="match-footer-done"><span class='hist-winner-label'>🏆 ผู้ชนะ</span>: <strong>${m.winner}</strong>${m.location?` &nbsp;·&nbsp; 📍 ${m.location}`:''}</div>`:''}
-
-          <!-- Actions -->
-          <div class="match-actions">
-            <button class="match-detail-btn" onclick="event.stopPropagation();openModal({round:'${(m.round||'').replace(/'/g,"\'")}',bullA:'${(m.name_a||'').replace(/'/g,"\'")}',ownerA:'${(m.owner_a||'').replace(/'/g,"\'")}',weightA:'${m.weight_a||''}',bullB:'${(m.name_b||'').replace(/'/g,"\'")}',ownerB:'${(m.owner_b||'').replace(/'/g,"\'")}',weightB:'${m.weight_b||''}',date:'${m.date||''}',time:'${m.time||''}',loc:'${(m.location||'').replace(/'/g,"\'")}',prize:'${prizeNum.toLocaleString()} ₭',winner:'${m.winner||''}',photoA:'${m.photo_a||''}',photoB:'${m.photo_b||''}'})">🔍 รายละเอียด</button>
+        
             ${!isDone?`<a href="wuachon-match.html?id=${m.id}" class="match-detail-btn" style="background:var(--green2);color:#fff;text-decoration:none;display:block;line-height:2.2;" onclick="event.stopPropagation();">🎯 วางเดิมพัน</a>`:''}
           </div>`;
         evGrid.appendChild(card);
@@ -6200,9 +5060,9 @@ function applyLang() {
           'with-flag-banner':    () => document.getElementById('with-has-bank') || document.getElementById('with-no-bank'),
           'chgbank-flag-banner': () => document.getElementById('with-has-bank') || document.getElementById('with-no-bank'),
           'bet-flag-banner':     () => document.querySelector('.bet-panel'),
-          'reward-flag-banner':  () => document.getElementById('acc-dashboard'),
-          'watch-flag-banner':   () => document.getElementById('acc-dashboard'),
-          'cheater-flag-banner': () => document.getElementById('acc-dashboard'),
+          'reward-flag-banner':  () => document.getElementById('acc-info'),
+          'watch-flag-banner':   () => document.getElementById('acc-info'),
+          'cheater-flag-banner': () => document.getElementById('acc-info'),
         };
         const parent = (parentFn || builtinParents[bannerId])?.();
         if (parent) parent.insertBefore(el, parent.firstChild);
@@ -6263,7 +5123,7 @@ function applyLang() {
           <img src="${slipUrl}" alt="สลิปโอนเงิน"
             onclick="_viewSlipFE('${slipUrl}')"
             style="width:100%;max-height:200px;object-fit:contain;border-radius:8px;cursor:pointer;display:block;"
-            onerror="this.closest('div').innerHTML='<div style=\\'color:rgba(240,255,232,.4);font-size:12px;padding:12px;font-family:Kanit,sans-serif;\\'>⚠️ ไม่สามารถโหลดสลิปได้ครับ</div>'">
+            onerror="this.style.display='none'">
           <button onclick="_viewSlipFE('${slipUrl}')"
             style="font-family:'Phetsarath OT','Phetsarath','Noto Sans Lao','Kanit',sans-serif;font-size:11px;font-weight:700;padding:5px 14px;border-radius:6px;border:1px solid rgba(245,200,66,.4);background:transparent;color:var(--gold);cursor:pointer;margin-top:8px;">
             🔍 ขยายดูสลิป
@@ -7694,12 +6554,13 @@ setInterval(() => {
 
       // Avatar
       const avatarEl = document.getElementById('mob-bar-avatar');
-      if (avatarEl) {
-        if (user.avatar_url) {
-          avatarEl.innerHTML = `<img src="${user.avatar_url}" style="width:100%;height:100%;object-fit:cover;border-radius:50%;" onerror="this.parentElement.textContent='${(user.nick||'').slice(0,2).toUpperCase()||'👤'}'">`;
-        } else {
-          const init = (user.nick || '').slice(0,2).toUpperCase() || '👤';
-          avatarEl.textContent = init;
+              if (avatarEl) {
+          const img = document.createElement('img');
+          img.src = user.avatar_url;
+          img.style.cssText = 'width:100%;height:100%;object-fit:cover;border-radius:50%;';
+          img.onerror = function(){ this.style.display='none'; };
+          avatarEl.innerHTML = '';
+          avatarEl.appendChild(img);
         }
       }
 
@@ -7707,10 +6568,15 @@ setInterval(() => {
       if (navBtn)  navBtn.classList.add('logged-in');
       if (navIcon) {
         if (user.avatar_url) {
-          navIcon.innerHTML = `<img src="${user.avatar_url}" style="width:28px;height:28px;object-fit:cover;border-radius:50%;" onerror="this.textContent='👤'">`;
+          const navImg = document.createElement('img');
+          navImg.src = user.avatar_url;
+          navImg.style.cssText = 'width:28px;height:28px;object-fit:cover;border-radius:50%;';
+          navImg.onerror = function(){ this.style.display='none'; };
+          navIcon.innerHTML = '';
+          navIcon.appendChild(navImg);
         } else {
           const init = (user.nick || '').slice(0,1).toUpperCase() || '👤';
-          navIcon.innerHTML = `<span style="font-family:'Kanit',sans-serif;font-weight:900;font-size:13px;color:var(--gold);">${init}</span>`;
+          navIcon.textContent = init;
         }
       }
     } else {
@@ -7855,13 +6721,14 @@ setInterval(() => {
     // แสดงหน้าก่อน
     showMyAccount();
 
-    // ── Force reset ทุก panel ── เปิดแค่ dashboard เสมอเมื่อเปิดหน้า account
-    document.querySelectorAll('.acc-panel').forEach(p => p.classList.remove('active'));
-    document.querySelectorAll('.acc-tab').forEach(t => t.classList.remove('active'));
-    const dashPanel = document.getElementById('acc-dashboard');
-    const dashTab   = document.querySelector('.acc-tab[onclick*="dashboard"]');
+    // ── Force reset ทุก panel ── เปิด info tab เสมอ
+    document.querySelectorAll('.acc-panel').forEach(function(p){ p.classList.remove('active'); });
+    document.querySelectorAll('.acc-tab').forEach(function(t){ t.classList.remove('active'); });
+    const dashPanel = document.getElementById('acc-info');
     if (dashPanel) dashPanel.classList.add('active');
-    if (dashTab)   dashTab.classList.add('active');
+    // activate info tab button
+    const infoTab = document.querySelector('.acc-tab[onclick*="info"]');
+    if (infoTab) infoTab.classList.add('active');
 
     // reset deposit กลับ step1 เสมอ
     const _s1 = document.getElementById('dep-step1');
@@ -7871,8 +6738,7 @@ setInterval(() => {
     if (_s2) _s2.style.display = 'none';
     if (_s3) _s3.style.display = 'none';
 
-    loadDashboard();
-    loadDepBanks();
+        loadDepBanks();
 
     // ── โหลดข้อมูลล่าสุดจาก Supabase ใน background ──
     try {
@@ -8581,8 +7447,7 @@ setInterval(() => {
         if (t.getAttribute('onclick')?.includes(`'${id}'`)) t.classList.add('active');
       });
     }
-    if (id === 'dashboard') loadDashboard();
-    if (id === 'txn')       loadTxnHistory();
+    if (id === 'dashboard')     if (id === 'txn')       loadTxnHistory();
     if (id === 'deposit') {
       const s1 = document.getElementById('dep-step1');
       const s2 = document.getElementById('dep-step2');
@@ -8999,7 +7864,7 @@ setInterval(() => {
       <!-- Custom Join Amount -->
       <div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap;" id="join-row-${betId}">
         <div style="position:relative;flex:1;min-width:100px;">
-          <input type="number" id="join-amt-${betId}" min="100" max="${remainAmt}" value="${Math.min(remainAmt, currentUser?.balance||0)}"
+          <input type="number" id="join-amt-${betId}" min="100" value="0"
             placeholder="จำนวนที่จะจับ"
             style="width:100%;padding:7px 36px 7px 10px;border:1px solid rgba(245,200,66,.3);border-radius:8px;background:rgba(255,255,255,.06);color:#fff;font-family:'Phetsarath OT','Phetsarath','Noto Sans Lao','Kanit',sans-serif;font-size:13px;box-sizing:border-box;">
           <span style="position:absolute;right:8px;top:50%;transform:translateY(-50%);font-size:11px;color:rgba(240,255,232,.4);">₭</span>
@@ -9564,8 +8429,14 @@ function updateMobNavUser() {
     const nick = currentUser.nick || '';
     const initial = nick.slice(0,2).toUpperCase() || '👤';
     if (currentUser.avatar_url) {
-      iconEl.innerHTML = `<img class="mob-avatar" src="${currentUser.avatar_url}" alt="${nick}" onerror="this.parentElement.textContent='${initial}'">`;
-    } else {
+          const iconImg = document.createElement('img');
+          iconImg.className = 'mob-avatar';
+          iconImg.src = currentUser.avatar_url;
+          iconImg.alt = nick;
+          iconImg.style.cssText = 'width:100%;height:100%;object-fit:cover;border-radius:50%;';
+          iconImg.onerror = function(){ this.style.display='none'; };
+          iconEl.innerHTML = '';
+          iconEl.appendChild(iconImg); else {
       iconEl.textContent = initial.slice(0,1) || '👤';
     }
     labelEl.textContent = nick.length > 6 ? nick.slice(0,6)+'…' : (nick || 'บัญชี');
