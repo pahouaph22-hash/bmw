@@ -1156,7 +1156,7 @@ input, textarea, select, button {
                 </div>
                 <div style="overflow-x:auto;">
                   <table>
-                    <thead><tr><th>Nick</th><th style="text-align:right;">จำนวน (₭)</th><th>ธนาคาร</th><th>TXN</th><th style="text-align:center;">🧾 สลิป</th><th>เวลา</th><th>จัดการ</th></tr></thead>
+                    <thead><tr><th>Nick</th><th style="text-align:right;">จำนวน (₭)</th><th>ธนาคาร</th><th>TXN</th><th style="text-align:center;">🧾 สลิป</th><th>เวลา</th><th>ผู้อนุมัติ</th><th>จัดการ</th></tr></thead>
                     <tbody id="dep-tbody"><tr><td colspan="7" style="text-align:center;padding:24px;color:#aaa;">กำลังโหลด...</td></tr></tbody>
                   </table>
                 </div>
@@ -1257,7 +1257,7 @@ input, textarea, select, button {
                 </div>
                 <div style="overflow-x:auto;">
                   <table>
-                    <thead><tr><th>Nick</th><th>จำนวน</th><th>ธนาคาร</th><th>เลขบัญชี</th><th>TXN / หมายเหตุ</th><th>เวลา</th><th>จัดการ</th></tr></thead>
+                    <thead><tr><th>Nick</th><th>จำนวน</th><th>ธนาคาร</th><th>เลขบัญชี</th><th>TXN / หมายเหตุ</th><th>เวลา</th><th>ผู้อนุมัติ</th><th>จัดการ</th></tr></thead>
                     <tbody id="with-tbody"><tr><td colspan="6" style="text-align:center;padding:24px;color:#aaa;">กำลังโหลด...</td></tr></tbody>
                   </table>
                 </div>
@@ -2063,20 +2063,279 @@ input, textarea, select, button {
       </div>
 
       <!-- ── Member Detail Overlay ── -->
-      <div id="member-overlay" style="display:none;position:fixed;inset:0;z-index:9998;background:rgba(0,0,0,0.6);backdrop-filter:blur(3px);overflow-y:auto;padding:20px;">
-        <div style="max-width:900px;margin:0 auto;background:#fff;border-radius:16px;box-shadow:0 24px 80px rgba(0,0,0,0.3);overflow:hidden;">
-          <div style="background:linear-gradient(135deg,#1B6B2F,#27943F);padding:20px 24px;display:flex;align-items:center;justify-content:space-between;"><div style="display:flex;align-items:center;gap:14px;"><div id="mo-avatar" style="width:52px;height:52px;border-radius:50%;background:rgba(255,255,255,0.2);display:flex;align-items:center;justify-content:center;font-size:22px;font-weight:900;color:#fff;">?</div><div><div id="mo-nick" style="font-family:'Kanit',sans-serif;font-size:20px;font-weight:900;color:#fff;">—</div><span id="mo-vip-badge" style="font-size:11px;padding:2px 10px;border-radius:999px;background:rgba(255,255,255,0.2);color:#fff;font-family:'Kanit',sans-serif;"></span></div></div><button onclick="if(typeof closeMemberOverlay==='function')closeMemberOverlay()" style="background:rgba(255,255,255,0.15);border:none;color:#fff;font-size:20px;width:36px;height:36px;border-radius:50%;cursor:pointer;">✕</button></div>
-          <div style="display:grid;grid-template-columns:repeat(4,1fr);border-bottom:1px solid #f0f0ec;"><div style="padding:16px;text-align:center;border-right:1px solid #f0f0ec;"><div id="mo-balance" style="font-size:22px;font-weight:900;color:#1B6B2F;font-family:'Kanit',sans-serif;">—</div><div style="font-size:11px;color:#aaa;margin-top:2px;">ยอดเงิน ₭</div></div><div style="padding:16px;text-align:center;border-right:1px solid #f0f0ec;"><div id="mo-dep-total" style="font-size:22px;font-weight:900;color:#16a34a;font-family:'Kanit',sans-serif;">—</div><div style="font-size:11px;color:#aaa;margin-top:2px;">เติมสะสม ₭</div></div><div style="padding:16px;text-align:center;border-right:1px solid #f0f0ec;"><div id="mo-with-total" style="font-size:22px;font-weight:900;color:#dc2626;font-family:'Kanit',sans-serif;">—</div><div style="font-size:11px;color:#aaa;margin-top:2px;">ถอนสะสม ₭</div></div><div style="padding:16px;text-align:center;"><div id="mo-bets-count" style="font-size:22px;font-weight:900;color:#7c3aed;font-family:'Kanit',sans-serif;">—</div><div style="font-size:11px;color:#aaa;margin-top:2px;">เดิมพัน</div></div></div>
-          <div style="display:flex;border-bottom:2px solid #f0f0ec;padding:0 24px;overflow-x:auto;"><button class="mo-tab active" data-tab="info" onclick="if(typeof switchMoTab==='function')switchMoTab(this,'info')">👤 ข้อมูล</button><button class="mo-tab" data-tab="deposits" onclick="if(typeof switchMoTab==='function')switchMoTab(this,'deposits')">💰 เติมเงิน</button><button class="mo-tab" data-tab="withdrawals" onclick="if(typeof switchMoTab==='function')switchMoTab(this,'withdrawals')">🏧 ถอนเงิน</button><button class="mo-tab" data-tab="bets" onclick="if(typeof switchMoTab==='function')switchMoTab(this,'bets')">🎯 เดิมพัน</button><button class="mo-tab" data-tab="admin" onclick="if(typeof switchMoTab==='function')switchMoTab(this,'admin')">⚙️ Admin</button></div>
-          <div style="padding:20px 24px;min-height:300px;">
-            <div class="mo-pane active" id="mo-pane-info"><div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;"><div><div style="font-size:11px;color:#aaa;font-family:'Kanit',sans-serif;">ชื่อ</div><div id="mo-fullname" style="font-size:14px;font-weight:700;font-family:'Kanit',sans-serif;"></div></div><div><div style="font-size:11px;color:#aaa;font-family:'Kanit',sans-serif;">เบอร์</div><div id="mo-phone" style="font-size:14px;font-weight:700;font-family:'Kanit',sans-serif;"></div></div><div><div style="font-size:11px;color:#aaa;font-family:'Kanit',sans-serif;">สมัครเมื่อ</div><div id="mo-created" style="font-size:13px;"></div></div><div><div style="font-size:11px;color:#aaa;font-family:'Kanit',sans-serif;">แนะนำโดย</div><div id="mo-referred" style="font-size:13px;"></div></div></div><div style="margin-top:16px;"><textarea id="mo-note-input" rows="3" placeholder="หมายเหตุ Admin..." style="width:100%;padding:9px 12px;border:1px solid #e0e0e0;border-radius:8px;font-family:'Kanit',sans-serif;font-size:13px;resize:vertical;box-sizing:border-box;"></textarea><button onclick="if(typeof saveMemberNote==='function')saveMemberNote()" style="margin-top:6px;padding:7px 18px;background:#1B6B2F;color:#fff;border:none;border-radius:7px;font-family:'Kanit',sans-serif;font-weight:700;font-size:12px;cursor:pointer;">💾 บันทึก</button></div></div>
-            <div class="mo-pane" id="mo-pane-deposits"><div style="overflow-x:auto;"><table style="width:100%;border-collapse:collapse;font-size:13px;"><thead><tr style="background:#f9f9f7;"><th style="padding:9px 12px;text-align:left;border-bottom:2px solid #e5e5e0;">วันที่</th><th style="padding:9px 12px;text-align:right;border-bottom:2px solid #e5e5e0;">จำนวน</th><th style="padding:9px 12px;border-bottom:2px solid #e5e5e0;">ธนาคาร</th><th style="padding:9px 12px;border-bottom:2px solid #e5e5e0;">TXN</th><th style="padding:9px 12px;text-align:center;border-bottom:2px solid #e5e5e0;">สถานะ</th></tr></thead><tbody id="mo-dep-tbody"></tbody></table></div></div>
-            <div class="mo-pane" id="mo-pane-withdrawals"><div style="overflow-x:auto;"><table style="width:100%;border-collapse:collapse;font-size:13px;"><thead><tr style="background:#f9f9f7;"><th style="padding:9px 12px;text-align:left;border-bottom:2px solid #e5e5e0;">วันที่</th><th style="padding:9px 12px;text-align:right;border-bottom:2px solid #e5e5e0;">จำนวน</th><th style="padding:9px 12px;border-bottom:2px solid #e5e5e0;">ธนาคาร</th><th style="padding:9px 12px;text-align:center;border-bottom:2px solid #e5e5e0;">สถานะ</th></tr></thead><tbody id="mo-with-tbody"></tbody></table></div></div>
-            <div class="mo-pane" id="mo-pane-bets"><div style="overflow-x:auto;"><table style="width:100%;border-collapse:collapse;font-size:13px;"><thead><tr style="background:#f9f9f7;"><th style="padding:9px 12px;text-align:left;border-bottom:2px solid #e5e5e0;">วันที่</th><th style="padding:9px 12px;border-bottom:2px solid #e5e5e0;">คู่แข่ง</th><th style="padding:9px 12px;border-bottom:2px solid #e5e5e0;">ฝั่ง</th><th style="padding:9px 12px;text-align:right;border-bottom:2px solid #e5e5e0;">จำนวน</th><th style="padding:9px 12px;text-align:center;border-bottom:2px solid #e5e5e0;">ผล</th></tr></thead><tbody id="mo-bets-tbody"></tbody></table></div></div>
-            <div class="mo-pane" id="mo-pane-admin"><div style="display:flex;flex-direction:column;gap:14px;"><div style="background:#fafaf8;border-radius:10px;padding:14px;border:1px solid #e5e5e0;"><div style="font-family:'Kanit',sans-serif;font-weight:700;font-size:13px;margin-bottom:10px;">💰 ปรับยอดเงิน</div><div style="display:flex;gap:8px;flex-wrap:wrap;"><input type="number" id="mo-adjust-amount" placeholder="จำนวน ₭" style="flex:1;min-width:140px;padding:9px 12px;border:1px solid #e0e0e0;border-radius:8px;font-family:'Kanit',sans-serif;"><input type="text" id="mo-adjust-reason" placeholder="เหตุผล" style="flex:2;min-width:160px;padding:9px 12px;border:1px solid #e0e0e0;border-radius:8px;font-family:'Kanit',sans-serif;"><button onclick="if(typeof adjustMemberBalance==='function')adjustMemberBalance()" style="padding:9px 18px;background:#1B6B2F;color:#fff;border:none;border-radius:8px;font-family:'Kanit',sans-serif;font-weight:700;cursor:pointer;">✅ ปรับ</button></div></div><div style="background:#fafaf8;border-radius:10px;padding:14px;border:1px solid #e5e5e0;"><div style="font-family:'Kanit',sans-serif;font-weight:700;font-size:13px;margin-bottom:10px;">🚩 Flag</div><div id="mo-flag-controls" style="display:flex;gap:8px;flex-wrap:wrap;"></div></div><div style="background:#fff5f5;border-radius:10px;padding:14px;border:1px solid #fca5a5;"><div style="font-family:'Kanit',sans-serif;font-weight:700;font-size:13px;margin-bottom:10px;color:#dc2626;">⚠️ Danger Zone</div><button onclick="if(typeof deleteMemberFromOverlay==='function')deleteMemberFromOverlay()" style="padding:8px 16px;background:#fff;color:#dc2626;border:1.5px solid #dc2626;border-radius:8px;font-family:'Kanit',sans-serif;font-weight:700;font-size:12px;cursor:pointer;">🗑 ลบบัญชีสมาชิก</button></div></div></div>
+            <!-- ── Member Detail Overlay (Full Info + Editable) ── -->
+      <div id="member-overlay" style="display:none;position:fixed;inset:0;z-index:9998;background:rgba(0,0,0,0.65);backdrop-filter:blur(4px);overflow-y:auto;padding:16px 12px;">
+        <div style="max-width:960px;margin:0 auto;background:#fff;border-radius:18px;box-shadow:0 28px 80px rgba(0,0,0,0.35);overflow:hidden;">
+
+          <!-- ── Header ── -->
+          <div style="background:linear-gradient(135deg,#1B6B2F,#27943F);padding:20px 24px;display:flex;align-items:center;justify-content:space-between;">
+            <div style="display:flex;align-items:center;gap:16px;">
+              <div id="mo-avatar" style="width:56px;height:56px;border-radius:50%;background:rgba(255,255,255,0.25);display:flex;align-items:center;justify-content:center;font-size:24px;font-weight:900;color:#fff;font-family:'Kanit',sans-serif;flex-shrink:0;border:2px solid rgba(255,255,255,0.4);">?</div>
+              <div>
+                <div id="mo-nick" style="font-family:'Kanit',sans-serif;font-size:22px;font-weight:900;color:#fff;">—</div>
+                <div style="display:flex;gap:8px;margin-top:4px;flex-wrap:wrap;">
+                  <span id="mo-vip-badge" style="font-size:11px;padding:3px 12px;border-radius:999px;background:rgba(255,255,255,0.2);color:#fff;font-family:'Kanit',sans-serif;font-weight:700;"></span>
+                  <span id="mo-status-badge" style="font-size:11px;padding:3px 10px;border-radius:999px;background:rgba(74,222,128,0.25);color:#bbf7d0;font-family:'Kanit',sans-serif;font-weight:700;">✅ ปกติ</span>
+                </div>
+              </div>
+            </div>
+            <button onclick="if(typeof closeMemberOverlay==='function')closeMemberOverlay()" style="background:rgba(255,255,255,0.15);border:none;color:#fff;font-size:22px;width:40px;height:40px;border-radius:50%;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;">✕</button>
           </div>
+
+          <!-- ── Stats Bar ── -->
+          <div style="display:grid;grid-template-columns:repeat(4,1fr);background:#f9fafb;border-bottom:1px solid #e5e7eb;">
+            <div style="padding:16px;text-align:center;border-right:1px solid #e5e7eb;">
+              <div style="font-size:11px;color:#9ca3af;font-family:'Kanit',sans-serif;margin-bottom:4px;">ยอดเงินคงเหลือ ₭</div>
+              <div id="mo-balance" style="font-size:24px;font-weight:900;color:#1B6B2F;font-family:'Kanit',sans-serif;">—</div>
+            </div>
+            <div style="padding:16px;text-align:center;border-right:1px solid #e5e7eb;">
+              <div style="font-size:11px;color:#9ca3af;font-family:'Kanit',sans-serif;margin-bottom:4px;">เติมสะสม ₭</div>
+              <div id="mo-dep-total" style="font-size:24px;font-weight:900;color:#16a34a;font-family:'Kanit',sans-serif;">—</div>
+            </div>
+            <div style="padding:16px;text-align:center;border-right:1px solid #e5e7eb;">
+              <div style="font-size:11px;color:#9ca3af;font-family:'Kanit',sans-serif;margin-bottom:4px;">ถอนสะสม ₭</div>
+              <div id="mo-with-total" style="font-size:24px;font-weight:900;color:#dc2626;font-family:'Kanit',sans-serif;">—</div>
+            </div>
+            <div style="padding:16px;text-align:center;">
+              <div style="font-size:11px;color:#9ca3af;font-family:'Kanit',sans-serif;margin-bottom:4px;">รายการเดิมพัน</div>
+              <div id="mo-bets-count" style="font-size:24px;font-weight:900;color:#7c3aed;font-family:'Kanit',sans-serif;">—</div>
+            </div>
+          </div>
+
+          <!-- ── Body: 2 columns ── -->
+          <div style="padding:20px 24px;display:grid;grid-template-columns:1fr 1fr;gap:20px;">
+
+            <!-- Left: ข้อมูลส่วนตัว (แก้ไขได้) -->
+            <div>
+              <div style="font-family:'Kanit',sans-serif;font-weight:900;font-size:14px;color:#374151;margin-bottom:14px;display:flex;align-items:center;gap:8px;">
+                👤 ข้อมูลส่วนตัว
+                <button id="mo-edit-btn" onclick="_moToggleEdit()" style="padding:3px 12px;background:#f3f4f6;border:1px solid #e5e7eb;border-radius:20px;font-family:'Kanit',sans-serif;font-size:11px;font-weight:700;cursor:pointer;color:#6b7280;">✏️ แก้ไข</button>
+              </div>
+
+              <div style="display:flex;flex-direction:column;gap:10px;">
+                <!-- ชื่อ-นามสกุล -->
+                <div>
+                  <div style="font-size:11px;color:#9ca3af;font-family:'Kanit',sans-serif;margin-bottom:3px;">ชื่อ-นามสกุล</div>
+                  <div id="mo-fullname-display" style="font-size:14px;font-weight:700;color:#111827;font-family:'Kanit',sans-serif;"></div>
+                  <input id="mo-fullname-input" type="text" placeholder="ชื่อ-นามสกุล" style="display:none;width:100%;padding:8px 12px;border:1.5px solid #1B6B2F;border-radius:8px;font-family:'Kanit',sans-serif;font-size:13px;box-sizing:border-box;">
+                </div>
+
+                <!-- เบอร์โทร -->
+                <div>
+                  <div style="font-size:11px;color:#9ca3af;font-family:'Kanit',sans-serif;margin-bottom:3px;">เบอร์โทรศัพท์</div>
+                  <div id="mo-phone-display" style="font-size:14px;font-weight:700;color:#111827;font-family:'Kanit',sans-serif;"></div>
+                  <input id="mo-phone-input" type="tel" placeholder="เบอร์โทรศัพท์" style="display:none;width:100%;padding:8px 12px;border:1.5px solid #1B6B2F;border-radius:8px;font-family:'Kanit',sans-serif;font-size:13px;box-sizing:border-box;">
+                </div>
+
+                <!-- ═══ บัญชีธนาคารที่ 1 ═══ -->
+                <div style="background:#f0fdf4;border-radius:10px;padding:12px 14px;border:1px solid #bbf7d0;margin-top:4px;">
+                  <div style="font-family:Kanit,sans-serif;font-weight:900;font-size:12px;color:#15803d;margin-bottom:8px;display:flex;align-items:center;justify-content:space-between;">
+                    🏦 บัญชีธนาคารที่ 1
+                    <span id="mo-bank1-badge" style="font-size:10px;padding:2px 8px;border-radius:10px;background:#dcfce7;color:#15803d;display:none">✅ มีข้อมูล</span>
+                  </div>
+                  <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
+                    <div>
+                      <div style="font-size:10px;color:#9ca3af;font-family:Kanit,sans-serif;margin-bottom:2px;">ธนาคาร</div>
+                      <div id="mo-bank-name-display" style="font-size:12px;font-weight:700;color:#111827;font-family:Kanit,sans-serif;">—</div>
+                      <select id="mo-bank-name-input" style="display:none;width:100%;padding:7px 10px;border:1.5px solid #1B6B2F;border-radius:7px;font-family:Kanit,sans-serif;font-size:12px;background:#fff;box-sizing:border-box;">
+                        <option value="">— เลือกธนาคาร —</option>
+                      <option value="BCEL">BCEL</option>
+                      <option value="LDB">LDB</option>
+                      <option value="LVB">LVB</option>
+                      <option value="APB">APB</option>
+                      <option value="JCBL">JCBL</option>
+                      <option value="BIC">BIC</option>
+                      <option value="MARUHAN">MARUHAN</option>
+                      <option value="ACLEDA">ACLEDA</option>
+                      <option value="PHONGSAVANH">Phongsavanh</option>
+                      <option value="other">อื่นๆ</option>
+                      </select>
+                    </div>
+                    <div>
+                      <div style="font-size:10px;color:#9ca3af;font-family:Kanit,sans-serif;margin-bottom:2px;">ชื่อบัญชี</div>
+                      <div id="mo-account-name-display" style="font-size:12px;font-weight:700;color:#111827;font-family:Kanit,sans-serif;">—</div>
+                      <input id="mo-account-name-input" type="text" placeholder="ชื่อบัญชี" style="display:none;width:100%;padding:7px 10px;border:1.5px solid #1B6B2F;border-radius:7px;font-family:Kanit,sans-serif;font-size:12px;box-sizing:border-box;">
+                    </div>
+                    <div style="grid-column:1/-1;">
+                      <div style="font-size:10px;color:#9ca3af;font-family:Kanit,sans-serif;margin-bottom:2px;">เลขบัญชี</div>
+                      <div id="mo-bank-account-display" style="font-size:12px;font-weight:700;color:#111827;font-family:Kanit,sans-serif;letter-spacing:1px;">—</div>
+                      <input id="mo-bank-account-input" type="text" placeholder="เลขบัญชี" style="display:none;width:100%;padding:7px 10px;border:1.5px solid #1B6B2F;border-radius:7px;font-family:Kanit,sans-serif;font-size:12px;box-sizing:border-box;">
+                    </div>
+                  </div>
+                </div>
+                <!-- ═══ บัญชีธนาคารที่ 2 ═══ -->
+                <div style="background:#f9fafb;border-radius:10px;padding:12px 14px;border:1px solid #e5e7eb;margin-top:8px;">
+                  <div style="font-family:Kanit,sans-serif;font-weight:900;font-size:12px;color:#6b7280;margin-bottom:8px;display:flex;align-items:center;justify-content:space-between;">
+                    🏦 บัญชีธนาคารที่ 2
+                    <span id="mo-bank2-badge" style="font-size:10px;padding:2px 8px;border-radius:10px;background:#dcfce7;color:#15803d;display:none">✅ มีข้อมูล</span>
+                  </div>
+                  <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
+                    <div>
+                      <div style="font-size:10px;color:#9ca3af;font-family:Kanit,sans-serif;margin-bottom:2px;">ธนาคาร</div>
+                      <div id="mo-bank-name2-display" style="font-size:12px;font-weight:700;color:#111827;font-family:Kanit,sans-serif;">—</div>
+                      <select id="mo-bank-name2-input" style="display:none;width:100%;padding:7px 10px;border:1.5px solid #1B6B2F;border-radius:7px;font-family:Kanit,sans-serif;font-size:12px;background:#fff;box-sizing:border-box;">
+                        <option value="">— เลือกธนาคาร —</option>
+                      <option value="BCEL">BCEL</option>
+                      <option value="LDB">LDB</option>
+                      <option value="LVB">LVB</option>
+                      <option value="APB">APB</option>
+                      <option value="JCBL">JCBL</option>
+                      <option value="BIC">BIC</option>
+                      <option value="MARUHAN">MARUHAN</option>
+                      <option value="ACLEDA">ACLEDA</option>
+                      <option value="PHONGSAVANH">Phongsavanh</option>
+                      <option value="other">อื่นๆ</option>
+                      </select>
+                    </div>
+                    <div>
+                      <div style="font-size:10px;color:#9ca3af;font-family:Kanit,sans-serif;margin-bottom:2px;">ชื่อบัญชี</div>
+                      <div id="mo-account-name2-display" style="font-size:12px;font-weight:700;color:#111827;font-family:Kanit,sans-serif;">—</div>
+                      <input id="mo-account-name2-input" type="text" placeholder="ชื่อบัญชี" style="display:none;width:100%;padding:7px 10px;border:1.5px solid #1B6B2F;border-radius:7px;font-family:Kanit,sans-serif;font-size:12px;box-sizing:border-box;">
+                    </div>
+                    <div style="grid-column:1/-1;">
+                      <div style="font-size:10px;color:#9ca3af;font-family:Kanit,sans-serif;margin-bottom:2px;">เลขบัญชี</div>
+                      <div id="mo-bank-account2-display" style="font-size:12px;font-weight:700;color:#111827;font-family:Kanit,sans-serif;letter-spacing:1px;">—</div>
+                      <input id="mo-bank-account2-input" type="text" placeholder="เลขบัญชี" style="display:none;width:100%;padding:7px 10px;border:1.5px solid #1B6B2F;border-radius:7px;font-family:Kanit,sans-serif;font-size:12px;box-sizing:border-box;">
+                    </div>
+                  </div>
+                </div>
+                <!-- ═══ บัญชีธนาคารที่ 3 ═══ -->
+                <div style="background:#f9fafb;border-radius:10px;padding:12px 14px;border:1px solid #e5e7eb;margin-top:8px;">
+                  <div style="font-family:Kanit,sans-serif;font-weight:900;font-size:12px;color:#6b7280;margin-bottom:8px;display:flex;align-items:center;justify-content:space-between;">
+                    🏦 บัญชีธนาคารที่ 3
+                    <span id="mo-bank3-badge" style="font-size:10px;padding:2px 8px;border-radius:10px;background:#dcfce7;color:#15803d;display:none">✅ มีข้อมูล</span>
+                  </div>
+                  <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
+                    <div>
+                      <div style="font-size:10px;color:#9ca3af;font-family:Kanit,sans-serif;margin-bottom:2px;">ธนาคาร</div>
+                      <div id="mo-bank-name3-display" style="font-size:12px;font-weight:700;color:#111827;font-family:Kanit,sans-serif;">—</div>
+                      <select id="mo-bank-name3-input" style="display:none;width:100%;padding:7px 10px;border:1.5px solid #1B6B2F;border-radius:7px;font-family:Kanit,sans-serif;font-size:12px;background:#fff;box-sizing:border-box;">
+                        <option value="">— เลือกธนาคาร —</option>
+                      <option value="BCEL">BCEL</option>
+                      <option value="LDB">LDB</option>
+                      <option value="LVB">LVB</option>
+                      <option value="APB">APB</option>
+                      <option value="JCBL">JCBL</option>
+                      <option value="BIC">BIC</option>
+                      <option value="MARUHAN">MARUHAN</option>
+                      <option value="ACLEDA">ACLEDA</option>
+                      <option value="PHONGSAVANH">Phongsavanh</option>
+                      <option value="other">อื่นๆ</option>
+                      </select>
+                    </div>
+                    <div>
+                      <div style="font-size:10px;color:#9ca3af;font-family:Kanit,sans-serif;margin-bottom:2px;">ชื่อบัญชี</div>
+                      <div id="mo-account-name3-display" style="font-size:12px;font-weight:700;color:#111827;font-family:Kanit,sans-serif;">—</div>
+                      <input id="mo-account-name3-input" type="text" placeholder="ชื่อบัญชี" style="display:none;width:100%;padding:7px 10px;border:1.5px solid #1B6B2F;border-radius:7px;font-family:Kanit,sans-serif;font-size:12px;box-sizing:border-box;">
+                    </div>
+                    <div style="grid-column:1/-1;">
+                      <div style="font-size:10px;color:#9ca3af;font-family:Kanit,sans-serif;margin-bottom:2px;">เลขบัญชี</div>
+                      <div id="mo-bank-account3-display" style="font-size:12px;font-weight:700;color:#111827;font-family:Kanit,sans-serif;letter-spacing:1px;">—</div>
+                      <input id="mo-bank-account3-input" type="text" placeholder="เลขบัญชี" style="display:none;width:100%;padding:7px 10px;border:1.5px solid #1B6B2F;border-radius:7px;font-family:Kanit,sans-serif;font-size:12px;box-sizing:border-box;">
+                    </div>
+                  </div>
+                </div>
+
+                <!-- ยอดเงิน (แก้ไขได้) -->
+                <div>
+                  <div style="font-size:11px;color:#9ca3af;font-family:'Kanit',sans-serif;margin-bottom:3px;">ยอดเงินคงเหลือ ₭</div>
+                  <div id="mo-balance-display" style="font-size:14px;font-weight:700;color:#1B6B2F;font-family:'Kanit',sans-serif;"></div>
+                  <div id="mo-balance-edit" style="display:none;">
+                    <div style="display:flex;gap:6px;margin-top:4px;">
+                      <input id="mo-adjust-amount" type="number" placeholder="จำนวน ₭ (ใส่ - เพื่อหัก)" style="flex:1;padding:8px 12px;border:1.5px solid #1B6B2F;border-radius:8px;font-family:'Kanit',sans-serif;font-size:13px;">
+                      <input id="mo-adjust-reason" type="text" placeholder="เหตุผล" style="flex:1;padding:8px 12px;border:1.5px solid #1B6B2F;border-radius:8px;font-family:'Kanit',sans-serif;font-size:13px;">
+                    </div>
+                    <button onclick="if(typeof adjustMemberBalance==='function')adjustMemberBalance()" style="margin-top:6px;width:100%;padding:8px;background:#1B6B2F;color:#fff;border:none;border-radius:8px;font-family:'Kanit',sans-serif;font-weight:700;font-size:13px;cursor:pointer;">💰 ปรับยอดเงิน (ต้องใส่ OTP)</button>
+                  </div>
+                </div>
+
+                <!-- สมัครเมื่อ -->
+                <div>
+                  <div style="font-size:11px;color:#9ca3af;font-family:'Kanit',sans-serif;margin-bottom:3px;">สมัครเมื่อ</div>
+                  <div id="mo-created" style="font-size:13px;color:#6b7280;"></div>
+                </div>
+
+                <!-- แนะนำโดย -->
+                <div>
+                  <div style="font-size:11px;color:#9ca3af;font-family:'Kanit',sans-serif;margin-bottom:3px;">แนะนำโดย</div>
+                  <div id="mo-referred" style="font-size:13px;color:#6b7280;"></div>
+                </div>
+
+                <!-- Flag สมาชิก -->
+                <div>
+                  <div style="font-size:11px;color:#9ca3af;font-family:'Kanit',sans-serif;margin-bottom:6px;">🚩 Flag สมาชิก</div>
+                  <div id="mo-flag-controls" style="display:flex;gap:6px;flex-wrap:wrap;"></div>
+                </div>
+
+                <!-- หมายเหตุ Admin -->
+                <div>
+                  <div style="font-size:11px;color:#9ca3af;font-family:'Kanit',sans-serif;margin-bottom:4px;">📝 หมายเหตุ Admin</div>
+                  <textarea id="mo-note-input" rows="2" placeholder="หมายเหตุ..." style="width:100%;padding:8px 12px;border:1px solid #e5e7eb;border-radius:8px;font-family:'Kanit',sans-serif;font-size:12px;resize:none;box-sizing:border-box;"></textarea>
+                  <button onclick="if(typeof saveMemberNote==='function')saveMemberNote()" style="margin-top:4px;padding:6px 16px;background:#1B6B2F;color:#fff;border:none;border-radius:7px;font-family:'Kanit',sans-serif;font-weight:700;font-size:12px;cursor:pointer;">💾 บันทึกหมายเหตุ</button>
+                </div>
+
+                <!-- ปุ่มบันทึกข้อมูล (แสดงตอน edit mode) -->
+                <div id="mo-save-row" style="display:none;gap:8px;margin-top:4px;">
+                  <button onclick="_moSaveInfo()" style="flex:1;padding:9px;background:#1B6B2F;color:#fff;border:none;border-radius:8px;font-family:'Kanit',sans-serif;font-weight:700;font-size:13px;cursor:pointer;">💾 บันทึกข้อมูล</button>
+                  <button onclick="_moToggleEdit()" style="padding:9px 16px;background:#f3f4f6;color:#6b7280;border:1px solid #e5e7eb;border-radius:8px;font-family:'Kanit',sans-serif;font-weight:700;font-size:13px;cursor:pointer;">ยกเลิก</button>
+                </div>
+
+                <!-- Danger Zone -->
+                <div style="padding:10px 12px;background:#fff5f5;border-radius:8px;border:1px solid #fca5a5;margin-top:4px;">
+                  <div style="font-family:'Kanit',sans-serif;font-weight:700;font-size:12px;color:#dc2626;margin-bottom:6px;">⚠️ Danger Zone</div>
+                  <button onclick="if(typeof deleteMemberFromOverlay==='function')deleteMemberFromOverlay()" style="padding:6px 14px;background:#fff;color:#dc2626;border:1.5px solid #dc2626;border-radius:7px;font-family:'Kanit',sans-serif;font-weight:700;font-size:11px;cursor:pointer;">🗑 ลบบัญชีสมาชิก</button>
+                </div>
+              </div>
+            </div>
+
+            <!-- Right: ประวัติธุรกรรม -->
+            <div>
+              <!-- Tabs -->
+              <div style="display:flex;gap:0;border-bottom:2px solid #e5e7eb;margin-bottom:14px;">
+                <button class="mo-tab active" data-tab="deposits" onclick="if(typeof switchMoTab==='function')switchMoTab(this,'deposits')" style="padding:8px 14px;border:none;border-bottom:2px solid transparent;background:transparent;font-family:'Kanit',sans-serif;font-size:12px;font-weight:700;color:#9ca3af;cursor:pointer;margin-bottom:-2px;">💰 เติมเงิน</button>
+                <button class="mo-tab" data-tab="withdrawals" onclick="if(typeof switchMoTab==='function')switchMoTab(this,'withdrawals')" style="padding:8px 14px;border:none;border-bottom:2px solid transparent;background:transparent;font-family:'Kanit',sans-serif;font-size:12px;font-weight:700;color:#9ca3af;cursor:pointer;margin-bottom:-2px;">🏧 ถอนเงิน</button>
+                <button class="mo-tab" data-tab="bets" onclick="if(typeof switchMoTab==='function')switchMoTab(this,'bets')" style="padding:8px 14px;border:none;border-bottom:2px solid transparent;background:transparent;font-family:'Kanit',sans-serif;font-size:12px;font-weight:700;color:#9ca3af;cursor:pointer;margin-bottom:-2px;">🎯 เดิมพัน</button>
+                <button class="mo-tab" data-tab="history" onclick="if(typeof switchMoTab==='function')switchMoTab(this,'history')" style="padding:8px 14px;border:none;border-bottom:2px solid transparent;background:transparent;font-family:'Kanit',sans-serif;font-size:12px;font-weight:700;color:#9ca3af;cursor:pointer;margin-bottom:-2px;">📋 ปรับยอด</button>
+              </div>
+
+              <!-- เติมเงิน -->
+              <div class="mo-pane active" id="mo-pane-deposits" style="max-height:420px;overflow-y:auto;">
+                <table style="width:100%;border-collapse:collapse;font-size:12px;">
+                  <thead><tr style="background:#f9fafb;position:sticky;top:0;"><th style="padding:8px 10px;text-align:left;font-weight:700;color:#6b7280;border-bottom:1px solid #e5e7eb;">วันที่</th><th style="padding:8px 10px;text-align:right;font-weight:700;color:#6b7280;border-bottom:1px solid #e5e7eb;">จำนวน</th><th style="padding:8px 10px;font-weight:700;color:#6b7280;border-bottom:1px solid #e5e7eb;">ธนาคาร</th><th style="padding:8px 10px;text-align:center;font-weight:700;color:#6b7280;border-bottom:1px solid #e5e7eb;">สถานะ</th></tr></thead>
+                  <tbody id="mo-dep-tbody"><tr><td colspan="4" style="text-align:center;padding:20px;color:#9ca3af;">กำลังโหลด...</td></tr></tbody>
+                </table>
+              </div>
+
+              <!-- ถอนเงิน -->
+              <div class="mo-pane" id="mo-pane-withdrawals" style="max-height:420px;overflow-y:auto;display:none;">
+                <table style="width:100%;border-collapse:collapse;font-size:12px;">
+                  <thead><tr style="background:#f9fafb;"><th style="padding:8px 10px;text-align:left;font-weight:700;color:#6b7280;border-bottom:1px solid #e5e7eb;">วันที่</th><th style="padding:8px 10px;text-align:right;font-weight:700;color:#6b7280;border-bottom:1px solid #e5e7eb;">จำนวน</th><th style="padding:8px 10px;font-weight:700;color:#6b7280;border-bottom:1px solid #e5e7eb;">ธนาคาร</th><th style="padding:8px 10px;text-align:center;font-weight:700;color:#6b7280;border-bottom:1px solid #e5e7eb;">สถานะ</th></tr></thead>
+                  <tbody id="mo-with-tbody"><tr><td colspan="4" style="text-align:center;padding:20px;color:#9ca3af;">กำลังโหลด...</td></tr></tbody>
+                </table>
+              </div>
+
+              <!-- เดิมพัน -->
+              <div class="mo-pane" id="mo-pane-bets" style="max-height:420px;overflow-y:auto;display:none;">
+                <table style="width:100%;border-collapse:collapse;font-size:12px;">
+                  <thead><tr style="background:#f9fafb;"><th style="padding:8px 10px;text-align:left;font-weight:700;color:#6b7280;border-bottom:1px solid #e5e7eb;">วันที่</th><th style="padding:8px 10px;font-weight:700;color:#6b7280;border-bottom:1px solid #e5e7eb;">คู่แข่ง</th><th style="padding:8px 10px;font-weight:700;color:#6b7280;border-bottom:1px solid #e5e7eb;">ฝั่ง</th><th style="padding:8px 10px;text-align:right;font-weight:700;color:#6b7280;border-bottom:1px solid #e5e7eb;">จำนวน</th><th style="padding:8px 10px;text-align:center;font-weight:700;color:#6b7280;border-bottom:1px solid #e5e7eb;">ผล</th></tr></thead>
+                  <tbody id="mo-bets-tbody"><tr><td colspan="5" style="text-align:center;padding:20px;color:#9ca3af;">กำลังโหลด...</td></tr></tbody>
+                </table>
+              </div>
+
+              <!-- ประวัติปรับยอด -->
+              <div class="mo-pane" id="mo-pane-history" style="max-height:420px;overflow-y:auto;display:none;">
+                <div id="mo-balance-history-inner">
+                  <div style="text-align:center;padding:20px;color:#9ca3af;font-size:12px;">กำลังโหลด...</div>
+                </div>
+              </div>
+
+            </div>
+          </div><!-- end 2-col grid -->
+
         </div>
       </div>
+
+
 
       <!-- ── Staff Onboarding Modal ── -->
       <div id="staff-onboarding-modal" style="display:none;position:fixed;inset:0;z-index:99999;background:rgba(0,0,0,0.85);backdrop-filter:blur(4px);align-items:center;justify-content:center;padding:16px;">
@@ -4692,25 +4951,34 @@ async function loadDeposits(){const res=await sb.from('deposits').select('*').or
 function switchDepSec(sec){document.querySelectorAll('#panel-deposits .match-sec').forEach(s=>s.classList.remove('active'));document.querySelectorAll('#panel-deposits .match-nav-item').forEach(i=>i.classList.remove('active'));document.getElementById('dep-sec-'+sec)?.classList.add('active');document.getElementById('dnav-'+sec)?.classList.add('active');}
 function filterDeposits(){
   updateDateTag('dep');
-  var from=document.getElementById('dep-date-from')?.value||'',to=document.getElementById('dep-date-to')?.value||'';
-  var rows=allDeposits.filter(function(d){return d.status==='pending'&&(!from||(d.created_at||'').slice(0,10)>=from)&&(!to||(d.created_at||'').slice(0,10)<=to);});
+  var from=document.getElementById('dep-date-from')?.value||'';
+  var to=document.getElementById('dep-date-to')?.value||'';
+  var rows=allDeposits.filter(function(d){
+    return d.status==='pending'&&(!from||(d.created_at||'').slice(0,10)>=from)&&(!to||(d.created_at||'').slice(0,10)<=to);
+  });
   var tb=document.getElementById('dep-tbody');if(!tb)return;
-  if(!rows.length){tb.innerHTML='<tr><td colspan="7" style="text-align:center;padding:28px;color:#aaa;">ไม่มีรายการ</td></tr>';return;}
+  if(!rows.length){
+    tb.innerHTML='<tr><td colspan="8" style="text-align:center;padding:28px;color:#aaa;">ไม่มีรายการรอดำเนินการ</td></tr>';
+    return;
+  }
   var html2=rows.map(function(d){
     var a=Number(d.amount||0);
-    var slip=d.slip_url?('<a href="'+d.slip_url+'" target="_blank" style="color:#3b82f6">🧾</a>'):'—';
-    var row='<tr>';
-    row+='<td style="font-weight:700;cursor:pointer;color:var(--green)" onclick="openMember(\''+(d.nick||'')+'\')">'+( d.nick||'—')+'</td>';
-    row+='<td style="text-align:right;font-weight:700;color:#16a34a">'+(a/1000).toFixed(1)+'K</td>';
-    row+='<td style="font-size:12px">'+(d.bank||'—')+'</td>';
-    row+='<td style="font-size:11px;color:#888">'+(d.txn||'—')+'</td>';
-    row+='<td style="text-align:center">'+slip+'</td>';
-    row+='<td style="font-size:11px;color:#888">'+fmtDate(d.created_at)+'</td>';
-    row+='<td>';
-    row+='<button onclick="approveDeposit(\''+(d.id||'')+'\',\''+(d.nick||'')+'\','+a+')" style="padding:4px 10px;background:#16a34a;color:#fff;border:none;border-radius:6px;font-size:12px;font-weight:700;cursor:pointer;margin-right:4px">✅ อนุมัติ</button>';
-    row+='<button onclick="rejectDeposit(\''+(d.id||'')+'\',\''+(d.nick||'')+'\' )" style="padding:4px 9px;background:#fff;color:#dc2626;border:1px solid #dc2626;border-radius:6px;font-size:12px;font-weight:700;cursor:pointer">❌ ปฏิเสธ</button>';
-    row+='</td></tr>';
-    return row;
+    var slip=d.slip_url?('<a href="'+d.slip_url+'" target="_blank" style="color:#3b82f6">🧾 ดู</a>'):'—';
+    var approver=d.approved_by?('<span style="background:#f0fdf4;color:#15803d;padding:2px 8px;border-radius:8px;font-size:11px;font-weight:700">👤 '+d.approved_by+'</span>'):'<span style="color:#d1d5db;font-size:11px">—</span>';
+    return[
+      '<tr>',
+      '<td style="font-weight:700;cursor:pointer;color:var(--green)" onclick="openMember(\''+( d.nick||'')+'\')">'+( d.nick||'—')+'</td>',
+      '<td style="text-align:right;font-weight:700;color:#16a34a">'+(a/1000).toFixed(1)+'K</td>',
+      '<td style="font-size:12px">'+(d.bank||'—')+'</td>',
+      '<td style="font-size:11px;color:#888">'+(d.txn||'—')+'</td>',
+      '<td style="text-align:center">'+slip+'</td>',
+      '<td style="font-size:11px;color:#888">'+fmtDate(d.created_at)+'</td>',
+      '<td>'+approver+'</td>',
+      '<td style="white-space:nowrap">',
+      '<button onclick="approveDeposit(\''+( d.id||'')+'\',\''+( d.nick||'')+'\','+a+')" style="padding:4px 10px;background:#16a34a;color:#fff;border:none;border-radius:6px;font-size:12px;font-weight:700;cursor:pointer;margin-right:4px">✅ อนุมัติ</button>',
+      '<button onclick="rejectDeposit(\''+( d.id||'')+'\',\''+( d.nick||'')+'\' )" style="padding:4px 9px;background:#fff;color:#dc2626;border:1px solid #dc2626;border-radius:6px;font-size:12px;font-weight:700;cursor:pointer">❌ ปฏิเสธ</button>',
+      '</td></tr>'
+    ].join('');
   }).join('');
   tb.innerHTML=html2;
 }
@@ -4737,20 +5005,22 @@ async function loadWithdrawals(){const res=await sb.from('withdrawals').select('
 function switchWithSec(sec){document.querySelectorAll('#panel-withdrawals .match-sec').forEach(s=>s.classList.remove('active'));document.querySelectorAll('#panel-withdrawals .match-nav-item').forEach(i=>i.classList.remove('active'));document.getElementById('with-sec-'+sec)?.classList.add('active');document.getElementById('wnav-'+sec)?.classList.add('active');}
 function filterWithdrawals(){
   updateDateTag('with');
-  var from=document.getElementById('with-date-from')?.value||'',to=document.getElementById('with-date-to')?.value||'';
+  var from=document.getElementById('with-date-from')?.value||'';
+  var to=document.getElementById('with-date-to')?.value||'';
   var rows=allWithdrawals.filter(function(w){
     return w.status==='pending'&&(!from||(w.created_at||'').slice(0,10)>=from)&&(!to||(w.created_at||'').slice(0,10)<=to);
   });
   var tb=document.getElementById('with-tbody');if(!tb)return;
   if(!rows.length){
-    tb.innerHTML='<tr><td colspan="7" style="text-align:center;padding:28px;color:#aaa;">ไม่มีรายการรอดำเนินการ</td></tr>';
+    tb.innerHTML='<tr><td colspan="8" style="text-align:center;padding:28px;color:#aaa;">ไม่มีรายการรอดำเนินการ</td></tr>';
     return;
   }
   var html2=rows.map(function(w){
     var a=Number(w.amount||0);
     var bk=(w.bank||'').replace(/'/g,"\'");
     var ac=(w.acc_no||'').replace(/'/g,"\'");
-    return [
+    var approver=w.approved_by?('<span style="background:#eff6ff;color:#1d4ed8;padding:2px 8px;border-radius:8px;font-size:11px;font-weight:700">👤 '+w.approved_by+'</span>'):'<span style="color:#d1d5db;font-size:11px">—</span>';
+    return[
       '<tr>',
       '<td style="font-weight:700;cursor:pointer;color:var(--green)" onclick="openMember(\''+( w.nick||'')+'\')">'+( w.nick||'—')+'</td>',
       '<td style="text-align:right;font-weight:700;color:#3b82f6">'+(a/1000).toFixed(1)+'K ₭</td>',
@@ -4758,13 +5028,10 @@ function filterWithdrawals(){
       '<td style="font-size:12px;color:#555">'+(w.acc_no||'—')+'</td>',
       '<td style="font-size:11px;color:#888">'+(w.txn||'—')+'</td>',
       '<td style="font-size:11px;color:#888">'+fmtDate(w.created_at)+'</td>',
+      '<td>'+approver+'</td>',
       '<td style="white-space:nowrap">',
-      '<button onclick="approveWithdraw(\''+( w.id||'')+'\',\''+( w.nick||'')+'\','+a+',\''+bk+'\',\''+ac+'\' )"',
-      ' style="padding:5px 12px;background:#3b82f6;color:#fff;border:none;border-radius:6px;font-size:12px;font-weight:700;cursor:pointer;margin-right:4px">',
-      '✅ โอนแล้ว</button>',
-      '<button onclick="rejectWithdraw(\''+( w.id||'')+'\',\''+( w.nick||'')+'\','+a+')"',
-      ' style="padding:5px 10px;background:#fff;color:#dc2626;border:1px solid #dc2626;border-radius:6px;font-size:12px;font-weight:700;cursor:pointer">',
-      '❌ ปฏิเสธ</button>',
+      '<button onclick="approveWithdraw(\''+( w.id||'')+'\',\''+( w.nick||'')+'\','+a+',\''+bk+'\',\''+ac+'\' )" style="padding:4px 10px;background:#3b82f6;color:#fff;border:none;border-radius:6px;font-size:12px;font-weight:700;cursor:pointer;margin-right:4px">✅ โอนแล้ว</button>',
+      '<button onclick="rejectWithdraw(\''+( w.id||'')+'\',\''+( w.nick||'')+'\','+a+')" style="padding:4px 9px;background:#fff;color:#dc2626;border:1px solid #dc2626;border-radius:6px;font-size:12px;font-weight:700;cursor:pointer">❌ ปฏิเสธ</button>',
       '</td></tr>'
     ].join('');
   }).join('');
@@ -4874,31 +5141,228 @@ function openMember(nick){
   var ov=document.getElementById('member-overlay');if(!ov)return;
   var m=allMembers.find(function(x){return x.nick===nick;});if(!m)return;
   ov.style.display='block';document.body.style.overflow='hidden';
-  var se=function(id,v){var e=document.getElementById(id);if(e)e.textContent=v;};
+
+  // ── Header ──
   var av=document.getElementById('mo-avatar');if(av)av.textContent=(m.nick||'?')[0].toUpperCase();
   var nk=document.getElementById('mo-nick');if(nk)nk.textContent=m.nick||'—';
-  var vip=typeof getVipLevel==='function'?getVipLevel(m._totalDep||0):{icon:'',name:''};
-  var vb=document.getElementById('mo-vip-badge');if(vb)vb.textContent=vip.icon+' '+vip.name;
+  var vip=typeof getVipLevel==='function'?getVipLevel(m._totalDep||0):{icon:'🐂',name:'Silver'};
+  var vb=document.getElementById('mo-vip-badge');if(vb)vb.textContent=(vip.icon||'')+' '+(vip.name||'');
+
+  // ── Stats ──
+  var se=function(id,v){var e=document.getElementById(id);if(e)e.textContent=v;};
   se('mo-balance',Number(m.balance||0).toLocaleString());
   se('mo-dep-total',Number(m._totalDep||0).toLocaleString());
   se('mo-with-total',Number(m._totalWith||0).toLocaleString());
-  se('mo-fullname',(m.fname||'')+' '+(m.lname||'')||'—');
-  se('mo-phone',m.phone||'—');
+
+  // ── ข้อมูลส่วนตัว (display mode) ──
+  var fname=(m.fname||'');var lname=(m.lname||'');
+  var fullname=(fname+' '+lname).trim()||'—';
+  var fd=document.getElementById('mo-fullname-display');if(fd)fd.textContent=fullname;
+  var fi=document.getElementById('mo-fullname-input');if(fi)fi.value=fullname==='—'?'':fullname;
+
+  var pd=document.getElementById('mo-phone-display');if(pd)pd.textContent=m.phone||'—';
+  var pi=document.getElementById('mo-phone-input');if(pi)pi.value=m.phone||'';
+
+  // ── 3 บัญชีธนาคาร ──
+  var banks = [
+    {sfx:'',  sfx2:'1', name:m.bank_name||'',    acc:m.bank_accno||m.bank_account||'',    accname:m.account_name||m.bank_accname||''},
+    {sfx:'2', sfx2:'2', name:m.bank2_name||'',   acc:m.bank2_accno||'',   accname:m.bank2_accname||''},
+    {sfx:'3', sfx2:'3', name:m.bank3_name||'',   acc:m.bank3_accno||'',   accname:m.bank3_accname||''},
+  ];
+  banks.forEach(function(b){
+    var sfx=b.sfx, sfx2=b.sfx2;
+    var hasData = !!(b.acc);
+    // badge
+    var badge=document.getElementById('mo-bank'+sfx2+'-badge');
+    if(badge)badge.style.display=hasData?'inline':'none';
+    // display
+    var nd=document.getElementById('mo-bank-name'+sfx+'-display');if(nd)nd.textContent=b.name||'—';
+    var ad=document.getElementById('mo-bank-account'+sfx+'-display');if(ad)ad.textContent=b.acc||'—';
+    var cd=document.getElementById('mo-account-name'+sfx+'-display');if(cd)cd.textContent=b.accname||'—';
+    // inputs
+    var ni2=document.getElementById('mo-bank-name'+sfx+'-input');if(ni2)ni2.value=b.name;
+    var ai2=document.getElementById('mo-bank-account'+sfx+'-input');if(ai2)ai2.value=b.acc;
+    var ci2=document.getElementById('mo-account-name'+sfx+'-input');if(ci2)ci2.value=b.accname;
+  });
+
+  var bd=document.getElementById('mo-balance-display');if(bd)bd.textContent=Number(m.balance||0).toLocaleString()+' ₭';
+
   se('mo-created',typeof fmtDate==='function'?fmtDate(m.created_at):m.created_at||'—');
   se('mo-referred',m.referred_by||'—');
+
+  // ── Note ──
   var ni=document.getElementById('mo-note-input');if(ni)ni.value=m.admin_note||'';
+
+  // ── Flags ──
   var fc=document.getElementById('mo-flag-controls');
   if(fc){
     var fl=['vip','suspicious','blocked','high_roller'];
     var fl2={vip:'⭐ VIP',suspicious:'⚠️ น่าสงสัย',blocked:'🚫 บล็อก',high_roller:'💎 HighRoller'};
     fc.innerHTML=fl.map(function(f2){
       var a=(m.flags||[]).includes(f2);
-      return'<button onclick="toggleMemberFlag(\''+f2+'\')" style="padding:6px 14px;border-radius:20px;font-size:11px;font-weight:700;cursor:pointer;border:1.5px solid '+(a?'#dc2626':'#e0e0e0')+';background:'+(a?'#fee2e2':'#fff')+';color:'+(a?'#dc2626':'#888')+'">'+fl2[f2]+'</button>';
+      return'<button onclick="toggleMemberFlag(\''+f2+'\')" style="padding:5px 12px;border-radius:20px;font-size:11px;font-weight:700;cursor:pointer;font-family:Kanit,sans-serif;border:1.5px solid '+(a?'#dc2626':'#e0e0e0')+';background:'+(a?'#fee2e2':'#fff')+';color:'+(a?'#dc2626':'#888')+'">'+fl2[f2]+'</button>';
     }).join('');
   }
+
+  // ── ซ่อน edit inputs เริ่มต้น ──
+  _moSetEditMode(false);
+
+  // ── reset tabs ──
+  document.querySelectorAll('.mo-tab').forEach(function(t){
+    t.classList.remove('active');
+    t.style.color='#9ca3af';
+    t.style.borderBottomColor='transparent';
+  });
+  document.querySelectorAll('.mo-pane').forEach(function(p){p.style.display='none';});
+  var firstTab=document.querySelector('.mo-tab[data-tab="deposits"]');
+  var firstPane=document.getElementById('mo-pane-deposits');
+  if(firstTab){firstTab.classList.add('active');firstTab.style.color='#1B6B2F';firstTab.style.borderBottomColor='#1B6B2F';}
+  if(firstPane)firstPane.style.display='block';
+
+  // ── โหลดธุรกรรม ──
   _loadMemberTxns(nick);
-  // โหลด transaction history อัตโนมัติเมื่อเปิด admin tab
-  setTimeout(function(){_showBalanceHistory(nick);}, 300);
+  // โหลดประวัติปรับยอด
+  setTimeout(function(){_loadBalanceHistory(nick);}, 400);
+}
+
+// ── Toggle edit mode ──
+function _moToggleEdit(){
+  var btn=document.getElementById('mo-edit-btn');
+  var isEditing=btn&&btn.textContent.includes('บันทึก');
+  _moSetEditMode(!isEditing);
+}
+
+function _moSetEditMode(on){
+  var btn=document.getElementById('mo-edit-btn');
+  if(btn)btn.textContent=on?'✕ ยกเลิก':'✏️ แก้ไข';
+
+  // text fields
+  var fields=['mo-fullname','mo-phone',
+    'mo-bank-name','mo-bank-account','mo-account-name',
+    'mo-bank-name2','mo-bank-account2','mo-account-name2',
+    'mo-bank-name3','mo-bank-account3','mo-account-name3',
+  ];
+  fields.forEach(function(id){
+    var disp=document.getElementById(id+'-display');
+    var inp=document.getElementById(id+'-input');
+    if(disp)disp.style.display=on?'none':'block';
+    if(inp)inp.style.display=on?'block':'none';
+  });
+
+  // select fields (bank name)
+  ['mo-bank-name-input','mo-bank-name2-input','mo-bank-name3-input'].forEach(function(id){
+    var el=document.getElementById(id);
+    if(el)el.style.display=on?'block':'none';
+    var disp=document.getElementById(id.replace('-input','-display'));
+    if(disp)disp.style.display=on?'none':'block';
+  });
+
+  var balEdit=document.getElementById('mo-balance-edit');
+  if(balEdit)balEdit.style.display=on?'block':'none';
+  var saveRow=document.getElementById('mo-save-row');
+  if(saveRow)saveRow.style.display=on?'flex':'none';
+}
+
+// ── บันทึกข้อมูลที่แก้ไข ──
+async function _moSaveInfo(){
+  var nick=document.getElementById('mo-nick')?.textContent;
+  if(!nick||nick==='—')return;
+
+  var get=function(id){return(document.getElementById(id)?.value||'').trim();};
+  var fullname=get('mo-fullname-input');
+  var phone=get('mo-phone-input');
+  // Bank 1
+  var bankName=get('mo-bank-name-input');
+  var bankAccount=get('mo-bank-account-input');
+  var accountName=get('mo-account-name-input');
+  // Bank 2
+  var bank2Name=get('mo-bank-name2-input');
+  var bank2Account=get('mo-bank-account2-input');
+  var account2Name=get('mo-account-name2-input');
+  // Bank 3
+  var bank3Name=get('mo-bank-name3-input');
+  var bank3Account=get('mo-bank-account3-input');
+  var account3Name=get('mo-account-name3-input');
+
+  var parts=fullname.split(' ');
+  var fname=parts[0]||'';var lname=parts.slice(1).join(' ')||'';
+
+  var updates={};
+  if(fname)updates.fname=fname;
+  if(lname)updates.lname=lname;
+  if(phone)updates.phone=phone;
+  // bank 1
+  if(bankName)updates.bank_name=bankName;
+  if(bankAccount)updates.bank_accno=bankAccount;
+  if(accountName)updates.bank_accname=accountName;
+  // bank 2
+  if(bank2Name)updates.bank2_name=bank2Name;
+  if(bank2Account)updates.bank2_accno=bank2Account;
+  if(account2Name)updates.bank2_accname=account2Name;
+  // bank 3
+  if(bank3Name)updates.bank3_name=bank3Name;
+  if(bank3Account)updates.bank3_accno=bank3Account;
+  if(account3Name)updates.bank3_accname=account3Name;
+
+  if(!Object.keys(updates).length){showToast('ไม่มีข้อมูลที่แก้ไขครับ','error');return;}
+
+  var{error}=await sb.from('members').update(updates).eq('nick',nick);
+  if(error){showToast('❌ บันทึกไม่ได้: '+error.message,'error');return;}
+
+  showToast('✅ บันทึกข้อมูลสำเร็จแล้วครับ');
+  _moSetEditMode(false);
+  await loadMembers();
+  openMember(nick);
+}
+
+// ── โหลดประวัติปรับยอด ──
+async function _loadBalanceHistory(nick){
+  var container=document.getElementById('mo-balance-history-inner');
+  if(!container)return;
+  container.innerHTML='<div style="text-align:center;padding:16px;color:#9ca3af;font-size:12px;">กำลังโหลด...</div>';
+  try{
+    var{data}=await sb.from('staff_logs')
+      .select('*')
+      .eq('action','balance_adjust')
+      .ilike('detail','%'+nick+'%')
+      .order('created_at',{ascending:false})
+      .limit(50);
+    var logs=data||[];
+    if(!logs.length){
+      container.innerHTML='<div style="text-align:center;padding:24px;color:#9ca3af;font-size:12px;font-family:Kanit,sans-serif;">ยังไม่มีประวัติการปรับยอด</div>';
+      return;
+    }
+    container.innerHTML=[
+      '<table style="width:100%;border-collapse:collapse;font-size:12px;">',
+      '<thead><tr style="background:#f9fafb">',
+      '<th style="padding:8px 10px;text-align:left;font-weight:700;color:#6b7280;border-bottom:1px solid #e5e7eb;white-space:nowrap">เวลา</th>',
+      '<th style="padding:8px 10px;font-weight:700;color:#6b7280;border-bottom:1px solid #e5e7eb;white-space:nowrap">ผู้ดำเนินการ</th>',
+      '<th style="padding:8px 10px;font-weight:700;color:#6b7280;border-bottom:1px solid #e5e7eb">รายละเอียด</th>',
+      '</tr></thead><tbody>',
+      logs.map(function(l){
+        var detail=l.detail||'—';
+        // แยก amount จาก detail เพื่อ colorize
+        var isAdd=detail.indexOf('+')!==-1;
+        var amtMatch=detail.match(/([+-][\d,]+)\s*₭/);
+        var amtStr=amtMatch?amtMatch[1]:'';
+        return[
+          '<tr style="border-bottom:1px solid #f3f4f6">',
+          '<td style="padding:8px 10px;font-size:11px;color:#9ca3af;white-space:nowrap">'+fmtDate(l.created_at)+'</td>',
+          '<td style="padding:8px 10px;white-space:nowrap">',
+          '<span style="background:#f0fdf4;color:#15803d;padding:2px 8px;border-radius:8px;font-size:11px;font-weight:700;font-family:Kanit,sans-serif">👤 '+(l.staff_username||'—')+'</span>',
+          '</td>',
+          '<td style="padding:8px 10px;font-size:11px;color:#374151">',
+          amtStr?('<span style="font-weight:700;color:'+(isAdd?'#16a34a':'#dc2626')+';margin-right:6px">'+amtStr+' ₭</span>'):'',
+          detail.replace(/[+-][\d,]+\s*₭/,'').replace(/\s+/,' ').trim(),
+          '</td>',
+          '</tr>'
+        ].join('');
+      }).join(''),
+      '</tbody></table>'
+    ].join('');
+  }catch(e){
+    container.innerHTML='<div style="text-align:center;padding:20px;color:#dc2626;font-size:12px;font-family:Kanit,sans-serif;">❌ โหลดไม่ได้: '+e.message+'</div>';
+  }
 }
 async function _loadMemberTxns(nick){
   var sb2=function(s){return s==='approved'?'<span style="background:#dcfce7;color:#15803d;padding:2px 8px;border-radius:12px;font-size:11px;font-weight:700">✅</span>':s==='rejected'?'<span style="background:#fee2e2;color:#991b1b;padding:2px 8px;border-radius:12px;font-size:11px;font-weight:700">❌</span>':'<span style="background:#fef9c3;color:#854d0e;padding:2px 8px;border-radius:12px;font-size:11px;font-weight:700">⏳</span>';};
@@ -4908,7 +5372,24 @@ async function _loadMemberTxns(nick){
 }
 function closeMemberOverlay(){const ov=document.getElementById('member-overlay');if(ov)ov.style.display='none';document.body.style.overflow='';}
 function closeMember(){closeMemberOverlay();}
-function switchMoTab(btn,tab){document.querySelectorAll('.mo-tab').forEach(t=>t.classList.remove('active'));document.querySelectorAll('.mo-pane').forEach(p=>p.classList.remove('active'));btn.classList.add('active');const pane=document.getElementById('mo-pane-'+tab);if(pane)pane.classList.add('active');}
+function switchMoTab(btn,tab){
+  document.querySelectorAll('.mo-tab').forEach(function(t){
+    t.classList.remove('active');
+    t.style.color='#9ca3af';
+    t.style.borderBottomColor='transparent';
+  });
+  document.querySelectorAll('.mo-pane').forEach(function(p){p.style.display='none';});
+  btn.classList.add('active');
+  btn.style.color='#1B6B2F';
+  btn.style.borderBottomColor='#1B6B2F';
+  var pane=document.getElementById('mo-pane-'+tab);
+  if(pane)pane.style.display='block';
+  // โหลด history เมื่อกดแท็บ
+  if(tab==='history'){
+    var nick=document.getElementById('mo-nick')?.textContent;
+    if(nick&&nick!=='—')_loadBalanceHistory(nick);
+  }
+}
 async function saveMemberNote(){const note=document.getElementById('mo-note-input')?.value||'';const nick=document.getElementById('mo-nick')?.textContent;if(!nick||nick==='—')return;const{error}=await sb.from('members').update({admin_note:note}).eq('nick',nick);if(error){showToast('❌ '+error.message,'error');return;}showToast('💾 บันทึก ✅');await loadMembers();}
 async function toggleMemberFlag(flag){
   var nick=document.getElementById('mo-nick')?.textContent;
@@ -4922,81 +5403,80 @@ async function toggleMemberFlag(flag){
   await loadMembers();openMember(nick);
 }
 async function adjustMemberBalance(){
-  const nick=document.getElementById('mo-nick')?.textContent;
-  const ai=document.getElementById('mo-adjust-amount');
-  const ri=document.getElementById('mo-adjust-reason');
-  const amount=parseFloat(ai?.value||'0');
-  const reason=ri?.value?.trim()||'';
+  var nick=document.getElementById('mo-nick')?.textContent;
+  var ai=document.getElementById('mo-adjust-amount');
+  var ri=document.getElementById('mo-adjust-reason');
+  var amount=parseFloat(ai?.value||'0');
+  var reason=(ri?.value||'').trim();
 
-  if(!nick||nick==='—'||!amount){showToast('⚠️ กรุณากรอกจำนวนครับ','error');return;}
-  if(!reason){showToast('⚠️ กรุณากรอกเหตุผลครับ','error');return;}
+  // ── Validate ──
+  if(!nick||nick==='—'){showToast('⚠️ ไม่พบชื่อสมาชิก','error');return;}
+  if(!amount||isNaN(amount)){showToast('⚠️ กรุณากรอกจำนวนเงิน','error');if(ai)ai.focus();return;}
+  if(!reason){showToast('⚠️ กรุณาระบุเหตุผล','error');if(ri)ri.focus();return;}
+
+  var signLabel=amount>0?'เพิ่ม '+amount.toLocaleString()+' ₭':'หัก '+Math.abs(amount).toLocaleString()+' ₭';
 
   // ── บังคับ OTP ก่อนปรับยอด ──
-  _requireActionOTP('ปรับยอดเงิน '+(amount>0?'+':'')+amount.toLocaleString()+' ₭ ให้ "'+nick+'"', async function(){
-    const m=allMembers.find(x=>x.nick===nick);if(!m)return;
-    const nb=Math.max(0,(m.balance||0)+amount);
-    const staffName=_adminNick();
+  _requireActionOTP('ปรับยอด "'+nick+'" '+signLabel, async function(){
 
-    // อัพเดต balance
-    const{error:be}=await sb.from('members').update({balance:nb}).eq('nick',nick);
-    if(be){showToast('❌ '+be.message,'error');return;}
+    var m=allMembers.find(function(x){return x.nick===nick;});
+    if(!m){showToast('❌ ไม่พบข้อมูลสมาชิก','error');return;}
 
-    // บันทึก Transaction History ใน staff_logs
+    var oldBalance=m.balance||0;
+    var newBalance=Math.max(0, oldBalance+amount);
+    var staffName=_adminNick();
+
+    // ── Update balance ──
+    var res=await sb.from('members').update({balance:newBalance}).eq('nick',nick);
+    if(res.error){showToast('❌ ปรับยอดไม่ได้: '+res.error.message,'error');return;}
+
+    // ── Log ใน staff_logs ──
     await sb.from('staff_logs').insert({
       staff_username: staffName,
       action:         'balance_adjust',
-      detail:         'ปรับยอด "'+nick+'" '+(amount>0?'+':'')+amount.toLocaleString()+' ₭ | เหตุผล: '+reason,
-    }).catch(()=>{});
+      detail:         '"'+nick+'" '+(amount>0?'+':'')+amount.toLocaleString()+' ₭ ('+oldBalance.toLocaleString()+' → '+newBalance.toLocaleString()+') เหตุผล: '+reason+' | โดย: '+staffName,
+    }).catch(function(){});
 
-    showToast('✅ ปรับยอด '+(amount>0?'+':'')+amount.toLocaleString()+' ₭ ให้ "'+nick+'" โดย '+staffName);
-    if(ai)ai.value='';if(ri)ri.value='';
+    // ── Refresh UI ทันที ──
+    // อัพ stats bar
+    var balEl=document.getElementById('mo-balance');
+    var balDisplay=document.getElementById('mo-balance-display');
+    if(balEl)balEl.textContent=newBalance.toLocaleString();
+    if(balDisplay)balDisplay.textContent=newBalance.toLocaleString()+' ₭';
+
+    // clear inputs
+    if(ai)ai.value='';
+    if(ri)ri.value='';
+
+    // toast
+    showToast('✅ ปรับยอด "'+nick+'" '+(amount>0?'+':'')+amount.toLocaleString()+' ₭ สำเร็จ | โดย: '+staffName);
+
+    // reload members + reopen
     await loadMembers();
     openMember(nick);
 
-    // แสดง Transaction History modal
-    _showBalanceHistory(nick);
+    // โหลด history tab
+    setTimeout(function(){
+      // switch ไป history tab
+      var histTab=document.querySelector('.mo-tab[data-tab="history"]');
+      var histPane=document.getElementById('mo-pane-history');
+      if(histTab&&histPane){
+        document.querySelectorAll('.mo-tab').forEach(function(t){
+          t.classList.remove('active');t.style.color='#9ca3af';t.style.borderBottomColor='transparent';
+        });
+        document.querySelectorAll('.mo-pane').forEach(function(p){p.style.display='none';});
+        histTab.classList.add('active');histTab.style.color='#1B6B2F';histTab.style.borderBottomColor='#1B6B2F';
+        histPane.style.display='block';
+      }
+      _loadBalanceHistory(nick);
+    }, 600);
+
   });
 }
 
 // ── Transaction History popup หลัง adjust balance ──
-async function _showBalanceHistory(nick){
-  // โหลด staff_logs ที่เกี่ยวกับ nick นี้
-  let logs=[];
-  try{
-    const{data}=await sb.from('staff_logs')
-      .select('*')
-      .ilike('detail','%"'+nick+'"%')
-      .order('created_at',{ascending:false})
-      .limit(20);
-    logs=data||[];
-  }catch(_){}
+function _showBalanceHistory(nick){_loadBalanceHistory(nick);}
 
-  // แสดงใน mo-pane-admin (ล่างช่อง adjust)
-  let histDiv=document.getElementById('mo-balance-history');
-  if(!histDiv){
-    histDiv=document.createElement('div');
-    histDiv.id='mo-balance-history';
-    histDiv.style.cssText='background:#fafaf8;border-radius:10px;padding:14px;border:1px solid #e5e5e0;margin-top:14px;';
-    const adminPane=document.getElementById('mo-pane-admin');
-    if(adminPane)adminPane.appendChild(histDiv);
-  }
-
-  if(!logs.length){
-    histDiv.innerHTML='<div style="font-family:Kanit,sans-serif;font-weight:700;font-size:13px;margin-bottom:8px;color:#555">📋 ประวัติการปรับยอด</div><div style="font-size:12px;color:#aaa;text-align:center;padding:12px">ยังไม่มีประวัติ</div>';
-    return;
-  }
-
-  histDiv.innerHTML='<div style="font-family:Kanit,sans-serif;font-weight:700;font-size:13px;margin-bottom:10px;color:#555">📋 ประวัติการปรับยอด</div>'+
-    '<table style="width:100%;border-collapse:collapse;font-size:12px;">'+
-    '<thead><tr style="background:#f5f5f3"><th style="padding:7px 10px;text-align:left;font-weight:700">เวลา</th><th style="padding:7px 10px;text-align:left;font-weight:700">พนักงาน</th><th style="padding:7px 10px;text-align:left;font-weight:700">รายละเอียด</th></tr></thead>'+
-    '<tbody>'+
-    logs.map(function(l){
-      return'<tr style="border-bottom:1px solid #f0f0ee"><td style="padding:7px 10px;font-size:11px;color:#888;white-space:nowrap">'+fmtDate(l.created_at)+'</td>'+
-        '<td style="padding:7px 10px"><span style="background:#f0fdf4;color:#15803d;padding:2px 8px;border-radius:8px;font-weight:700">'+( l.staff_username||'—')+'</span></td>'+
-        '<td style="padding:7px 10px;font-size:11px;color:#555">'+(l.detail||'—')+'</td></tr>';
-    }).join('')+
-    '</tbody></table>';
-}
 async function deleteMemberFromOverlay(){const nick=document.getElementById('mo-nick')?.textContent;if(!nick||nick==='—')return;const m=allMembers.find(x=>x.nick===nick);if(!m)return;if(!confirm('ลบบัญชี "'+nick+'" ถาวร?'))return;await sb.from('members').delete().eq('id',m.id);showToast('🗑 ลบ "'+nick+'" แล้ว');closeMemberOverlay();await loadMembers();}
 document.addEventListener('click',e=>{const ov=document.getElementById('member-overlay');if(ov&&e.target===ov)closeMemberOverlay();});
 

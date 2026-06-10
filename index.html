@@ -4008,14 +4008,15 @@ input, textarea, select, button {
 
       <!-- ── กรณียังไม่ผูกบัญชี ── -->
       <div id="with-no-bank" style="display:none;">
-        <div style="background:rgba(245,200,66,0.08);border:1px solid rgba(245,200,66,0.3);border-radius:12px;padding:18px;text-align:center;margin-bottom:16px;">
-          <div style="font-size:32px;margin-bottom:8px;">🏦</div>
-          <div style="font-family:'Phetsarath OT','Phetsarath','Noto Sans Lao','Kanit',sans-serif;font-weight:700;font-size:14px;color:var(--gold);margin-bottom:6px;">ยังไม่ได้ผูกบัญชีธนาคาร</div>
-          <div style="font-size:12px;color:rgba(240,255,232,0.5);margin-bottom:14px;">กรุณาผูกบัญชีธนาคารก่อนทำการถอนเงินครับ<br>สามารถทำได้เพียงครั้งเดียว — แก้ไขได้โดย Admin เท่านั้น</div>
-
-          <!-- ฟอร์มผูกบัญชีครั้งแรก -->
-          <div style="text-align:left;">
-            <div style="font-family:'Phetsarath OT','Phetsarath','Noto Sans Lao','Kanit',sans-serif;font-size:11px;font-weight:700;color:rgba(240,255,232,0.45);margin-bottom:6px;letter-spacing:.5px;">ผูกบัญชีธนาคาร</div>
+        <div style="background:rgba(245,200,66,0.08);border:1px solid rgba(245,200,66,0.3);border-radius:12px;padding:18px;margin-bottom:16px;">
+          <div style="text-align:center;margin-bottom:14px;">
+            <div style="font-size:32px;margin-bottom:6px;">🏦</div>
+            <div style="font-family:'Phetsarath OT','Phetsarath','Noto Sans Lao','Kanit',sans-serif;font-weight:700;font-size:14px;color:var(--gold);margin-bottom:4px;">ยังไม่มีบัญชีธนาคาร</div>
+            <div style="font-size:12px;color:rgba(240,255,232,0.5);">เพิ่มบัญชีถอนเงินได้สูงสุด 3 บัญชีครับ</div>
+          </div>
+          <!-- ฟอร์มเพิ่มบัญชี -->
+          <div id="add-bank-form-wrap">
+            <div style="font-family:'Phetsarath OT','Phetsarath','Noto Sans Lao','Kanit',sans-serif;font-size:11px;font-weight:700;color:rgba(240,255,232,0.45);margin-bottom:6px;letter-spacing:.5px;">🏦 เพิ่มบัญชีธนาคาร</div>
             <select class="acc-input" id="bind-bank-name" style="margin-bottom:8px;">
               <option value="">ເລືອກທະນາຄານ / เลือกธนาคาร</option>
               <optgroup label="🇱🇦 ທະນາຄານລາວ">
@@ -4034,30 +4035,93 @@ input, textarea, select, button {
                 <option value="other">ອື່ນໆ / อื่นๆ / Other</option>
               </optgroup>
             </select>
-            <input class="acc-input" type="text" id="bind-bank-accno" placeholder="เลขบัญชี เช่น 123-4-56789-0" style="margin-bottom:8px;">
+            <input class="acc-input" type="text" id="bind-bank-accno" placeholder="เลขบัญชี เช่น 010-2-34567-8" style="margin-bottom:8px;">
             <input class="acc-input" type="text" id="bind-bank-accname" placeholder="ชื่อเจ้าของบัญชี (ตรงกับสมุดบัญชี)" style="margin-bottom:12px;">
             <div class="acc-notice" style="margin-bottom:12px;">
-              ⚠️ <strong>สำคัญ:</strong> ตรวจสอบข้อมูลให้ถูกต้องก่อนบันทึก เนื่องจากไม่สามารถแก้ไขได้ด้วยตัวเองครับ
+              ⚠️ <strong>สำคัญ:</strong> ตรวจสอบข้อมูลให้ถูกต้อง เนื่องจากการแก้ไขต้องติดต่อ Admin
             </div>
-            <button class="acc-btn acc-btn-with" onclick="bindBankAccount()">🔗 ผูกบัญชีธนาคาร</button>
+            <button class="acc-btn acc-btn-with" onclick="bindBankAccount()">➕ เพิ่มบัญชีธนาคาร</button>
           </div>
         </div>
       </div>
 
       <!-- ── กรณีผูกบัญชีแล้ว ── -->
       <div id="with-has-bank" style="display:none;">
-        <!-- แสดงบัญชีที่ผูกไว้ -->
-        <div style="background:rgba(39,148,63,0.08);border:1px solid rgba(39,148,63,0.25);border-radius:10px;padding:14px 16px;margin-bottom:14px;">
-          <div style="font-family:'Phetsarath OT','Phetsarath','Noto Sans Lao','Kanit',sans-serif;font-size:11px;color:rgba(240,255,232,0.4);margin-bottom:6px;letter-spacing:.5px;">บัญชีปลายทาง (ผูกไว้แล้ว)</div>
-          <div style="display:flex;align-items:center;justify-content:space-between;">
-            <div>
-              <div style="font-family:'Phetsarath OT','Phetsarath','Noto Sans Lao','Kanit',sans-serif;font-weight:700;font-size:14px;color:var(--cream);" id="with-display-bank">—</div>
-              <div style="font-family:'Phetsarath OT','Phetsarath','Noto Sans Lao','Kanit',sans-serif;font-size:13px;color:var(--gold);margin-top:2px;" id="with-display-accno">—</div>
-              <div style="font-size:12px;color:rgba(240,255,232,0.5);margin-top:2px;" id="with-display-accname">—</div>
+        <!-- ═══ 3 บัญชีธนาคาร ═══ -->
+        <div style="margin-bottom:14px;">
+          <div style="font-family:'Phetsarath OT','Phetsarath','Noto Sans Lao','Kanit',sans-serif;font-size:11px;font-weight:700;color:rgba(240,255,232,0.45);letter-spacing:.5px;margin-bottom:10px;">🏦 บัญชีถอนเงินของคุณ <span style="color:rgba(240,255,232,0.3);font-weight:400;">(เลือกบัญชีที่ต้องการถอน)</span></div>
+
+          <!-- บัญชีที่ 1 -->
+          <div id="bank-card-1" onclick="_selectBank(1)" style="background:rgba(39,148,63,0.08);border:2px solid rgba(39,148,63,0.4);border-radius:10px;padding:12px 14px;margin-bottom:8px;cursor:pointer;transition:all .2s;">
+            <div style="display:flex;align-items:center;justify-content:space-between;">
+              <div style="display:flex;align-items:center;gap:10px;">
+                <div id="bank-radio-1" style="width:18px;height:18px;border-radius:50%;border:2px solid rgba(39,148,63,0.6);background:transparent;flex-shrink:0;display:flex;align-items:center;justify-content:center;"></div>
+                <div>
+                  <div style="font-family:'Phetsarath OT','Phetsarath','Noto Sans Lao','Kanit',sans-serif;font-size:11px;color:rgba(240,255,232,0.4);margin-bottom:2px;">บัญชีที่ 1</div>
+                  <div id="with-display-bank" style="font-family:'Phetsarath OT','Phetsarath','Noto Sans Lao','Kanit',sans-serif;font-weight:700;font-size:13px;color:var(--cream);">—</div>
+                  <div id="with-display-accno" style="font-family:'Phetsarath OT','Phetsarath','Noto Sans Lao','Kanit',sans-serif;font-size:12px;color:var(--gold);margin-top:1px;">—</div>
+                  <div id="with-display-accname" style="font-size:11px;color:rgba(240,255,232,0.5);margin-top:1px;">—</div>
+                </div>
+              </div>
+              <div style="font-size:18px;">🏦</div>
             </div>
-            <div style="font-size:20px;">🏦</div>
           </div>
-          <div style="font-size:11px;color:rgba(240,255,232,0.3);margin-top:8px;">🔒 ต้องการเปลี่ยนบัญชี กรุณาติดต่อ Admin ครับ</div>
+
+          <!-- บัญชีที่ 2 -->
+          <div id="bank-card-2" onclick="_selectBank(2)" style="background:rgba(255,255,255,0.04);border:2px solid rgba(255,255,255,0.1);border-radius:10px;padding:12px 14px;margin-bottom:8px;cursor:pointer;transition:all .2s;" class="bank-card-inactive">
+            <div style="display:flex;align-items:center;justify-content:space-between;">
+              <div style="display:flex;align-items:center;gap:10px;">
+                <div id="bank-radio-2" style="width:18px;height:18px;border-radius:50%;border:2px solid rgba(255,255,255,0.2);background:transparent;flex-shrink:0;"></div>
+                <div id="bank-card-2-content">
+                  <div style="font-family:'Phetsarath OT','Phetsarath','Noto Sans Lao','Kanit',sans-serif;font-size:11px;color:rgba(240,255,232,0.4);margin-bottom:2px;">บัญชีที่ 2</div>
+                  <div id="with-display-bank2" style="font-family:'Phetsarath OT','Phetsarath','Noto Sans Lao','Kanit',sans-serif;font-weight:700;font-size:13px;color:rgba(240,255,232,0.5);">— ยังไม่ได้เพิ่ม —</div>
+                </div>
+              </div>
+              <button id="btn-add-bank2" onclick="event.stopPropagation();_showAddBankForm(2)" style="font-family:'Phetsarath OT','Phetsarath','Noto Sans Lao','Kanit',sans-serif;font-size:11px;padding:5px 12px;border-radius:8px;border:1px solid rgba(245,200,66,0.4);background:rgba(245,200,66,0.08);color:var(--gold);cursor:pointer;">➕ เพิ่ม</button>
+            </div>
+          </div>
+
+          <!-- บัญชีที่ 3 -->
+          <div id="bank-card-3" onclick="_selectBank(3)" style="background:rgba(255,255,255,0.04);border:2px solid rgba(255,255,255,0.1);border-radius:10px;padding:12px 14px;margin-bottom:14px;cursor:pointer;transition:all .2s;" class="bank-card-inactive">
+            <div style="display:flex;align-items:center;justify-content:space-between;">
+              <div style="display:flex;align-items:center;gap:10px;">
+                <div id="bank-radio-3" style="width:18px;height:18px;border-radius:50%;border:2px solid rgba(255,255,255,0.2);background:transparent;flex-shrink:0;"></div>
+                <div id="bank-card-3-content">
+                  <div style="font-family:'Phetsarath OT','Phetsarath','Noto Sans Lao','Kanit',sans-serif;font-size:11px;color:rgba(240,255,232,0.4);margin-bottom:2px;">บัญชีที่ 3</div>
+                  <div id="with-display-bank3" style="font-family:'Phetsarath OT','Phetsarath','Noto Sans Lao','Kanit',sans-serif;font-weight:700;font-size:13px;color:rgba(240,255,232,0.5);">— ยังไม่ได้เพิ่ม —</div>
+                </div>
+              </div>
+              <button id="btn-add-bank3" onclick="event.stopPropagation();_showAddBankForm(3)" style="font-family:'Phetsarath OT','Phetsarath','Noto Sans Lao','Kanit',sans-serif;font-size:11px;padding:5px 12px;border-radius:8px;border:1px solid rgba(245,200,66,0.4);background:rgba(245,200,66,0.08);color:var(--gold);cursor:pointer;">➕ เพิ่ม</button>
+            </div>
+          </div>
+
+          <!-- ฟอร์มเพิ่มบัญชี 2/3 (hidden) -->
+          <div id="add-bank-inline-form" style="display:none;background:rgba(245,200,66,0.06);border:1px solid rgba(245,200,66,0.25);border-radius:10px;padding:14px;margin-bottom:12px;">
+            <div style="font-family:'Phetsarath OT','Phetsarath','Noto Sans Lao','Kanit',sans-serif;font-size:12px;font-weight:700;color:var(--gold);margin-bottom:10px;" id="add-bank-form-title">➕ เพิ่มบัญชีที่ 2</div>
+            <select class="acc-input" id="add-bank-name-new" style="margin-bottom:8px;">
+              <option value="">ເລືອກທະນາຄານ / เลือกธนาคาร</option>
+              <optgroup label="🇱🇦 ທະນາຄານລາວ">
+                <option value="BCEL">BCEL ທະນາຄານການຄ້າຕ່າງປະເທດລາວ</option>
+                <option value="LDB">LDB ທະນາຄານພັດທະນາລາວ</option>
+                <option value="LVB">LVB ທະນາຄານລາວ-ຫວຽດ</option>
+                <option value="APB">APB ທະນາຄານສົ່ງເສີມກະສິກຳ</option>
+                <option value="JCBL">JCBL ທະນາຄານຮ່ວມທຸລະກິດລາວ-ຈີນ</option>
+                <option value="BIC">BIC ທະນາຄານລົງທຶນ</option>
+                <option value="MARUHAN">MARUHAN Japan Bank Lao</option>
+                <option value="ACLEDA">ACLEDA Bank Lao</option>
+                <option value="PHONGSAVANH">Phongsavanh Bank</option>
+              </optgroup>
+              <optgroup label="💳 ອື່ນໆ / อื่นๆ">
+                <option value="other">ອື່ນໆ / อื่นๆ / Other</option>
+              </optgroup>
+            </select>
+            <input class="acc-input" type="text" id="add-bank-accno-new" placeholder="เลขบัญชี" style="margin-bottom:8px;">
+            <input class="acc-input" type="text" id="add-bank-accname-new" placeholder="ชื่อเจ้าของบัญชี" style="margin-bottom:10px;">
+            <div style="display:flex;gap:8px;">
+              <button class="acc-btn acc-btn-with" onclick="_saveNewBank()" style="flex:1;padding:10px;">💾 บันทึกบัญชี</button>
+              <button onclick="_hideAddBankForm()" style="font-family:'Phetsarath OT','Phetsarath','Noto Sans Lao','Kanit',sans-serif;padding:10px 16px;border-radius:10px;border:1px solid rgba(255,255,255,0.15);background:transparent;color:rgba(240,255,232,0.5);cursor:pointer;font-size:13px;">✕</button>
+            </div>
+          </div>
         </div>
 
         <!-- ฟอร์มถอนเงิน -->
@@ -8103,36 +8167,82 @@ setInterval(() => {
   // ── โหลดหน้าถอนเงิน (เช็คว่าผูกบัญชีหรือยัง) ──
   window.loadWithdrawPanel = window._real_loadWithdrawPanel = async function loadWithdrawPanel() {
     if (!currentUser) return;
-    // ดึงข้อมูลล่าสุด
+    // ดึงข้อมูล 3 บัญชีพร้อม balance
     const { data } = await sb.from('members')
-      .select('bank_name,bank_accno,bank_accname,balance')
+      .select('bank_name,bank_accno,bank_accname,bank2_name,bank2_accno,bank2_accname,bank3_name,bank3_accno,bank3_accname,balance')
       .eq('nick', currentUser.nick).maybeSingle();
 
     if (data) {
-      currentUser.bank_name    = data.bank_name;
-      currentUser.bank_accno   = data.bank_accno;
-      currentUser.bank_accname = data.bank_accname;
-      currentUser.balance      = data.balance;
+      currentUser.bank_name     = data.bank_name;
+      currentUser.bank_accno    = data.bank_accno;
+      currentUser.bank_accname  = data.bank_accname;
+      currentUser.bank2_name    = data.bank2_name;
+      currentUser.bank2_accno   = data.bank2_accno;
+      currentUser.bank2_accname = data.bank2_accname;
+      currentUser.bank3_name    = data.bank3_name;
+      currentUser.bank3_accno   = data.bank3_accno;
+      currentUser.bank3_accname = data.bank3_accname;
+      currentUser.balance       = data.balance;
       updateAccBalance(data.balance || 0);
     }
 
-    const hasBank = !!(currentUser.bank_accno);
-    document.getElementById('with-no-bank').style.display  = hasBank ? 'none' : 'block';
-    document.getElementById('with-has-bank').style.display = hasBank ? 'block' : 'none';
+    const hasBank1 = !!(currentUser.bank_accno);
+    const hasBank2 = !!(currentUser.bank2_accno);
+    const hasBank3 = !!(currentUser.bank3_accno);
+    const hasAnyBank = hasBank1 || hasBank2 || hasBank3;
 
-    if (hasBank) {
-      document.getElementById('with-display-bank').textContent    = currentUser.bank_name    || '—';
-      document.getElementById('with-display-accno').textContent   = currentUser.bank_accno   || '—';
-      document.getElementById('with-display-accname').textContent = currentUser.bank_accname || '—';
+    document.getElementById('with-no-bank').style.display  = hasAnyBank ? 'none'  : 'block';
+    document.getElementById('with-has-bank').style.display = hasAnyBank ? 'block' : 'none';
+
+    if (hasAnyBank) {
+      // ── บัญชีที่ 1 ──
+      if (hasBank1) {
+        document.getElementById('with-display-bank').textContent    = currentUser.bank_name    || '—';
+        document.getElementById('with-display-accno').textContent   = currentUser.bank_accno   || '—';
+        document.getElementById('with-display-accname').textContent = currentUser.bank_accname || '—';
+        document.getElementById('btn-add-bank2') && (document.getElementById('btn-add-bank2').style.display = 'none');
+      }
+
+      // ── บัญชีที่ 2 ──
+      if (hasBank2) {
+        const c2 = document.getElementById('bank-card-2-content');
+        if (c2) c2.innerHTML = `
+          <div style="font-family:'Kanit',sans-serif;font-size:11px;color:rgba(240,255,232,0.4);margin-bottom:2px;">บัญชีที่ 2</div>
+          <div style="font-family:'Kanit',sans-serif;font-weight:700;font-size:13px;color:var(--cream)">${currentUser.bank2_name||'—'}</div>
+          <div style="font-family:'Kanit',sans-serif;font-size:12px;color:var(--gold);margin-top:1px">${currentUser.bank2_accno||'—'}</div>
+          <div style="font-size:11px;color:rgba(240,255,232,0.5);margin-top:1px">${currentUser.bank2_accname||'—'}</div>`;
+        const btn2 = document.getElementById('btn-add-bank2');
+        if (btn2) btn2.style.display = 'none';
+      } else {
+        const btn2 = document.getElementById('btn-add-bank2');
+        if (btn2) btn2.style.display = 'block';
+      }
+
+      // ── บัญชีที่ 3 ──
+      if (hasBank3) {
+        const c3 = document.getElementById('bank-card-3-content');
+        if (c3) c3.innerHTML = `
+          <div style="font-family:'Kanit',sans-serif;font-size:11px;color:rgba(240,255,232,0.4);margin-bottom:2px;">บัญชีที่ 3</div>
+          <div style="font-family:'Kanit',sans-serif;font-weight:700;font-size:13px;color:var(--cream)">${currentUser.bank3_name||'—'}</div>
+          <div style="font-family:'Kanit',sans-serif;font-size:12px;color:var(--gold);margin-top:1px">${currentUser.bank3_accno||'—'}</div>
+          <div style="font-size:11px;color:rgba(240,255,232,0.5);margin-top:1px">${currentUser.bank3_accname||'—'}</div>`;
+        const btn3 = document.getElementById('btn-add-bank3');
+        if (btn3) btn3.style.display = 'none';
+      } else {
+        const btn3 = document.getElementById('btn-add-bank3');
+        if (btn3) { btn3.style.display = hasBank2 ? 'block' : 'none'; }
+      }
+
+      // เลือกบัญชีแรกที่มีเป็น default
+      _selectBank(hasBank1 ? 1 : hasBank2 ? 2 : 3);
     }
   }
 
   // ── ผูกบัญชีธนาคารครั้งแรก ──
   window.bindBankAccount = window._real_bindBankAccount = async function bindBankAccount() {
-    // ── FLAG: chg_bank → ต้องติดต่อ Admin เพื่อเปลี่ยน ──
     const _bkflags = currentUser?.flags || [];
     if (_bkflags.includes('chg_bank')) {
-      showFEToast('⚠️ บัญชีธนาคารของคุณต้องได้รับการยืนยันจาก Admin ก่อนครับ — กรุณาติดต่อ Admin');
+      showFEToast('⚠️ บัญชีธนาคารของคุณต้องได้รับการยืนยันจาก Admin ก่อนครับ');
       return;
     }
     const bankName  = document.getElementById('bind-bank-name').value;
@@ -8146,7 +8256,6 @@ setInterval(() => {
       showFEToast('⚠️ เลขบัญชีไม่ถูกต้อง (ตัวเลข 10-15 หลัก)'); return;
     }
 
-    // เช็คเลขบัญชีซ้ำ
     const { data: exist } = await sb.from('members')
       .select('nick').eq('bank_accno', accNo).neq('nick', currentUser.nick).maybeSingle();
     if (exist) {
@@ -8164,9 +8273,8 @@ setInterval(() => {
     currentUser.bank_accname = accName;
     _safeStorage.setItem('bw_user', JSON.stringify(currentUser));
 
-    showFEToast('✅ ผูกบัญชีธนาคารสำเร็จแล้วครับ!');
+    showFEToast('✅ เพิ่มบัญชีธนาคารสำเร็จแล้วครับ!');
     loadWithdrawPanel();
-    loadWithHistory();
   }
 
   // ── ถอนเงิน (ใช้บัญชีที่ผูกไว้) ──
@@ -8174,47 +8282,49 @@ setInterval(() => {
     const amount  = parseInt(document.getElementById('with-amount').value);
     const balance = currentUser?.balance || 0;
 
-    if (!currentUser) { alert('กรุณา Login ก่อนครับ'); return; }
-    // ── FLAG CHECK ──
+    if (!currentUser) { showFEToast('กรุณา Login ก่อนครับ'); return; }
     const flags = currentUser.flags || [];
     if (flags.includes('no_withdraw') || flags.includes('blacklist')) {
       showFEToast('🚫 บัญชีของคุณถูกระงับสิทธิ์การถอนเงินครับ — กรุณาติดต่อ Admin');
       return;
     }
-    if (!currentUser.bank_accno) { showFEToast('⚠️ กรุณาผูกบัญชีธนาคารก่อนครับ'); return; }
+
+    // ── ใช้บัญชีที่เลือก ──
+    const selBank = _getSelectedBank();
+    if (!selBank.accno) {
+      showFEToast('⚠️ กรุณาเพิ่มและเลือกบัญชีธนาคารก่อนครับ'); return;
+    }
+
     const wMin = _txLimits.withMin || 100;
     const wMax = _txLimits.withMax || 0;
-    if (!amount || amount < wMin) { showFEToast(`⚠️ จำนวนเงินขั้นต่ำสำหรับถอนเงินคือ ${wMin.toLocaleString()} ₭ ครับ`); return; }
-    if (wMax && amount > wMax) { showFEToast(`⚠️ จำนวนเงินสูงสุดสำหรับถอนเงินคือ ${wMax.toLocaleString()} ₭ ครับ`); return; }
-    if (amount > balance) { showFEToast(`❌ ยอดเงินไม่เพียงพอครับ (คงเหลือ: ${balance.toLocaleString()} ₭)`); return; }
+    if (!amount || amount < wMin) { showFEToast(`⚠️ จำนวนเงินขั้นต่ำคือ ${wMin.toLocaleString()} ₭`); return; }
+    if (wMax && amount > wMax)    { showFEToast(`⚠️ จำนวนเงินสูงสุดคือ ${wMax.toLocaleString()} ₭`); return; }
+    if (amount > balance)         { showFEToast(`❌ ยอดเงินไม่เพียงพอ (คงเหลือ: ${balance.toLocaleString()} ₭)`); return; }
 
     const txn  = genTxnFE(9);
     const nick = currentUser.nick;
-
-    // หักยอดเงินทันที
     const newBalance = balance - amount;
+
     const { error: balErr } = await sb.from('members')
       .update({ balance: newBalance }).eq('nick', nick);
     if (balErr) { showFEToast('❌ เกิดข้อผิดพลาด: ' + balErr.message); return; }
     updateAccBalance(newBalance);
 
-    // บันทึกคำขอถอนเงิน (ใช้บัญชีที่ผูกไว้)
     const { error: withErr } = await sb.from('withdrawals').insert({
       nick, amount, txn, status: 'pending',
-      bank:     currentUser.bank_name,
-      acc_no:   currentUser.bank_accno,
-      acc_name: currentUser.bank_accname,
+      bank:     selBank.name,
+      acc_no:   selBank.accno,
+      acc_name: selBank.accname,
     });
 
     if (withErr) {
-      // คืนเงินถ้า insert ล้มเหลว
       await sb.from('members').update({ balance }).eq('nick', nick);
       updateAccBalance(balance);
       showFEToast('❌ เกิดข้อผิดพลาด: ' + withErr.message); return;
     }
 
     document.getElementById('with-amount').value = '';
-    showFEToast(`✅ ส่งคำขอถอนเงิน ${amount.toLocaleString()} ₭ แล้วครับ! รอ Admin ดำเนินการ`);
+    showFEToast(`✅ ส่งคำขอถอน ${amount.toLocaleString()} ₭ ไปที่ ${selBank.name} แล้วครับ!`);
     loadWithHistory();
   }
   // ── loadWithHistory ──
@@ -9540,3 +9650,89 @@ document.addEventListener('DOMContentLoaded', () => {
 
 </body>
 </html>
+  // ── track selected bank slot (1/2/3) ──
+  let _selectedBankSlot = 1;
+
+  function _selectBank(slot) {
+    _selectedBankSlot = slot;
+    [1,2,3].forEach(function(n) {
+      const card  = document.getElementById('bank-card-'+n);
+      const radio = document.getElementById('bank-radio-'+n);
+      const isMe  = (n === slot);
+      if (card) {
+        card.style.borderColor = isMe ? 'rgba(39,148,63,0.7)' : 'rgba(255,255,255,0.1)';
+        card.style.background  = isMe ? 'rgba(39,148,63,0.12)' : 'rgba(255,255,255,0.04)';
+      }
+      if (radio) {
+        radio.style.background    = isMe ? '#27943F' : 'transparent';
+        radio.style.borderColor   = isMe ? '#27943F' : 'rgba(255,255,255,0.2)';
+        radio.innerHTML           = isMe ? '<div style="width:8px;height:8px;border-radius:50%;background:#fff;"></div>' : '';
+      }
+    });
+  }
+
+  function _getSelectedBank() {
+    const s = _selectedBankSlot;
+    if (s === 1) return { name: currentUser.bank_name||'', accno: currentUser.bank_accno||'', accname: currentUser.bank_accname||'' };
+    if (s === 2) return { name: currentUser.bank2_name||'', accno: currentUser.bank2_accno||'', accname: currentUser.bank2_accname||'' };
+    if (s === 3) return { name: currentUser.bank3_name||'', accno: currentUser.bank3_accno||'', accname: currentUser.bank3_accname||'' };
+    return { name:'', accno:'', accname:'' };
+  }
+
+  let _addingBankSlot = 2;
+  function _showAddBankForm(slot) {
+    _addingBankSlot = slot;
+    const form = document.getElementById('add-bank-inline-form');
+    const title = document.getElementById('add-bank-form-title');
+    if (form) form.style.display = 'block';
+    if (title) title.textContent = '➕ เพิ่มบัญชีที่ ' + slot;
+    // clear inputs
+    ['add-bank-name-new','add-bank-accno-new','add-bank-accname-new'].forEach(function(id){
+      const el = document.getElementById(id);
+      if (el) el.value = '';
+    });
+    // scroll into view
+    setTimeout(function(){ form && form.scrollIntoView({behavior:'smooth',block:'center'}); }, 100);
+  }
+
+  function _hideAddBankForm() {
+    const form = document.getElementById('add-bank-inline-form');
+    if (form) form.style.display = 'none';
+  }
+
+  async function _saveNewBank() {
+    const slot    = _addingBankSlot;
+    const bname   = document.getElementById('add-bank-name-new')?.value || '';
+    const baccno  = (document.getElementById('add-bank-accno-new')?.value || '').trim().replace(/-/g,'');
+    const baccname= (document.getElementById('add-bank-accname-new')?.value || '').trim();
+
+    if (!bname)   { showFEToast('⚠️ กรุณาเลือกธนาคารครับ'); return; }
+    if (!baccno)  { showFEToast('⚠️ กรุณากรอกเลขบัญชีครับ'); return; }
+    if (!baccname){ showFEToast('⚠️ กรุณากรอกชื่อเจ้าของบัญชีครับ'); return; }
+    if (!/^[0-9]{10,15}$/.test(baccno)) {
+      showFEToast('⚠️ เลขบัญชีไม่ถูกต้อง (10-15 หลัก)'); return;
+    }
+
+    // ตรวจเลขบัญชีซ้ำ
+    const { data: exist } = await sb.from('members')
+      .select('nick').eq('bank_accno', baccno).neq('nick', currentUser.nick).maybeSingle();
+    if (exist) { showFEToast('❌ เลขบัญชีนี้ใช้งานอยู่แล้วในระบบครับ'); return; }
+
+    // กำหนด field ตาม slot
+    const updates = {};
+    if (slot === 2) { updates.bank2_name = bname; updates.bank2_accno = baccno; updates.bank2_accname = baccname; }
+    if (slot === 3) { updates.bank3_name = bname; updates.bank3_accno = baccno; updates.bank3_accname = baccname; }
+
+    const { error } = await sb.from('members').update(updates).eq('nick', currentUser.nick);
+    if (error) { showFEToast('❌ เกิดข้อผิดพลาด: ' + error.message); return; }
+
+    // อัพ currentUser
+    Object.assign(currentUser, updates);
+    _safeStorage.setItem('bw_user', JSON.stringify(currentUser));
+
+    _hideAddBankForm();
+    showFEToast('✅ เพิ่มบัญชีที่ ' + slot + ' สำเร็จแล้วครับ!');
+    loadWithdrawPanel();
+  }
+
+
