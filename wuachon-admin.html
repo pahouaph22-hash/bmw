@@ -2067,6 +2067,8 @@ input, textarea, select, button {
           ✅ <strong>RLS เปิดใช้งานแล้ว</strong> — table staff และ staff_logs ได้รับการป้องกันแล้วครับ
         </div>
       </div>
+<div class="card" style="border-left:4px solid #f59e0b;margin-top:12px;"><div class="card-title">🔧 Schema Migration</div><div style="font-size:12px;color:#888;margin-bottom:10px;">เพิ่มคอลัมน์ reject_reason, approved_at, approved_by ในตาราง deposits/withdrawals (ถ้ายังไม่มี)</div><button class="save-btn" onclick="runSchemaMigration()" style="background:linear-gradient(135deg,#f59e0b,#d97706);">⚡ Run Migration</button></div>
+
 
 
 
@@ -5192,14 +5194,130 @@ function _aoNext(el,n){el.classList.toggle('filled',el.value!=='');if(el.value&&
 function _aoKey(e,i){if(e.key==='Backspace'&&!e.target.value&&i>0)document.getElementById('ao-'+(i-1))?.focus();else if(e.key==='Enter')_submitActionOTP();else if(!/[0-9]/.test(e.key)&&!['Backspace','Tab','ArrowLeft','ArrowRight'].includes(e.key))e.preventDefault();}
 
 // ── DEPOSITS / WITHDRAWALS (OTP-gated) ──
-function approveDeposit(id,nick,amount){_approveDepositReal(id,nick,amount);}
-function rejectDeposit(id,nick){_rejectDepositReal(id,nick);}
-async function _approveDepositReal(id,nick,amount){if(!await checkFlagBeforeDeposit(nick))return;try{const{error:e1}=await sb.from('deposits').update({status:'approved',approved_at:new Date().toISOString(),approved_by:_adminNick()}).eq('id',id);if(e1)throw e1;const mem=allMembers.find(m=>m.nick===nick);await sb.from('members').update({balance:(mem?.balance||0)+Number(amount)}).eq('nick',nick);await sb.from('staff_logs').insert({staff_username:_adminNick(),action:'approve_deposit',detail:'อนุมัติเติมเงิน '+Number(amount).toLocaleString()+' ₭ ให้ "'+nick+'" โดย '+_adminNick()}).select().maybeSingle();showToast('✅ อนุมัติ '+Number(amount).toLocaleString()+' ₭ ให้ "'+nick+'" (2FA ✓)');await loadDeposits();loadOverview();loadMembers();}catch(err){showToast('❌ '+err.message,'error');}}
-async function _rejectDepositReal(id,nick){const r=prompt('เหตุผล:');if(r===null)return;try{await sb.from('deposits').update({status:'rejected',reject_reason:r,approved_by:_adminNick()}).eq('id',id);await sb.from('staff_logs').insert({staff_username:_adminNick(),action:'reject_deposit',detail:'ปฏิเสธเติมเงิน "'+nick+'" โดย '+_adminNick()}).select().maybeSingle();showToast('ปฏิเสธ "'+nick+'" (2FA ✓)');await loadDeposits();loadOverview();}catch(err){showToast('❌ '+err.message,'error');}}
-function approveWithdraw(id,nick,amount,bank,accNo){_approveWithdrawReal(id,nick,amount,bank,accNo);}
-function rejectWithdraw(id,nick,amount){_rejectWithdrawReal(id,nick,amount);}
-async function _approveWithdrawReal(id,nick,amount,bank,accNo){if(!await checkFlagBeforeWithdraw(nick))return;try{await sb.from('withdrawals').update({status:'approved',approved_at:new Date().toISOString(),approved_by:_adminNick()}).eq('id',id);const mem=allMembers.find(m=>m.nick===nick);await sb.from('members').update({balance:Math.max(0,(mem?.balance||0)-Number(amount))}).eq('nick',nick);await sb.from('staff_logs').insert({staff_username:_adminNick(),action:'approve_withdraw',detail:'โอนเงิน '+Number(amount).toLocaleString()+' ₭ ให้ "'+nick+'" โดย '+_adminNick()}).select().maybeSingle();showToast('✅ โอน '+Number(amount).toLocaleString()+' ₭ (2FA ✓)');await loadWithdrawals();loadOverview();loadMembers();}catch(err){showToast('❌ '+err.message,'error');}}
-async function _rejectWithdrawReal(id,nick,amount){const r=prompt('เหตุผล:');if(r===null)return;try{await sb.from('withdrawals').update({status:'rejected',reject_reason:r,approved_by:_adminNick()}).eq('id',id);const mem=allMembers.find(m=>m.nick===nick);if(mem)await sb.from('members').update({balance:(mem.balance||0)+Number(amount)}).eq('nick',nick);await sb.from('staff_logs').insert({staff_username:_adminNick(),action:'reject_withdraw',detail:'ปฏิเสธถอนเงิน "'+nick+'" โดย '+_adminNick()}).select().maybeSingle();showToast('ปฏิเสธ + คืน balance (2FA ✓)');await loadWithdrawals();loadOverview();loadMembers();}catch(err){showToast('❌ '+err.message,'error');}}
+async function approveDeposit(id,nick,amount){_approveDepositReal(id,nick,amount);}
+async function rejectDeposit(id,nick){await _rejectDepositReal(id,nick);}
+async function _approveDepositReal(id,nick,amount){
+  if(!await checkFlagBeforeDeposit(nick))return;
+  let success=false;
+  try{
+    const{error:e1}=await sb.from('deposits').update({
+      status:'approved',
+      approved_at:new Date().toISOString(),
+      approved_by:_adminNick()
+    }).eq('id',id);
+    if(e1)throw e1;
+    const mem=allMembers.find(m=>m.nick===nick);
+    const{error:e2}=await sb.from('members').update({
+      balance:(mem?.balance||0)+Number(amount)
+    }).eq('nick',nick);
+    if(e2)throw e2;
+    success=true;
+    showToast('✅ อนุมัติ '+Number(amount).toLocaleString()+' ₭ ให้ "'+nick+'"');
+  }catch(err){
+    showToast('❌ '+err.message,'error');
+  }finally{
+    // รีเฟรชตารางเสมอ ไม่ว่าจะสำเร็จหรือไม่
+    try{await loadDeposits();}catch(_){}
+    try{loadOverview();}catch(_){}
+    try{loadMembers();}catch(_){}
+  }
+  // Log แยกต่างหาก (ไม่ block main flow)
+  if(success){
+    try{await sb.from('staff_logs').insert({
+      staff_username:_adminNick(),
+      action:'approve_deposit',
+      detail:'อนุมัติเติมเงิน '+Number(amount).toLocaleString()+' ₭ ให้ "'+nick+'" โดย '+_adminNick(),
+    });}catch(_){}
+  }
+}
+async function _rejectDepositReal(id,nick){
+  const r=prompt('เหตุผลการปฏิเสธ:');
+  if(r===null)return;
+  let success=false;
+  try{
+    const{error:e1}=await sb.from('deposits').update({
+      status:'rejected',
+      approved_by:_adminNick()
+    }).eq('id',id);
+    if(e1)throw e1;
+    success=true;
+    showToast('❌ ปฏิเสธรายการของ "'+nick+'" แล้ว');
+  }catch(err){
+    showToast('❌ '+err.message,'error');
+  }finally{
+    try{await loadDeposits();}catch(_){}
+    try{loadOverview();}catch(_){}
+  }
+  if(success){
+    try{await sb.from('staff_logs').insert({
+      staff_username:_adminNick(),
+      action:'reject_deposit',
+      detail:'ปฏิเสธเติมเงิน "'+nick+'" เหตุผล: '+r+' | โดย '+_adminNick(),
+    });}catch(_){}
+  }
+}
+async function approveWithdraw(id,nick,amount,bank,accNo){_approveWithdrawReal(id,nick,amount,bank,accNo);}
+async function rejectWithdraw(id,nick,amount){await _rejectWithdrawReal(id,nick,amount);}
+async function _approveWithdrawReal(id,nick,amount,bank,accNo){
+  let success=false;
+  try{
+    const{error:e1}=await sb.from('withdrawals').update({
+      status:'approved',
+      approved_at:new Date().toISOString(),
+      approved_by:_adminNick()
+    }).eq('id',id);
+    if(e1)throw e1;
+    success=true;
+    showToast('✅ อนุมัติถอนเงิน '+Number(amount).toLocaleString()+' ₭ ให้ "'+nick+'"');
+  }catch(err){
+    showToast('❌ '+err.message,'error');
+  }finally{
+    try{await loadWithdrawals();}catch(_){}
+    try{loadOverview();}catch(_){}
+    try{loadMembers();}catch(_){}
+  }
+  if(success){
+    try{await sb.from('staff_logs').insert({
+      staff_username:_adminNick(),
+      action:'approve_withdraw',
+      detail:'อนุมัติถอนเงิน '+Number(amount).toLocaleString()+' ₭ ให้ "'+nick+'" โดย '+_adminNick(),
+    });}catch(_){}
+  }
+}
+async function _rejectWithdrawReal(id,nick,amount){
+  const r=prompt('เหตุผลการปฏิเสธ:');
+  if(r===null)return;
+  let success=false;
+  try{
+    const{error:e1}=await sb.from('withdrawals').update({
+      status:'rejected',
+      approved_by:_adminNick()
+    }).eq('id',id);
+    if(e1)throw e1;
+    // คืน balance
+    const mem=allMembers.find(m=>m.nick===nick);
+    if(mem){
+      await sb.from('members').update({
+        balance:(mem.balance||0)+Number(amount)
+      }).eq('nick',nick);
+    }
+    success=true;
+    showToast('❌ ปฏิเสธถอนเงิน + คืน balance ให้ "'+nick+'" แล้ว');
+  }catch(err){
+    showToast('❌ '+err.message,'error');
+  }finally{
+    try{await loadWithdrawals();}catch(_){}
+    try{loadOverview();}catch(_){}
+    try{loadMembers();}catch(_){}
+  }
+  if(success){
+    try{await sb.from('staff_logs').insert({
+      staff_username:_adminNick(),
+      action:'reject_withdraw',
+      detail:'ปฏิเสธถอนเงิน "'+nick+'" เหตุผล: '+r+' | โดย '+_adminNick(),
+    });}catch(_){}
+  }
+}
 
 // ── DEPOSITS core ──
 async function loadDeposits(){const res=await sb.from('deposits').select('*').order('created_at',{ascending:false});allDeposits=res.data||[];const sc=(id,n)=>{const e=document.getElementById(id);if(e)e.textContent=n?'('+n+')':'';}; sc('dep-pending-count',allDeposits.filter(d=>d.status==='pending').length);sc('dep-done-count',allDeposits.filter(d=>d.status==='approved').length);sc('dep-reject-count',allDeposits.filter(d=>d.status==='rejected').length);filterDeposits();filterDepDone();filterDepReject();}
@@ -5218,7 +5336,7 @@ function filterDeposits(){
   }
   var html2=rows.map(function(d){
     var a=Number(d.amount||0);
-    var slip=d.slip_url?('<a href="'+d.slip_url+'" target="_blank" style="color:#3b82f6">🧾 ดู</a>'):'—';
+    var slip=d.slip_url?('<a href="'+d.slip_url+'" target="_blank" style="color:#3b82f6;font-weight:700;">🧾 สลิป</a>'):'—';
     var approver=d.approved_by?('<span style="background:#f0fdf4;color:#15803d;padding:2px 8px;border-radius:8px;font-size:11px;font-weight:700">👤 '+d.approved_by+'</span>'):'<span style="color:#d1d5db;font-size:11px">—</span>';
     return[
       '<tr>',
@@ -6408,6 +6526,27 @@ function clearHeroBull(){} function clearLogoUpload(){}
 function setDateSection2(s){setDateSection(s);} function clearDateSection2(s){clearDateSection(s);} function setChartRange(p){switchChartPeriod(p);}
 function showMemberDetail(row){}
 
+
+async function runSchemaMigration(){
+  if(!confirm('จะเพิ่มคอลัมน์ที่ขาดหายในตาราง deposits และ withdrawals\nดำเนินการต่อ?'))return;
+  const sqls=[
+    "ALTER TABLE public.deposits ADD COLUMN IF NOT EXISTS reject_reason text",
+    "ALTER TABLE public.deposits ADD COLUMN IF NOT EXISTS approved_at timestamptz",
+    "ALTER TABLE public.deposits ADD COLUMN IF NOT EXISTS approved_by text",
+    "ALTER TABLE public.withdrawals ADD COLUMN IF NOT EXISTS reject_reason text",
+    "ALTER TABLE public.withdrawals ADD COLUMN IF NOT EXISTS approved_at timestamptz",
+    "ALTER TABLE public.withdrawals ADD COLUMN IF NOT EXISTS approved_by text",
+  ];
+  let ok=0,fail=0;
+  for(const sql of sqls){
+    try{
+      const{error}=await sb.rpc('exec_sql',{query:sql});
+      if(error){fail++;console.warn('Migration warn:',sql,error.message);}
+      else ok++;
+    }catch(e){fail++;console.warn('Migration err:',e.message);}
+  }
+  showToast(ok+' คอลัมน์เพิ่มสำเร็จ'+(fail?' | '+fail+' อาจมีแล้ว':'✅'),'info');
+}
 </script>
 </body>
 </html>
