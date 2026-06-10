@@ -1959,19 +1959,48 @@ input, textarea, select, button {
 
           <!-- ฟอร์มเพิ่มบัญชีใหม่ -->
           <div style="background:#fafaf8;border:1px solid #e5e5e0;border-radius:10px;padding:16px;">
-            <div style="font-family:'Phetsarath','Phetsarath','Noto Sans Lao','Kanit',sans-serif;font-weight:700;font-size:13px;color:#1a1a1a;margin-bottom:12px;">➕ เพิ่มบัญชีใหม่</div>
+            <div style="font-family:'Kanit',sans-serif;font-weight:700;font-size:13px;color:#1a1a1a;margin-bottom:12px;">➕ เพิ่มบัญชีใหม่</div>
             <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px;">
-              <div class="fg"><label>ธนาคาร / ชื่อช่องทาง</label><input id="new-bank-name" placeholder="เช่น BCEL, KBank, PromptPay..."></div>
+              <div class="fg"><label>ธนาคาร / ชื่อช่องทาง</label><input id="new-bank-name" placeholder="เช่น BCEL, LDB, PromptPay..."></div>
               <div class="fg"><label>เลขบัญชี / เบอร์พร้อมเพย์</label><input id="new-bank-accno" placeholder="XXX-X-XXXXX-X"></div>
               <div class="fg"><label>ชื่อบัญชี</label><input id="new-bank-accname" placeholder="ชื่อเจ้าของบัญชี"></div>
-              <div class="fg"><label>หมายเหตุ (ไม่บังคับ)</label><input id="new-bank-note" placeholder="เช่น สำรอง, หลัก"></div>
+              <div class="fg"><label>หมายเหตุ (ไม่บังคับ)</label><input id="new-bank-note" placeholder="เช่น บัญชีหลัก, สำรอง"></div>
             </div>
-            <div style="display:flex;gap:8px;align-items:center;">
+
+            <!-- ── QR Code ── -->
+            <div style="background:#fff;border:1px solid #e5e7eb;border-radius:10px;padding:14px;margin-bottom:12px;">
+              <div style="font-family:'Kanit',sans-serif;font-weight:700;font-size:12px;color:#374151;margin-bottom:10px;">📷 QR Code สำหรับโอนเงิน</div>
+              <div style="display:flex;gap:12px;align-items:flex-start;">
+                <!-- Preview -->
+                <div id="new-bank-qr-preview-wrap" style="width:80px;height:80px;border:1.5px dashed #d1d5db;border-radius:8px;display:flex;align-items:center;justify-content:center;flex-shrink:0;overflow:hidden;background:#f9fafb;">
+                  <img id="new-bank-qr-preview-img" style="display:none;width:100%;height:100%;object-fit:contain;">
+                  <span id="new-bank-qr-preview-ph" style="font-size:28px;">📷</span>
+                </div>
+                <div style="flex:1;">
+                  <!-- URL input -->
+                  <div class="fg" style="margin-bottom:8px;">
+                    <label style="font-size:11px;">ลิงก์รูป QR Code (URL)</label>
+                    <input id="new-bank-qr-url" type="url" placeholder="https://..." oninput="_previewQR(this.value,'new-bank-qr-preview-img','new-bank-qr-preview-ph')"
+                      style="width:100%;padding:7px 10px;border:1px solid #e5e7eb;border-radius:7px;font-size:12px;font-family:'Kanit',sans-serif;box-sizing:border-box;">
+                  </div>
+                  <!-- Upload file -->
+                  <div style="display:flex;align-items:center;gap:8px;">
+                    <label style="font-size:11px;color:#6b7280;cursor:pointer;display:flex;align-items:center;gap:5px;border:1px solid #e5e7eb;padding:5px 12px;border-radius:7px;background:#fff;font-family:'Kanit',sans-serif;font-weight:700;">
+                      📁 อัปโหลดไฟล์
+                      <input type="file" accept="image/*" style="display:none;" onchange="_uploadQRFile(this,'new-bank-qr-url','new-bank-qr-preview-img','new-bank-qr-preview-ph')">
+                    </label>
+                    <span style="font-size:11px;color:#9ca3af;">หรือวาง URL ด้านบน</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
               <label style="display:flex;align-items:center;gap:6px;font-size:13px;cursor:pointer;">
                 <input type="checkbox" id="new-bank-active" checked>
-                <span style="font-family:'Phetsarath','Phetsarath','Noto Sans Lao','Kanit',sans-serif;font-weight:700;color:#16a34a;">เปิดใช้งานทันที</span>
+                <span style="font-family:'Kanit',sans-serif;font-weight:700;color:#16a34a;">เปิดใช้งานทันที</span>
               </label>
-              <button class="save-btn" onclick="addBankAccount()" style="flex:1;margin:0;padding:10px;">💾 เพิ่มบัญชีนี้</button>
+              <button class="save-btn" onclick="addBankAccount()" style="flex:1;margin:0;padding:10px;">🔐 เพิ่มบัญชีนี้ (ต้องยืนยัน 2FA)</button>
             </div>
           </div>
         </div>
@@ -6209,7 +6238,134 @@ function switchActSec(sec){document.querySelectorAll('#panel-activity .match-sec
 function sendActivity(){showToast('กำลังส่ง...');} function loadActivityLogs(){loadActivityPanel();}
 function switchVerdictSport(s){} function switchVerdictFootballSec(s){} function addFootballMatch(){showToast('กำลังพัฒนา');} function switchAddSport(s){} function resetVerdict(){loadVerdict();}
 function saveTxLimits(){saveSettings('fee');} function loadTxLimits(){loadSettings();} function saveRefRateLevels(){saveSettings('referral');} function previewRefExample(){}
-function addBankAccount(){showToast('กำลังพัฒนา');} function loadBankAccounts(){}
+async function addBankAccount(){
+  const name   =(document.getElementById('new-bank-name')?.value||'').trim();
+  const accno  =(document.getElementById('new-bank-accno')?.value||'').trim();
+  const accname=(document.getElementById('new-bank-accname')?.value||'').trim();
+  const note   =(document.getElementById('new-bank-note')?.value||'').trim();
+  const active = document.getElementById('new-bank-active')?.checked!==false;
+  const qr_url =(document.getElementById('new-bank-qr-url')?.value||'').trim();
+
+  if(!name)  {showToast('⚠️ กรุณากรอกชื่อธนาคาร/ช่องทางครับ','error');return;}
+  if(!accno) {showToast('⚠️ กรุณากรอกเลขบัญชีครับ','error');return;}
+  if(!accname){showToast('⚠️ กรุณากรอกชื่อบัญชีครับ','error');return;}
+
+  // ── บังคับยืนยัน 2FA ก่อนบันทึก ──
+  _requireActionOTP('เพิ่มบัญชีรับเงิน: '+name+' ('+accno+')', async function(){
+    try{
+      const{data}=await sb.from('settings').select('value').eq('key','bankAccounts').maybeSingle();
+      const banks=data?.value?.accounts||[];
+      banks.push({name,accno,accname,note,active,qr_url,created_at:new Date().toISOString()});
+      await sb.from('settings').upsert({key:'bankAccounts',value:{accounts:banks}});
+
+      // Log
+      try{await sb.from('staff_logs').insert({
+        staff_username:_adminNick(),
+        action:'bank_add',
+        detail:'เพิ่มบัญชี: '+name+' '+accno+' | โดย: '+_adminNick(),
+      });}catch(_){}
+
+      // Reset form
+      ['new-bank-name','new-bank-accno','new-bank-accname','new-bank-note','new-bank-qr-url'].forEach(function(id){
+        const el=document.getElementById(id);if(el)el.value='';
+      });
+      const img=document.getElementById('new-bank-qr-preview-img');
+      const ph=document.getElementById('new-bank-qr-preview-ph');
+      if(img){img.style.display='none';}
+      if(ph){ph.style.display='';}
+      const chk=document.getElementById('new-bank-active');
+      if(chk)chk.checked=true;
+
+      showToast('✅ เพิ่มบัญชี '+name+' สำเร็จแล้วครับ');
+      _renderBankList(banks);
+    }catch(e){showToast('❌ บันทึกไม่ได้: '+e.message,'error');}
+  });
+} async function loadBankAccounts(){
+  try{
+    const{data}=await sb.from('settings').select('value').eq('key','bankAccounts').maybeSingle();
+    const banks=(data?.value?.accounts||[]);
+    _renderBankList(banks);
+  }catch(e){showToast('โหลดบัญชีไม่ได้: '+e.message,'error');}
+}
+
+function _renderBankList(banks){
+  const list=document.getElementById('bank-accounts-list');
+  if(!list)return;
+  if(!banks.length){list.innerHTML='<div style="text-align:center;padding:20px;color:#aaa;font-family:Kanit,sans-serif;font-size:13px;">ยังไม่มีบัญชีครับ</div>';return;}
+  list.innerHTML=banks.map((b,idx)=>{
+    const activeColor=b.active?'#16a34a':'#9ca3af';
+    const activeTxt=b.active?'✅ เปิด':'⏸ ปิด';
+    return `<div style="background:#fff;border:1px solid #e5e7eb;border-radius:10px;padding:14px;display:flex;align-items:center;gap:12px;">
+      ${b.qr_url?`<img src="${b.qr_url}" style="width:52px;height:52px;object-fit:contain;border-radius:6px;border:1px solid #e5e7eb;" onerror="this.style.display='none'">`:'<div style="width:52px;height:52px;border:1.5px dashed #d1d5db;border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:22px;color:#d1d5db;">📷</div>'}
+      <div style="flex:1;min-width:0;">
+        <div style="font-family:Kanit,sans-serif;font-weight:700;font-size:13px;">${b.name||'—'}</div>
+        <div style="font-size:12px;color:#6b7280;">${b.accno||''} ${b.accname?'· '+b.accname:''}</div>
+        ${b.note?`<div style="font-size:11px;color:#9ca3af;">${b.note}</div>`:''}
+      </div>
+      <div style="display:flex;flex-direction:column;gap:6px;align-items:flex-end;">
+        <span style="font-size:11px;font-weight:700;color:${activeColor};background:${b.active?'#dcfce7':'#f3f4f6'};padding:2px 8px;border-radius:8px;">${activeTxt}</span>
+        <div style="display:flex;gap:6px;">
+          <button onclick="_toggleBank(${idx})" style="font-size:11px;padding:4px 10px;border-radius:6px;border:1px solid #e5e7eb;background:#fff;cursor:pointer;font-family:Kanit,sans-serif;">
+            ${b.active?'⏸ ปิด':'▶️ เปิด'}
+          </button>
+          <button onclick="_deleteBank(${idx})" style="font-size:11px;padding:4px 10px;border-radius:6px;border:1px solid #fca5a5;background:#fff;color:#dc2626;cursor:pointer;font-family:Kanit,sans-serif;">🗑</button>
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+async function _toggleBank(idx){
+  try{
+    const{data}=await sb.from('settings').select('value').eq('key','bankAccounts').maybeSingle();
+    const banks=data?.value?.accounts||[];
+    if(!banks[idx])return;
+    banks[idx].active=!banks[idx].active;
+    await sb.from('settings').upsert({key:'bankAccounts',value:{accounts:banks}});
+    showToast(banks[idx].active?'✅ เปิดบัญชีแล้ว':'⏸ ปิดบัญชีแล้ว');
+    _renderBankList(banks);
+  }catch(e){showToast('แก้ไขไม่ได้: '+e.message,'error');}
+}
+
+async function _deleteBank(idx){
+  if(!confirm('ยืนยันลบบัญชีนี้?'))return;
+  try{
+    const{data}=await sb.from('settings').select('value').eq('key','bankAccounts').maybeSingle();
+    const banks=data?.value?.accounts||[];
+    banks.splice(idx,1);
+    await sb.from('settings').upsert({key:'bankAccounts',value:{accounts:banks}});
+    showToast('🗑 ลบบัญชีแล้ว');
+    _renderBankList(banks);
+  }catch(e){showToast('ลบไม่ได้: '+e.message,'error');}
+}
+
+function _previewQR(url,imgId,phId){
+  const img=document.getElementById(imgId);
+  const ph=document.getElementById(phId);
+  if(!img||!ph)return;
+  if(url&&url.startsWith('http')){
+    img.src=url;
+    img.style.display='block';
+    if(ph)ph.style.display='none';
+  }else{
+    img.style.display='none';
+    if(ph)ph.style.display='';
+  }
+}
+
+function _uploadQRFile(input,urlInputId,imgId,phId){
+  const file=input.files[0];
+  if(!file)return;
+  if(file.size>3*1024*1024){showToast('⚠️ ไฟล์ใหญ่เกิน 3MB ครับ','error');return;}
+  const reader=new FileReader();
+  reader.onload=function(e){
+    const dataUrl=e.target.result;
+    const urlInput=document.getElementById(urlInputId);
+    if(urlInput)urlInput.value=dataUrl;
+    _previewQR(dataUrl,imgId,phId);
+  };
+  reader.readAsDataURL(file);
+}
 function clearHeroBull(){} function clearLogoUpload(){}
 function setDateSection2(s){setDateSection(s);} function clearDateSection2(s){clearDateSection(s);} function setChartRange(p){switchChartPeriod(p);}
 function showMemberDetail(row){}
