@@ -770,6 +770,8 @@ input, textarea, select, button {
                   <th style="text-align:right;color:#dc2626;">⬇ ถอนสะสม</th>
                   <th style="text-align:right;color:#1d4ed8;">± เติม−ถอน</th>
                   <th style="text-align:right;">สมัครเมื่อ</th>
+                  <th style="text-align:center;color:#dc2626;white-space:nowrap;">🚨 ระงับบัญชี</th>
+                  <th style="text-align:center;color:#d97706;white-space:nowrap;">🔒 ระงับถอน</th>
                   <th>จัดการ</th>
                 </tr>
               </thead>
@@ -2486,92 +2488,94 @@ input, textarea, select, button {
 
                   </div>
               </div>
-              <div class="mo-pane" id="mo-pane-flags" style="display:none;padding:4px 0 16px;">
-
-  <!-- Header -->
-  <div style="padding:16px 20px 12px;border-bottom:1px solid #f3f4f6;margin-bottom:16px;">
+              <div class="mo-pane" id="mo-pane-flags" style="display:none;padding:0 0 16px;">
+  <div style="padding:14px 20px 10px;border-bottom:1px solid #f3f4f6;margin-bottom:12px;">
     <div style="font-family:'Kanit',sans-serif;font-weight:900;font-size:14px;color:#374151;">🏷️ ป้ายกำกับบัญชี</div>
-    <div style="font-size:11px;color:#9ca3af;margin-top:3px;">เลือกป้ายเพื่อกำหนดสิทธิ์ — มีผลทันทีหลังบันทึก</div>
+    <div style="font-size:11px;color:#9ca3af;margin-top:2px;">คลิกที่ป้ายเพื่อเปิด/ปิด กด บันทึก เพื่อมีผลทันที</div>
   </div>
-
-  <div style="padding:0 20px;">
-
-    <!-- Active flags row -->
-    <div id="mo-flags-list" style="display:flex;flex-wrap:wrap;gap:8px;min-height:36px;margin-bottom:20px;padding:10px 14px;background:#f9fafb;border-radius:10px;align-items:center;">
-      <span class="flags-placeholder" style="font-size:12px;color:#9ca3af;font-family:'Kanit',sans-serif;">ยังไม่มีป้ายกำกับ</span>
+  <div style="padding:0 16px 16px;">
+    <div style="font-size:11px;font-weight:700;color:#6b7280;margin-bottom:6px;font-family:'Kanit',sans-serif;">ป้ายที่ติดอยู่:</div>
+    <div id="mo-flags-list" style="display:flex;flex-wrap:wrap;gap:7px;min-height:32px;background:#f9fafb;border-radius:8px;padding:8px 10px;align-items:center;margin-bottom:14px;">
+      <span style="font-size:12px;color:#9ca3af;font-family:'Kanit',sans-serif;">— ยังไม่มีป้ายกำกับ —</span>
     </div>
-
-    <!-- Flag cards grid -->
-    <div id="mo-flag-toggles" style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:20px;">
-      <!-- Rendered by JS -->
+    <div id="mo-flag-toggles" style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:14px;">
+        <div id="flag-card-no_game" onclick="_toggleFlag('no_game')" data-flag-id="no_game"
+             data-bg="#fee2e2" data-color="#dc2626" data-border="#fca5a5"
+             style="border-radius:9px;padding:11px 12px;cursor:pointer;transition:all .15s;user-select:none;background:#fff;border:2px solid #e5e7eb;">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px;">
+            <span style="font-size:12px;font-weight:900;font-family:'Kanit',sans-serif;color:#374151;">🚫 ห้ามเข้าเล่นเกม</span>
+            <span id="flag-chk-no_game" style="width:16px;height:16px;border-radius:50%;flex-shrink:0;display:inline-flex;align-items:center;justify-content:center;font-size:9px;border:2px solid #d1d5db;background:transparent;color:#fff;"></span>
+          </div>
+          <div style="font-size:10px;color:#9ca3af;font-family:'Kanit',sans-serif;margin-bottom:2px;">ห้ามเข้าร่วมการแข่งขันทุกประเภท</div>
+          <div style="font-size:10px;font-weight:700;font-family:'Kanit',sans-serif;color:#d1d5db;">ผล: บล็อกการวางเดิมพัน</div>
+        </div>
+        <div id="flag-card-no_withdraw" onclick="_toggleFlag('no_withdraw')" data-flag-id="no_withdraw"
+             data-bg="#fef3c7" data-color="#d97706" data-border="#fde68a"
+             style="border-radius:9px;padding:11px 12px;cursor:pointer;transition:all .15s;user-select:none;background:#fff;border:2px solid #e5e7eb;">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px;">
+            <span style="font-size:12px;font-weight:900;font-family:'Kanit',sans-serif;color:#374151;">🔒 ห้ามถอนเงิน</span>
+            <span id="flag-chk-no_withdraw" style="width:16px;height:16px;border-radius:50%;flex-shrink:0;display:inline-flex;align-items:center;justify-content:center;font-size:9px;border:2px solid #d1d5db;background:transparent;color:#fff;"></span>
+          </div>
+          <div style="font-size:10px;color:#9ca3af;font-family:'Kanit',sans-serif;margin-bottom:2px;">ไม่สามารถถอนเงินออกจากบัญชีได้</div>
+          <div style="font-size:10px;font-weight:700;font-family:'Kanit',sans-serif;color:#d1d5db;">ผล: บล็อกการถอนเงิน</div>
+        </div>
+        <div id="flag-card-no_deposit" onclick="_toggleFlag('no_deposit')" data-flag-id="no_deposit"
+             data-bg="#fffbeb" data-color="#f59e0b" data-border="#fde68a"
+             style="border-radius:9px;padding:11px 12px;cursor:pointer;transition:all .15s;user-select:none;background:#fff;border:2px solid #e5e7eb;">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px;">
+            <span style="font-size:12px;font-weight:900;font-family:'Kanit',sans-serif;color:#374151;">🔒 ห้ามเติมเงิน</span>
+            <span id="flag-chk-no_deposit" style="width:16px;height:16px;border-radius:50%;flex-shrink:0;display:inline-flex;align-items:center;justify-content:center;font-size:9px;border:2px solid #d1d5db;background:transparent;color:#fff;"></span>
+          </div>
+          <div style="font-size:10px;color:#9ca3af;font-family:'Kanit',sans-serif;margin-bottom:2px;">ไม่สามารถเติมเงินเข้าบัญชีได้</div>
+          <div style="font-size:10px;font-weight:700;font-family:'Kanit',sans-serif;color:#d1d5db;">ผล: บล็อกการเติมเงิน</div>
+        </div>
+        <div id="flag-card-no_chgpass" onclick="_toggleFlag('no_chgpass')" data-flag-id="no_chgpass"
+             data-bg="#ede9fe" data-color="#7c3aed" data-border="#c4b5fd"
+             style="border-radius:9px;padding:11px 12px;cursor:pointer;transition:all .15s;user-select:none;background:#fff;border:2px solid #e5e7eb;">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px;">
+            <span style="font-size:12px;font-weight:900;font-family:'Kanit',sans-serif;color:#374151;">🔑 ห้ามเปลี่ยนรหัสผ่าน</span>
+            <span id="flag-chk-no_chgpass" style="width:16px;height:16px;border-radius:50%;flex-shrink:0;display:inline-flex;align-items:center;justify-content:center;font-size:9px;border:2px solid #d1d5db;background:transparent;color:#fff;"></span>
+          </div>
+          <div style="font-size:10px;color:#9ca3af;font-family:'Kanit',sans-serif;margin-bottom:2px;">ซ่อนปุ่มเปลี่ยนรหัสผ่าน</div>
+          <div style="font-size:10px;font-weight:700;font-family:'Kanit',sans-serif;color:#d1d5db;">ผล: บล็อกเปลี่ยนรหัส</div>
+        </div>
+        <div id="flag-card-blacklist" onclick="_toggleFlag('blacklist')" data-flag-id="blacklist"
+             data-bg="#fef2f2" data-color="#991b1b" data-border="#fecaca"
+             style="border-radius:9px;padding:11px 12px;cursor:pointer;transition:all .15s;user-select:none;background:#fff;border:2px solid #e5e7eb;">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px;">
+            <span style="font-size:12px;font-weight:900;font-family:'Kanit',sans-serif;color:#374151;">⛔ บัญชีดำ</span>
+            <span id="flag-chk-blacklist" style="width:16px;height:16px;border-radius:50%;flex-shrink:0;display:inline-flex;align-items:center;justify-content:center;font-size:9px;border:2px solid #d1d5db;background:transparent;color:#fff;"></span>
+          </div>
+          <div style="font-size:10px;color:#9ca3af;font-family:'Kanit',sans-serif;margin-bottom:2px;">แบนถาวร ห้ามใช้งานทุกอย่าง</div>
+          <div style="font-size:10px;font-weight:700;font-family:'Kanit',sans-serif;color:#d1d5db;">ผล: บล็อกทุกฟังก์ชัน</div>
+        </div>
+        <div id="flag-card-watch" onclick="_toggleFlag('watch')" data-flag-id="watch"
+             data-bg="#fef9c3" data-color="#b45309" data-border="#fde68a"
+             style="border-radius:9px;padding:11px 12px;cursor:pointer;transition:all .15s;user-select:none;background:#fff;border:2px solid #e5e7eb;">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px;">
+            <span style="font-size:12px;font-weight:900;font-family:'Kanit',sans-serif;color:#374151;">👁 บัญชีเฝ้าระวัง</span>
+            <span id="flag-chk-watch" style="width:16px;height:16px;border-radius:50%;flex-shrink:0;display:inline-flex;align-items:center;justify-content:center;font-size:9px;border:2px solid #d1d5db;background:transparent;color:#fff;"></span>
+          </div>
+          <div style="font-size:10px;color:#9ca3af;font-family:'Kanit',sans-serif;margin-bottom:2px;">อยู่ระหว่างการตรวจสอบ</div>
+          <div style="font-size:10px;font-weight:700;font-family:'Kanit',sans-serif;color:#d1d5db;">ผล: แจ้งเตือน admin</div>
+        </div>
+        <div id="flag-card-suspend" onclick="_toggleFlag('suspend')" data-flag-id="suspend"
+             data-bg="#fee2e2" data-color="#dc2626" data-border="#fca5a5"
+             style="border-radius:9px;padding:11px 12px;cursor:pointer;transition:all .15s;user-select:none;background:#fff;border:2px solid #e5e7eb;">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px;">
+            <span style="font-size:12px;font-weight:900;font-family:'Kanit',sans-serif;color:#374151;">🚨 ระงับบัญชี</span>
+            <span id="flag-chk-suspend" style="width:16px;height:16px;border-radius:50%;flex-shrink:0;display:inline-flex;align-items:center;justify-content:center;font-size:9px;border:2px solid #d1d5db;background:transparent;color:#fff;"></span>
+          </div>
+          <div style="font-size:10px;color:#9ca3af;font-family:'Kanit',sans-serif;margin-bottom:2px;">ระงับการใช้งานชั่วคราว</div>
+          <div style="font-size:10px;font-weight:700;font-family:'Kanit',sans-serif;color:#d1d5db;">ผล: บล็อกทุกอย่าง</div>
+        </div>
     </div>
-
-    <!-- Save / Clear buttons -->
     <div style="display:flex;gap:8px;">
-      <button onclick="_saveMemberFlags()"
-        style="flex:1;background:linear-gradient(135deg,#1B6B2F,#27943F);color:#fff;border:none;padding:11px 0;border-radius:9px;font-family:'Kanit',sans-serif;font-weight:700;font-size:13px;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px;">
-        💾 บันทึกป้ายกำกับ
-      </button>
-      <button onclick="_clearAllFlags()"
-        style="background:#fff;color:#dc2626;border:1.5px solid #fca5a5;padding:11px 18px;border-radius:9px;font-family:'Kanit',sans-serif;font-weight:700;font-size:13px;cursor:pointer;">
-        🗑 ล้าง
-      </button>
+      <button onclick="_saveMemberFlags()" style="flex:1;background:linear-gradient(135deg,#1B6B2F,#27943F);color:#fff;border:none;padding:11px;border-radius:8px;font-family:'Kanit',sans-serif;font-weight:700;font-size:13px;cursor:pointer;">💾 บันทึกป้ายกำกับ</button>
+      <button onclick="_clearAllFlags()" style="background:#fff;color:#dc2626;border:1.5px solid #fca5a5;padding:11px 16px;border-radius:8px;font-family:'Kanit',sans-serif;font-weight:700;font-size:13px;cursor:pointer;">🗑 ล้าง</button>
     </div>
-
   </div>
 </div>
-
-                <!-- Active flags display -->
-                <div style="background:#f9fafb;border-radius:10px;padding:12px;margin-bottom:14px;">
-                  <div style="font-size:11px;font-weight:700;color:#6b7280;margin-bottom:8px;font-family:'Kanit',sans-serif;">ป้ายที่ติดอยู่ตอนนี้:</div>
-                  <div id="mo-flags-list" style="display:flex;flex-wrap:wrap;gap:8px;min-height:28px;">
-                    <span style="font-size:12px;color:#9ca3af;font-family:'Kanit',sans-serif;">กำลังโหลด...</span>
-                  </div>
-                </div>
-
-                <!-- Toggle buttons -->
-                <div style="background:#fff;border:1px solid #e5e7eb;border-radius:10px;padding:14px;margin-bottom:14px;">
-                  <div style="font-family:'Kanit',sans-serif;font-weight:700;font-size:12px;color:#374151;margin-bottom:10px;">🔧 คลิกเพื่อเปิด/ปิดป้าย:</div>
-                  <div style="display:flex;flex-wrap:wrap;gap:8px;" id="mo-flag-toggles">
-                    <span style="font-size:12px;color:#9ca3af;">กำลังโหลด...</span>
-                  </div>
-                </div>
-
-                <!-- Action buttons -->
-                <div style="display:flex;gap:8px;flex-wrap:wrap;">
-                  <button onclick="_saveMemberFlags()"
-                    style="background:linear-gradient(135deg,#1B6B2F,#27943F);color:#fff;border:none;padding:10px 24px;border-radius:8px;font-family:'Kanit',sans-serif;font-weight:700;font-size:13px;cursor:pointer;flex:1;">
-                    💾 บันทึกป้ายกำกับ
-                  </button>
-                  <button onclick="_clearAllFlags()"
-                    style="background:#fff;color:#dc2626;border:1.5px solid #fca5a5;padding:10px 20px;border-radius:8px;font-family:'Kanit',sans-serif;font-weight:700;font-size:13px;cursor:pointer;">
-                    🗑 ล้างทั้งหมด
-                  </button>
-                </div>
-              </div>
-
-                <div id="mo-flags-list" style="display:flex;flex-wrap:wrap;gap:10px;margin-bottom:20px;">
-                  <!-- flags จะถูก render ด้วย JS -->
-                </div>
-
-                <div style="background:#f9fafb;border-radius:10px;padding:14px;margin-bottom:12px;">
-                  <div style="font-family:'Kanit',sans-serif;font-weight:700;font-size:12px;color:#374151;margin-bottom:10px;">🔧 จัดการป้ายกำกับ</div>
-                  <div style="display:flex;flex-wrap:wrap;gap:8px;" id="mo-flag-toggles">
-                    <!-- toggle buttons จะถูก render ด้วย JS -->
-                  </div>
-                </div>
-
-                <div style="display:flex;gap:8px;flex-wrap:wrap;">
-                  <button onclick="_saveMemberFlags()" 
-                    style="background:linear-gradient(135deg,#1B6B2F,#27943F);color:#fff;border:none;padding:10px 20px;border-radius:8px;font-family:'Kanit',sans-serif;font-weight:700;font-size:13px;cursor:pointer;">
-                    💾 บันทึกป้ายกำกับ
-                  </button>
-                  <button onclick="_clearAllFlags()"
-                    style="background:#fff;color:#dc2626;border:1px solid #fca5a5;padding:10px 20px;border-radius:8px;font-family:'Kanit',sans-serif;font-weight:700;font-size:13px;cursor:pointer;">
-                    🗑 ล้างทั้งหมด
-                  </button>
-                </div>
-              </div>
             </div>
 
           </div><!-- end tab content -->
@@ -3639,43 +3643,14 @@ var FLAG_DEFS_LEGACY = {
 
 
   var FLAG_DEFS = [
-    {
-      id: 'suspend', label: '🚫 ระงับบัญชี', icon: '🚫',
-      color: '#dc2626', bg: '#fee2e2', border: '#fca5a5',
-      desc: 'ระงับการใช้งานทั้งหมด ไม่สามารถ login หรือทำธุรกรรมได้',
-      effect: 'บล็อกทุกอย่าง',
-    },
-    {
-      id: 'fraud', label: '⚠️ ต้องสงสัย', icon: '⚠️',
-      color: '#b45309', bg: '#fef9c3', border: '#fde68a',
-      desc: 'บัญชีอยู่ระหว่างการตรวจสอบพฤติกรรม',
-      effect: 'แสดง banner เตือน',
-    },
-    {
-      id: 'vip', label: '👑 VIP', icon: '👑',
-      color: '#7c3aed', bg: '#ede9fe', border: '#c4b5fd',
-      desc: 'สมาชิก VIP ได้รับสิทธิพิเศษ',
-      effect: 'สิทธิ์พิเศษ',
-    },
-    {
-      id: 'new', label: '🆕 สมาชิกใหม่', icon: '🆕',
-      color: '#0284c7', bg: '#e0f2fe', border: '#7dd3fc',
-      desc: 'สมาชิกที่เพิ่งสมัครใหม่',
-      effect: 'ไม่มี',
-    },
-    {
-      id: 'bot', label: '🤖 Bot', icon: '🤖',
-      color: '#64748b', bg: '#f1f5f9', border: '#cbd5e1',
-      desc: 'บัญชีที่ตรวจพบพฤติกรรม Bot',
-      effect: 'จำกัดฟีเจอร์',
-    },
-    {
-      id: 'staff', label: '👷 Staff', icon: '👷',
-      color: '#059669', bg: '#d1fae5', border: '#6ee7b7',
-      desc: 'บัญชีพนักงาน ใช้ทดสอบระบบ',
-      effect: 'bypass บางระบบ',
-    },
-  ];
+    { id:'no_game',   label:'🚫 ห้ามเข้าเล่นเกม',    color:'#dc2626', bg:'#fee2e2', border:'#fca5a5', desc:'ห้ามเข้าร่วมการแข่งขันทุกประเภท',       effect:'บล็อกการวางเดิมพัน' },
+    { id:'no_withdraw',label:'🔒 ห้ามถอนเงิน',         color:'#d97706', bg:'#fef3c7', border:'#fde68a', desc:'ไม่สามารถถอนเงินออกจากบัญชีได้',         effect:'บล็อกการถอนเงิน' },
+    { id:'no_deposit', label:'🔒 ห้ามเติมเงิน',         color:'#f59e0b', bg:'#fffbeb', border:'#fde68a', desc:'ไม่สามารถเติมเงินเข้าบัญชีได้',          effect:'บล็อกการเติมเงิน' },
+    { id:'no_chgpass', label:'🔑 ห้ามเปลี่ยนรหัสผ่าน', color:'#7c3aed', bg:'#ede9fe', border:'#c4b5fd', desc:'ไม่สามารถเปลี่ยนรหัสผ่านได้',            effect:'บล็อกการเปลี่ยนรหัส' },
+    { id:'blacklist',  label:'⛔ บัญชีดำ',              color:'#991b1b', bg:'#fef2f2', border:'#fecaca', desc:'บัญชีถูกแบนถาวร ห้ามใช้งานทุกอย่าง',    effect:'บล็อกทุกฟังก์ชัน' },
+    { id:'watch',      label:'👁️ บัญชีเฝ้าระวัง',      color:'#b45309', bg:'#fef9c3', border:'#fde68a', desc:'อยู่ระหว่างการตรวจสอบพฤติกรรม',          effect:'แจ้งเตือนทุก action' },
+    { id:'suspend',    label:'🚨 ระงับบัญชี',           color:'#dc2626', bg:'#fee2e2', border:'#fca5a5', desc:'ระงับการใช้งานชั่วคราว (ทุกฟังก์ชัน)',   effect:'บล็อกทุกอย่างชั่วคราว' },
+];
 
   var _currentMoFlags = [];
 
@@ -4216,6 +4191,32 @@ function filterMembers() {
       </td>
       <!-- สมัครเมื่อ -->
       <td style="padding:10px 12px;text-align:right;font-size:11px;color:#aaa;">${fmtDate(m.created_at)}</td>
+      <!-- ระงับบัญชี toggle -->
+      <td style="padding:10px 12px;text-align:center;">
+        ${(()=>{
+          const isSuspend = (m.flags||[]).includes('suspend')||(m.flags||[]).includes('blacklist');
+          return `<label style="display:inline-flex;flex-direction:column;align-items:center;gap:3px;cursor:pointer;">
+            <input type="checkbox" ${isSuspend?'checked':''} onchange="_quickToggleFlag('${m.nick}','suspend',this.checked)"
+              style="width:16px;height:16px;cursor:pointer;accent-color:#dc2626;">
+            <span style="font-size:9px;font-weight:700;font-family:Kanit,sans-serif;color:${isSuspend?'#dc2626':'#9ca3af'};">
+              ${isSuspend?'ระงับ':'ปกติ'}
+            </span>
+          </label>`;
+        })()}
+      </td>
+      <!-- ระงับถอนเงิน toggle -->
+      <td style="padding:10px 12px;text-align:center;">
+        ${(()=>{
+          const isNoWith = (m.flags||[]).includes('no_withdraw');
+          return `<label style="display:inline-flex;flex-direction:column;align-items:center;gap:3px;cursor:pointer;">
+            <input type="checkbox" ${isNoWith?'checked':''} onchange="_quickToggleFlag('${m.nick}','no_withdraw',this.checked)"
+              style="width:16px;height:16px;cursor:pointer;accent-color:#d97706;">
+            <span style="font-size:9px;font-weight:700;font-family:Kanit,sans-serif;color:${isNoWith?'#d97706':'#9ca3af'};">
+              ${isNoWith?'ระงับ':'ปกติ'}
+            </span>
+          </label>`;
+        })()}
+      </td>
       <!-- จัดการ -->
       <td style="padding:10px 12px;">
         <div style="display:flex;gap:4px;flex-wrap:wrap;">
@@ -6109,9 +6110,12 @@ function switchMoTab(btn,tab){
   }
   // load flags tab
   if(tab==='flags'){
-    var nick3=document.getElementById('mo-nick')?.textContent;
-    var mem3=allMembers.find(function(m){return m.nick===nick3;});
-    _renderFlagsPane(nick3, mem3?.flags||[]);
+    // render AFTER pane is visible
+    setTimeout(function(){
+      var nick3 = document.getElementById('mo-nick') ? document.getElementById('mo-nick').textContent.trim() : '';
+      var mem3  = (allMembers||[]).find(function(m){ return m.nick === nick3; });
+      _renderFlagsPane(nick3, mem3 ? mem3.flags : []);
+    }, 20);
   }
 }
 async function saveMemberNote(){const note=document.getElementById('mo-note-input')?.value||'';const nick=document.getElementById('mo-nick')?.textContent;if(!nick||nick==='—')return;const{error}=await sb.from('members').update({admin_note:note}).eq('nick',nick);if(error){showToast('❌ '+error.message,'error');return;}showToast('💾 บันทึก ✅');await loadMembers();}
@@ -6740,51 +6744,60 @@ async function runSchemaMigration(){
   // ══════════════════════════════════════════
   
   function _renderFlagsPane(nick, flags) {
-    _currentMoFlags = Array.isArray(flags) ? [...flags] : [];
-    var listEl    = document.getElementById('mo-flags-list');
-    var togglesEl = document.getElementById('mo-flag-toggles');
-    if (!listEl || !togglesEl) return;
+    _currentMoFlags = Array.isArray(flags) ? flags.slice() : [];
 
-    // ── Active flags ──
-    if (_currentMoFlags.length) {
-      listEl.innerHTML = _currentMoFlags.map(function(f) {
-        var def = FLAG_DEFS.find(function(d){ return d.id === f; }) ||
-                  { label: f, color: '#374151', bg: '#f3f4f6', border: '#e5e7eb', icon: '🏷️' };
-        return '<span style="background:' + def.bg + ';color:' + def.color + ';border:1.5px solid ' + def.border + ';'
-          + 'padding:4px 12px;border-radius:20px;font-size:12px;font-weight:700;font-family:Kanit,sans-serif;'
-          + 'display:inline-flex;align-items:center;gap:5px;">'
-          + def.label
-          + '<span onclick="_removeFlag(\'' + f + '\')" style="cursor:pointer;font-size:9px;opacity:0.6;'
-          + 'background:' + def.color + ';color:#fff;border-radius:50%;width:14px;height:14px;'
-          + 'display:inline-flex;align-items:center;justify-content:center;margin-left:2px;">✕</span>'
-          + '</span>';
-      }).join('');
-    } else {
-      listEl.innerHTML = '<span style="font-size:12px;color:#9ca3af;font-family:Kanit,sans-serif;">'
-        + '— ยังไม่มีป้ายกำกับ —</span>';
+    // ── Update active flags display ──
+    var listEl = document.getElementById('mo-flags-list');
+    if (listEl) {
+      if (_currentMoFlags.length) {
+        listEl.innerHTML = _currentMoFlags.map(function(f) {
+          var card = document.getElementById('flag-card-' + f);
+          var color  = card ? card.getAttribute('data-color')  : '#374151';
+          var bg     = card ? card.getAttribute('data-bg')     : '#f3f4f6';
+          var border = card ? card.getAttribute('data-border') : '#e5e7eb';
+          var label  = card ? card.querySelector('span').textContent : f;
+          return '<span style="background:' + bg + ';color:' + color + ';border:1.5px solid ' + border + ';'
+            + 'padding:4px 10px;border-radius:20px;font-size:11px;font-weight:700;font-family:Kanit,sans-serif;'
+            + 'display:inline-flex;align-items:center;gap:5px;">'
+            + label
+            + '<span onclick="_removeFlag(\'' + f + '\')" style="cursor:pointer;font-size:9px;'
+            + 'background:' + color + ';color:#fff;border-radius:50%;'
+            + 'width:13px;height:13px;display:inline-flex;align-items:center;justify-content:center;margin-left:2px;">✕</span>'
+            + '</span>';
+        }).join('');
+      } else {
+        listEl.innerHTML = '<span style="font-size:12px;color:#9ca3af;font-family:Kanit,sans-serif;">— ยังไม่มีป้ายกำกับ —</span>';
+      }
     }
 
-    // ── Flag cards ──
-    togglesEl.innerHTML = FLAG_DEFS.map(function(def) {
-      var active = _currentMoFlags.indexOf(def.id) !== -1;
-      return '<div onclick="_toggleFlag(\'' + def.id + '\')" style="'
-        + 'background:' + (active ? def.bg : '#fff') + ';'
-        + 'border:2px solid ' + (active ? def.color : '#e5e7eb') + ';'
-        + 'border-radius:10px;padding:12px;cursor:pointer;transition:all .15s;'
-        + 'display:flex;flex-direction:column;gap:4px;user-select:none;'
-        + (active ? 'box-shadow:0 0 0 3px ' + def.bg + ';' : '') + '">'
-        + '<div style="display:flex;align-items:center;justify-content:space-between;">'
-          + '<span style="font-size:13px;font-weight:900;font-family:Kanit,sans-serif;color:' + (active ? def.color : '#374151') + ';">'
-          + def.label + '</span>'
-          + '<span style="width:18px;height:18px;border-radius:50%;border:2px solid ' + (active ? def.color : '#d1d5db') + ';'
-          + 'background:' + (active ? def.color : 'transparent') + ';display:flex;align-items:center;justify-content:center;'
-          + 'font-size:9px;color:#fff;flex-shrink:0;">' + (active ? '✓' : '') + '</span>'
-        + '</div>'
-        + '<div style="font-size:10px;color:#9ca3af;font-family:Kanit,sans-serif;line-height:1.4;">' + def.desc + '</div>'
-        + '<div style="font-size:10px;font-weight:700;font-family:Kanit,sans-serif;color:' + (active ? def.color : '#9ca3af') + ';">'
-        + 'ผล: ' + def.effect + '</div>'
-        + '</div>';
-    }).join('');
+    // ── Update card visual states ──
+    var allCards = document.querySelectorAll('[data-flag-id]');
+    allCards.forEach(function(card) {
+      var id     = card.getAttribute('data-flag-id');
+      var active = _currentMoFlags.indexOf(id) !== -1;
+      var color  = card.getAttribute('data-color');
+      var bg     = card.getAttribute('data-bg');
+      var border = card.getAttribute('data-border');
+      var chk    = document.getElementById('flag-chk-' + id);
+      var label  = card.querySelector('span');
+      var effect = card.querySelectorAll('div')[1];
+
+      if (active) {
+        card.style.background   = bg;
+        card.style.border       = '2px solid ' + color;
+        card.style.boxShadow    = '0 0 0 3px ' + bg;
+        if (chk)    { chk.style.background = color; chk.style.borderColor = color; chk.textContent = '✓'; }
+        if (label)  { label.style.color = color; }
+        if (effect) { effect.style.color = color; }
+      } else {
+        card.style.background   = '#fff';
+        card.style.border       = '2px solid #e5e7eb';
+        card.style.boxShadow    = 'none';
+        if (chk)    { chk.style.background = 'transparent'; chk.style.borderColor = '#d1d5db'; chk.textContent = ''; }
+        if (label)  { label.style.color = '#374151'; }
+        if (effect) { effect.style.color = '#d1d5db'; }
+      }
+    });
   }
 
   function _toggleFlag(flagId) {
@@ -6827,7 +6840,141 @@ async function runSchemaMigration(){
       showToast('❌ บันทึกไม่ได้: ' + e.message, 'error');
     }
   }
+
+  // ══════════════════════════════════════
+  // RESTRICT PANEL — Login/Withdraw block
+  // ══════════════════════════════════════
+  var _restrictRows = [];
+
+  async function loadRestrictPanel() {
+    var tb = document.getElementById('restrict-tbody');
+    if (tb) tb.innerHTML = '<tr><td colspan="6" style="text-align:center;padding:28px;color:#9ca3af;font-family:Kanit,sans-serif;">กำลังโหลด...</td></tr>';
+    try {
+      var res = await sb.from('members').select('nick,fname,lname,balance,flags').order('nick',{ascending:true});
+      if (res.error) throw res.error;
+      _restrictRows = res.data || [];
+      filterRestrictTable();
+    } catch(e) {
+      if (tb) tb.innerHTML = '<tr><td colspan="6" style="text-align:center;padding:24px;color:#dc2626;">❌ โหลดไม่ได้: ' + e.message + '</td></tr>';
+    }
+  }
+
+  function filterRestrictTable() {
+    var q      = (document.getElementById('restrict-search')?.value || '').toLowerCase();
+    var filter = document.getElementById('restrict-filter')?.value || '';
+
+    var rows = _restrictRows.filter(function(m) {
+      var flags  = Array.isArray(m.flags) ? m.flags : [];
+      var matchQ = !q || (m.nick||'').toLowerCase().includes(q) || (m.fname||'').toLowerCase().includes(q) || (m.lname||'').toLowerCase().includes(q);
+      var matchF = !filter
+        || (filter==='suspend'    && flags.includes('suspend'))
+        || (filter==='no_withdraw'&& flags.includes('no_withdraw'))
+        || (filter==='normal'     && !flags.includes('suspend') && !flags.includes('no_withdraw') && !flags.includes('blacklist'));
+      return matchQ && matchF;
+    });
+
+    // update stats
+    var suspendCount  = _restrictRows.filter(function(m){ var f=Array.isArray(m.flags)?m.flags:[]; return f.includes('suspend')||f.includes('blacklist'); }).length;
+    var withCount     = _restrictRows.filter(function(m){ var f=Array.isArray(m.flags)?m.flags:[]; return f.includes('no_withdraw'); }).length;
+    var normalCount   = _restrictRows.filter(function(m){ var f=Array.isArray(m.flags)?m.flags:[]; return !f.includes('suspend')&&!f.includes('blacklist')&&!f.includes('no_withdraw'); }).length;
+
+    var s1=document.getElementById('restrict-stat-suspend');  if(s1) s1.textContent=suspendCount;
+    var s2=document.getElementById('restrict-stat-withdraw'); if(s2) s2.textContent=withCount;
+    var s3=document.getElementById('restrict-stat-normal');   if(s3) s3.textContent=normalCount;
+    var sc=document.getElementById('restrict-count');         if(sc) sc.textContent=rows.length+' คน';
+
+    var tb = document.getElementById('restrict-tbody');
+    if (!tb) return;
+    if (!rows.length) {
+      tb.innerHTML = '<tr><td colspan="6" style="text-align:center;padding:24px;color:#9ca3af;font-family:Kanit,sans-serif;">ไม่พบข้อมูล</td></tr>';
+      return;
+    }
+
+    tb.innerHTML = rows.map(function(m) {
+      var flags      = Array.isArray(m.flags) ? m.flags : [];
+      var isSuspend  = flags.includes('suspend') || flags.includes('blacklist');
+      var isNoWith   = flags.includes('no_withdraw');
+      var otherFlags = flags.filter(function(f){ return f!=='suspend'&&f!=='no_withdraw'&&f!=='blacklist'; });
+
+      var flagBadges = flags.map(function(f) {
+        var def = (FLAG_DEFS||[]).find(function(d){ return d.id===f; });
+        var label = def ? def.label : f;
+        var color = def ? def.color : '#374151';
+        var bg    = def ? def.bg    : '#f3f4f6';
+        return '<span style="background:'+bg+';color:'+color+';padding:2px 8px;border-radius:12px;font-size:10px;font-weight:700;font-family:Kanit,sans-serif;white-space:nowrap;">'+label+'</span>';
+      }).join(' ');
+
+      return '<tr style="border-bottom:1px solid #f9fafb;transition:background .1s;" onmouseover="this.style.background=\'#fafafa\'" onmouseout="this.style.background=\'#fff\'">'
+        + '<td style="padding:12px 14px;font-weight:700;font-family:Kanit,sans-serif;color:#374151;">' + (m.nick||'—') + '</td>'
+        + '<td style="padding:12px 14px;font-size:12px;color:#6b7280;">' + ((m.fname||'') + ' ' + (m.lname||'')).trim() + '</td>'
+        + '<td style="padding:12px 14px;font-weight:700;color:#16a34a;font-family:Kanit,sans-serif;">' + Number(m.balance||0).toLocaleString() + '</td>'
+        // Toggle ระงับบัญชี
+        + '<td style="padding:12px 14px;text-align:center;">'
+          + '<label style="display:inline-flex;align-items:center;gap:6px;cursor:pointer;">'
+            + '<input type="checkbox"' + (isSuspend?' checked':'') + ' onchange="_toggleRestrict(\''+m.nick+'\',\'suspend\',this.checked)"'
+            + ' style="width:18px;height:18px;cursor:pointer;accent-color:#dc2626;">'
+            + '<span style="font-size:11px;font-weight:700;font-family:Kanit,sans-serif;color:'+(isSuspend?'#dc2626':'#9ca3af')+';">'+(isSuspend?'ระงับอยู่':'ปกติ')+'</span>'
+          + '</label>'
+        + '</td>'
+        // Toggle ระงับถอนเงิน
+        + '<td style="padding:12px 14px;text-align:center;">'
+          + '<label style="display:inline-flex;align-items:center;gap:6px;cursor:pointer;">'
+            + '<input type="checkbox"' + (isNoWith?' checked':'') + ' onchange="_toggleRestrict(\''+m.nick+'\',\'no_withdraw\',this.checked)"'
+            + ' style="width:18px;height:18px;cursor:pointer;accent-color:#d97706;">'
+            + '<span style="font-size:11px;font-weight:700;font-family:Kanit,sans-serif;color:'+(isNoWith?'#d97706':'#9ca3af')+';">'+(isNoWith?'ระงับอยู่':'ปกติ')+'</span>'
+          + '</label>'
+        + '</td>'
+        + '<td style="padding:12px 14px;">' + (flagBadges||'<span style="color:#9ca3af;font-size:11px;">—</span>') + '</td>'
+        + '</tr>';
+    }).join('');
+  }
+
+  async function _toggleRestrict(nick, flagId, enable) {
+    try {
+      var res = await sb.from('members').select('flags').eq('nick', nick).maybeSingle();
+      if (res.error) throw res.error;
+      var flags = Array.isArray(res.data?.flags) ? res.data.flags.slice() : [];
+
+      if (enable) {
+        if (flags.indexOf(flagId) === -1) flags.push(flagId);
+      } else {
+        flags = flags.filter(function(f){ return f !== flagId; });
+      }
+
+      var upd = await sb.from('members').update({ flags: flags }).eq('nick', nick);
+      if (upd.error) throw upd.error;
+
+      // อัพเดต cache
+      var mem = (allMembers||[]).find(function(m){ return m.nick===nick; });
+      if (mem) mem.flags = flags;
+
+      // อัพเดต _restrictRows
+      var row = _restrictRows.find(function(m){ return m.nick===nick; });
+      if (row) row.flags = flags;
+
+      var action   = enable ? 'เปิด' : 'ปิด';
+      var flagName = flagId==='suspend' ? 'ระงับบัญชี' : 'ระงับถอนเงิน';
+      showToast((enable?'🚫':'✅') + ' ' + action + flagName + ' "' + nick + '" แล้วครับ');
+
+      // log
+      try { await sb.from('staff_logs').insert({
+        staff_username: _adminNick(),
+        action: 'restrict_'+flagId,
+        detail: action + flagName + ' "' + nick + '" โดย ' + _adminNick(),
+      }); } catch(_) {}
+
+      // re-render
+      filterRestrictTable();
+
+    } catch(e) {
+      showToast('❌ ' + e.message, 'error');
+      // revert checkbox
+      filterRestrictTable();
+    }
+  }
+
 </script>
+
 </body>
 </html
 
@@ -6840,4 +6987,43 @@ async function runSchemaMigration(){
     updateDateTag('mem');
     filterMembers();
   }
+
+  async function _quickToggleFlag(nick, flagId, enable) {
+    try {
+      var res = await sb.from('members').select('flags').eq('nick', nick).maybeSingle();
+      if (res.error) throw res.error;
+      var flags = Array.isArray(res.data?.flags) ? res.data.flags.slice() : [];
+
+      if (enable) {
+        if (flags.indexOf(flagId) === -1) flags.push(flagId);
+      } else {
+        flags = flags.filter(function(f){ return f !== flagId; });
+      }
+
+      var upd = await sb.from('members').update({ flags: flags }).eq('nick', nick);
+      if (upd.error) throw upd.error;
+
+      // อัพเดต allMembers cache
+      var mem = (allMembers||[]).find(function(m){ return m.nick === nick; });
+      if (mem) mem.flags = flags;
+
+      var flagName = flagId==='suspend' ? 'ระงับบัญชี' : 'ระงับถอนเงิน';
+      showToast((enable?'🚫 เปิด':'✅ ปิด') + flagName + ' "' + nick + '" แล้วครับ');
+
+      // log
+      try { await sb.from('staff_logs').insert({
+        staff_username: _adminNick(),
+        action: 'restrict_'+flagId,
+        detail: (enable?'เปิด':'ปิด') + flagName + ' "' + nick + '" โดย ' + _adminNick(),
+      }); } catch(_) {}
+
+      // re-render rows
+      filterMembers();
+
+    } catch(e) {
+      showToast('❌ ' + e.message, 'error');
+      filterMembers(); // revert UI
+    }
+  }
+
 >

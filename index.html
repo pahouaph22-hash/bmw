@@ -6018,56 +6018,50 @@ function applyLang() {
 
   // ── applyFlagUI: ใส่/ถอด CSS class บน body + banner ──
   function applyFlagUI(flags) {
-    const f        = Array.isArray(flags) ? flags : [];
-    const blocked  = f.includes('blacklist');
-    const noGame   = f.includes('no_game')      || blocked || f.includes('cheater');
-    const noDep    = f.includes('no_deposit')   || blocked;
-    const noWith   = f.includes('no_withdraw')  || blocked || f.includes('chg_bank');
-    const noReward = f.includes('no_reward')    || blocked;
-    const mustChgPw= f.includes('chg_pass');
-    const mustChgBk= f.includes('chg_bank');
-    const isWatch  = f.includes('watch');
-    const isCheater= f.includes('cheater');
+    const f = Array.isArray(flags) ? flags : [];
 
-    // toggle CSS classes
+    // ── map flag IDs (รองรับทั้งเก่าและใหม่) ──
+    const blocked  = f.includes('blacklist') || f.includes('suspend');
+    const noDep    = f.includes('no_deposit')  || blocked;
+    const noWith   = f.includes('no_withdraw') || blocked || f.includes('chg_bank');
+    const noGame   = f.includes('no_game')     || blocked || f.includes('cheater');
+    const noChgPw  = f.includes('no_chgpass')  || f.includes('chg_pass');
+    const isWatch  = f.includes('watch')       || f.includes('fraud');
+
+    // CSS classes
     document.body.classList.toggle('flag-no-game',    noGame);
     document.body.classList.toggle('flag-no-deposit', noDep);
     document.body.classList.toggle('flag-no-withdraw',noWith);
-    document.body.classList.toggle('flag-no-reward',  noReward);
     document.body.classList.toggle('flag-blacklist',  blocked);
 
-    // banners — แสดงใน tab ที่ถูก block
-    _flagBanner('dep-flag-banner',    noDep,    '🚫 บัญชีของคุณถูกระงับสิทธิ์การเติมเงิน — กรุณาติดต่อ Admin ครับ');
-    _flagBanner('with-flag-banner',   noWith,   '🚫 บัญชีของคุณถูกระงับสิทธิ์การถอนเงิน — กรุณาติดต่อ Admin ครับ');
-    _flagBanner('bet-flag-banner',    noGame,   '🚫 บัญชีของคุณถูกระงับสิทธิ์การเดิมพัน — กรุณาติดต่อ Admin ครับ');
-    _flagBanner('reward-flag-banner', noReward, '🚫 บัญชีของคุณถูกระงับสิทธิ์การรับรางวัล — กรุณาติดต่อ Admin ครับ');
-    _flagBanner('watch-flag-banner',  isWatch,  '⚠️ บัญชีของคุณอยู่ระหว่างการตรวจสอบ — กรุณาใช้งานตามปกติครับ',
-                null, '#fef9c3', '1px solid #fde68a', '#92400e');
-    _flagBanner('cheater-flag-banner',isCheater,'⛔ ตรวจพบพฤติกรรมผิดปกติ — บางฟังก์ชันถูกระงับ กรุณาติดต่อ Admin ครับ');
-    _flagBanner('chgbank-flag-banner',mustChgBk,'🏦 กรุณาอัปเดตบัญชีธนาคารใหม่ก่อนทำการถอนเงิน — ติดต่อ Admin ครับ',
-                null, '#fef9c3', '1px solid #fde68a', '#92400e');
+    // ── Banners ──
+    _flagBanner('dep-flag-banner',  noDep,   '🔒 บัญชีของคุณถูกระงับสิทธิ์การเติมเงิน — กรุณาติดต่อ Admin ครับ');
+    _flagBanner('with-flag-banner', noWith,  '🔒 บัญชีของคุณถูกระงับสิทธิ์การถอนเงิน — กรุณาติดต่อ Admin ครับ');
+    _flagBanner('bet-flag-banner',  noGame,  '🚫 บัญชีของคุณถูกระงับสิทธิ์การเดิมพัน — กรุณาติดต่อ Admin ครับ');
+    _flagBanner('watch-flag-banner',isWatch, '⚠️ บัญชีของคุณอยู่ระหว่างการตรวจสอบ', null, '#fef9c3','1px solid #fde68a','#92400e');
 
-    // chg_pass → modal บังคับ
-    if (mustChgPw) setTimeout(() => _setChgPassForced(true), 300);
-
-    // blacklist overlay บน schedule/bet page
-    const schedDetail = document.getElementById('sched-detail-view');
-    if (schedDetail) {
-      let ol = document.getElementById('flag-sched-overlay');
-      if (blocked || noGame) {
-        if (!ol) {
-          ol = document.createElement('div');
-          ol.id = 'flag-sched-overlay';
-          ol.style.cssText = 'position:absolute;inset:0;background:rgba(7,26,12,0.82);z-index:50;display:flex;align-items:center;justify-content:center;border-radius:12px;pointer-events:none;';
-          ol.innerHTML = '<div style="font-family:Kanit,sans-serif;font-weight:900;font-size:15px;color:#f87171;text-align:center;">🚫 ถูกระงับสิทธิ์การเดิมพัน<br><span style="font-size:12px;opacity:.7;font-weight:400;">กรุณาติดต่อ Admin ครับ</span></div>';
-          schedDetail.style.position = 'relative';
-          schedDetail.appendChild(ol);
-        }
-        ol.style.display = 'flex';
-      } else {
-        if (ol) ol.style.display = 'none';
+    // ── suspend/blacklist → overlay ปิดหน้าจอ ──
+    let ol = document.getElementById('flag-suspend-overlay');
+    if (blocked) {
+      if (!ol) {
+        ol = document.createElement('div');
+        ol.id = 'flag-suspend-overlay';
+        ol.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.90);z-index:9997;display:flex;flex-direction:column;align-items:center;justify-content:center;';
+        ol.innerHTML = '<div style="font-family:Kanit,sans-serif;text-align:center;color:#fff;padding:24px;">'
+          + '<div style="font-size:48px;margin-bottom:12px;">🚨</div>'
+          + '<div style="font-size:20px;font-weight:900;margin-bottom:8px;">บัญชีถูกระงับการใช้งาน</div>'
+          + '<div style="font-size:13px;opacity:0.7;">กรุณาติดต่อ Admin เพื่อขอความช่วยเหลือครับ</div>'
+          + '</div>';
+        document.body.appendChild(ol);
       }
+      ol.style.display = 'flex';
+    } else if (ol) {
+      ol.style.display = 'none';
     }
+
+    // ── no_chgpass → ซ่อนปุ่มเปลี่ยนรหัสผ่าน ──
+    const chgBtn = document.getElementById('btn-change-pass');
+    if (chgBtn) chgBtn.style.display = noChgPw ? 'none' : '';
   }
 
   // ── helper: banner ──
@@ -8096,7 +8090,15 @@ setInterval(() => {
 
   // ── โหลดหน้าถอนเงิน (เช็คว่าผูกบัญชีหรือยัง) ──
   window.loadWithdrawPanel = window._real_loadWithdrawPanel = async function loadWithdrawPanel() {
-    if (!currentUser) return;
+    // ── FLAG CHECK ──
+  const _wpFlags = currentUser.flags || [];
+  if (_wpFlags.includes('suspend') || _wpFlags.includes('blacklist')) {
+    showFEToast('🚨 บัญชีของคุณถูกระงับการใช้งาน กรุณาติดต่อ Admin ครับ'); return;
+  }
+  if (_wpFlags.includes('no_withdraw')) {
+    showFEToast('🔒 บัญชีของคุณถูกระงับสิทธิ์การถอนเงิน กรุณาติดต่อ Admin ครับ'); return;
+  }
+  if (!currentUser) return;
     // ดึงข้อมูล 3 บัญชีพร้อม balance
     const { data } = await sb.from('members')
       .select('bank_name,bank_accno,bank_accname,bank2_name,bank2_accno,bank2_accname,bank3_name,bank3_accno,bank3_accname,balance')
@@ -8213,7 +8215,7 @@ setInterval(() => {
     const balance = currentUser?.balance || 0;
 
     if (!currentUser) { showFEToast('กรุณา Login ก่อนครับ'); return; }
-    const flags = currentUser.flags || [];
+        if (flags.includes('suspend') || flags.includes('blacklist')) { showFEToast('🚫 บัญชีถูกระงัน กรุณาติดต่อ Admin ครับ'); return; }const flags = currentUser.flags || [];
     if (flags.includes('no_withdraw') || flags.includes('blacklist')) {
       showFEToast('🚫 บัญชีของคุณถูกระงับสิทธิ์การถอนเงินครับ — กรุณาติดต่อ Admin');
       return;
@@ -8584,7 +8586,9 @@ setInterval(() => {
     if (!currentUser) { showFEToast('⚠️ กรุณา Login ก่อนครับ'); return; }
     // ── FLAG CHECK ──
     const flags = currentUser.flags || [];
-    if (flags.includes('no_deposit') || flags.includes('blacklist')) {
+    if (flags.includes('suspend') || flags.includes('blacklist')) {
+      showFEToast('🚫 บัญชีของคุณถูกระงับการใช้งาน กรุณาติดต่อ Admin ครับ'); return;
+    }    if (flags.includes('no_deposit') || flags.includes('blacklist')) {
       alert('🚫 บัญชีของคุณถูกระงับสิทธิ์การเติมเงินครับ — กรุณาติดต่อ Admin');
       return;
     }
