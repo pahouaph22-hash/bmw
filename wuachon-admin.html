@@ -687,7 +687,8 @@ input, textarea, select, button {
           <div style="padding:16px 20px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;border-bottom:1px solid #e5e5e0;">
             <div>
               <div style="font-family:'Phetsarath','Phetsarath','Noto Sans Lao','Kanit',sans-serif;font-weight:700;font-size:15px;">💹 สรุปการเงิน</div>
-              <div style="font-size:12px;color:#aaa;margin-top:2px;">เปรียบเทียบรายรับ-รายจ่าย และกำไร/ขาดทุนตามช่วงเวลา</div>
+              <div style="font-size:12px;color:#aaa;margin-top:2px;">เปรียบเทียบรายรับ-รายจ่าย และกำไร/ขาดทุนตามช่วงเวลา
+                &nbsp;·&nbsp; <span style="color:#16a34a;font-weight:700;" id="fin-range-label">วันนี้</span></div>
             </div>
             <button onclick="loadFinanceTable()" style="font-family:'Phetsarath','Phetsarath','Noto Sans Lao','Kanit',sans-serif;font-size:12px;font-weight:700;padding:6px 14px;border:1px solid #e0e0e0;border-radius:7px;background:#fff;color:#555;cursor:pointer;">🔄 รีเฟรช</button>
           </div>
@@ -3126,7 +3127,10 @@ function switchPanel(name) {
   document.getElementById('panel-'+name)?.classList.add('active');
   document.querySelectorAll(`[data-panel="${name}"]`).forEach(el => el.classList.add('active'));
   _currentPanel = name;
-  if (name === 'overview') loadOverview();
+  if (name === 'overview') {
+    loadOverview();
+    setTimeout(function(){ try { renderGrowthChart(); } catch(e){} }, 400);
+  }
 }
 
 // ===== TOAST =====
@@ -3282,7 +3286,7 @@ function loadAll() {
   subscribeNotifications();
   scheduleAutoRefresh();
   startAutoRefresh();
-  try { renderGrowthChart(); } catch(e) { console.warn('renderGrowthChart', e); }
+  setTimeout(function(){ try { renderGrowthChart(); } catch(e){ console.warn('renderGrowthChart',e); } }, 800);
 }
 
 // ===== OVERVIEW =====
@@ -4856,6 +4860,13 @@ async function payoutBets(matchId, winner, FEE_RATE = 0.07) {
 // ═══════════════════════════════════════════════
 // CHART — Growth Chart
 // ═══════════════════════════════════════════════
+
+  // Chart.js global defaults
+  if (typeof Chart !== 'undefined') {
+    Chart.defaults.font.family = "'Kanit', sans-serif";
+    Chart.defaults.responsive  = true;
+    Chart.defaults.maintainAspectRatio = false;
+  }
 let _growthChart = null;
 
 async function renderGrowthChart() {
@@ -4949,6 +4960,12 @@ async function renderGrowthChart() {
   // store raw for drill-down
   window._growthRaw = { deps:deps.data||[], withs:withs.data||[], mems:mems.data||[], labels, groupBy };
 
+  // ── ensure canvas is visible and has size ──
+  if (canvas.offsetWidth === 0 || canvas.offsetHeight === 0) {
+    // retry after DOM paint
+    setTimeout(renderGrowthChart, 500);
+    return;
+  }
   if (_growthChart) { _growthChart.destroy(); _growthChart = null; }
   var ctx = canvas.getContext('2d');
   _growthChart = new Chart(ctx, {
@@ -5366,7 +5383,7 @@ async function _finishLogin(){
     try{await sb.from('staff').update({last_login:new Date().toISOString()}).eq('id',_pStaffRow.id);}catch(_){}
     try{await logStaffAction(_pStaffRow.username,'login','เข้าสู่ระบบ');}catch(_){}
     try{await _logLoginActivity(_pStaffRow.username,'staff','success');}catch(_){}
-    loadAll();applyStaffPermissions(_pStaffRow.role);
+    switchPanel('overview');loadAll();applyStaffPermissions(_pStaffRow.role);
     setTimeout(()=>_checkStaffOnboarding(_pStaffRow),1000);
   }
   _pUser=null;_pRole=null;_pStaffRow=null;
@@ -7444,5 +7461,35 @@ async function runSchemaMigration(){
   // Aliases ที่ setOvRange เรียก
   function loadFinancial() { loadFinanceTable(); }
   function loadGrowthChart() { renderGrowthChart(); }
+
+
+  // ResizeObserver: re-render growth chart เมื่อ canvas ปรากฏขึ้น
+  (function() {
+    var _chartRendered = false;
+    var _chartObs = null;
+    function _tryRenderChart() {
+      var canvas = document.getElementById('growth-chart');
+      if (!canvas) return;
+      if (canvas.offsetWidth > 0 && !_chartRendered) {
+        _chartRendered = true;
+        if (_chartObs) { _chartObs.disconnect(); _chartObs = null; }
+        renderGrowthChart();
+      }
+    }
+    if (typeof ResizeObserver !== 'undefined') {
+      _chartObs = new ResizeObserver(_tryRenderChart);
+      setTimeout(function() {
+        var canvas = document.getElementById('growth-chart');
+        if (canvas) _chartObs.observe(canvas.parentElement || canvas);
+      }, 200);
+    }
+    // fallback: poll
+    var _pollCount = 0;
+    var _poll = setInterval(function() {
+      _pollCount++;
+      _tryRenderChart();
+      if (_chartRendered || _pollCount > 20) clearInterval(_poll);
+    }, 300);
+  })();
 
 >
