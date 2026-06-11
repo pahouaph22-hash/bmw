@@ -77,6 +77,11 @@ body{font-family:'Phetsarath','Phetsarath','Noto Sans Lao','Sarabun',sans-serif;
 .stat-sub b{color:#555;}
 .stat-arrow{font-size:16px;color:#ccc;flex-shrink:0;transition:transform .2s,color .2s;}
 .stat-card-click:hover .stat-arrow{transform:translateX(3px);color:#888;}
+/* FINANCE PERIOD BUTTONS */
+.fin-period-btn{font-family:'Phetsarath','Noto Sans Lao','Kanit',sans-serif;font-size:12px;font-weight:700;padding:5px 13px;border:1px solid #e5e7eb;border-radius:20px;background:#fff;color:#6b7280;cursor:pointer;transition:all .15s;white-space:nowrap;}
+.fin-period-btn:hover{border-color:#1B6B2F;color:#1B6B2F;background:#f0fdf4;}
+.fin-period-active{background:#1B6B2F!important;color:#fff!important;border-color:#1B6B2F!important;}
+
 /* CHART TABS & RANGE BUTTONS */
 .chart-tab{font-family:'Phetsarath','Phetsarath','Noto Sans Lao','Kanit',sans-serif;font-size:13px;font-weight:600;padding:10px 18px;border:none;background:transparent;cursor:pointer;color:#888;border-bottom:3px solid transparent;transition:all .15s;white-space:nowrap;display:inline-flex;align-items:center;gap:6px;}
 .chart-tab:hover{color:#333;background:#f9f9f7;}
@@ -510,7 +515,7 @@ input, textarea, select, button {
         <option value="la">🇱🇦 LA</option>
         <option value="en">🇬🇧 EN</option>
       </select>
-      <button class="notif-btn" onclick="switchPanel('deposits')">🔔<span id="notif-badge" id="notif-num">0</span></button>
+      <button class="notif-btn" onclick="switchPanel('deposits')">🔔<span id="notif-badge">0</span></button>
       <button class="logout-btn" onclick="adminLogout()">ออกจากระบบ</button>
     </div>
   </div>
@@ -684,13 +689,26 @@ input, textarea, select, button {
 
         <div class="card" style="padding:0;overflow:hidden;">
           <!-- Header -->
-          <div style="padding:16px 20px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;border-bottom:1px solid #e5e5e0;">
-            <div>
-              <div style="font-family:'Phetsarath','Phetsarath','Noto Sans Lao','Kanit',sans-serif;font-weight:700;font-size:15px;">💹 สรุปการเงิน</div>
-              <div style="font-size:12px;color:#aaa;margin-top:2px;">เปรียบเทียบรายรับ-รายจ่าย และกำไร/ขาดทุนตามช่วงเวลา
-                &nbsp;·&nbsp; <span style="color:#16a34a;font-weight:700;" id="fin-range-label">วันนี้</span></div>
+          <div style="padding:14px 18px 0;border-bottom:1px solid #e5e5e0;">
+            <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;margin-bottom:12px;">
+              <div>
+                <div style="font-family:'Phetsarath','Phetsarath','Noto Sans Lao','Kanit',sans-serif;font-weight:700;font-size:15px;">💹 สรุปการเงิน</div>
+                <div style="font-size:12px;color:#aaa;margin-top:2px;">เปรียบเทียบรายรับ-รายจ่าย และกำไร/ขาดทุนตามช่วงเวลา
+                  &nbsp;·&nbsp; <span style="color:#16a34a;font-weight:700;" id="fin-range-label">วันนี้</span></div>
+              </div>
+              <button onclick="loadFinanceTable()" style="font-family:'Phetsarath','Phetsarath','Noto Sans Lao','Kanit',sans-serif;font-size:12px;font-weight:700;padding:6px 14px;border:1px solid #e0e0e0;border-radius:7px;background:#fff;color:#555;cursor:pointer;">🔄 รีเฟรช</button>
             </div>
-            <button onclick="loadFinanceTable()" style="font-family:'Phetsarath','Phetsarath','Noto Sans Lao','Kanit',sans-serif;font-size:12px;font-weight:700;padding:6px 14px;border:1px solid #e0e0e0;border-radius:7px;background:#fff;color:#555;cursor:pointer;">🔄 รีเฟรช</button>
+            <!-- Period Preset Buttons -->
+            <div style="display:flex;gap:5px;flex-wrap:wrap;padding-bottom:12px;align-items:center;">
+              <button onclick="setFinPeriod('today')"     id="fin-btn-today"     class="fin-period-btn fin-period-active">วันนี้</button>
+              <button onclick="setFinPeriod('yesterday')" id="fin-btn-yesterday" class="fin-period-btn">เมื่อวาน</button>
+              <button onclick="setFinPeriod('thisweek')"  id="fin-btn-thisweek"  class="fin-period-btn">สัปดาห์นี้</button>
+              <button onclick="setFinPeriod('lastweek')"  id="fin-btn-lastweek"  class="fin-period-btn">สัปดาห์ที่แล้ว</button>
+              <button onclick="setFinPeriod('thismonth')" id="fin-btn-thismonth" class="fin-period-btn">เดือนนี้</button>
+              <button onclick="setFinPeriod('lastmonth')" id="fin-btn-lastmonth" class="fin-period-btn">เดือนที่แล้ว</button>
+              <button onclick="setFinPeriod('thisyear')"  id="fin-btn-thisyear"  class="fin-period-btn">ปีนี้</button>
+              <button onclick="setFinPeriod('lastyear')"  id="fin-btn-lastyear"  class="fin-period-btn">ปีที่แล้ว</button>
+            </div>
           </div>
 
           <!-- Table -->
@@ -1709,10 +1727,9 @@ input, textarea, select, button {
           <button class="save-btn" onclick="addNews()" style="margin-top:16px;">📢 เพิ่มข้อความ</button>
         </div>
           </div>
-          <div class="sub-pane" id="news-list">
+          <div class="sub-pane" id="news-list-pane">
         <div class="card">
           <div class="card-title">📋 ข้อความทั้งหมด
-            <button onclick="loadNews()" style="margin-left:auto;font-family:'Phetsarath','Phetsarath','Noto Sans Lao','Kanit',sans-serif;font-size:11px;font-weight:700;padding:5px 12px;border:1px solid #e0e0e0;border-radius:7px;background:#fff;color:#555;cursor:pointer;white-space:nowrap;">🔄 รีเฟรช</button>
             <button onclick="loadNews()" style="margin-left:auto;font-family:'Phetsarath','Phetsarath','Noto Sans Lao','Kanit',sans-serif;font-size:11px;font-weight:700;padding:5px 12px;border:1px solid #e0e0e0;border-radius:7px;background:#fff;color:#555;cursor:pointer;white-space:nowrap;">🔄 รีเฟรช</button> <span id="news-count" style="font-size:12px;color:#888;font-weight:400;"></span></div>
           <div id="news-list"><div style="text-align:center;padding:24px;color:#aaa;">กำลังโหลด...</div></div>
         </div>
@@ -2461,9 +2478,9 @@ input, textarea, select, button {
                         <span style="font-size:10px;background:#dcfce7;color:#15803d;padding:2px 8px;border-radius:10px;font-weight:700;">🔐 ต้องใส่ OTP</span>
                       </div>
                       <div style="display:flex;gap:6px;margin-bottom:6px;">
-                        <input id="mo-add-amount" type="number" min="1" placeholder="จำนวนที่เพิ่ม ₭"
+                        <input id="mo-add-amount-legacy" type="number" min="1" placeholder="จำนวนที่เพิ่ม ₭"
                           style="flex:1;padding:8px 10px;border:1.5px solid #1B6B2F;border-radius:8px;font-family:'Kanit',sans-serif;font-size:13px;">
-                        <input id="mo-add-reason" type="text" placeholder="เหตุผล"
+                        <input id="mo-add-reason-legacy" type="text" placeholder="เหตุผล"
                           style="flex:1;padding:8px 10px;border:1.5px solid #1B6B2F;border-radius:8px;font-family:'Kanit',sans-serif;font-size:13px;">
                       </div>
                       <button onclick="if(typeof adjAddBalance==='function')adjAddBalance()"
@@ -2478,9 +2495,9 @@ input, textarea, select, button {
                         📉 ลด/หักยอดเงิน
                       </div>
                       <div style="display:flex;gap:6px;margin-bottom:6px;">
-                        <input id="mo-sub-amount" type="number" min="1" placeholder="จำนวนที่หัก ₭"
+                        <input id="mo-sub-amount-legacy" type="number" min="1" placeholder="จำนวนที่หัก ₭"
                           style="flex:1;padding:8px 10px;border:1.5px solid #dc2626;border-radius:8px;font-family:'Kanit',sans-serif;font-size:13px;">
-                        <input id="mo-sub-reason" type="text" placeholder="เหตุผล"
+                        <input id="mo-sub-reason-legacy" type="text" placeholder="เหตุผล"
                           style="flex:1;padding:8px 10px;border:1.5px solid #dc2626;border-radius:8px;font-family:'Kanit',sans-serif;font-size:13px;">
                       </div>
                       <button onclick="if(typeof adjSubBalance==='function')adjSubBalance()"
@@ -3418,36 +3435,6 @@ async function loadOverview() {
 let _ovDetailType = '';
 let _ovDetailData = [];
 
-async function openOvDetail(type) {
-  _ovDetailType = type;
-  document.getElementById('ov-detail-overlay').style.display = 'flex';
-  document.getElementById('ov-detail-table').innerHTML = '<div style="text-align:center;padding:32px;color:#aaa;">กำลังโหลด...</div>';
-
-  const titles = { members:'👥 สมาชิกทั้งหมด', matches:'🏆 คู่แข่งขันทั้งหมด', deposits:'💰 รายการเติมเงิน (อนุมัติสำเร็จ)', withdrawals:'🏧 รายการถอนเงิน (อนุมัติสำเร็จ)' };
-  document.getElementById('ov-detail-title').textContent = titles[type] || 'รายละเอียด';
-
-  let data = [];
-  if (type === 'members') {
-    const r = await sb.from('members').select('nick,fname,lname,phone,balance,created_at').order('created_at',{ascending:false});
-    data = r.data || [];
-  } else if (type === 'matches') {
-    const r = await sb.from('matches').select('round,name_a,name_b,date,status,prize,created_at,code').order('created_at',{ascending:false});
-    data = r.data || [];
-  } else if (type === 'deposits') {
-    const r = await sb.from('deposits').select('nick,amount,bank,status,txn,created_at,approved_at,approved_by').eq('status','approved').order('approved_at',{ascending:false});
-    data = r.data || [];
-  } else if (type === 'withdrawals') {
-    const r = await sb.from('withdrawals').select('nick,amount,bank,acc_no,status,txn,created_at,approved_at,approved_by').eq('status','approved').order('approved_at',{ascending:false});
-    data = r.data || [];
-  }
-  _ovDetailData = data;
-  renderOvDetail();
-}
-
-function closeOvDetail() {
-  document.getElementById('ov-detail-overlay').style.display = 'none';
-}
-
 function setOvDetailToday() {
   const t = todayStr();
   document.getElementById('ov-detail-from').value = t;
@@ -4142,23 +4129,16 @@ async function checkFlagBeforeDeposit(nick){
 }
 
 // ตรวจ flag ก่อนอนุมัติถอนเงิน
-async function checkFlagBeforeWithdraw(nick){
-  var mem=allMembers.find(function(m){return m.nick===nick;});
-  if(!mem)return true;
-  var f=Array.isArray(mem.flags)?mem.flags:[];
-  if(f.includes('suspend')||f.includes('blacklist')){
-    showToast('❌ บัญชี "'+nick+'" ถูกระงับการใช้งาน (suspend)','error');
-    return false;
-  }  return true;
-}
-
-// ─── ตรวจสอบป้ายเตือนก่อน confirmSlipUpload (ถอนเงิน) ───
 async function checkFlagBeforeWithdraw(nick) {
   const mem = allMembers.find(m => m.nick === nick);
-  const flags = mem?.flags || [];
-  if (flags.includes('no_withdraw') || flags.includes('blacklist')) {
-    const f = flags.includes('blacklist') ? 'บัญชีดำ' : 'ห้ามถอนเงิน';
-    showToast(`⛔ ${nick} มีป้ายเตือน "${f}" — ไม่สามารถโอนเงินได้ครับ`, 'error');
+  if (!mem) return true;
+  const flags = Array.isArray(mem.flags) ? mem.flags : [];
+  if (flags.includes('suspend') || flags.includes('blacklist')) {
+    showToast(`❌ บัญชี "${nick}" ถูกระงับการใช้งาน (suspend/blacklist)`, 'error');
+    return false;
+  }
+  if (flags.includes('no_withdraw')) {
+    showToast(`⛔ ${nick} มีป้ายเตือน "ห้ามถอนเงิน" — ไม่สามารถโอนเงินได้ครับ`, 'error');
     return false;
   }
   return true;
@@ -5179,85 +5159,175 @@ function switchChart(type, btn) {
 // ═══════════════════════════════════════════════
 // FINANCE SUMMARY TABLE
 // ═══════════════════════════════════════════════
+// ── Finance Table: current selected period key ──
+var _finPeriod = 'today';
+
+function setFinPeriod(key) {
+  _finPeriod = key;
+  // อัปเดต active button
+  document.querySelectorAll('.fin-period-btn').forEach(function(b) {
+    b.classList.remove('fin-period-active');
+  });
+  var btn = document.getElementById('fin-btn-' + key);
+  if (btn) btn.classList.add('fin-period-active');
+  loadFinanceTable();
+}
+
 async function loadFinanceTable() {
   const tbody = document.getElementById('finance-tbody');
   if (!tbody) return;
   tbody.innerHTML = `<tr><td colspan="8" style="text-align:center;padding:32px;color:#aaa;font-family:'Kanit',sans-serif;">⏳ กำลังโหลด...</td></tr>`;
 
-  if (!_ovrRange.from) {
-    var _init3 = _getDateRange('today');
-    _ovrRange = { from: _init3.from, to: _init3.to, key: 'today', label: 'วันนี้' };
+  // ── กำหนดช่วงเวลาตาม period key ──
+  const now = new Date();
+  const y = now.getFullYear(), mo = now.getMonth(), d = now.getDate();
+
+  var periodLabel = '';
+  var rows = [];
+
+  // helper: สร้าง row เดียว (1 ช่วง)
+  async function fetchRow(label, startDate, endDate) {
+    const startISO = startDate.toISOString();
+    const endISO   = endDate.toISOString();
+    const [deps, withs, newMems] = await Promise.all([
+      sb.from('deposits').select('amount,bank,status').eq('status','approved')
+        .gte('created_at', startISO).lte('created_at', endISO),
+      sb.from('withdrawals').select('amount,status').eq('status','approved')
+        .gte('created_at', startISO).lte('created_at', endISO),
+      sb.from('members').select('id', {count:'exact', head:true})
+        .gte('created_at', startISO).lte('created_at', endISO),
+    ]);
+    const depData = deps.data || [];
+    const depReal     = depData.filter(function(x){ return !x.bank?.includes('ค่าบริการ') && !x.bank?.includes('กิจกรรม') && !x.bank?.includes('คอม') && !x.bank?.includes('referral'); })
+                                .reduce(function(s,x){ return s + Number(x.amount||0); }, 0);
+    const feeTotal    = depData.filter(function(x){ return x.bank?.includes('ค่าบริการ'); })
+                                .reduce(function(s,x){ return s + Number(x.amount||0); }, 0);
+    const rewardTotal = depData.filter(function(x){ return x.bank?.includes('กิจกรรม') || x.bank?.includes('คอม') || x.bank?.includes('referral') || x.bank?.includes('แนะนำ'); })
+                                .reduce(function(s,x){ return s + Number(x.amount||0); }, 0);
+    const withTotal   = (withs.data||[]).reduce(function(s,x){ return s + Number(x.amount||0); }, 0);
+    const netFlow     = depReal - withTotal;
+    return { label, members: newMems.count||0, depReal, withTotal, netFlow, profit: netFlow, feeTotal, rewardTotal };
   }
-  // อัพเดต label
-  var finLbl = document.getElementById('fin-range-label');
-  if (finLbl) finLbl.textContent = _ovrRange.label || 'วันนี้';
 
   try {
-    // ดึงข้อมูลตาม _ovrRange หรือ 12 เดือนถ้าเลือก all/custom
-    const now   = new Date();
-    const rows  = [];
-    const rangeKey = _ovrRange.key || 'today';
-    // กำหนด months ตาม range
-    const monthsBack = rangeKey==='lastyear'||rangeKey==='thisyear' ? 12
-                     : rangeKey==='all' ? 24 : 6;
+    const key = _finPeriod || 'today';
 
-    for (let m = monthsBack-1; m >= 0; m--) {
-      const start = new Date(now.getFullYear(), now.getMonth() - m, 1);
-      const end   = new Date(now.getFullYear(), now.getMonth() - m + 1, 0, 23, 59, 59);
-      const startISO = start.toISOString();
-      const endISO   = end.toISOString();
-      const label = start.toLocaleDateString('th-TH', { month: 'long', year: 'numeric' });
+    if (key === 'today') {
+      periodLabel = 'วันนี้';
+      const s = new Date(y, mo, d, 0, 0, 0);
+      const e = new Date(y, mo, d, 23, 59, 59, 999);
+      rows.push(await fetchRow('วันนี้', s, e));
 
-      const [deps, withs, newMems] = await Promise.all([
-        sb.from('deposits').select('amount,bank,status').eq('status','approved')
-          .gte('created_at', startISO).lte('created_at', endISO),
-        sb.from('withdrawals').select('amount,status').eq('status','approved')
-          .gte('created_at', startISO).lte('created_at', endISO),
-        sb.from('members').select('id', {count:'exact', head:true})
-          .gte('created_at', startISO).lte('created_at', endISO),
-      ]);
+    } else if (key === 'yesterday') {
+      periodLabel = 'เมื่อวาน';
+      const s = new Date(y, mo, d-1, 0, 0, 0);
+      const e = new Date(y, mo, d-1, 23, 59, 59, 999);
+      rows.push(await fetchRow('เมื่อวาน', s, e));
 
-      // เติมเงินจริง (ไม่รวมค่าบริการ/รางวัล)
-      const depReal    = (deps.data||[])
-        .filter(d => !d.bank?.includes('ค่าบริการ') && !d.bank?.includes('กิจกรรม') && !d.bank?.includes('คอม') && !d.bank?.includes('referral'))
-        .reduce((s,d) => s + Number(d.amount||0), 0);
+    } else if (key === 'thisweek') {
+      periodLabel = 'สัปดาห์นี้';
+      // วันจันทร์ถึงวันนี้
+      const dow = now.getDay() === 0 ? 6 : now.getDay() - 1; // Mon=0
+      const monStart = new Date(y, mo, d - dow, 0, 0, 0);
+      // แสดงแบบรายวัน
+      for (var i = 0; i <= dow; i++) {
+        const dayStart = new Date(y, mo, d - dow + i, 0, 0, 0);
+        const dayEnd   = new Date(y, mo, d - dow + i, 23, 59, 59, 999);
+        const lbl = dayStart.toLocaleDateString('th-TH', {weekday:'short', day:'numeric', month:'short'});
+        rows.push(await fetchRow(lbl, dayStart, dayEnd));
+      }
 
-      // ค่าบริการ
-      const feeTotal   = (deps.data||[])
-        .filter(d => d.bank?.includes('ค่าบริการ'))
-        .reduce((s,d) => s + Number(d.amount||0), 0);
+    } else if (key === 'lastweek') {
+      periodLabel = 'สัปดาห์ที่แล้ว';
+      const dow = now.getDay() === 0 ? 6 : now.getDay() - 1;
+      const lastMon = new Date(y, mo, d - dow - 7, 0, 0, 0);
+      for (var i = 0; i < 7; i++) {
+        const dayStart = new Date(lastMon.getFullYear(), lastMon.getMonth(), lastMon.getDate() + i, 0, 0, 0);
+        const dayEnd   = new Date(lastMon.getFullYear(), lastMon.getMonth(), lastMon.getDate() + i, 23, 59, 59, 999);
+        const lbl = dayStart.toLocaleDateString('th-TH', {weekday:'short', day:'numeric', month:'short'});
+        rows.push(await fetchRow(lbl, dayStart, dayEnd));
+      }
 
-      // เงินรางวัล
-      const rewardTotal = (deps.data||[])
-        .filter(d => d.bank?.includes('กิจกรรม') || d.bank?.includes('คอม') || d.bank?.includes('referral') || d.bank?.includes('แนะนำ'))
-        .reduce((s,d) => s + Number(d.amount||0), 0);
+    } else if (key === 'thismonth') {
+      periodLabel = now.toLocaleDateString('th-TH', {month:'long', year:'numeric'});
+      // แสดงแบบรายสัปดาห์ (week 1–5)
+      const firstDay = new Date(y, mo, 1);
+      const lastDay  = new Date(y, mo + 1, 0);
+      var cur = new Date(firstDay);
+      var weekNum = 1;
+      while (cur <= lastDay) {
+        const wStart = new Date(cur);
+        const wEnd   = new Date(Math.min(new Date(cur.getFullYear(), cur.getMonth(), cur.getDate() + 6, 23, 59, 59, 999), new Date(y, mo + 1, 0, 23, 59, 59, 999)));
+        const lbl = 'สัปดาห์ที่ ' + weekNum + ' (' +
+          wStart.toLocaleDateString('th-TH', {day:'numeric'}) + '–' +
+          wEnd.toLocaleDateString('th-TH', {day:'numeric', month:'short'}) + ')';
+        rows.push(await fetchRow(lbl, wStart, wEnd));
+        cur = new Date(cur.getFullYear(), cur.getMonth(), cur.getDate() + 7);
+        weekNum++;
+      }
 
-      const withTotal  = (withs.data||[]).reduce((s,d) => s + Number(d.amount||0), 0);
-      const netFlow    = depReal - withTotal;
-      const profit     = netFlow; // กำไร/ขาดทุนจากมุมมองสภาพคล่อง
-      const members    = newMems.count || 0;
+    } else if (key === 'lastmonth') {
+      const lmYear  = mo === 0 ? y - 1 : y;
+      const lmMonth = mo === 0 ? 11 : mo - 1;
+      periodLabel = new Date(lmYear, lmMonth, 1).toLocaleDateString('th-TH', {month:'long', year:'numeric'});
+      const firstDay = new Date(lmYear, lmMonth, 1);
+      const lastDay  = new Date(lmYear, lmMonth + 1, 0);
+      var cur2 = new Date(firstDay);
+      var weekNum2 = 1;
+      while (cur2 <= lastDay) {
+        const wStart = new Date(cur2);
+        const wEnd   = new Date(Math.min(new Date(cur2.getFullYear(), cur2.getMonth(), cur2.getDate() + 6, 23, 59, 59, 999), new Date(lmYear, lmMonth + 1, 0, 23, 59, 59, 999)));
+        const lbl = 'สัปดาห์ที่ ' + weekNum2 + ' (' +
+          wStart.toLocaleDateString('th-TH', {day:'numeric'}) + '–' +
+          wEnd.toLocaleDateString('th-TH', {day:'numeric', month:'short'}) + ')';
+        rows.push(await fetchRow(lbl, wStart, wEnd));
+        cur2 = new Date(cur2.getFullYear(), cur2.getMonth(), cur2.getDate() + 7);
+        weekNum2++;
+      }
 
-      rows.push({ label, members, depReal, withTotal, netFlow, profit, feeTotal, rewardTotal });
+    } else if (key === 'thisyear') {
+      periodLabel = 'ปีนี้ (พ.ศ. ' + (y + 543) + ')';
+      for (var m = 0; m <= mo; m++) {
+        const s = new Date(y, m, 1, 0, 0, 0);
+        const e = new Date(y, m + 1, 0, 23, 59, 59, 999);
+        const lbl = s.toLocaleDateString('th-TH', {month:'long', year:'numeric'});
+        rows.push(await fetchRow(lbl, s, e));
+      }
+
+    } else if (key === 'lastyear') {
+      periodLabel = 'ปีที่แล้ว (พ.ศ. ' + (y - 1 + 543) + ')';
+      for (var m = 0; m < 12; m++) {
+        const s = new Date(y - 1, m, 1, 0, 0, 0);
+        const e = new Date(y - 1, m + 1, 0, 23, 59, 59, 999);
+        const lbl = s.toLocaleDateString('th-TH', {month:'long', year:'numeric'});
+        rows.push(await fetchRow(lbl, s, e));
+      }
     }
 
-    // เพิ่ม row "รวม"
-    const totals = rows.reduce((acc, r) => ({
-      members:     acc.members + r.members,
-      depReal:     acc.depReal + r.depReal,
-      withTotal:   acc.withTotal + r.withTotal,
-      netFlow:     acc.netFlow + r.netFlow,
-      profit:      acc.profit + r.profit,
-      feeTotal:    acc.feeTotal + r.feeTotal,
-      rewardTotal: acc.rewardTotal + r.rewardTotal,
-    }), { members:0, depReal:0, withTotal:0, netFlow:0, profit:0, feeTotal:0, rewardTotal:0 });
+    // อัปเดต label
+    var finLbl = document.getElementById('fin-range-label');
+    if (finLbl) finLbl.textContent = periodLabel;
 
-    const fmt  = n => Number(n).toLocaleString('th-TH', {maximumFractionDigits:0});
-    const fmtK = n => (Number(n)/1000).toFixed(1) + 'K';
+    // row "รวม"
+    const totals = rows.reduce(function(acc, r) {
+      return {
+        members:     acc.members + r.members,
+        depReal:     acc.depReal + r.depReal,
+        withTotal:   acc.withTotal + r.withTotal,
+        netFlow:     acc.netFlow + r.netFlow,
+        profit:      acc.profit + r.profit,
+        feeTotal:    acc.feeTotal + r.feeTotal,
+        rewardTotal: acc.rewardTotal + r.rewardTotal,
+      };
+    }, { members:0, depReal:0, withTotal:0, netFlow:0, profit:0, feeTotal:0, rewardTotal:0 });
 
-    const renderRow = (r, isTotals=false) => {
+    const fmt  = function(n) { return Number(n).toLocaleString('th-TH', {maximumFractionDigits:0}); };
+    const fmtK = function(n) { var k = Number(n); return Math.abs(k) >= 1000 ? (k/1000).toFixed(1)+'K' : fmt(k); };
+
+    const renderRow = function(r, isTotals) {
       const profitColor = r.profit >= 0 ? '#16a34a' : '#dc2626';
       const profitSign  = r.profit >= 0 ? '+' : '';
-      const bold = isTotals ? 'font-weight:900;background:#fafaf8;' : '';
+      const bold = isTotals ? 'font-weight:900;background:#f0fdf4;border-top:2px solid #bbf7d0;' : '';
       return `<tr style="${bold}border-bottom:1px solid #f0f0ee;">
         <td style="padding:10px 16px;font-family:'Kanit',sans-serif;font-size:12px;font-weight:${isTotals?'900':'600'};white-space:nowrap;">${isTotals?'📊 รวมทั้งหมด':r.label}</td>
         <td style="padding:10px 14px;text-align:right;font-family:'Kanit',sans-serif;font-size:12px;color:#3b82f6;">${fmt(r.members)}</td>
@@ -5270,7 +5340,11 @@ async function loadFinanceTable() {
       </tr>`;
     };
 
-    tbody.innerHTML = rows.map(r => renderRow(r)).join('') + renderRow(totals, true);
+    if (!rows.length) {
+      tbody.innerHTML = `<tr><td colspan="8" style="text-align:center;padding:32px;color:#aaa;font-family:'Kanit',sans-serif;">ไม่พบข้อมูลในช่วงเวลานี้</td></tr>`;
+    } else {
+      tbody.innerHTML = rows.map(function(r){ return renderRow(r, false); }).join('') + renderRow(totals, true);
+    }
 
   } catch(err) {
     if (tbody) tbody.innerHTML = `<tr><td colspan="8" style="text-align:center;padding:24px;color:#dc2626;font-family:'Kanit',sans-serif;">❌ โหลดไม่สำเร็จ: ${err.message}</td></tr>`;
@@ -6742,7 +6816,7 @@ function switchRefSec(sec){document.querySelectorAll('#panel-referral .match-sec
 function loadRefCommissionLogs(){} function _refLogToday(){} function _refLogMonth(){} function _refLogClear(){}
 function switchSubNav(p,s){document.querySelectorAll('#panel-'+p+' .match-sec').forEach(x=>x.classList.remove('active'));document.querySelectorAll('#panel-'+p+' .sub-nav-item').forEach(i=>i.classList.remove('active'));document.getElementById('sec-'+s)?.classList.add('active');document.querySelector('[data-sec="'+s+'"]')?.classList.add('active');}
 function switchActSec(sec){document.querySelectorAll('#panel-activity .match-sec').forEach(s=>s.classList.remove('active'));document.querySelectorAll('#panel-activity .match-nav-item').forEach(i=>i.classList.remove('active'));document.getElementById('act-sec-'+sec)?.classList.add('active');document.getElementById('anav-'+sec)?.classList.add('active');}
-function sendActivity(){showToast('กำลังส่ง...');} function loadActivityLogs(){loadActivityPanel();}
+function sendActivity(){showToast('กำลังส่ง...');}
 function switchVerdictSport(s){} function switchVerdictFootballSec(s){} function addFootballMatch(){showToast('กำลังพัฒนา');} function switchAddSport(s){} function resetVerdict(){loadVerdict();}
 function saveTxLimits(){saveSettings('fee');} function loadTxLimits(){loadSettings();} function saveRefRateLevels(){saveSettings('referral');} function previewRefExample(){}
 async function addBankAccount(){
@@ -6929,22 +7003,8 @@ async function runSchemaMigration(){
 
   loadBankAccounts();
   // ══ FLAGS MANAGEMENT ══
-  
+
   // เก็บ flags ปัจจุบันของ member ที่เปิดอยู่
-  
-  
-
-  
-
-  
-
-  
-
-  async 
-
-
-
-
 
   // ══════════════════════════════════════════
   // FLAGS SYSTEM — definitions + management
@@ -7339,7 +7399,7 @@ function clearDateMem() {
     };
     if (title)   title.textContent   = titles[type] || '📋 รายละเอียด';
     if (subtitle) subtitle.textContent = label;
-    if (body)    body.innerHTML      = '<div style="text-align:center;padding:40px;color:#9ca3af;"กำลังโหลด...</div>';
+    if (body)    body.innerHTML      = '<div style="text-align:center;padding:40px;color:#9ca3af;">กำลังโหลด...</div>';
 
     overlay.style.display = 'flex';
 
@@ -7443,7 +7503,7 @@ function clearDateMem() {
           return '<tr style="border-bottom:1px solid #f3f4f6;" onmouseover="this.style.background=\'#fafafa\'" onmouseout="this.style.background=\'#fff\'">'
             + '<td style="padding:9px 12px;font-weight:700;color:#1B6B2F;cursor:pointer;" onclick="closeOvDetail();openMember(\''+r.nick+'\')">'+r.nick+'</td>'
             + '<td style="padding:9px 12px;text-align:right;font-weight:700;color:'+(isDep?'#16a34a':'#dc2626')+';">'+(isDep?'+':'-')+Number(r.amount||0).toLocaleString()+'</td>'
-            + '<td style="padding:9px 12px;font-size:12px;color:#6b7280;">'+(isDep?(r.bank_from||'—'):(r.bank_name||'—'))+'</td>'
+            + '<td style="padding:9px 12px;font-size:12px;color:#6b7280;">'+(isDep?(r.bank||'—'):(r.bank||'—'))+'</td>'
             + '<td style="padding:9px 12px;text-align:center;font-size:12px;'+statusStyle+'">'+statusLabel+'</td>'
             + '<td style="padding:9px 12px;font-size:11px;color:#9ca3af;">'+fmtDate(r.created_at)+'</td>'
             + '</tr>';
