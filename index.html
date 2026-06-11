@@ -8335,6 +8335,8 @@ setInterval(() => {
       const verifiedNewBalance = freshBalance - amount;
 
       // insert withdrawal ก่อน — ถ้าล้มเหลวยังไม่หักเงิน
+      // ยืนยัน session nick ก่อน INSERT
+      try { await sb.rpc('set_current_nick', { p_nick: nick }); } catch(_) {}
       const { error: withErr } = await sb.from('withdrawals').insert({
         nick, amount, txn, status: 'pending',
         bank:     selBank.name,
@@ -8719,6 +8721,9 @@ setInterval(() => {
         return;
       }
     }
+
+    // ✅ ยืนยัน session nick ก่อน INSERT (ป้องกัน RLS block บน mobile)
+    try { await sb.rpc('set_current_nick', { p_nick: nick }); } catch(_) {}
 
     // ✅ บันทึกลง Supabase deposits
     const { error } = await sb.from('deposits').insert({
