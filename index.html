@@ -7610,8 +7610,7 @@ setInterval(() => {
     if (navReg) navReg.style.display = 'none';
     window._currentUser = currentUser;
     // ── Set session nick สำหรับ RLS policies ──
-    sb.rpc('set_current_nick', { p_nick: nick }).catch(function(e) {
-      // ถ้า function ยังไม่มี (ก่อน deploy RLS) ข้ามได้
+    sb.rpc('set_current_nick', { p_nick: nick }).then(function() {}).catch(function(e) {
       console.debug('[RLS] set_current_nick:', e?.message);
     });
     // ── Update mobile account bar ──
