@@ -3399,11 +3399,11 @@ async function loadOverview() {
   // รายการล่าสุด
   const [deps, withs, newMems] = await Promise.all([
     isAll
-      ? sb.from('deposits').select('*').order('created_at',{ascending:false}).limit(8)
-      : sb.from('deposits').select('*').gte('created_at', fromISO).lt('created_at', toISO).order('created_at',{ascending:false}).limit(8),
+      ? sb.from('deposits').select('id,nick,fname,lname,amount,bank,status,txn,slip_url,created_at,approved_at,approved_by,reject_reason,note').order('created_at',{ascending:false}).limit(8)
+      : sb.from('deposits').select('id,nick,fname,lname,amount,bank,status,txn,slip_url,created_at,approved_at,approved_by,reject_reason,note').gte('created_at', fromISO).lt('created_at', toISO).order('created_at',{ascending:false}).limit(8),
     isAll
-      ? sb.from('withdrawals').select('*').order('created_at',{ascending:false}).limit(8)
-      : sb.from('withdrawals').select('*').gte('created_at', fromISO).lt('created_at', toISO).order('created_at',{ascending:false}).limit(8),
+      ? sb.from('withdrawals').select('id,nick,amount,bank,acc_no,acc_name,status,txn,reason,created_at,approved_at,approved_by').order('created_at',{ascending:false}).limit(8)
+      : sb.from('withdrawals').select('id,nick,amount,bank,acc_no,acc_name,status,txn,reason,created_at,approved_at,approved_by').gte('created_at', fromISO).lt('created_at', toISO).order('created_at',{ascending:false}).limit(8),
     isAll
       ? sb.from('members').select('nick,created_at').order('created_at',{ascending:false}).limit(5)
       : sb.from('members').select('nick,created_at').gte('created_at', fromISO).lt('created_at', toISO).order('created_at',{ascending:false}).limit(5),
@@ -5867,7 +5867,7 @@ async function _rejectWithdrawReal(id,nick,amount){
 // ── DEPOSITS core ──
 async function loadDeposits(){
   try {
-const res=await sb.from('deposits').select('*').order('created_at',{ascending:false});allDeposits=res.data||[];const sc=(id,n)=>{const e=document.getElementById(id);if(e)e.textContent=n?'('+n+')':'';}; sc('dep-pending-count',allDeposits.filter(d=>d.status==='pending').length);sc('dep-done-count',allDeposits.filter(d=>d.status==='approved').length);sc('dep-reject-count',allDeposits.filter(d=>d.status==='rejected').length);filterDeposits();filterDepDone();filterDepReject();
+const res=await sb.from('deposits').select('id,nick,fname,lname,amount,bank,status,txn,slip_url,created_at,approved_at,approved_by,reject_reason,note').order('created_at',{ascending:false});allDeposits=res.data||[];const sc=(id,n)=>{const e=document.getElementById(id);if(e)e.textContent=n?'('+n+')':'';}; sc('dep-pending-count',allDeposits.filter(d=>d.status==='pending').length);sc('dep-done-count',allDeposits.filter(d=>d.status==='approved').length);sc('dep-reject-count',allDeposits.filter(d=>d.status==='rejected').length);filterDeposits();filterDepDone();filterDepReject();
   } catch(e) { console.error('loadDeposits:', e); }
 }
 function switchDepSec(sec){document.querySelectorAll('#panel-deposits .match-sec').forEach(s=>s.classList.remove('active'));document.querySelectorAll('#panel-deposits .match-nav-item').forEach(i=>i.classList.remove('active'));document.getElementById('dep-sec-'+sec)?.classList.add('active');document.getElementById('dnav-'+sec)?.classList.add('active');}
@@ -5958,7 +5958,7 @@ function filterDepReject(){
 // ── WITHDRAWALS core ──
 async function loadWithdrawals(){
   try {
-const res=await sb.from('withdrawals').select('*').order('created_at',{ascending:false});allWithdrawals=res.data||[];const sc=(id,n)=>{const e=document.getElementById(id);if(e)e.textContent=n?'('+n+')':'';}; sc('with-pending-count',allWithdrawals.filter(w=>w.status==='pending').length);sc('with-done-count',allWithdrawals.filter(w=>w.status==='approved').length);sc('with-reject-count',allWithdrawals.filter(w=>w.status==='rejected').length);filterWithdrawals();filterWithDone();filterWithReject();
+const res=await sb.from('withdrawals').select('id,nick,amount,bank,acc_no,acc_name,status,txn,reason,created_at,approved_at,approved_by').order('created_at',{ascending:false});allWithdrawals=res.data||[];const sc=(id,n)=>{const e=document.getElementById(id);if(e)e.textContent=n?'('+n+')':'';}; sc('with-pending-count',allWithdrawals.filter(w=>w.status==='pending').length);sc('with-done-count',allWithdrawals.filter(w=>w.status==='approved').length);sc('with-reject-count',allWithdrawals.filter(w=>w.status==='rejected').length);filterWithdrawals();filterWithDone();filterWithReject();
   } catch(e) { console.error('loadWithdrawals:', e); }
 }
 function switchWithSec(sec){document.querySelectorAll('#panel-withdrawals .match-sec').forEach(s=>s.classList.remove('active'));document.querySelectorAll('#panel-withdrawals .match-nav-item').forEach(i=>i.classList.remove('active'));document.getElementById('with-sec-'+sec)?.classList.add('active');document.getElementById('wnav-'+sec)?.classList.add('active');}
@@ -6367,7 +6367,7 @@ async function _loadMemberTxns(nick){
            '<span style="background:#fef9c3;color:#854d0e;padding:2px 8px;border-radius:12px;font-size:10px;font-weight:700">⏳</span>';
   };
   try{
-    var r1=await sb.from('deposits').select('*').eq('nick',nick).order('created_at',{ascending:false}).limit(50);
+    var r1=await sb.from('deposits').select('id,nick,fname,lname,amount,bank,status,txn,slip_url,created_at,approved_at,approved_by,reject_reason,note').eq('nick',nick).order('created_at',{ascending:false}).limit(50);
     var dt=document.getElementById('mo-dep-tbody');
     if(dt) dt.innerHTML=(r1.data||[]).length?(r1.data||[]).map(function(d){
       return '<tr><td style="padding:9px 12px;font-size:11px;color:#888">'+fmtDate(d.created_at)+'</td>'+
@@ -6378,7 +6378,7 @@ async function _loadMemberTxns(nick){
     }).join(''):'<tr><td colspan="5" style="text-align:center;padding:24px;color:#aaa">ยังไม่มีรายการ</td></tr>';
   }catch(e){}
   try{
-    var r2=await sb.from('withdrawals').select('*').eq('nick',nick).order('created_at',{ascending:false}).limit(50);
+    var r2=await sb.from('withdrawals').select('id,nick,amount,bank,acc_no,acc_name,status,txn,reason,created_at,approved_at,approved_by').eq('nick',nick).order('created_at',{ascending:false}).limit(50);
     var wt=document.getElementById('mo-with-tbody');
     if(wt) wt.innerHTML=(r2.data||[]).length?(r2.data||[]).map(function(w){
       return '<tr><td style="padding:9px 12px;font-size:11px;color:#888">'+fmtDate(w.created_at)+'</td>'+
@@ -7588,7 +7588,7 @@ function clearDateMem() {
           : '<div style="text-align:center;padding:40px;color:#9ca3af;">ไม่มีข้อมูลในช่วงนี้</div>';
 
       } else if (type === 'deposits' || type === 'pending_dep') {
-        var q = sb.from('deposits').select('*').order('created_at',{ascending:false});
+        var q = sb.from('deposits').select('id,nick,fname,lname,amount,bank,status,txn,slip_url,created_at,approved_at,approved_by,reject_reason,note').order('created_at',{ascending:false});
         if (type === 'pending_dep') q = q.eq('status','pending');
         else q = q.gte('created_at', fromISO).lt('created_at', toISO);
         var res2 = await q;
@@ -7596,7 +7596,7 @@ function clearDateMem() {
         html_content = _buildTxTable(rows, 'dep');
 
       } else if (type === 'withdrawals' || type === 'pending_with') {
-        var q2 = sb.from('withdrawals').select('*').order('created_at',{ascending:false});
+        var q2 = sb.from('withdrawals').select('id,nick,amount,bank,acc_no,acc_name,status,txn,reason,created_at,approved_at,approved_by').order('created_at',{ascending:false});
         if (type === 'pending_with') q2 = q2.eq('status','pending');
         else q2 = q2.gte('created_at', fromISO).lt('created_at', toISO);
         var res3 = await q2;
