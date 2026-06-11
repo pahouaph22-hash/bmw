@@ -5942,19 +5942,23 @@ function applyLang() {
   }
 
   // ── ดึงยอดเงินล่าสุดจาก Supabase ──
-  async function refreshBalance() {
+  async async function refreshBalance() {
     if (!currentUser) return;
-    const { data } = await sb.from('members')
-      .select('balance,flags,admin_note')
-      .eq('nick', currentUser.nick)
-      .maybeSingle();
-    if (data) {
-      updateAccBalance(Number(data.balance || 0));
-      currentUser.balance    = Number(data.balance || 0);
-      currentUser.flags      = Array.isArray(data.flags) ? data.flags : [];
-      currentUser.admin_note = data.admin_note || '';
-      _safeStorage.setItem('bw_user', JSON.stringify(currentUser));
-      applyFlagUI(currentUser.flags);
+    try {
+      // ใช้ RPC get_member_by_nick (SECURITY DEFINER) แทน direct query
+      // เพราะ admin_note ถูก revoke จาก anon
+      const { data: rows } = await sb.rpc('get_member_by_nick', { p_nick: currentUser.nick });
+      const data = rows?.[0] || null;
+      if (data) {
+        updateAccBalance(Number(data.balance || 0));
+        currentUser.balance    = Number(data.balance || 0);
+        currentUser.flags      = Array.isArray(data.flags) ? data.flags : [];
+        currentUser.admin_note = data.admin_note || '';
+        _safeStorage.setItem('bw_user', JSON.stringify(currentUser));
+        applyFlagUI(currentUser.flags);
+      }
+    } catch(e) {
+      console.debug('[refreshBalance]', e?.message);
     }
   }
 
@@ -7609,10 +7613,36 @@ setInterval(() => {
     if (navAcc) { navAcc.style.display = 'inline'; navAcc.textContent = `👤 ${nick}`; }
     if (navReg) navReg.style.display = 'none';
     window._currentUser = currentUser;
+
     // ── Set session nick สำหรับ RLS policies ──
     sb.rpc('set_current_nick', { p_nick: nick }).then(function() {}).catch(function(e) {
       console.debug('[RLS] set_current_nick:', e?.message);
     });
+
+    // ── Realtime subscription: อัปเดตยอดเงินอัตโนมัติเมื่อ admin อนุมัติ ──
+    if (window._memberBalanceChannel) {
+      try { sb.removeChannel(window._memberBalanceChannel); } catch(_) {}
+    }
+    window._memberBalanceChannel = sb.channel('member-balance-' + nick)
+      .on('postgres_changes', {
+        event: 'UPDATE',
+        schema: 'public',
+        table: 'members',
+        filter: 'nick=eq.' + nick
+      }, function(payload) {
+        if (payload.new && typeof payload.new.balance !== 'undefined') {
+          const newBal = Number(payload.new.balance || 0);
+          updateAccBalance(newBal);
+          if (currentUser) {
+            currentUser.balance = newBal;
+            window._currentUser = currentUser;
+            _safeStorage.setItem('bw_user', JSON.stringify(currentUser));
+          }
+          showFEToast('💰 ยอดเงินอัปเดต: ' + newBal.toLocaleString() + ' ₭');
+        }
+      })
+      .subscribe();
+
     // ── Update mobile account bar ──
     _updateMobAccBar();
   }
@@ -7674,6 +7704,11 @@ setInterval(() => {
   window.logout = window._real_logout = function logout() {
     // cleanup realtime channels
     Object.keys(_activeChannels).forEach(n => _cleanupChannel(n));
+    // cleanup member balance channel
+    if (window._memberBalanceChannel) {
+      try { sb.removeChannel(window._memberBalanceChannel); } catch(_) {}
+      window._memberBalanceChannel = null;
+    }
     // cleanup intervals
     if (typeof _depGuardianTimer !== 'undefined') { clearInterval(_depGuardianTimer); _depGuardianTimer = null; }
     if (typeof _isWithdrawing !== 'undefined') _isWithdrawing = false;
@@ -7942,6 +7977,7 @@ setInterval(() => {
   }
 
   function goDepStep1() {
+    if (currentUser) refreshBalance(); // refresh ยอดเงินก่อนแสดง
     document.getElementById('dep-step1').style.display = 'block';
     document.getElementById('dep-step2').style.display = 'none';
     document.getElementById('dep-step3').style.display = 'none';
@@ -8656,7 +8692,18 @@ setInterval(() => {
   }
 
   // Deposit slip preview — ต้องรอ DOM โหลดก่อน
-  document.addEventListener('DOMContentLoaded', function() {
+    // ── Auto-refresh balance เมื่อ user กลับมาที่ tab ──
+    document.addEventListener('visibilitychange', function() {
+      if (!document.hidden && currentUser) {
+        refreshBalance();
+      }
+    });
+    // ── Auto-refresh balance ทุก 30 วินาที (fallback) ──
+    setInterval(function() {
+      if (currentUser && !document.hidden) {
+        refreshBalance();
+      }
+    }, 30000);, function() {
     const depFile = document.getElementById('dep-slip-file');
     if (depFile) {
       depFile.addEventListener('change', function() {
