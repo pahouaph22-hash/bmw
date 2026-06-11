@@ -3319,7 +3319,7 @@ function loadAll() {
   loadRefRateLevels();
   ensureFlagColumns();
   subscribeNotifications();
-  scheduleAutoRefresh();
+  if(typeof scheduleAutoRefresh==='function') scheduleAutoRefresh();
   startAutoRefresh();
   setTimeout(function(){ try { renderGrowthChart(); } catch(e){ console.warn('renderGrowthChart',e); } }, 1200);
 }
@@ -3952,7 +3952,7 @@ async function ensureFlagColumns() {
       headers: { 'apikey': SUPA_KEY, 'Authorization': 'Bearer ' + SUPA_KEY }
     });
     // ลอง select flags จาก 1 row แทน
-    const { data, error } = await sb.from('members').select('flags,admin_note').limit(1);
+    const { data, error } = await sb.from('members').select('flags').limit(1);
     if (error && (error.code === '42703' || (error.message||'').toLowerCase().includes('column'))) {
       window._flagColumnMissing = true;
       showFlagSqlModal(); // เปิด modal SQL ทันที
@@ -3998,7 +3998,7 @@ async function toggleFlag(nick, flagKey, btn) {
   try {
     // ดึง flags ปัจจุบัน
     const { data: mem, error: fetchErr } = await sb
-      .from('members').select('flags,admin_note').eq('nick', nick).maybeSingle();
+      .rpc('get_member_by_nick',{p_nick:nick}).then(r=>({data:r.data?.[0]||null,error:r.error}));
 
     if (fetchErr) {
       // column ไม่มี — แสดง SQL modal
@@ -4112,7 +4112,7 @@ function showRlsHelper() {
 async function saveAdminNote(nick) {
   const note = document.getElementById('me-admin-note')?.value.trim() || '';
   try {
-    const { error } = await sb.from('members').update({ admin_note: note }).eq('nick', nick);
+    const { error } = await sb.rpc('admin_update_member_note',{p_nick:nick,p_note:note});
     if (error) {
       const msg = error.message || '';
       if (msg.toLowerCase().includes('column') || error.code === '42703') {
