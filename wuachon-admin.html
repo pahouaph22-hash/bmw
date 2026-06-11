@@ -2141,7 +2141,7 @@ input, textarea, select, button {
           ✅ <strong>RLS เปิดใช้งานแล้ว</strong> — table staff และ staff_logs ได้รับการป้องกันแล้วครับ
         </div>
       </div>
-<div class="card" style="border-left:4px solid #f59e0b;margin-top:12px;"><div class="card-title">🔧 Schema Migration</div><div style="font-size:12px;color:#888;margin-bottom:10px;">เพิ่มคอลัมน์ reason, approved_at, approved_by ในตาราง deposits/withdrawals (ถ้ายังไม่มี)</div><button class="save-btn" onclick="runSchemaMigration()" style="background:linear-gradient(135deg,#f59e0b,#d97706);">⚡ Run Migration</button></div>
+<div class="card" style="border-left:4px solid #f59e0b;margin-top:12px;"><div class="card-title">🔧 Schema Migration (applied)</div><div style="font-size:12px;color:#888;margin-bottom:10px;">เพิ่มคอลัมน์ reason, approved_at, approved_by ในตาราง deposits/withdrawals (ถ้ายังไม่มี)</div><button class="save-btn" onclick="runSchemaMigration()" style="background:linear-gradient(135deg,#f59e0b,#d97706);">⚡ Run Migration</button></div>
 
 
 
@@ -5038,7 +5038,7 @@ async function _showGrowthDrilldown(label) {
   var raw = window._growthRaw;
   if (!raw) { body.innerHTML = 'ไม่มีข้อมูล'; return; }
 
-  function getKey(dateStr) {
+  function _getFinKey(dateStr) {
     var d = new Date(dateStr);
     if (raw.groupBy==='hour')  return d.getHours()+':00';
     if (raw.groupBy==='day')   return d.toLocaleDateString('th-TH',{day:'2-digit',month:'2-digit'});
@@ -5046,9 +5046,9 @@ async function _showGrowthDrilldown(label) {
     return d.toLocaleDateString('th-TH',{month:'short',year:'2-digit'});
   }
 
-  var deps  = (raw.deps  ||[]).filter(function(r){ return getKey(r.created_at)===label; });
-  var withs = (raw.withs ||[]).filter(function(r){ return getKey(r.created_at)===label; });
-  var mems  = (raw.mems  ||[]).filter(function(r){ return getKey(r.created_at)===label; });
+  var deps  = (raw.deps  ||[]).filter(function(r){ return _getFinKey(r.created_at)===label; });
+  var withs = (raw.withs ||[]).filter(function(r){ return _getFinKey(r.created_at)===label; });
+  var mems  = (raw.mems  ||[]).filter(function(r){ return _getFinKey(r.created_at)===label; });
 
   var totalDep  = deps.reduce(function(s,r){  return s+Number(r.amount||0); }, 0);
   var totalWith = withs.reduce(function(s,r){ return s+Number(r.amount||0); }, 0);
