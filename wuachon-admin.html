@@ -668,7 +668,7 @@ input, textarea, select, button {
 
   <!-- ── Chart Canvas ── -->
   <div style="position:relative;height:320px;">
-    <canvas id="growth-chart" role="img" aria-label="กราฟแนวโน้มการเติบโต"></canvas>
+    <canvas id="growth-chart" role="img" aria-label="กราฟแนวโน้มการเติบโต" style="display:block;width:100%;height:100%;"></canvas>
   </div>
 
   <!-- ── Drill-down popup ── -->
@@ -3286,7 +3286,7 @@ function loadAll() {
   subscribeNotifications();
   scheduleAutoRefresh();
   startAutoRefresh();
-  setTimeout(function(){ try { renderGrowthChart(); } catch(e){ console.warn('renderGrowthChart',e); } }, 800);
+  setTimeout(function(){ try { renderGrowthChart(); } catch(e){ console.warn('renderGrowthChart',e); } }, 1200);
 }
 
 // ===== OVERVIEW =====
@@ -4873,131 +4873,134 @@ async function renderGrowthChart() {
   const canvas = document.getElementById('growth-chart');
   if (!canvas) return;
 
-  // ── ดึง date range จาก _ovrRange ──
-  // init range ถ้ายังว่าง
-  if (!_ovrRange.from) {
-    var _init = _getDateRange('today');
-    _ovrRange = { from: _init.from, to: _init.to, key: 'today', label: 'วันนี้' };
+  // guard: Chart.js ต้องโหลดก่อน
+  if (typeof Chart === 'undefined') {
+    setTimeout(renderGrowthChart, 300); return;
   }
-  var range   = _ovrRange;
-  var fromISO = range.from.toISOString();
-  var toISO   = range.to.toISOString();
-  var fromMs  = range.from.getTime();
-  var toMs    = range.to.getTime();
-  var diffMs  = toMs - fromMs;
-  var diffDays= Math.ceil(diffMs / 86400000);
+  // guard: canvas ต้องมี size
+  if (canvas.offsetWidth === 0 || canvas.offsetHeight === 0) {
+    setTimeout(renderGrowthChart, 400); return;
+  }
 
-  // ── กำหนด grouping unit ──
-  var groupBy = diffDays <= 1 ? 'hour' : diffDays <= 31 ? 'day' : diffDays <= 180 ? 'week' : 'month';
+  // lazy init range
+  if (!_ovrRange.from) {
+    var ri = _getDateRange('today');
+    _ovrRange = { from:ri.from, to:ri.to, key:'today', label:'วันนี้' };
+  }
+  var fromISO  = _ovrRange.from.toISOString();
+  var toISO    = _ovrRange.to.toISOString();
+  var fromMs   = _ovrRange.from.getTime();
+  var toMs     = _ovrRange.to.getTime();
+  var diffDays = Math.max(1, Math.ceil((toMs-fromMs)/86400000));
+  var groupBy  = diffDays<=1?'hour': diffDays<=31?'day': diffDays<=180?'week':'month';
 
-  // ── fetch data ──
-  const [deps, withs, mems] = await Promise.all([
-    sb.from('deposits').select('created_at,amount,service_fee').eq('status','approved').gte('created_at',fromISO).lt('created_at',toISO),
-    sb.from('withdrawals').select('created_at,amount').eq('status','approved').gte('created_at',fromISO).lt('created_at',toISO),
-    sb.from('members').select('created_at').gte('created_at',fromISO).lt('created_at',toISO),
-  ]);
+  if (_growthChart) { _growthChart.destroy(); _growthChart=null; }
 
-  // ── group by time unit ──
-  function getKey(dateStr) {
-    var d = new Date(dateStr);
-    if (groupBy === 'hour')  return d.getHours() + ':00';
-    if (groupBy === 'day')   return d.toLocaleDateString('th-TH',{day:'2-digit',month:'2-digit'});
-    if (groupBy === 'week')  { var w = new Date(d); w.setDate(d.getDate()-d.getDay()); return 'สป.'+w.toLocaleDateString('th-TH',{day:'2-digit',month:'2-digit'}); }
+  // ── fetch ──
+  var depsData=[], withsData=[], memsData=[], fetchOk=false;
+  try {
+    var [d,w,m] = await Promise.all([
+      sb.from('deposits').select('created_at,amount,service_fee').eq('status','approved').gte('created_at',fromISO).lt('created_at',toISO),
+      sb.from('withdrawals').select('created_at,amount').eq('status','approved').gte('created_at',fromISO).lt('created_at',toISO),
+      sb.from('members').select('created_at').gte('created_at',fromISO).lt('created_at',toISO),
+    ]);
+    if (d && !d.error) { depsData=d.data||[]; withsData=w.data||[]; memsData=m.data||[]; fetchOk=true; }
+  } catch(e) { console.warn('[chart]',e.message); }
+
+  // ── fallback labels: 30 วันย้อนหลัง ──
+  function getKey(ds) {
+    var d=new Date(ds);
+    if(groupBy==='hour')  return ('0'+d.getHours()).slice(-2)+':00';
+    if(groupBy==='day')   return d.toLocaleDateString('th-TH',{day:'2-digit',month:'2-digit'});
+    if(groupBy==='week')  { var w2=new Date(d);w2.setDate(d.getDate()-d.getDay());return 'สป.'+w2.toLocaleDateString('th-TH',{day:'2-digit',month:'2-digit'}); }
     return d.toLocaleDateString('th-TH',{month:'short',year:'2-digit'});
   }
 
-  // สร้าง labels
-  var labels = [];
-  var step   = groupBy==='hour' ? 3600000 : groupBy==='day' ? 86400000 : groupBy==='week' ? 604800000 : 2592000000;
-  var seen   = new Set();
-  for (var t = fromMs; t < toMs; t += step) {
-    var key = getKey(new Date(t).toISOString());
-    if (!seen.has(key)) { labels.push(key); seen.add(key); }
-  }
-  if (!labels.length) labels = ['ไม่มีข้อมูล'];
-
-  function groupSum(rows, field) {
-    var map = {};
-    (rows||[]).forEach(function(r) { var k=getKey(r.created_at); map[k]=(map[k]||0)+Number(r[field]||0); });
-    return map;
-  }
-  function groupCount(rows) {
-    var map = {};
-    (rows||[]).forEach(function(r) { var k=getKey(r.created_at); map[k]=(map[k]||0)+1; });
-    return map;
+  var labels=[], seen=new Set();
+  // สร้าง labels จาก range
+  var step=groupBy==='hour'?3600000:groupBy==='day'?86400000:groupBy==='week'?604800000:2592000000;
+  for(var t=fromMs; t<toMs; t+=step){ var k=getKey(new Date(t).toISOString()); if(!seen.has(k)){labels.push(k);seen.add(k);} }
+  // เพิ่ม labels จาก data
+  [...depsData,...withsData,...memsData].forEach(function(r){ var k=getKey(r.created_at);if(!seen.has(k)){labels.push(k);seen.add(k);} });
+  // fallback 30 วัน
+  if(!labels.length) {
+    for(var dd=29;dd>=0;dd--){
+      var kk=new Date(Date.now()-dd*86400000).toLocaleDateString('th-TH',{day:'2-digit',month:'2-digit'});
+      if(!seen.has(kk)){labels.push(kk);seen.add(kk);}
+    }
   }
 
-  var depMap   = groupSum(deps.data,  'amount');
-  var feeMap   = groupSum(deps.data,  'service_fee');
-  var withMap  = groupSum(withs.data, 'amount');
-  var memMap   = groupCount(mems.data);
+  function gSum(rows,f){ var m={};(rows||[]).forEach(function(r){var k=getKey(r.created_at);m[k]=(m[k]||0)+Number(r[f]||0);});return m; }
+  function gCnt(rows)  { var m={};(rows||[]).forEach(function(r){var k=getKey(r.created_at);m[k]=(m[k]||0)+1;});return m; }
 
-  // กำไร = เติม - ถอน
-  var profitMap = {};
-  labels.forEach(function(l) { profitMap[l] = (depMap[l]||0) - (withMap[l]||0); });
+  var depMap=gSum(depsData,'amount'), feeMap=gSum(depsData,'service_fee');
+  var withMap=gSum(withsData,'amount'), memMap=gCnt(memsData);
+  var profitMap={},rewardMap={};
+  labels.forEach(function(l){ profitMap[l]=(depMap[l]||0)-(withMap[l]||0); rewardMap[l]=(feeMap[l]||0)*0.1; });
 
-  // reward: ใช้ service_fee * 0.1 เป็น estimate (ปรับได้)
-  var rewardMap = {};
-  labels.forEach(function(l) { rewardMap[l] = (feeMap[l]||0) * 0.1; });
-
-  var K = 1000;
-  var datasets = [
-    { id:'profit',   label:'📈 กำไร (K₭)',       data: labels.map(function(l){ return +(profitMap[l]/K).toFixed(2); }), borderColor:'#1d4ed8', backgroundColor:'rgba(29,78,216,0.1)', tension:0.4, fill:true,  pointRadius:4, pointHoverRadius:7 },
-    { id:'deposit',  label:'💰 เติมเงิน (K₭)',   data: labels.map(function(l){ return +((depMap[l]||0)/K).toFixed(2); }),  borderColor:'#22c55e', backgroundColor:'rgba(34,197,94,0.08)', tension:0.4, fill:false, pointRadius:3, pointHoverRadius:6 },
-    { id:'withdraw', label:'🏧 ถอนเงิน (K₭)',   data: labels.map(function(l){ return +((withMap[l]||0)/K).toFixed(2); }), borderColor:'#f87171', backgroundColor:'rgba(248,113,113,0.06)', tension:0.4, fill:false, pointRadius:3, pointHoverRadius:6 },
-    { id:'fee',      label:'⚙️ ค่าบริการ (K₭)',  data: labels.map(function(l){ return +((feeMap[l]||0)/K).toFixed(2); }),  borderColor:'#f59e0b', backgroundColor:'rgba(245,158,11,0.06)', tension:0.4, fill:false, pointRadius:3, pointHoverRadius:6 },
-    { id:'reward',   label:'🎁 รางวัล (K₭)',     data: labels.map(function(l){ return +((rewardMap[l]||0)/K).toFixed(2); }), borderColor:'#8b5cf6', backgroundColor:'rgba(139,92,246,0.06)', tension:0.4, fill:false, pointRadius:3, pointHoverRadius:6 },
-    { id:'member',   label:'👥 สมาชิกใหม่ (คน)', data: labels.map(function(l){ return memMap[l]||0; }), borderColor:'#F5C842', backgroundColor:'rgba(245,200,66,0.06)', tension:0.4, fill:false, pointRadius:3, pointHoverRadius:6, yAxisID:'y2', hidden:true },
-  ];
-
-  // apply toggle state
-  ['profit','deposit','withdraw','fee','reward','member'].forEach(function(id) {
-    var chk = document.getElementById('gct-'+id);
-    var ds  = datasets.find(function(d){ return d.id===id; });
-    if (chk && ds) ds.hidden = !chk.checked;
+  var K=1000;
+  var datasets=[
+    { id:'profit',   label:'📈 กำไร (K₭)',       data:labels.map(function(l){return +(profitMap[l]/K).toFixed(2);}),       borderColor:'#1d4ed8',bg:'rgba(29,78,216,0.10)',  fill:true  },
+    { id:'deposit',  label:'💰 เติมเงิน (K₭)',   data:labels.map(function(l){return +((depMap[l]||0)/K).toFixed(2);}),     borderColor:'#22c55e',bg:'rgba(34,197,94,0.07)',  fill:false },
+    { id:'withdraw', label:'🏧 ถอนเงิน (K₭)',   data:labels.map(function(l){return +((withMap[l]||0)/K).toFixed(2);}),    borderColor:'#f87171',bg:'rgba(248,113,113,0.06)',fill:false },
+    { id:'fee',      label:'⚙️ ค่าบริการ (K₭)',  data:labels.map(function(l){return +((feeMap[l]||0)/K).toFixed(2);}),    borderColor:'#f59e0b',bg:'rgba(245,158,11,0.06)', fill:false },
+    { id:'reward',   label:'🎁 รางวัล (K₭)',     data:labels.map(function(l){return +((rewardMap[l]||0)/K).toFixed(2);}), borderColor:'#8b5cf6',bg:'rgba(139,92,246,0.06)', fill:false },
+    { id:'member',   label:'👥 สมาชิกใหม่ (คน)', data:labels.map(function(l){return memMap[l]||0;}),                       borderColor:'#F5C842',bg:'rgba(245,200,66,0.06)', fill:false, yAxisID:'y2', hidden:true },
+  ].map(function(ds){
+    return { id:ds.id, label:ds.label, data:ds.data,
+      borderColor:ds.borderColor, backgroundColor:ds.bg,
+      tension:0.4, fill:ds.fill, pointRadius:2, pointHoverRadius:6,
+      borderWidth:2, yAxisID:ds.yAxisID||'y', hidden:ds.hidden||false };
   });
 
-  // store raw for drill-down
-  window._growthRaw = { deps:deps.data||[], withs:withs.data||[], mems:mems.data||[], labels, groupBy };
+  // apply checkbox state
+  ['profit','deposit','withdraw','fee','reward','member'].forEach(function(id){
+    var chk=document.getElementById('gct-'+id);
+    var ds=datasets.find(function(d){return d.id===id;});
+    if(chk&&ds) ds.hidden=!chk.checked;
+  });
 
-  // ── ensure canvas is visible and has size ──
-  if (canvas.offsetWidth === 0 || canvas.offsetHeight === 0) {
-    // retry after DOM paint
-    setTimeout(renderGrowthChart, 500);
-    return;
-  }
-  if (_growthChart) { _growthChart.destroy(); _growthChart = null; }
-  var ctx = canvas.getContext('2d');
-  _growthChart = new Chart(ctx, {
-    type: 'line',
-    data: { labels, datasets },
-    options: {
-      responsive: true, maintainAspectRatio: false,
-      interaction: { mode:'index', intersect:false },
-      onClick: function(evt, elements) {
-        if (!elements.length) return;
-        var idx = elements[0].index;
-        _showGrowthDrilldown(labels[idx]);
-      },
-      plugins: {
-        legend: { labels: { color:'#555', font:{ family:'Kanit', size:11 }, usePointStyle:true } },
-        tooltip: {
-          callbacks: {
-            label: function(ctx) {
-              return ctx.dataset.yAxisID === 'y2'
-                ? ' '+ctx.dataset.label+': '+ctx.parsed.y+' คน'
-                : ' '+ctx.dataset.label+': '+ctx.parsed.y.toFixed(1)+'K ₭';
-            }
+  window._growthRaw={deps:depsData,withs:withsData,mems:memsData,labels:labels,groupBy:groupBy};
+
+  var ctx=canvas.getContext('2d');
+  _growthChart=new Chart(ctx,{
+    type:'line',
+    data:{labels,datasets},
+    options:{
+      responsive:true, maintainAspectRatio:false, animation:{duration:400},
+      interaction:{mode:'index',intersect:false},
+      onClick:function(evt,els){ if(els&&els.length) _showGrowthDrilldown(labels[els[0].index]); },
+      plugins:{
+        legend:{ labels:{color:'#555',font:{family:'Kanit',size:11},usePointStyle:true,padding:14,boxWidth:10} },
+        tooltip:{
+          backgroundColor:'rgba(255,255,255,0.97)',borderColor:'#e5e7eb',borderWidth:1,
+          titleColor:'#374151',bodyColor:'#6b7280',
+          titleFont:{family:'Kanit',weight:'bold',size:12},bodyFont:{family:'Kanit',size:11},padding:10,
+          callbacks:{
+            label:function(c){ return c.dataset.yAxisID==='y2'? '  '+c.dataset.label+': '+c.parsed.y+' คน': '  '+c.dataset.label+': '+c.parsed.y.toFixed(2)+'K ₭'; },
+            afterBody:function(){ return['','  📌 คลิกดูรายละเอียด']; }
           }
         }
       },
-      scales: {
-        x: { ticks:{ color:'#999', font:{size:10}, maxTicksLimit:12 }, grid:{ color:'rgba(0,0,0,0.05)' } },
-        y: { ticks:{ color:'#999', font:{size:10} }, grid:{ color:'rgba(0,0,0,0.05)' }, title:{ display:true, text:'K₭', color:'#aaa' } },
-        y2:{ position:'right', ticks:{ color:'#F5C842', font:{size:10} }, grid:{ display:false }, title:{ display:true, text:'คน', color:'#F5C842' } },
+      scales:{
+        x:{ ticks:{color:'#9ca3af',font:{size:10,family:'Kanit'},maxTicksLimit:14,maxRotation:45},grid:{color:'rgba(0,0,0,0.04)'} },
+        y:{ ticks:{color:'#9ca3af',font:{size:10},callback:function(v){return v+'K';}},grid:{color:'rgba(0,0,0,0.04)'},title:{display:true,text:'K₭',color:'#9ca3af',font:{size:10}} },
+        y2:{ position:'right',ticks:{color:'#F5C842',font:{size:10}},grid:{display:false},title:{display:true,text:'คน',color:'#F5C842',font:{size:10}} }
       }
     }
   });
+
+  // no-data overlay
+  var allEmpty = !depsData.length&&!withsData.length&&!memsData.length;
+  if(allEmpty){
+    setTimeout(function(){
+      var c2=canvas.getContext('2d');
+      c2.save(); c2.textAlign='center'; c2.textBaseline='middle';
+      c2.fillStyle='#d1d5db'; c2.font="13px 'Kanit',sans-serif";
+      c2.fillText(fetchOk?'ยังไม่มีข้อมูลในช่วงเวลาที่เลือก':'📊 โหลดไม่ได้ (เปิดจาก file://) — กรุณา deploy บน server',canvas.width/2,canvas.height/2);
+      c2.restore();
+    },100);
+  }
 }
 
 function toggleGrowthDataset(id) {
@@ -7177,13 +7180,9 @@ async function runSchemaMigration(){
     }
   }
 
-</script>
-
-</body>
-</html
 
 
-  function clearDateMem() {
+function clearDateMem() {
     var from = document.getElementById('mem-date-from');
     var to   = document.getElementById('mem-date-to');
     if (from) from.value = '';
@@ -7340,7 +7339,7 @@ async function runSchemaMigration(){
     };
     if (title)   title.textContent   = titles[type] || '📋 รายละเอียด';
     if (subtitle) subtitle.textContent = label;
-    if (body)    body.innerHTML      = '<div style="text-align:center;padding:40px;color:#9ca3af;">กำลังโหลด...</div>';
+    if (body)    body.innerHTML      = '<div style="text-align:center;padding:40px;color:#9ca3af;"กำลังโหลด...</div>';
 
     overlay.style.display = 'flex';
 
@@ -7492,4 +7491,16 @@ async function runSchemaMigration(){
     }, 300);
   })();
 
->
+
+  // Trigger renderGrowthChart after full page load
+  window.addEventListener('load', function() {
+    setTimeout(function() {
+      if (document.getElementById('panel-overview') &&
+          document.getElementById('panel-overview').classList.contains('active')) {
+        renderGrowthChart();
+      }
+    }, 500);
+  });
+</script>
+</body>
+</html>
