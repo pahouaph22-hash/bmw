@@ -16,6 +16,7 @@
 
 <script>
 // ── Global stubs ── รันก่อน CDN และ main script ──
+window.filterResults = function() {}; // stub — ถูก override โดย main script
 (function(){
 var fns=['showRegister','hideRegister','showSchedule','hideSchedule',
 'showHistory','hideHistory','showMyAccount','hideMyAccount',
@@ -5942,7 +5943,7 @@ function applyLang() {
   }
 
   // ── ดึงยอดเงินล่าสุดจาก Supabase ──
-  async async function refreshBalance() {
+  async async async function refreshBalance() {
     if (!currentUser) return;
     try {
       // ใช้ RPC get_member_by_nick (SECURITY DEFINER) แทน direct query
