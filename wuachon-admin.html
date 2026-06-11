@@ -1255,7 +1255,7 @@ input, textarea, select, button {
                 </div>
                 <div style="overflow-x:auto;">
                   <table>
-                    <thead><tr><th>Nick</th><th>จำนวน</th><th>ธนาคาร</th><th>TXN</th><th>อนุมัติเมื่อ</th><th>อนุมัติโดย</th></tr></thead>
+                    <thead><tr><th>Nick</th><th>จำนวน</th><th>ธนาคาร</th><th>TXN</th><th style="text-align:center;">🧾 สลิป</th><th>อนุมัติเมื่อ</th><th>อนุมัติโดย</th></tr></thead>
                     <tbody id="dep-done-tbody"><tr><td colspan="5" style="text-align:center;padding:24px;color:#aaa;">กำลังโหลด...</td></tr></tbody>
                   </table>
                 </div>
@@ -1279,7 +1279,7 @@ input, textarea, select, button {
                 </div>
                 <div style="overflow-x:auto;">
                   <table>
-                    <thead><tr><th>Nick</th><th>จำนวน</th><th>เหตุผล</th><th>เวลา</th></tr></thead>
+                    <thead><tr><th>Nick</th><th>จำนวน</th><th style="text-align:center;">🧾 สลิป</th><th>เหตุผล</th><th>เวลา</th></tr></thead>
                     <tbody id="dep-reject-tbody"><tr><td colspan="4" style="text-align:center;padding:24px;color:#aaa;">กำลังโหลด...</td></tr></tbody>
                   </table>
                 </div>
@@ -5352,6 +5352,56 @@ async function loadFinanceTable() {
 }
 
 
+// ── SLIP MODAL ──
+function openSlip(slipUrl, meta) {
+  var modal   = document.getElementById('slip-modal');
+  var content = document.getElementById('slip-content');
+  var metaEl  = document.getElementById('slip-meta');
+  var dlBtn   = document.getElementById('slip-download');
+  if (!modal || !content) return;
+
+  metaEl.textContent = meta || '';
+
+  if (!slipUrl) {
+    content.innerHTML = '<div style="padding:40px;color:#9ca3af;font-family:\'Kanit\',sans-serif;">ไม่พบไฟล์สลิปครับ</div>';
+    dlBtn.style.display = 'none';
+    modal.style.display = 'flex';
+    return;
+  }
+
+  // รองรับทั้ง base64 data URL และ https URL
+  var isBase64 = slipUrl.startsWith('data:');
+  var isHttp   = slipUrl.startsWith('http');
+
+  if (isBase64 || isHttp) {
+    var ext = isBase64
+      ? (slipUrl.includes('image/png') ? 'png' : slipUrl.includes('image/gif') ? 'gif' : 'jpg')
+      : (slipUrl.split('?')[0].split('.').pop() || 'jpg');
+
+    dlBtn.href     = slipUrl;
+    dlBtn.download = 'slip_' + (meta||'').replace(/[^a-zA-Z0-9ก-ฮ]/g,'_').slice(0,20) + '.' + ext;
+    dlBtn.style.display = '';
+
+    content.innerHTML = '<img src="' + slipUrl + '" style="max-width:100%;max-height:70vh;border-radius:8px;box-shadow:0 4px 20px rgba(0,0,0,.2);" onerror="this.outerHTML=\'<div style=\\\'padding:40px;color:#dc2626;font-family:Kanit,sans-serif;\\\'>❌ โหลดรูปไม่ได้ กรุณาตรวจสอบไฟล์ครับ</div>\'">';
+  } else {
+    content.innerHTML = '<div style="padding:40px;color:#9ca3af;font-family:\'Kanit\',sans-serif;">รูปแบบไฟล์ไม่รองรับครับ</div>';
+    dlBtn.style.display = 'none';
+  }
+
+  modal.style.display = 'flex';
+  document.addEventListener('keydown', _slipKeyClose);
+}
+
+function closeSlip() {
+  var modal = document.getElementById('slip-modal');
+  if (modal) modal.style.display = 'none';
+  document.removeEventListener('keydown', _slipKeyClose);
+}
+
+function _slipKeyClose(e) {
+  if (e.key === 'Escape') closeSlip();
+}
+
 // ── window aliases (safe call from HTML before script loads) ──
 window._doAdminLogin  = function(){ if(typeof adminLogin==='function') adminLogin(); };
 window._doVerifyOTP   = function(){ if(typeof verifyLoginOTP==='function') verifyLoginOTP(); };
@@ -5773,7 +5823,12 @@ function filterDeposits(){
   }
   var html2=rows.map(function(d){
     var a=Number(d.amount||0);
-    var slip=d.slip_url?('<a href="'+d.slip_url+'" target="_blank" style="color:#3b82f6;font-weight:700;">🧾 สลิป</a>'):'—';
+    var slipMeta = (d.nick||'') + ' · ' + fmtDate(d.created_at) + ' · ' + Number(d.amount||0).toLocaleString() + ' ₭';
+    var slipEscUrl = (d.slip_url||'').replace(/\\/g,'\\\\').replace(/'/g,"\\'");
+    var slipEscMeta = slipMeta.replace(/'/g,"\\'");
+    var slip = d.slip_url
+      ? '<button onclick="openSlip(\'' + slipEscUrl + '\',\'' + slipEscMeta + '\')" style="background:#eff6ff;color:#2563eb;border:1px solid #bfdbfe;border-radius:7px;padding:3px 10px;font-family:\'Kanit\',sans-serif;font-size:12px;font-weight:700;cursor:pointer;white-space:nowrap;">🧾 ดูสลิป</button>'
+      : '<span style="color:#d1d5db;font-size:12px;">—</span>';
     var approver=d.approved_by?('<span style="background:#f0fdf4;color:#15803d;padding:2px 8px;border-radius:8px;font-size:11px;font-weight:700">👤 '+d.approved_by+'</span>'):'<span style="color:#d1d5db;font-size:11px">—</span>';
     return[
       '<tr>',
@@ -5798,8 +5853,22 @@ function filterDepDone(){
   var tb=document.getElementById('dep-done-tbody');if(!tb)return;
   if(!rows.length){tb.innerHTML='<tr><td colspan="6" style="text-align:center;padding:28px;color:#aaa;">ไม่มีรายการ</td></tr>';return;}
   tb.innerHTML=rows.map(function(d){
-    var approvedBy=d.approved_by||'—';
-    return'<tr><td style="font-weight:700;cursor:pointer;color:var(--green)" onclick="openMember(\''+( d.nick||'')+'\')">'+( d.nick||'—')+'</td><td style="font-weight:700;color:#16a34a">'+Number(d.amount||0).toLocaleString()+' ₭</td><td style="font-size:12px">'+(d.bank||'—')+'</td><td style="font-size:11px;color:#888">'+(d.txn||'—')+'</td><td style="font-size:11px;color:#888">'+fmtDate(d.approved_at||d.created_at)+'</td><td style="font-size:11px"><span style="background:#f0fdf4;color:#15803d;padding:2px 8px;border-radius:10px;font-weight:700">👤 '+approvedBy+'</span></td></tr>';
+    var approvedBy = d.approved_by || '—';
+    var slipMeta   = (d.nick||'') + ' · ' + fmtDate(d.approved_at||d.created_at) + ' · ' + Number(d.amount||0).toLocaleString() + ' ₭';
+    var slipEscUrl  = (d.slip_url||'').replace(/\\/g,'\\\\').replace(/'/g,"\\'");
+    var slipEscMeta = slipMeta.replace(/'/g,"\\'");
+    var slipCell = d.slip_url
+      ? '<button onclick="openSlip(\'' + slipEscUrl + '\',\'' + slipEscMeta + '\')" style="background:#eff6ff;color:#2563eb;border:1px solid #bfdbfe;border-radius:7px;padding:3px 10px;font-family:\'Kanit\',sans-serif;font-size:12px;font-weight:700;cursor:pointer;white-space:nowrap;">🧾 ดูสลิป</button>'
+      : '<span style="color:#d1d5db;font-size:12px;">—</span>';
+    return '<tr>'
+      + '<td style="font-weight:700;cursor:pointer;color:var(--green)" onclick="openMember(\'' + (d.nick||'') + '\')">' + (d.nick||'—') + '</td>'
+      + '<td style="font-weight:700;color:#16a34a">' + Number(d.amount||0).toLocaleString() + ' ₭</td>'
+      + '<td style="font-size:12px;">' + (d.bank||'—') + '</td>'
+      + '<td style="font-size:11px;color:#888;">' + (d.txn||'—') + '</td>'
+      + '<td style="text-align:center;">' + slipCell + '</td>'
+      + '<td style="font-size:11px;color:#888;">' + fmtDate(d.approved_at||d.created_at) + '</td>'
+      + '<td style="font-size:11px;"><span style="background:#f0fdf4;color:#15803d;padding:2px 8px;border-radius:10px;font-weight:700">👤 ' + approvedBy + '</span></td>'
+      + '</tr>';
   }).join('');
 }
 function filterDepReject(){
@@ -5807,7 +5876,21 @@ function filterDepReject(){
   var rows=allDeposits.filter(function(d){return d.status==='rejected'&&(!from||(d.created_at||'').slice(0,10)>=from)&&(!to||(d.created_at||'').slice(0,10)<=to);});
   var tb=document.getElementById('dep-reject-tbody');if(!tb)return;
   if(!rows.length){tb.innerHTML='<tr><td colspan="4" style="text-align:center;padding:28px;color:#aaa;">ไม่มีรายการ</td></tr>';return;}
-  tb.innerHTML=rows.map(function(d){return'<tr><td style="font-weight:700;cursor:pointer;color:var(--green)" onclick="openMember(\''+( d.nick||'')+'\')">'+( d.nick||'—')+'</td><td style="font-weight:700;color:#dc2626">'+Number(d.amount||0).toLocaleString()+' ₭</td><td style="font-size:12px;color:#888">'+(d.reject_reason||d.note||'—')+'</td><td style="font-size:11px;color:#888">'+fmtDate(d.created_at)+'</td></tr>';}).join('');
+  tb.innerHTML=rows.map(function(d){
+    var slipMeta    = (d.nick||'') + ' · ' + fmtDate(d.created_at) + ' · ' + Number(d.amount||0).toLocaleString() + ' ₭ · ❌ปฏิเสธ';
+    var slipEscUrl  = (d.slip_url||'').replace(/\\/g,'\\\\').replace(/'/g,"\\'");
+    var slipEscMeta = slipMeta.replace(/'/g,"\\'");
+    var slipCell = d.slip_url
+      ? '<button onclick="openSlip(\'' + slipEscUrl + '\',\'' + slipEscMeta + '\')" style="background:#fff5f5;color:#dc2626;border:1px solid #fca5a5;border-radius:7px;padding:3px 10px;font-family:\'Kanit\',sans-serif;font-size:12px;font-weight:700;cursor:pointer;white-space:nowrap;">🧾 ดูสลิป</button>'
+      : '<span style="color:#d1d5db;font-size:12px;">—</span>';
+    return '<tr>'
+      + '<td style="font-weight:700;cursor:pointer;color:var(--green)" onclick="openMember(\'' + (d.nick||'') + '\')">' + (d.nick||'—') + '</td>'
+      + '<td style="font-weight:700;color:#dc2626;">' + Number(d.amount||0).toLocaleString() + ' ₭</td>'
+      + '<td style="text-align:center;">' + slipCell + '</td>'
+      + '<td style="font-size:12px;color:#888;">' + (d.reject_reason||d.note||'—') + '</td>'
+      + '<td style="font-size:11px;color:#888;">' + fmtDate(d.created_at) + '</td>'
+      + '</tr>';
+  }).join('');
 }
 
 // ── WITHDRAWALS core ──
@@ -7561,6 +7644,24 @@ function clearDateMem() {
       }
     }, 500);
   });
-</script>
+</script><!-- ══ SLIP MODAL ══ -->
+<div id="slip-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.72);z-index:9999;align-items:center;justify-content:center;padding:16px;" onclick="if(event.target===this)closeSlip()">
+  <div style="background:#fff;border-radius:16px;max-width:520px;width:100%;max-height:90vh;display:flex;flex-direction:column;overflow:hidden;box-shadow:0 24px 60px rgba(0,0,0,.4);">
+    <div style="padding:14px 18px;border-bottom:1px solid #e5e7eb;display:flex;align-items:center;justify-content:space-between;flex-shrink:0;background:#fafaf8;">
+      <div>
+        <div style="font-family:'Kanit',sans-serif;font-weight:900;font-size:15px;">🧾 ใบแจ้งการโอนเงิน</div>
+        <div id="slip-meta" style="font-size:11px;color:#9ca3af;margin-top:2px;"></div>
+      </div>
+      <div style="display:flex;gap:8px;align-items:center;">
+        <a id="slip-download" download="slip.jpg" target="_blank" style="font-family:'Kanit',sans-serif;font-size:12px;font-weight:700;padding:5px 12px;background:#1B6B2F;color:#fff;border-radius:8px;text-decoration:none;cursor:pointer;">⬇ บันทึก</a>
+        <button onclick="closeSlip()" style="background:rgba(0,0,0,.08);border:none;width:30px;height:30px;border-radius:50%;font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center;">✕</button>
+      </div>
+    </div>
+    <div style="overflow-y:auto;flex:1;padding:16px;display:flex;align-items:center;justify-content:center;background:#f0f0ee;min-height:200px;">
+      <div id="slip-content" style="text-align:center;width:100%;"></div>
+    </div>
+  </div>
+</div>
+
 </body>
 </html>
