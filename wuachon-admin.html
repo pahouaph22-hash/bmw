@@ -2141,7 +2141,7 @@ input, textarea, select, button {
           ✅ <strong>RLS เปิดใช้งานแล้ว</strong> — table staff และ staff_logs ได้รับการป้องกันแล้วครับ
         </div>
       </div>
-<div class="card" style="border-left:4px solid #f59e0b;margin-top:12px;"><div class="card-title">🔧 Schema Migration</div><div style="font-size:12px;color:#888;margin-bottom:10px;">เพิ่มคอลัมน์ reject_reason, approved_at, approved_by ในตาราง deposits/withdrawals (ถ้ายังไม่มี)</div><button class="save-btn" onclick="runSchemaMigration()" style="background:linear-gradient(135deg,#f59e0b,#d97706);">⚡ Run Migration</button></div>
+<div class="card" style="border-left:4px solid #f59e0b;margin-top:12px;"><div class="card-title">🔧 Schema Migration</div><div style="font-size:12px;color:#888;margin-bottom:10px;">เพิ่มคอลัมน์ reason, approved_at, approved_by ในตาราง deposits/withdrawals (ถ้ายังไม่มี)</div><button class="save-btn" onclick="runSchemaMigration()" style="background:linear-gradient(135deg,#f59e0b,#d97706);">⚡ Run Migration</button></div>
 
 
 
@@ -3399,8 +3399,8 @@ async function loadOverview() {
   // รายการล่าสุด
   const [deps, withs, newMems] = await Promise.all([
     isAll
-      ? sb.from('deposits').select('id,nick,fname,lname,amount,bank,status,txn,slip_url,created_at,approved_at,approved_by,reject_reason,note').order('created_at',{ascending:false}).limit(8)
-      : sb.from('deposits').select('id,nick,fname,lname,amount,bank,status,txn,slip_url,created_at,approved_at,approved_by,reject_reason,note').gte('created_at', fromISO).lt('created_at', toISO).order('created_at',{ascending:false}).limit(8),
+      ? sb.from('deposits').select('id,nick,fname,lname,phone,amount,bank,status,txn,slip_url,created_at,approved_at,approved_by,reason,is_first_deposit').order('created_at',{ascending:false}).limit(8)
+      : sb.from('deposits').select('id,nick,fname,lname,phone,amount,bank,status,txn,slip_url,created_at,approved_at,approved_by,reason,is_first_deposit').gte('created_at', fromISO).lt('created_at', toISO).order('created_at',{ascending:false}).limit(8),
     isAll
       ? sb.from('withdrawals').select('id,nick,amount,bank,acc_no,acc_name,status,txn,reason,created_at,approved_at,approved_by').order('created_at',{ascending:false}).limit(8)
       : sb.from('withdrawals').select('id,nick,amount,bank,acc_no,acc_name,status,txn,reason,created_at,approved_at,approved_by').gte('created_at', fromISO).lt('created_at', toISO).order('created_at',{ascending:false}).limit(8),
@@ -4907,7 +4907,7 @@ async function renderGrowthChart() {
   var depsData=[], withsData=[], memsData=[], fetchOk=false;
   try {
     var [d,w,m] = await Promise.all([
-      sb.from('deposits').select('created_at,amount,service_fee').eq('status','approved').gte('created_at',fromISO).lt('created_at',toISO),
+      sb.from('deposits').select('created_at,amount,bank').eq('status','approved').gte('created_at',fromISO).lt('created_at',toISO),
       sb.from('withdrawals').select('created_at,amount').eq('status','approved').gte('created_at',fromISO).lt('created_at',toISO),
       sb.from('members').select('created_at').gte('created_at',fromISO).lt('created_at',toISO),
     ]);
@@ -5867,7 +5867,7 @@ async function _rejectWithdrawReal(id,nick,amount){
 // ── DEPOSITS core ──
 async function loadDeposits(){
   try {
-const res=await sb.from('deposits').select('id,nick,fname,lname,amount,bank,status,txn,slip_url,created_at,approved_at,approved_by,reject_reason,note').order('created_at',{ascending:false});allDeposits=res.data||[];const sc=(id,n)=>{const e=document.getElementById(id);if(e)e.textContent=n?'('+n+')':'';}; sc('dep-pending-count',allDeposits.filter(d=>d.status==='pending').length);sc('dep-done-count',allDeposits.filter(d=>d.status==='approved').length);sc('dep-reject-count',allDeposits.filter(d=>d.status==='rejected').length);filterDeposits();filterDepDone();filterDepReject();
+const res=await sb.from('deposits').select('id,nick,fname,lname,phone,amount,bank,status,txn,slip_url,created_at,approved_at,approved_by,reason,is_first_deposit').order('created_at',{ascending:false});allDeposits=res.data||[];const sc=(id,n)=>{const e=document.getElementById(id);if(e)e.textContent=n?'('+n+')':'';}; sc('dep-pending-count',allDeposits.filter(d=>d.status==='pending').length);sc('dep-done-count',allDeposits.filter(d=>d.status==='approved').length);sc('dep-reject-count',allDeposits.filter(d=>d.status==='rejected').length);filterDeposits();filterDepDone();filterDepReject();
   } catch(e) { console.error('loadDeposits:', e); }
 }
 function switchDepSec(sec){document.querySelectorAll('#panel-deposits .match-sec').forEach(s=>s.classList.remove('active'));document.querySelectorAll('#panel-deposits .match-nav-item').forEach(i=>i.classList.remove('active'));document.getElementById('dep-sec-'+sec)?.classList.add('active');document.getElementById('dnav-'+sec)?.classList.add('active');}
@@ -5949,7 +5949,7 @@ function filterDepReject(){
       + '<td style="font-weight:700;cursor:pointer;color:var(--green)" onclick="openMember(\'' + (d.nick||'') + '\')">' + (d.nick||'—') + '</td>'
       + '<td style="font-weight:700;color:#dc2626;">' + Number(d.amount||0).toLocaleString() + ' ₭</td>'
       + '<td style="text-align:center;">' + slipCell + '</td>'
-      + '<td style="font-size:12px;color:#888;">' + (d.reject_reason||d.note||'—') + '</td>'
+      + '<td style="font-size:12px;color:#888;">' + (d.reason||d.note||'—') + '</td>'
       + '<td style="font-size:11px;color:#888;">' + fmtDate(d.created_at) + '</td>'
       + '</tr>';
   }).join('');
@@ -6027,7 +6027,7 @@ function filterWithReject(){
   var rows=allWithdrawals.filter(function(w){return w.status==='rejected'&&(!from||(w.created_at||'').slice(0,10)>=from)&&(!to||(w.created_at||'').slice(0,10)<=to);});
   var tb=document.getElementById('with-reject-tbody');if(!tb)return;
   if(!rows.length){tb.innerHTML='<tr><td colspan="4" style="text-align:center;padding:28px;color:#aaa;">ไม่มีรายการ</td></tr>';return;}
-  tb.innerHTML=rows.map(function(w){return'<tr><td style="font-weight:700;cursor:pointer;color:var(--green)" onclick="openMember(\''+( w.nick||'')+'\')">'+( w.nick||'—')+'</td><td style="font-weight:700;color:#dc2626">'+Number(w.amount||0).toLocaleString()+' ₭</td><td style="font-size:12px;color:#888">'+(w.reject_reason||w.note||'—')+'</td><td style="font-size:11px;color:#888">'+fmtDate(w.created_at)+'</td></tr>';}).join('');
+  tb.innerHTML=rows.map(function(w){return'<tr><td style="font-weight:700;cursor:pointer;color:var(--green)" onclick="openMember(\''+( w.nick||'')+'\')">'+( w.nick||'—')+'</td><td style="font-weight:700;color:#dc2626">'+Number(w.amount||0).toLocaleString()+' ₭</td><td style="font-size:12px;color:#888">'+(w.reason||w.note||'—')+'</td><td style="font-size:11px;color:#888">'+fmtDate(w.created_at)+'</td></tr>';}).join('');
 }
 
 // ── BETS / NEWS / SETTINGS / WORKLOG / REFERRAL / ACTIVITY ──
@@ -6367,7 +6367,7 @@ async function _loadMemberTxns(nick){
            '<span style="background:#fef9c3;color:#854d0e;padding:2px 8px;border-radius:12px;font-size:10px;font-weight:700">⏳</span>';
   };
   try{
-    var r1=await sb.from('deposits').select('id,nick,fname,lname,amount,bank,status,txn,slip_url,created_at,approved_at,approved_by,reject_reason,note').eq('nick',nick).order('created_at',{ascending:false}).limit(50);
+    var r1=await sb.from('deposits').select('id,nick,fname,lname,phone,amount,bank,status,txn,slip_url,created_at,approved_at,approved_by,reason,is_first_deposit').eq('nick',nick).order('created_at',{ascending:false}).limit(50);
     var dt=document.getElementById('mo-dep-tbody');
     if(dt) dt.innerHTML=(r1.data||[]).length?(r1.data||[]).map(function(d){
       return '<tr><td style="padding:9px 12px;font-size:11px;color:#888">'+fmtDate(d.created_at)+'</td>'+
@@ -7137,10 +7137,10 @@ function showMemberDetail(row){}
 async function runSchemaMigration(){
   if(!confirm('จะเพิ่มคอลัมน์ที่ขาดหายในตาราง deposits และ withdrawals\nดำเนินการต่อ?'))return;
   const sqls=[
-    "ALTER TABLE public.deposits ADD COLUMN IF NOT EXISTS reject_reason text",
+    "ALTER TABLE public.deposits ADD COLUMN IF NOT EXISTS reason text",
     "ALTER TABLE public.deposits ADD COLUMN IF NOT EXISTS approved_at timestamptz",
     "ALTER TABLE public.deposits ADD COLUMN IF NOT EXISTS approved_by text",
-    "ALTER TABLE public.withdrawals ADD COLUMN IF NOT EXISTS reject_reason text",
+    "ALTER TABLE public.withdrawals ADD COLUMN IF NOT EXISTS reason text",
     "ALTER TABLE public.withdrawals ADD COLUMN IF NOT EXISTS approved_at timestamptz",
     "ALTER TABLE public.withdrawals ADD COLUMN IF NOT EXISTS approved_by text",
   ];
@@ -7588,7 +7588,7 @@ function clearDateMem() {
           : '<div style="text-align:center;padding:40px;color:#9ca3af;">ไม่มีข้อมูลในช่วงนี้</div>';
 
       } else if (type === 'deposits' || type === 'pending_dep') {
-        var q = sb.from('deposits').select('id,nick,fname,lname,amount,bank,status,txn,slip_url,created_at,approved_at,approved_by,reject_reason,note').order('created_at',{ascending:false});
+        var q = sb.from('deposits').select('id,nick,fname,lname,phone,amount,bank,status,txn,slip_url,created_at,approved_at,approved_by,reason,is_first_deposit').order('created_at',{ascending:false});
         if (type === 'pending_dep') q = q.eq('status','pending');
         else q = q.gte('created_at', fromISO).lt('created_at', toISO);
         var res2 = await q;
