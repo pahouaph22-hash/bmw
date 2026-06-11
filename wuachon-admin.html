@@ -4170,7 +4170,7 @@ async function loadMembers() {
   const tb = document.getElementById('members-tbody');
   try {
     const [memRes, depRes, withRes] = await Promise.all([
-      sb.from('members').select('*').order('created_at',{ascending:false}),
+      sb.from('members').select('id,nick,fname,lname,phone,addr1,addr2,balance,created_at,bank_name,bank_accno,bank_accname,bank_acc_name,bank_acc_no,bank_branch,bank_account,account_name,bank2_name,bank2_accno,bank2_accname,bank3_name,bank3_accno,bank3_accname,referral_code,referred_by,flags,admin_note').order('created_at',{ascending:false}),
       sb.from('deposits').select('nick,amount').eq('status','approved'),
       sb.from('withdrawals').select('nick,amount').eq('status','approved'),
     ]);
