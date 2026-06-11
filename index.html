@@ -5127,6 +5127,18 @@ function applyLang() {
   const SUPA_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inh6bHBkZXFsZmN6amtvc3BmcXFpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzk2NzgyMjAsImV4cCI6MjA5NTI1NDIyMH0.W0pDFJy3lFeO4ht9DpNzeDgVdGvSz94p0KWGfzc0Igw';
   const sb = supabase.createClient(SUPA_URL, SUPA_KEY);
 
+
+  // ── SHA-256 password hash (แทน btoa ที่ถอดรหัสได้ง่าย) ──
+  async function sha256Hash(str) {
+    const buf = await crypto.subtle.digest('SHA-256',
+      new TextEncoder().encode(str));
+    return Array.from(new Uint8Array(buf))
+      .map(b => b.toString(16).padStart(2, '0')).join('');
+  }
+  // backward compat: btoa hash (สำหรับ user เก่า)
+  function btoaHash(phone, pass) {
+    return btoa(unescape(encodeURIComponent(phone + ':' + pass)));
+  }
   // ── Input sanitization & validation helpers ──
   function sanitizeInput(str) {
     if (typeof str !== 'string') return '';
@@ -6617,7 +6629,7 @@ function applyLang() {
 
     // เช็ครหัสเดิม
     const phone = currentUser?.phone;
-    const oldHash    = btoa(unescape(encodeURIComponent(phone + ':' + oldPass)));
+    const oldHash    = await sha256Hash(phone + ':' + oldPass);
     const oldHashAlt = btoa(phone + ':' + oldPass);
 
     const { data } = await sb.rpc('get_member_by_nick', { p_nick: currentUser.nick }).then(r => ({ data: r.data?.[0] || null, error: r.error }));
@@ -6626,7 +6638,7 @@ function applyLang() {
     }
 
     // บันทึกรหัสใหม่
-    const newHash = btoa(unescape(encodeURIComponent(phone + ':' + newPass)));
+    const newHash = await sha256Hash(phone + ':' + newPass);
     const { error } = await sb.from('members').update({ password: newHash }).eq('id', currentUser.id);
     if (error) { errEl.style.display = 'block'; errEl.textContent = '❌ เกิดข้อผิดพลาด: ' + error.message; return; }
 
@@ -7331,7 +7343,7 @@ function applyLang() {
     }
 
     // Hash password (consistent กับ login)
-    const pwHash = btoa(unescape(encodeURIComponent(phoneFullLao + ':' + password)));
+    const pwHash = await sha256Hash(phoneFullLao + ':' + password);
 
     // ตรวจรหัสผู้แนะนำ
     const refCode = (document.getElementById('r-refcode')?.value || '').trim().toUpperCase();
@@ -7539,10 +7551,11 @@ setInterval(() => {
 
     // เปรียบรหัสผ่าน (ใช้เบอร์โทรจริงในการ hash เสมอ)
     const phone   = data.phone;
-    const pwHash  = btoa(unescape(encodeURIComponent(phone + ':' + password)));
+    const pwHashNew = await sha256Hash(phone + ':' + password);
+    const pwHashOld = btoa(unescape(encodeURIComponent(phone + ':' + password)));
     const pwHashAlt = btoa(phone + ':' + password);
 
-    if (data.password !== pwHash && data.password !== pwHashAlt) {
+    if (data.password !== pwHashNew && data.password !== pwHashOld && data.password !== pwHashAlt) {
       // บันทึก failed attempt
       _feRecordFail(loginInput);
       const attempts = _feLoginAttempts[loginInput]?.count || 0;

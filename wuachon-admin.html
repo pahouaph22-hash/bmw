@@ -5126,7 +5126,7 @@ function startAutoRefresh() {
       setTimeout(() => { if(dot) dot.style.background = '#22c55e'; }, 500);
     }
   }, AUTO_REFRESH_MS);
-  console.log('Auto-refresh started:', AUTO_REFRESH_MS/1000, 's interval');
+  console.debug('[Admin] Auto-refresh started:', AUTO_REFRESH_MS/1000, 's');
 }
 
 function stopAutoRefresh() {
