@@ -3110,7 +3110,7 @@ function showStaffBadge() {
 // โหลดรหัสผ่าน Admin จาก Supabase
 async function loadAdminPass() {
   try {
-    const { data } = await sb.from('settings').select('value').eq('key','admin_password').maybeSingle();
+    const { data: _apData } = await sb.rpc('get_admin_password'); const data = _apData ? { value: _apData } : null;
     if (data?.value) {
       ADMIN_PASS = data.value;
       _adminPassLoaded = true;
@@ -5458,9 +5458,9 @@ async function _hmacSha1(key,msg){const k=await crypto.subtle.importKey('raw',ke
 async function _totpFrom(secret,counter){const key=_b32dec(secret),buf=new ArrayBuffer(8),v=new DataView(buf);v.setUint32(0,Math.floor(counter/0x100000000),false);v.setUint32(4,counter>>>0,false);const h=await _hmacSha1(key,new Uint8Array(buf)),off=h[19]&0x0f;const code=((h[off]&0x7f)<<24)|(h[off+1]<<16)|(h[off+2]<<8)|h[off+3];return String(code%1000000).padStart(6,'0');}
 async function _verifyTOTP(input){const s=await _getTOTPSecret();if(!s)return false;const now=Math.floor(Date.now()/1000/30);for(let d=-1;d<=1;d++)if(input.trim()===await _totpFrom(s,now+d))return true;return false;}
 function _genTOTPSecret(){return _b32enc(crypto.getRandomValues(new Uint8Array(20)));}
-async function _getTOTPSecret(){try{const{data}=await sb.from('settings').select('value').eq('key','totp_secret').maybeSingle();return data?.value?.secret||null;}catch(_){return null;}}
-async function _checkTwofaEnabled(){try{const{data}=await sb.from('settings').select('value').eq('key','totp_config').maybeSingle();return data?.value?.enabled===true;}catch(_){return false;}}
-async function _saveTwofaConfig(cfg){await sb.from('settings').upsert({key:'totp_config',value:cfg});}
+async function _getTOTPSecret(){try{const{data}=await sb.rpc('get_totp_secret');return data||null;}catch(_){return null;}}
+async function _checkTwofaEnabled(){try{const{data}=await sb.rpc('get_totp_config');return data?.enabled===true;}catch(_){return false;}}
+async function _saveTwofaConfig(cfg){await sb.rpc('admin_save_setting',{p_key:'totp_config',p_value:cfg});}
 function _buildOtpURI(secret,label,issuer){return 'otpauth://totp/'+encodeURIComponent(issuer)+':'+encodeURIComponent(label)+'?secret='+secret+'&issuer='+encodeURIComponent(issuer)+'&algorithm=SHA1&digits=6&period=30';}
 function _qrUrl(uri){return 'https://api.qrserver.com/v1/create-qr-code/?size=160x160&data='+encodeURIComponent(uri)+'&bgcolor=ffffff&qzone=1';}
 
@@ -5489,7 +5489,7 @@ async function adminLogin(){
       if(twofaOn){_goOTPStep();}else{await _finishLogin();}
       return;
     }
-    const{data:sr}=await sb.from('staff').select('*').eq('username',user).eq('is_active',true).maybeSingle();
+    const _srRes=await sb.rpc('get_staff_for_login',{p_username:user}); const sr=_srRes.data?.[0]||null;
     const sh=await hashPassword(pass),stm=sr&&(sr.password===pass||sr.password===sh);
     if(stm){
       _clearLoginAttempts(user);_pUser=sr.username;_pRole='staff';_pStaffRow=sr;
@@ -6685,7 +6685,7 @@ async function addStaff(){
   if(!user||user.length<3){showToast('⚠️ Username ≥3 ตัว','error');return;}
   if(!/^[a-z0-9_]+$/.test(user)){showToast('⚠️ Username ใช้ a-z, 0-9, _ เท่านั้น','error');return;}
   if(!pass||pass.length<6){showToast('⚠️ รหัสผ่าน ≥6 ตัว','error');return;}
-  const{data:ex}=await sb.from('staff').select('id').eq('username',user).maybeSingle();
+  const{data:ex}=await sb.rpc('admin_check_staff_username',{p_username:user}).then(r=>({data:r.data?.[0]||null,error:r.error}));
   if(ex){showToast('❌ Username "'+user+'" มีอยู่แล้ว','error');return;}
   const hash=await hashPassword(pass);
   const{data:newStaff,error:e1}=await sb.from('staff').insert({username:user,password:hash,role,is_active:true,created_at:new Date().toISOString()}).select().maybeSingle();
@@ -6723,7 +6723,7 @@ function _showStaffCreatedPopup(name,username,tempPass,role){
 let _allStaff=[];
 async function loadStaffPanel(){
   try{
-    const[sRes,lRes]=await Promise.all([sb.from('staff').select('*').order('created_at',{ascending:false}),sb.from('staff_logs').select('*',{count:'exact',head:true})]);
+    const[sRes,lRes]=await Promise.all([sb.rpc('admin_get_all_staff').then(r=>({data:r.data,error:r.error})),sb.from('staff_logs').select('*',{count:'exact',head:true})]);
     _allStaff=sRes.data||[];
     if(_allStaff.length&&!_allStaff[0].hasOwnProperty('name')){
       const{data:wlogs}=await sb.from('staff_logs').select('nick,note').eq('action','add_staff');
@@ -6778,7 +6778,7 @@ function renderSpLogs(){}
 let _obSecret=null;
 async function _checkStaffOnboarding(staffRow){
   let latest=staffRow;
-  try{const{data}=await sb.from('staff').select('*').eq('id',staffRow.id).maybeSingle();if(data)latest=data;}catch(_){}
+  try{const{data}=await sb.rpc('admin_get_staff_by_id',{p_id:staffRow.id}).then(r=>({data:r.data?.[0]||null,error:r.error}));if(data)latest=data;}catch(_){}
   if(!latest.must_change_password&&!latest.must_setup_2fa)return;
   const modal=document.getElementById('staff-onboarding-modal');if(!modal)return;
   modal.style.display='flex';
@@ -6843,7 +6843,7 @@ async function loadTwofaPanel(){
   const initS=document.getElementById('twofa-init-section'),setupS=document.getElementById('twofa-setup-section'),activeS=document.getElementById('twofa-active-section');
   if(en&&sec){if(badge){badge.textContent='✅ เปิดอยู่';badge.style.background='#dcfce7';badge.style.color='#15803d';}if(icon)icon.textContent='🛡️';if(lbl)lbl.textContent='2FA เปิดใช้งานแล้ว';if(initS)initS.style.display='none';if(setupS)setupS.style.display='none';if(activeS)activeS.style.display='block';}
   else{if(badge){badge.textContent='❌ ปิดอยู่';badge.style.background='#fee2e2';badge.style.color='#dc2626';}if(icon)icon.textContent='⚠️';if(lbl)lbl.textContent='ยังไม่ได้เปิดใช้ 2FA';if(initS)initS.style.display='block';if(setupS)setupS.style.display='none';if(activeS)activeS.style.display='none';}
-  try{const{data}=await sb.from('settings').select('value').eq('key','totp_config').maybeSingle();const cfg=data?.value||{};const ol=document.getElementById('twofa-on-login'),oa=document.getElementById('twofa-on-approve');if(ol)ol.checked=cfg.onLogin!==false;if(oa)oa.checked=cfg.onApprove!==false;}catch(_){}
+  try{const{data}=await sb.rpc('get_totp_config').then(r=>({data:r.data?{value:r.data}:null,error:r.error})).maybeSingle();const cfg=data?.value||{};const ol=document.getElementById('twofa-on-login'),oa=document.getElementById('twofa-on-approve');if(ol)ol.checked=cfg.onLogin!==false;if(oa)oa.checked=cfg.onApprove!==false;}catch(_){}
 }
 async function initTOTPSetup(){
   _pendingTOTPSecret=_genTOTPSecret();
@@ -6876,7 +6876,7 @@ async function activateTOTP(){
   await _saveTwofaConfig({enabled:true,onLogin:true,onApprove:true});
   _pendingTOTPSecret=null;showToast('🔐 เปิดใช้งาน 2FA สำเร็จ!');await loadTwofaPanel();
 }
-async function regenerateTOTP(){if(!confirm('สร้าง Secret ใหม่? ต้องสแกน QR ใหม่ครับ'))return;await sb.from('settings').delete().eq('key','totp_secret');await _saveTwofaConfig({enabled:false});showToast('ลบ Secret เก่าแล้ว');await loadTwofaPanel();}
+async function regenerateTOTP(){if(!confirm('สร้าง Secret ใหม่? ต้องสแกน QR ใหม่ครับ'))return;await sb.rpc('admin_delete_setting',{p_key:'totp_secret'});await _saveTwofaConfig({enabled:false});showToast('ลบ Secret เก่าแล้ว');await loadTwofaPanel();}
 async function disableTOTP(){
   if(!confirm('ปิด 2FA? การกระทำนี้จะลด security ของระบบ'))return;
   const code = await _admPrompt('🔐 ยืนยันปิด 2FA', 'กรอก OTP ปัจจุบันเพื่อยืนยัน', 'รหัส OTP 6 หลัก', 'ยืนยันปิด 2FA', 'number');
