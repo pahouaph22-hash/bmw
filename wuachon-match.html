@@ -609,7 +609,7 @@ async function autoRefundUnmatched() {
     for (const bet of data) {
       const refund = Number(bet.remaining_amount||0);
       if (refund <= 0) continue;
-      const { data: mem } = await sb.from('members').select('balance').eq('nick', bet.nick).maybeSingle();
+      const { data: mem } = await sb.from('members_public').select('balance').eq('nick', bet.nick).maybeSingle();
       const newBal = (Number(mem?.balance)||0) + refund;
       await sb.from('members').update({ balance:newBal }).eq('nick', bet.nick);
       await sb.from('bets').update({ status:'cancelled', match_status:'timeout', remaining_amount:0 }).eq('id', bet.id);

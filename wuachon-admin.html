@@ -6872,7 +6872,7 @@ async function activateTOTP(){
   const now=Math.floor(Date.now()/1000/30);let valid=false;
   for(let d=-1;d<=1;d++)if(code===await _totpFrom(_pendingTOTPSecret,now+d)){valid=true;break;}
   if(!valid){err.style.display='block';for(let i=0;i<6;i++){const b=document.getElementById('tv-'+i);if(b){b.value='';b.classList.remove('filled');}}document.getElementById('tv-0')?.focus();return;}
-  await sb.from('settings').upsert({key:'totp_secret',value:{secret:_pendingTOTPSecret,created_at:new Date().toISOString()}});
+  await sb.rpc('admin_save_setting',{p_key:'totp_secret',p_value:{secret:_pendingTOTPSecret,created_at:new Date().toISOString()}});
   await _saveTwofaConfig({enabled:true,onLogin:true,onApprove:true});
   _pendingTOTPSecret=null;showToast('🔐 เปิดใช้งาน 2FA สำเร็จ!');await loadTwofaPanel();
 }
