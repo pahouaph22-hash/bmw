@@ -2971,8 +2971,9 @@ async function hashPassword(password) {
   }
 }
 // รหัสผ่านเก็บใน Supabase table 'settings' key='admin_password'
-// fallback เป็น 'wuachon2568' ถ้าไม่มี
-let ADMIN_PASS = 'wuachon2568';
+// ไม่มี hardcoded fallback — ต้องตั้งค่าใน Supabase settings ก่อนใช้งาน
+let ADMIN_PASS = '';
+let _adminPassLoaded = false;
 let currentPanel = 'overview';
 let allMembers = [], allMatches = [], allDeposits = [], allWithdrawals = [], allBets = [];
 let notifCount = 0;
@@ -3108,8 +3109,25 @@ function showStaffBadge() {
 
 // โหลดรหัสผ่าน Admin จาก Supabase
 async function loadAdminPass() {
-  const { data } = await sb.from('settings').select('value').eq('key','admin_password').maybeSingle();
-  if (data?.value) ADMIN_PASS = data.value;
+  try {
+    const { data } = await sb.from('settings').select('value').eq('key','admin_password').maybeSingle();
+    if (data?.value) {
+      ADMIN_PASS = data.value;
+      _adminPassLoaded = true;
+    } else {
+      // ไม่มีรหัสผ่านใน DB — แสดงข้อความแจ้งเตือน
+      ADMIN_PASS = '';
+      _adminPassLoaded = false;
+      const errEl = document.getElementById('login-err');
+      if (errEl) {
+        errEl.style.display = 'block';
+        errEl.textContent = '⚠️ ยังไม่ได้ตั้งค่ารหัสผ่าน Admin — กรุณาตั้งค่าใน Supabase settings (key: admin_password) ก่อนครับ';
+      }
+    }
+  } catch(e) {
+    console.error('[loadAdminPass]', e);
+    ADMIN_PASS = '';
+  }
 }
 
 /* adminLogin defined in injected block */
@@ -4571,22 +4589,14 @@ async function updateMatchStatus(id, status) {
   // ── เมื่อกด Live → popup ถาม Stream URL ก่อน ──
   if (status === 'live') {
     const match   = allMatches.find(m => m.id === id);
-    const current = match?.stream_url || '';
-    const url = prompt(
-      '🔴 กรอก Live Stream URL ก่อนเริ่มไลฟ์สดครับ\n\n' +
-      'ตัวอย่าง:\n' +
-      '• YouTube: https://youtube.com/watch?v=xxxxx\n' +
-      '• Facebook: https://fb.gg/v/xxxxx\n\n' +
-      '(กด Cancel เพื่อยกเลิกการเปลี่ยนสถานะ)',
-      current
+    const currentStreamUrl = match?.stream_url || '';
+    const url = await _admPrompt(
+      '🔴 กรอก Live Stream URL',
+      'วาง URL YouTube หรือ Facebook Live ด้านล่าง (เว้นว่างได้)',
+      currentStreamUrl || 'https://youtube.com/watch?v=...',
+      '🔴 เริ่มไลฟ์สด'
     );
-    // กด Cancel → ยกเลิก ไม่เปลี่ยนสถานะ
-    if (url === null) {
-      // reset select กลับเป็นค่าเดิม
-      filterMatches_();
-      return;
-    }
-    // บันทึก URL พร้อมกับ status
+    if (url === null) { filterMatches_(); return; }
     updateObj.stream_url = url.trim() || null;
   }
 
@@ -4613,8 +4623,13 @@ async function updateMatchStatus(id, status) {
 }
 
 async function editStreamUrl(matchId, currentUrl) {
-  const url = prompt('🔴 ใส่ Stream URL (YouTube / Facebook Live)\nตัวอย่าง: https://youtube.com/watch?v=xxxxx\nหรือเว้นว่างเพื่อลบออก:', currentUrl || '');
-  if (url === null) return; // กด Cancel
+  const url = await _admPrompt(
+    '🔗 แก้ไข Stream URL',
+    'วาง URL ใหม่ หรือเว้นว่างเพื่อลบ',
+    currentUrl || 'https://youtube.com/watch?v=...',
+    '💾 บันทึก'
+  );
+  if (url === null) return;
   const {error} = await sb.from('matches').update({ stream_url: url.trim() || null }).eq('id', matchId);
   if (error) { showToast('❌ บันทึกไม่สำเร็จ: ' + error.message, 'error'); return; }
   showToast(url.trim() ? '✅ บันทึก Stream URL แล้วครับ' : '✅ ลบ Stream URL แล้วครับ');
@@ -5402,6 +5417,35 @@ function _slipKeyClose(e) {
   if (e.key === 'Escape') closeSlip();
 }
 
+// ── Admin Prompt Modal (replaces browser prompt()) ──
+var _admPromptResolve = null;
+function _admPrompt(title, sub, placeholder, okLabel, inputType) {
+  return new Promise(function(resolve) {
+    _admPromptResolve = resolve;
+    var overlay = document.getElementById('adm-prompt-overlay');
+    var inp = document.getElementById('adm-prompt-input');
+    var errEl = document.getElementById('adm-prompt-err');
+    document.getElementById('adm-prompt-title').textContent = title || '';
+    document.getElementById('adm-prompt-sub').textContent   = sub   || '';
+    document.getElementById('adm-prompt-ok').textContent    = okLabel || 'ยืนยัน';
+    inp.type = inputType || 'text';
+    inp.value = '';
+    inp.placeholder = placeholder || '';
+    errEl.style.display = 'none';
+    overlay.style.display = 'flex';
+    setTimeout(function(){ inp.focus(); }, 80);
+  });
+}
+function _admPromptConfirm() {
+  var val = document.getElementById('adm-prompt-input').value.trim();
+  document.getElementById('adm-prompt-overlay').style.display = 'none';
+  if (_admPromptResolve) { _admPromptResolve(val || null); _admPromptResolve = null; }
+}
+function _admPromptCancel() {
+  document.getElementById('adm-prompt-overlay').style.display = 'none';
+  if (_admPromptResolve) { _admPromptResolve(null); _admPromptResolve = null; }
+}
+
 // ── window aliases (safe call from HTML before script loads) ──
 window._doAdminLogin  = function(){ if(typeof adminLogin==='function') adminLogin(); };
 window._doVerifyOTP   = function(){ if(typeof verifyLoginOTP==='function') verifyLoginOTP(); };
@@ -5432,6 +5476,12 @@ async function adminLogin(){
   const btn=document.getElementById('btn-do-login');if(btn){btn.disabled=true;btn.textContent='กำลังตรวจสอบ...';}
   try{
     await loadAdminPass();
+    if (!ADMIN_PASS) {
+      err.style.display='block';
+      err.textContent='⚠️ ยังไม่ได้ตั้งรหัสผ่าน Admin ในระบบ — กรุณาตั้งค่าใน Supabase settings ก่อนครับ';
+      if(btn){btn.disabled=false;btn.textContent='เข้าสู่ระบบ →';}
+      return;
+    }
     const ph=await hashPassword(pass),sm=(ADMIN_PASS===pass)||(ADMIN_PASS===ph);
     if(user==='admin'&&sm){
       _clearLoginAttempts(user);_pUser='admin';_pRole='superadmin';_pStaffRow=null;
@@ -5503,7 +5553,7 @@ async function _finishLogin(){
     document.getElementById('sb-staff').style.display='';
     showStaffBadge();_startSessionTimer();
     try{await _logLoginActivity('admin','superadmin','success');}catch(_){}
-    if(ADMIN_PASS==='wuachon2568')setTimeout(()=>showToast('⚠️ กรุณาเปลี่ยนรหัสผ่าน default ด่วนครับ','error'),1000);
+    if(!ADMIN_PASS)setTimeout(()=>showToast('⚠️ ยังไม่ได้ตั้งรหัสผ่าน Admin ในระบบ — ตั้งใน Settings ด่วนครับ','error'),1000);
     loadAll();
   }else if(_pRole==='staff'&&_pStaffRow){
     currentStaff=_pStaffRow;showStaffBadge();_startSessionTimer();
@@ -5713,8 +5763,8 @@ async function _approveDepositReal(id,nick,amount){
   }
 }
 async function _rejectDepositReal(id,nick){
-  const r=prompt('เหตุผลการปฏิเสธ:');
-  if(r===null)return;
+  const r = await _admPrompt('❌ ปฏิเสธการเติมเงิน', 'Nick: ' + nick, 'เหตุผล (ไม่บังคับ)', 'ปฏิเสธ');
+  if (r === null) return;
   let success=false;
   try{
     const{error:e1}=await sb.from('deposits').update({
@@ -5768,8 +5818,8 @@ async function _approveWithdrawReal(id,nick,amount,bank,accNo){
   }
 }
 async function _rejectWithdrawReal(id,nick,amount){
-  const r=prompt('เหตุผลการปฏิเสธ:');
-  if(r===null)return;
+  const r = await _admPrompt('❌ ปฏิเสธการถอนเงิน', 'Nick: ' + nick + ' · ' + Number(amount).toLocaleString() + ' ₭', 'เหตุผล (ไม่บังคับ)', 'ปฏิเสธ');
+  if (r === null) return;
   let success=false;
   try{
     const{error:e1}=await sb.from('withdrawals').update({
@@ -6701,7 +6751,10 @@ function _renderStaffList(){
   }).join('');
 }
 async function toggleStaff(id,isActive){const ns=isActive==='true'||isActive===true?false:true;await sb.from('staff').update({is_active:ns}).eq('id',id);showToast(ns?'✅ เปิด':'⏸ ปิด');await loadStaffPanel();}
-async function resetStaffPassword(id,username){const np=prompt('รหัสผ่านชั่วคราวใหม่สำหรับ "'+username+'":');if(!np||np.length<6){showToast('⚠️ ≥6 ตัว','error');return;}const hash=await hashPassword(np);await sb.from('staff').update({password:hash,must_change_password:true}).eq('id',id);showToast('✅ Reset รหัสผ่าน "'+username+'" แล้ว');await loadStaffPanel();}
+async function resetStaffPassword(id,username){
+  const np = await _admPrompt('🔑 Reset รหัสผ่าน Staff', 'Username: ' + username, 'รหัสผ่านชั่วคราวใหม่ (≥6 ตัวอักษร)', 'บันทึก', 'password');
+  if(!np||np.length<6){if(np!==null)showToast('⚠️ รหัสผ่านต้องมีอย่างน้อย 6 ตัวอักษรครับ','error');return;}
+  const hash=await hashPassword(np);await sb.from('staff').update({password:hash,must_change_password:true}).eq('id',id);showToast('✅ Reset รหัสผ่าน "'+username+'" แล้ว');await loadStaffPanel();}
 function switchStaffSec(sec){document.querySelectorAll('#panel-staff .match-sec').forEach(s=>s.classList.remove('active'));document.querySelectorAll('#panel-staff .match-nav-item').forEach(i=>i.classList.remove('active'));const pane=document.getElementById('staff-sec-'+sec),nav=document.getElementById('sfnav-'+sec);if(pane)pane.classList.add('active');if(nav)nav.classList.add('active');if(sec==='list')loadStaffPanel();if(sec==='logs')loadStaffLogs();}
 async function loadStaffLogs(){
   var tb=document.getElementById('staff-logs-tbody');if(!tb)return;
@@ -6824,7 +6877,13 @@ async function activateTOTP(){
   _pendingTOTPSecret=null;showToast('🔐 เปิดใช้งาน 2FA สำเร็จ!');await loadTwofaPanel();
 }
 async function regenerateTOTP(){if(!confirm('สร้าง Secret ใหม่? ต้องสแกน QR ใหม่ครับ'))return;await sb.from('settings').delete().eq('key','totp_secret');await _saveTwofaConfig({enabled:false});showToast('ลบ Secret เก่าแล้ว');await loadTwofaPanel();}
-async function disableTOTP(){if(!confirm('ปิด 2FA?'))return;const code=prompt('กรอก OTP เพื่อยืนยัน:');if(!code)return;if(!await _verifyTOTP(code.trim())){showToast('❌ OTP ไม่ถูกต้อง','error');return;}await _saveTwofaConfig({enabled:false});showToast('2FA ปิดแล้ว');await loadTwofaPanel();}
+async function disableTOTP(){
+  if(!confirm('ปิด 2FA? การกระทำนี้จะลด security ของระบบ'))return;
+  const code = await _admPrompt('🔐 ยืนยันปิด 2FA', 'กรอก OTP ปัจจุบันเพื่อยืนยัน', 'รหัส OTP 6 หลัก', 'ยืนยันปิด 2FA', 'number');
+  if(!code)return;
+  if(!await _verifyTOTP(code.trim())){showToast('❌ OTP ไม่ถูกต้อง','error');return;}
+  await _saveTwofaConfig({enabled:false});showToast('2FA ปิดแล้ว');await loadTwofaPanel();
+}
 async function saveTwofaSettings(){const ol=document.getElementById('twofa-on-login'),oa=document.getElementById('twofa-on-approve');const en=await _checkTwofaEnabled();await _saveTwofaConfig({enabled:en,onLogin:ol?.checked!==false,onApprove:oa?.checked!==false});showToast('💾 บันทึกแล้ว');}
 function _copySecret(){const el=document.getElementById('twofa-secret-display');const t=(el?.textContent||'').replace(/\s/g,'');if(navigator.clipboard)navigator.clipboard.writeText(t).then(()=>showToast('✅ คัดลอกแล้ว'));}
 function switchCfgTab(tab){document.querySelectorAll('.cfg-tab').forEach(b=>b.classList.remove('active'));document.querySelectorAll('.cfg-pane').forEach(p=>{p.classList.remove('active');p.style.display='none';});document.getElementById('cfg-tab-'+tab)?.classList.add('active');const pane=document.getElementById('cfg-pane-'+tab);if(pane){pane.classList.add('active');pane.style.display='block';}if(tab==='twofa')loadTwofaPanel();if(tab==='bank')loadBankAccounts();}
@@ -7659,6 +7718,23 @@ function clearDateMem() {
     </div>
     <div style="overflow-y:auto;flex:1;padding:16px;display:flex;align-items:center;justify-content:center;background:#f0f0ee;min-height:200px;">
       <div id="slip-content" style="text-align:center;width:100%;"></div>
+    </div>
+  </div>
+</div>
+<!-- ══ ADMIN PROMPT MODAL ══ -->
+<div id="adm-prompt-overlay" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:10001;align-items:center;justify-content:center;padding:16px;" onclick="if(event.target===this)_admPromptCancel()">
+  <div style="background:#fff;border-radius:14px;width:100%;max-width:420px;box-shadow:0 20px 50px rgba(0,0,0,.35);overflow:hidden;">
+    <div style="padding:16px 20px;border-bottom:1px solid #e5e7eb;background:#fafaf8;">
+      <div id="adm-prompt-title" style="font-family:'Kanit',sans-serif;font-weight:900;font-size:15px;"></div>
+      <div id="adm-prompt-sub" style="font-size:12px;color:#9ca3af;margin-top:2px;"></div>
+    </div>
+    <div style="padding:16px 20px;">
+      <input id="adm-prompt-input" type="text" style="width:100%;padding:10px 12px;border:1.5px solid #e5e7eb;border-radius:8px;font-family:'Kanit',sans-serif;font-size:14px;outline:none;transition:border-color .2s;" onfocus="this.style.borderColor='#1B6B2F'" onblur="this.style.borderColor='#e5e7eb'" onkeydown="if(event.key==='Enter')_admPromptConfirm();if(event.key==='Escape')_admPromptCancel()">
+      <div id="adm-prompt-err" style="display:none;font-size:12px;color:#dc2626;margin-top:6px;font-family:'Kanit',sans-serif;"></div>
+    </div>
+    <div style="padding:0 20px 16px;display:flex;gap:8px;justify-content:flex-end;">
+      <button onclick="_admPromptCancel()" style="padding:8px 16px;border:1px solid #e5e7eb;border-radius:8px;background:#fff;font-family:'Kanit',sans-serif;font-size:13px;font-weight:700;cursor:pointer;color:#6b7280;">ยกเลิก</button>
+      <button id="adm-prompt-ok" onclick="_admPromptConfirm()" style="padding:8px 18px;border:none;border-radius:8px;background:#1B6B2F;color:#fff;font-family:'Kanit',sans-serif;font-size:13px;font-weight:700;cursor:pointer;">ยืนยัน</button>
     </div>
   </div>
 </div>

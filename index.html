@@ -14,318 +14,6 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Phetsarath:wght@400;700&family=Noto+Sans+Lao:wght@400;700;900&family=Kanit:wght@400;500;700;900&display=swap" rel="stylesheet">
 
-<style>
-/* ══ Mode Toggle ══ */
-.mode-toggle-bar{
-  display:flex;align-items:center;justify-content:center;
-  gap:0;padding:14px 16px 0;
-}
-.mode-toggle{
-  display:flex;background:rgba(0,0,0,0.35);
-  border:1px solid rgba(255,255,255,0.08);
-  border-radius:999px;padding:4px;gap:4px;
-}
-.mode-btn{
-  padding:8px 22px;border-radius:999px;border:none;
-  font-family:'Phetsarath OT','Phetsarath','Noto Sans Lao','Kanit',sans-serif;
-  font-size:14px;font-weight:700;cursor:pointer;
-  transition:all .25s;color:rgba(240,255,232,0.45);
-  background:transparent;
-}
-.mode-btn.active{
-  background:linear-gradient(135deg,var(--gold),#e0a800);
-  color:#1a0a00;box-shadow:0 2px 12px rgba(245,200,66,0.35);
-}
-.mode-btn:not(.active):hover{color:rgba(240,255,232,0.75);}
-
-/* ══ Mode Sections ══ */
-.mode-section{display:none;}
-.mode-section.active{display:block;}
-
-/* ══ Football Hero ══ */
-.hero-football{
-  position:relative;overflow:hidden;
-  min-height:340px;display:flex;flex-direction:column;
-  align-items:center;justify-content:center;
-  padding:40px 20px 32px;text-align:center;
-  background:radial-gradient(ellipse at 50% 0%,rgba(22,100,46,0.5) 0%,transparent 70%);
-}
-.hero-football-icon{font-size:72px;margin-bottom:12px;animation:bounce-ball 1.2s ease-in-out infinite alternate;}
-@keyframes bounce-ball{from{transform:translateY(0)}to{transform:translateY(-10px)}}
-.hero-football-badge{
-  display:inline-block;background:linear-gradient(135deg,#166434,#15803d);
-  color:#fff;font-family:'Kanit',sans-serif;font-weight:700;font-size:11px;
-  padding:3px 14px;border-radius:999px;letter-spacing:.05em;margin-bottom:12px;
-}
-.hero-football h1{
-  font-family:'Phetsarath OT','Phetsarath','Noto Sans Lao','Kanit',sans-serif;
-  font-weight:900;font-size:clamp(28px,7vw,48px);line-height:1.15;
-  margin-bottom:10px;color:var(--cream);
-}
-.hero-football h1 .green{color:#4ade80;}
-.hero-football-sub{
-  font-size:14px;color:rgba(240,255,232,0.55);
-  font-family:'Phetsarath OT','Phetsarath','Noto Sans Lao','Kanit',sans-serif;
-  margin-bottom:20px;max-width:480px;
-}
-.hero-football-cta{display:flex;gap:10px;flex-wrap:wrap;justify-content:center;}
-
-/* ══ Football Match Cards ══ */
-.football-section{padding:20px 16px;}
-.football-section-title{
-  font-family:'Phetsarath OT','Phetsarath','Noto Sans Lao','Kanit',sans-serif;
-  font-weight:900;font-size:18px;margin-bottom:14px;
-  display:flex;align-items:center;gap:8px;
-}
-.football-section-title .line{
-  flex:1;height:1px;
-  background:linear-gradient(90deg,rgba(74,222,128,0.3),transparent);
-}
-.fb-match-card{
-  background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.07);
-  border-radius:14px;padding:14px 16px;margin-bottom:10px;
-  transition:border-color .2s;cursor:pointer;
-}
-.fb-match-card:hover{border-color:rgba(74,222,128,0.3);}
-.fb-match-card.live-card{border-left:3px solid #ef4444;}
-.fb-match-meta{
-  display:flex;align-items:center;justify-content:space-between;
-  margin-bottom:10px;
-}
-.fb-league{
-  font-family:'Kanit',sans-serif;font-size:10px;font-weight:700;
-  color:rgba(240,255,232,0.4);letter-spacing:.05em;
-}
-.fb-time{font-family:'Kanit',sans-serif;font-size:11px;color:rgba(240,255,232,0.4);}
-.fb-live-badge{
-  background:rgba(239,68,68,0.15);color:#f87171;
-  font-family:'Kanit',sans-serif;font-size:9px;font-weight:700;
-  padding:2px 8px;border-radius:999px;border:1px solid rgba(239,68,68,0.3);
-  animation:pulse 1.5s infinite;
-}
-.fb-teams{
-  display:grid;grid-template-columns:1fr auto 1fr;
-  align-items:center;gap:8px;margin-bottom:12px;
-}
-.fb-team{display:flex;flex-direction:column;align-items:center;gap:4px;}
-.fb-team-flag{font-size:28px;line-height:1;}
-.fb-team-name{
-  font-family:'Phetsarath OT','Phetsarath','Noto Sans Lao','Kanit',sans-serif;
-  font-weight:700;font-size:13px;text-align:center;
-}
-.fb-score-box{
-  display:flex;align-items:center;gap:6px;
-  background:rgba(0,0,0,0.3);border-radius:10px;padding:8px 12px;
-}
-.fb-score{
-  font-family:'Kanit',sans-serif;font-weight:900;font-size:22px;color:var(--cream);
-}
-.fb-score-sep{color:rgba(240,255,232,0.3);font-size:14px;}
-.fb-vs{
-  font-family:'Kanit',sans-serif;font-weight:900;font-size:12px;
-  color:rgba(240,255,232,0.4);
-}
-.fb-odds-row{
-  display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;
-}
-.fb-odd-btn{
-  padding:8px 4px;border-radius:9px;border:1px solid rgba(255,255,255,0.08);
-  background:rgba(255,255,255,0.04);cursor:pointer;text-align:center;
-  transition:all .15s;font-family:'Kanit',sans-serif;
-}
-.fb-odd-btn:hover{background:rgba(74,222,128,0.1);border-color:rgba(74,222,128,0.35);}
-.fb-odd-btn.selected{background:rgba(74,222,128,0.18);border-color:rgba(74,222,128,0.6);}
-.fb-odd-label{font-size:10px;color:rgba(240,255,232,0.45);margin-bottom:2px;}
-.fb-odd-val{font-size:15px;font-weight:900;color:#4ade80;}
-.fb-coming-soon{
-  text-align:center;padding:48px 20px;
-  font-family:'Phetsarath OT','Phetsarath','Noto Sans Lao','Kanit',sans-serif;
-  color:rgba(240,255,232,0.3);
-}
-.fb-coming-soon .icon{font-size:48px;margin-bottom:12px;}
-.fb-coming-soon .title{font-size:16px;font-weight:700;margin-bottom:6px;color:rgba(240,255,232,0.5);}
-.fb-coming-soon .sub{font-size:13px;}
-
-/* ══ Sport Tab (schedule & history) ══ */
-.sport-tab-bar{
-  display:flex;gap:0;background:rgba(0,0,0,0.25);
-  border:1px solid rgba(255,255,255,0.07);
-  border-radius:12px;padding:4px;margin-bottom:20px;
-}
-.sport-tab{
-  flex:1;padding:9px 10px;border-radius:9px;border:none;
-  font-family:'Phetsarath OT','Phetsarath','Noto Sans Lao','Kanit',sans-serif;
-  font-size:14px;font-weight:700;cursor:pointer;
-  transition:all .2s;color:rgba(240,255,232,0.45);
-  background:transparent;text-align:center;
-}
-.sport-tab.active{
-  background:linear-gradient(135deg,var(--gold),#e0a800);
-  color:#1a0a00;box-shadow:0 2px 10px rgba(245,200,66,0.3);
-}
-.sport-tab:not(.active):hover{color:rgba(240,255,232,0.75);}
-.sport-tab-panel{display:none;}
-.sport-tab-panel.active{display:block;}
-/* football placeholder */
-.fb-tab-placeholder{
-  text-align:center;padding:60px 20px;
-  font-family:'Phetsarath OT','Phetsarath','Noto Sans Lao','Kanit',sans-serif;
-}
-.fb-tab-placeholder .icon{font-size:52px;margin-bottom:14px;}
-.fb-tab-placeholder .title{font-weight:900;font-size:17px;color:rgba(240,255,232,0.7);margin-bottom:6px;}
-.fb-tab-placeholder .sub{font-size:13px;color:rgba(240,255,232,0.35);}
-
-/* ══ Mobile Bottom Navigation ══ */
-.mob-nav {
-  display: none;
-  position: fixed; bottom: 0; left: 0; right: 0; z-index: 999;
-  background: rgba(10,20,10,0.97);
-  border-top: 1px solid rgba(245,200,66,0.15);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  padding: 6px 0 max(6px, env(safe-area-inset-bottom));
-  box-shadow: 0 -4px 24px rgba(0,0,0,0.4);
-}
-@media (max-width: 768px) {
-  .mob-nav { display: flex; }
-  body { padding-bottom: 68px; }
-  nav .nav-links { display: none !important; }
-}
-/* Desktop: ซ่อน bottom nav, แสดง nav-links เสมอ */
-@media (min-width: 769px) {
-  .mob-nav { display: none !important; }
-  body { padding-bottom: 0 !important; }
-  nav .nav-links { display: flex !important; }
-}
-.mob-nav-item {
-  flex: 1; display: flex; flex-direction: column;
-  align-items: center; justify-content: center;
-  gap: 3px; padding: 4px 6px;
-  cursor: pointer; border: none; background: transparent;
-  color: rgba(240,255,232,0.4);
-  font-family: 'Phetsarath OT','Phetsarath','Noto Sans Lao','Kanit',sans-serif;
-  font-size: 10px; font-weight: 700;
-  transition: all .2s; -webkit-tap-highlight-color: transparent;
-  position: relative;
-}
-.mob-nav-item:active { transform: scale(.92); }
-.mob-nav-item.active { color: var(--gold); }
-.mob-nav-item .mob-nav-icon {
-  font-size: 22px; line-height: 1;
-  transition: transform .2s;
-}
-.mob-nav-item.active .mob-nav-icon { transform: scale(1.15); }
-.mob-nav-item .mob-nav-label { font-size: 10px; }
-
-/* badge แจ้งเตือน */
-.mob-nav-badge {
-  position: absolute; top: 2px; right: calc(50% - 16px);
-  background: #C8102E; color: #fff;
-  font-size: 9px; font-weight: 900;
-  min-width: 16px; height: 16px; border-radius: 999px;
-  display: flex; align-items: center; justify-content: center;
-  padding: 0 3px; border: 1.5px solid rgba(10,20,10,0.9);
-  pointer-events: none;
-}
-
-/* Account button special */
-.mob-nav-item.mob-acc-btn {
-  flex: 1.2;
-}
-.mob-nav-item.mob-acc-btn .mob-nav-icon {
-  width: 32px; height: 32px; border-radius: 50%;
-  display: flex; align-items: center; justify-content: center;
-  background: rgba(245,200,66,0.12);
-  border: 1.5px solid rgba(245,200,66,0.35);
-  font-size: 18px; overflow: hidden;
-}
-.mob-nav-item.mob-acc-btn.active .mob-nav-icon {
-  background: rgba(245,200,66,0.2);
-  border-color: rgba(245,200,66,0.7);
-  box-shadow: 0 0 10px rgba(245,200,66,0.25);
-}
-.mob-nav-item.mob-acc-btn img.mob-avatar {
-  width: 100%; height: 100%; object-fit: cover; border-radius: 50%;
-}
-
-  50%{ box-shadow:0 4px 24px rgba(245,200,66,0.7); transform:scale(1.03); }
-}
-
-/* ═══════════════════════════════════════════════
-   MOBILE ACCOUNT SHORTCUT — show only on mobile
-   ═══════════════════════════════════════════════ */
-@media (min-width: 769px) {
-  #mob-acc-bar { display: none !important; }
-}
-@media (max-width: 768px) {
-  #mob-acc-bar { display: block !important; }
-
-  /* ── Upgrade bottom nav account button ── */
-  .mob-nav-item.mob-acc-btn {
-    flex: 1.6;
-    position: relative;
-  }
-  .mob-nav-item.mob-acc-btn .mob-nav-icon {
-    width: 38px;
-    height: 38px;
-    border-radius: 50%;
-    background: rgba(245,200,66,0.18);
-    border: 2px solid rgba(245,200,66,0.6);
-    font-size: 20px;
-    box-shadow: 0 0 12px rgba(245,200,66,0.2);
-    transition: all .2s;
-  }
-  .mob-nav-item.mob-acc-btn:not(.active) .mob-nav-icon {
-    animation: mob-acc-pulse 3s ease-in-out infinite;
-  }
-  @keyframes mob-acc-pulse {
-    0%,100% { box-shadow: 0 0 8px rgba(245,200,66,0.15); border-color: rgba(245,200,66,0.5); }
-    50%      { box-shadow: 0 0 18px rgba(245,200,66,0.45); border-color: rgba(245,200,66,0.9); }
-  }
-  .mob-nav-item.mob-acc-btn .mob-nav-label {
-    font-size: 11px;
-    color: var(--gold) !important;
-    font-weight: 900;
-  }
-  .mob-nav-item.mob-acc-btn.active .mob-nav-icon {
-    background: rgba(245,200,66,0.3);
-    border-color: var(--gold);
-    box-shadow: 0 0 20px rgba(245,200,66,0.5);
-    animation: none;
-  }
-
-  /* ── Nav top: เพิ่ม account icon ด้านขวา ── */
-  #nav-mobile-acc-btn {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    width: 36px;
-    height: 36px;
-    border-radius: 50%;
-    background: rgba(245,200,66,0.1);
-    border: 1.5px solid rgba(245,200,66,0.4);
-    cursor: pointer;
-    flex-shrink: 0;
-    font-size: 17px;
-    transition: all .2s;
-    -webkit-tap-highlight-color: transparent;
-  }
-  #nav-mobile-acc-btn:active {
-    background: rgba(245,200,66,0.25);
-    transform: scale(0.93);
-  }
-  #nav-mobile-acc-btn.logged-in {
-    background: rgba(245,200,66,0.18);
-    border-color: rgba(245,200,66,0.7);
-    box-shadow: 0 0 10px rgba(245,200,66,0.2);
-  }
-}
-@media (min-width: 769px) {
-  #nav-mobile-acc-btn { display: none !important; }
-}
-
-</style>
-
 <script>
 // ── Global stubs ── รันก่อน CDN และ main script ──
 (function(){
@@ -955,8 +643,6 @@ fns.forEach(function(fn){
     color: rgba(240,255,232,0.25);
   }
 
-  .hero-split {
-    display: flex;
     flex-direction: row !important;
     justify-content: center;
     align-items: center;
@@ -4533,7 +4219,7 @@ input, textarea, select, button {
             </div>
           </a>
 
-          <a href="https://line.me/R/ti/p/@wuachon" id="contact-line-href" target="_blank" style="text-decoration:none;">
+          <a href="https://line.me/R/ti/p/@wuachon" id="contact-line-href" target="_blank" id="contact-line-box" style="text-decoration:none;">
             <div style="background:rgba(6,199,85,0.06);border:1px solid rgba(6,199,85,0.2);border-radius:12px;padding:16px;text-align:center;transition:all .2s;cursor:pointer;" onmouseover="this.style.borderColor='#06C755'" onmouseout="this.style.borderColor='rgba(6,199,85,0.2)'">
               <div style="font-size:28px;margin-bottom:8px;">💚</div>
               <div style="font-family:'Phetsarath OT','Phetsarath','Noto Sans Lao','Kanit',sans-serif;font-weight:700;font-size:13px;color:#06C755;">Line OA</div>
@@ -4542,7 +4228,7 @@ input, textarea, select, button {
             </div>
           </a>
 
-          <a href="https://facebook.com/wuachon" id="contact-fb-href" target="_blank" style="text-decoration:none;">
+          <a href="https://facebook.com/wuachon" id="contact-fb-href" target="_blank" id="contact-fb-box" style="text-decoration:none;">
             <div style="background:rgba(24,119,242,0.06);border:1px solid rgba(24,119,242,0.2);border-radius:12px;padding:16px;text-align:center;transition:all .2s;cursor:pointer;" onmouseover="this.style.borderColor='#1877F2'" onmouseout="this.style.borderColor='rgba(24,119,242,0.2)'">
               <div style="font-size:28px;margin-bottom:8px;">📘</div>
               <div style="font-family:'Phetsarath OT','Phetsarath','Noto Sans Lao','Kanit',sans-serif;font-weight:700;font-size:13px;color:#1877F2;">Facebook</div>
@@ -5441,6 +5127,32 @@ function applyLang() {
   const SUPA_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inh6bHBkZXFsZmN6amtvc3BmcXFpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzk2NzgyMjAsImV4cCI6MjA5NTI1NDIyMH0.W0pDFJy3lFeO4ht9DpNzeDgVdGvSz94p0KWGfzc0Igw';
   const sb = supabase.createClient(SUPA_URL, SUPA_KEY);
 
+  // ── Input sanitization & validation helpers ──
+  function sanitizeInput(str) {
+    if (typeof str !== 'string') return '';
+    return str.trim()
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#039;')
+      .replace(/\//g, '&#x2F;');
+  }
+  // sanitize แต่ยังคง whitespace ภาษาไทย/ลาว — ใช้กับชื่อ/นามสกุล
+  function sanitizeName(str) {
+    if (typeof str !== 'string') return '';
+    return str.trim().replace(/[<>"'&;\/\\]/g, '').slice(0, 60);
+  }
+  // ตรวจสอบจำนวนเงิน — คืน true เมื่อผ่าน
+  function validateAmount(amount, min, max) {
+    const n = Number(amount);
+    if (!Number.isFinite(n)) return false;
+    if (n < 0) return false;
+    if (min !== undefined && n < min) return false;
+    if (max !== undefined && n > max) return false;
+    return true;
+  }
+
   // ===== SUPABASE REAL-TIME SYNC (แทน Firebase) =====
   (async () => {
     // ── Settings: ดึงจาก Supabase ──
@@ -5827,10 +5539,6 @@ function applyLang() {
     document.getElementById('page-schedule').style.display = 'none';
     document.getElementById('page-register').style.display = 'none';
     document.getElementById('page-history').style.display = 'none';
-    const pageAbout = document.getElementById('page-about');
-    if (pageAbout) pageAbout.style.display = 'none';
-    const pageMyAcc = document.getElementById('page-myaccount');
-    if (pageMyAcc) pageMyAcc.style.display = 'none';
     window.scrollTo(0, 0);
   }
   window.showHistory = window._real_showHistory = function showHistory() {
@@ -5925,10 +5633,10 @@ function applyLang() {
     // ── winner photo HTML ──
     const winPhotoHtml = winnerPhoto
       ? `<img src="${winnerPhoto}" style="width:100%;height:100%;object-fit:cover;border-radius:50%;">`
-      : '';
+      : `''`;
     const losPhotoHtml = loserPhoto
       ? `<img src="${loserPhoto}" style="width:100%;height:100%;object-fit:cover;border-radius:50%;filter:grayscale(60%) brightness(0.7);">`
-      : '';
+      : `''`;
 
     const ov = document.createElement('div');
     ov.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.88);z-index:2000;display:flex;align-items:center;justify-content:center;padding:16px;backdrop-filter:blur(4px);';
@@ -6550,6 +6258,344 @@ function applyLang() {
     setTimeout(() => pop?.remove(), 8000);
   } // end _showRewardPopup
 
+  // ── popup รางวัล — แสดงตรงกลางหน้าจอ พร้อม animation ──
+  function _showRewardPopup(icon, type, detail, amount) {
+    document.getElementById('reward-popup')?.remove();
+    const pop = document.createElement('div');
+    pop.id = 'reward-popup';
+    pop.style.cssText = 'position:fixed;inset:0;z-index:10001;display:flex;align-items:center;justify-content:center;padding:20px;background:rgba(0,0,0,0.65);animation:fadeInBg .3s ease;';
+    pop.innerHTML = `
+      <style>
+        @keyframes fadeInBg { from{opacity:0} to{opacity:1} }
+        @keyframes popIn { from{transform:scale(.7) translateY(30px);opacity:0} to{transform:scale(1) translateY(0);opacity:1} }
+        @keyframes coinSpin { 0%{transform:rotateY(0)} 100%{transform:rotateY(720deg)} }
+        @keyframes shimmer { 0%,100%{opacity:.7} 50%{opacity:1} }
+      
+/* ══ Mode Toggle ══ */
+.mode-toggle-bar{
+  display:flex;align-items:center;justify-content:center;
+  gap:0;padding:14px 16px 0;
+}
+.mode-toggle{
+  display:flex;background:rgba(0,0,0,0.35);
+  border:1px solid rgba(255,255,255,0.08);
+  border-radius:999px;padding:4px;gap:4px;
+}
+.mode-btn{
+  padding:8px 22px;border-radius:999px;border:none;
+  font-family:'Phetsarath OT','Phetsarath','Noto Sans Lao','Kanit',sans-serif;
+  font-size:14px;font-weight:700;cursor:pointer;
+  transition:all .25s;color:rgba(240,255,232,0.45);
+  background:transparent;
+}
+.mode-btn.active{
+  background:linear-gradient(135deg,var(--gold),#e0a800);
+  color:#1a0a00;box-shadow:0 2px 12px rgba(245,200,66,0.35);
+}
+.mode-btn:not(.active):hover{color:rgba(240,255,232,0.75);}
+
+/* ══ Mode Sections ══ */
+.mode-section{display:none;}
+.mode-section.active{display:block;}
+
+/* ══ Football Hero ══ */
+.hero-football{
+  position:relative;overflow:hidden;
+  min-height:340px;display:flex;flex-direction:column;
+  align-items:center;justify-content:center;
+  padding:40px 20px 32px;text-align:center;
+  background:radial-gradient(ellipse at 50% 0%,rgba(22,100,46,0.5) 0%,transparent 70%);
+}
+.hero-football-icon{font-size:72px;margin-bottom:12px;animation:bounce-ball 1.2s ease-in-out infinite alternate;}
+@keyframes bounce-ball{from{transform:translateY(0)}to{transform:translateY(-10px)}}
+.hero-football-badge{
+  display:inline-block;background:linear-gradient(135deg,#166434,#15803d);
+  color:#fff;font-family:'Kanit',sans-serif;font-weight:700;font-size:11px;
+  padding:3px 14px;border-radius:999px;letter-spacing:.05em;margin-bottom:12px;
+}
+.hero-football h1{
+  font-family:'Phetsarath OT','Phetsarath','Noto Sans Lao','Kanit',sans-serif;
+  font-weight:900;font-size:clamp(28px,7vw,48px);line-height:1.15;
+  margin-bottom:10px;color:var(--cream);
+}
+.hero-football h1 .green{color:#4ade80;}
+.hero-football-sub{
+  font-size:14px;color:rgba(240,255,232,0.55);
+  font-family:'Phetsarath OT','Phetsarath','Noto Sans Lao','Kanit',sans-serif;
+  margin-bottom:20px;max-width:480px;
+}
+.hero-football-cta{display:flex;gap:10px;flex-wrap:wrap;justify-content:center;}
+
+/* ══ Football Match Cards ══ */
+.football-section{padding:20px 16px;}
+.football-section-title{
+  font-family:'Phetsarath OT','Phetsarath','Noto Sans Lao','Kanit',sans-serif;
+  font-weight:900;font-size:18px;margin-bottom:14px;
+  display:flex;align-items:center;gap:8px;
+}
+.football-section-title .line{
+  flex:1;height:1px;
+  background:linear-gradient(90deg,rgba(74,222,128,0.3),transparent);
+}
+.fb-match-card{
+  background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.07);
+  border-radius:14px;padding:14px 16px;margin-bottom:10px;
+  transition:border-color .2s;cursor:pointer;
+}
+.fb-match-card:hover{border-color:rgba(74,222,128,0.3);}
+.fb-match-card.live-card{border-left:3px solid #ef4444;}
+.fb-match-meta{
+  display:flex;align-items:center;justify-content:space-between;
+  margin-bottom:10px;
+}
+.fb-league{
+  font-family:'Kanit',sans-serif;font-size:10px;font-weight:700;
+  color:rgba(240,255,232,0.4);letter-spacing:.05em;
+}
+.fb-time{font-family:'Kanit',sans-serif;font-size:11px;color:rgba(240,255,232,0.4);}
+.fb-live-badge{
+  background:rgba(239,68,68,0.15);color:#f87171;
+  font-family:'Kanit',sans-serif;font-size:9px;font-weight:700;
+  padding:2px 8px;border-radius:999px;border:1px solid rgba(239,68,68,0.3);
+  animation:pulse 1.5s infinite;
+}
+.fb-teams{
+  display:grid;grid-template-columns:1fr auto 1fr;
+  align-items:center;gap:8px;margin-bottom:12px;
+}
+.fb-team{display:flex;flex-direction:column;align-items:center;gap:4px;}
+.fb-team-flag{font-size:28px;line-height:1;}
+.fb-team-name{
+  font-family:'Phetsarath OT','Phetsarath','Noto Sans Lao','Kanit',sans-serif;
+  font-weight:700;font-size:13px;text-align:center;
+}
+.fb-score-box{
+  display:flex;align-items:center;gap:6px;
+  background:rgba(0,0,0,0.3);border-radius:10px;padding:8px 12px;
+}
+.fb-score{
+  font-family:'Kanit',sans-serif;font-weight:900;font-size:22px;color:var(--cream);
+}
+.fb-score-sep{color:rgba(240,255,232,0.3);font-size:14px;}
+.fb-vs{
+  font-family:'Kanit',sans-serif;font-weight:900;font-size:12px;
+  color:rgba(240,255,232,0.4);
+}
+.fb-odds-row{
+  display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;
+}
+.fb-odd-btn{
+  padding:8px 4px;border-radius:9px;border:1px solid rgba(255,255,255,0.08);
+  background:rgba(255,255,255,0.04);cursor:pointer;text-align:center;
+  transition:all .15s;font-family:'Kanit',sans-serif;
+}
+.fb-odd-btn:hover{background:rgba(74,222,128,0.1);border-color:rgba(74,222,128,0.35);}
+.fb-odd-btn.selected{background:rgba(74,222,128,0.18);border-color:rgba(74,222,128,0.6);}
+.fb-odd-label{font-size:10px;color:rgba(240,255,232,0.45);margin-bottom:2px;}
+.fb-odd-val{font-size:15px;font-weight:900;color:#4ade80;}
+.fb-coming-soon{
+  text-align:center;padding:48px 20px;
+  font-family:'Phetsarath OT','Phetsarath','Noto Sans Lao','Kanit',sans-serif;
+  color:rgba(240,255,232,0.3);
+}
+.fb-coming-soon .icon{font-size:48px;margin-bottom:12px;}
+.fb-coming-soon .title{font-size:16px;font-weight:700;margin-bottom:6px;color:rgba(240,255,232,0.5);}
+.fb-coming-soon .sub{font-size:13px;}
+
+/* ══ Sport Tab (schedule & history) ══ */
+.sport-tab-bar{
+  display:flex;gap:0;background:rgba(0,0,0,0.25);
+  border:1px solid rgba(255,255,255,0.07);
+  border-radius:12px;padding:4px;margin-bottom:20px;
+}
+.sport-tab{
+  flex:1;padding:9px 10px;border-radius:9px;border:none;
+  font-family:'Phetsarath OT','Phetsarath','Noto Sans Lao','Kanit',sans-serif;
+  font-size:14px;font-weight:700;cursor:pointer;
+  transition:all .2s;color:rgba(240,255,232,0.45);
+  background:transparent;text-align:center;
+}
+.sport-tab.active{
+  background:linear-gradient(135deg,var(--gold),#e0a800);
+  color:#1a0a00;box-shadow:0 2px 10px rgba(245,200,66,0.3);
+}
+.sport-tab:not(.active):hover{color:rgba(240,255,232,0.75);}
+.sport-tab-panel{display:none;}
+.sport-tab-panel.active{display:block;}
+/* football placeholder */
+.fb-tab-placeholder{
+  text-align:center;padding:60px 20px;
+  font-family:'Phetsarath OT','Phetsarath','Noto Sans Lao','Kanit',sans-serif;
+}
+.fb-tab-placeholder .icon{font-size:52px;margin-bottom:14px;}
+.fb-tab-placeholder .title{font-weight:900;font-size:17px;color:rgba(240,255,232,0.7);margin-bottom:6px;}
+.fb-tab-placeholder .sub{font-size:13px;color:rgba(240,255,232,0.35);}
+
+/* ══ Mobile Bottom Navigation ══ */
+.mob-nav {
+  display: none;
+  position: fixed; bottom: 0; left: 0; right: 0; z-index: 999;
+  background: rgba(10,20,10,0.97);
+  border-top: 1px solid rgba(245,200,66,0.15);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  padding: 6px 0 max(6px, env(safe-area-inset-bottom));
+  box-shadow: 0 -4px 24px rgba(0,0,0,0.4);
+}
+@media (max-width: 768px) {
+  .mob-nav { display: flex; }
+  body { padding-bottom: 68px; }
+  nav .nav-links { display: none !important; }
+}
+/* Desktop: ซ่อน bottom nav, แสดง nav-links เสมอ */
+@media (min-width: 769px) {
+  .mob-nav { display: none !important; }
+  body { padding-bottom: 0 !important; }
+  nav .nav-links { display: flex !important; }
+}
+.mob-nav-item {
+  flex: 1; display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  gap: 3px; padding: 4px 6px;
+  cursor: pointer; border: none; background: transparent;
+  color: rgba(240,255,232,0.4);
+  font-family: 'Phetsarath OT','Phetsarath','Noto Sans Lao','Kanit',sans-serif;
+  font-size: 10px; font-weight: 700;
+  transition: all .2s; -webkit-tap-highlight-color: transparent;
+  position: relative;
+}
+.mob-nav-item:active { transform: scale(.92); }
+.mob-nav-item.active { color: var(--gold); }
+.mob-nav-item .mob-nav-icon {
+  font-size: 22px; line-height: 1;
+  transition: transform .2s;
+}
+.mob-nav-item.active .mob-nav-icon { transform: scale(1.15); }
+.mob-nav-item .mob-nav-label { font-size: 10px; }
+
+/* badge แจ้งเตือน */
+.mob-nav-badge {
+  position: absolute; top: 2px; right: calc(50% - 16px);
+  background: #C8102E; color: #fff;
+  font-size: 9px; font-weight: 900;
+  min-width: 16px; height: 16px; border-radius: 999px;
+  display: flex; align-items: center; justify-content: center;
+  padding: 0 3px; border: 1.5px solid rgba(10,20,10,0.9);
+  pointer-events: none;
+}
+
+/* Account button special */
+.mob-nav-item.mob-acc-btn {
+  flex: 1.2;
+}
+.mob-nav-item.mob-acc-btn .mob-nav-icon {
+  width: 32px; height: 32px; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  background: rgba(245,200,66,0.12);
+  border: 1.5px solid rgba(245,200,66,0.35);
+  font-size: 18px; overflow: hidden;
+}
+.mob-nav-item.mob-acc-btn.active .mob-nav-icon {
+  background: rgba(245,200,66,0.2);
+  border-color: rgba(245,200,66,0.7);
+  box-shadow: 0 0 10px rgba(245,200,66,0.25);
+}
+.mob-nav-item.mob-acc-btn img.mob-avatar {
+  width: 100%; height: 100%; object-fit: cover; border-radius: 50%;
+}
+
+  50%{ box-shadow:0 4px 24px rgba(245,200,66,0.7); transform:scale(1.03); }
+}
+
+/* ═══════════════════════════════════════════════
+   MOBILE ACCOUNT SHORTCUT — show only on mobile
+   ═══════════════════════════════════════════════ */
+@media (min-width: 769px) {
+  #mob-acc-bar { display: none !important; }
+}
+@media (max-width: 768px) {
+  #mob-acc-bar { display: block !important; }
+
+  /* ── Upgrade bottom nav account button ── */
+  .mob-nav-item.mob-acc-btn {
+    flex: 1.6;
+    position: relative;
+  }
+  .mob-nav-item.mob-acc-btn .mob-nav-icon {
+    width: 38px;
+    height: 38px;
+    border-radius: 50%;
+    background: rgba(245,200,66,0.18);
+    border: 2px solid rgba(245,200,66,0.6);
+    font-size: 20px;
+    box-shadow: 0 0 12px rgba(245,200,66,0.2);
+    transition: all .2s;
+  }
+  .mob-nav-item.mob-acc-btn:not(.active) .mob-nav-icon {
+    animation: mob-acc-pulse 3s ease-in-out infinite;
+  }
+  @keyframes mob-acc-pulse {
+    0%,100% { box-shadow: 0 0 8px rgba(245,200,66,0.15); border-color: rgba(245,200,66,0.5); }
+    50%      { box-shadow: 0 0 18px rgba(245,200,66,0.45); border-color: rgba(245,200,66,0.9); }
+  }
+  .mob-nav-item.mob-acc-btn .mob-nav-label {
+    font-size: 11px;
+    color: var(--gold) !important;
+    font-weight: 900;
+  }
+  .mob-nav-item.mob-acc-btn.active .mob-nav-icon {
+    background: rgba(245,200,66,0.3);
+    border-color: var(--gold);
+    box-shadow: 0 0 20px rgba(245,200,66,0.5);
+    animation: none;
+  }
+
+  /* ── Nav top: เพิ่ม account icon ด้านขวา ── */
+  #nav-mobile-acc-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    background: rgba(245,200,66,0.1);
+    border: 1.5px solid rgba(245,200,66,0.4);
+    cursor: pointer;
+    flex-shrink: 0;
+    font-size: 17px;
+    transition: all .2s;
+    -webkit-tap-highlight-color: transparent;
+  }
+  #nav-mobile-acc-btn:active {
+    background: rgba(245,200,66,0.25);
+    transform: scale(0.93);
+  }
+  #nav-mobile-acc-btn.logged-in {
+    background: rgba(245,200,66,0.18);
+    border-color: rgba(245,200,66,0.7);
+    box-shadow: 0 0 10px rgba(245,200,66,0.2);
+  }
+}
+@media (min-width: 769px) {
+  #nav-mobile-acc-btn { display: none !important; }
+}
+</style>
+      <div style="background:linear-gradient(160deg,#0f2e18,#1a4a28);border:2px solid #F5C842;border-radius:22px;padding:32px 28px;width:100%;max-width:320px;text-align:center;box-shadow:0 0 60px rgba(245,200,66,.25);animation:popIn .4s cubic-bezier(.34,1.56,.64,1);position:relative;">
+        <button onclick="document.getElementById('reward-popup').remove()" style="position:absolute;top:12px;right:14px;background:rgba(255,255,255,.1);border:none;color:#fff;font-size:16px;width:28px;height:28px;border-radius:50%;cursor:pointer;line-height:1;">✕</button>
+        <div style="font-size:56px;margin-bottom:8px;animation:coinSpin .8s .2s ease both;">${icon}</div>
+        <div style="font-family:Kanit,sans-serif;font-size:13px;color:rgba(255,220,100,.7);letter-spacing:1px;margin-bottom:4px;text-transform:uppercase;">${type}</div>
+        <div style="font-family:Kanit,sans-serif;font-weight:700;font-size:15px;color:#fff;margin-bottom:16px;">${detail}</div>
+        <div style="background:linear-gradient(135deg,#F5C842,#f0a500);border-radius:12px;padding:14px;margin-bottom:20px;animation:shimmer 2s infinite;">
+          <div style="font-size:11px;color:rgba(0,0,0,.6);font-family:Kanit,sans-serif;margin-bottom:2px;">ยอดรางวัล</div>
+          <div style="font-family:Kanit,sans-serif;font-weight:900;font-size:30px;color:#1a1a1a;">+${Number(amount).toLocaleString()}</div>
+          <div style="font-size:13px;color:rgba(0,0,0,.6);font-family:Kanit,sans-serif;">₭ เข้าบัญชีแล้วครับ!</div>
+        </div>
+        <button onclick="document.getElementById('reward-popup').remove()" style="width:100%;background:linear-gradient(135deg,#1B6B2F,#27943F);color:#fff;font-family:Kanit,sans-serif;font-weight:900;font-size:15px;padding:13px;border:none;border-radius:10px;cursor:pointer;letter-spacing:.5px;">รับทราบ ✓</button>
+      </div>`;
+    pop.addEventListener('click', e => { if (e.target === pop) pop.remove(); });
+    document.body.appendChild(pop);
+    setTimeout(() => pop?.remove(), 8000);
+  }
 
   window.submitChangePass = window._real_submitChangePass = async function submitChangePass() {
     const oldPass = document.getElementById('cp-old').value;
@@ -6694,12 +6740,12 @@ function applyLang() {
 
     const rows = bets || [];
     // แยก draw ออกก่อน
-    const isDrawBet = b => b.match_status === 'draw' || b.matches?.winner === 'เสมอ';
-    const won    = rows.filter(b=>!isDrawBet(b) && b.status==='won').length;
-    const lost   = rows.filter(b=>!isDrawBet(b) && b.status==='lost').length;
-    const pend   = rows.filter(b=>!isDrawBet(b) && ['waiting','matched','partial'].includes(b.status)).length;
-    const profit = rows.filter(b=>!isDrawBet(b) && b.status==='won').reduce((s,b)=>s+Math.floor(Number(b.amount||0)*Number(b.odds||1)),0)
-                 - rows.filter(b=>!isDrawBet(b) && b.status==='lost').reduce((s,b)=>s+Number(b.amount||0),0);
+    const isDraw = b => b.match_status === 'draw' || b.matches?.winner === 'เสมอ';
+    const won    = rows.filter(b=>!isDraw(b) && b.status==='won').length;
+    const lost   = rows.filter(b=>!isDraw(b) && b.status==='lost').length;
+    const pend   = rows.filter(b=>!isDraw(b) && ['waiting','matched','partial'].includes(b.status)).length;
+    const profit = rows.filter(b=>!isDraw(b) && b.status==='won').reduce((s,b)=>s+Math.floor(Number(b.amount||0)*Number(b.odds||1)),0)
+                 - rows.filter(b=>!isDraw(b) && b.status==='lost').reduce((s,b)=>s+Number(b.amount||0),0);
 
     const setEl = (id,v) => { const e=document.getElementById(id); if(e) e.textContent=v; };
     setEl('bet-win-count', won);
@@ -7226,10 +7272,10 @@ function applyLang() {
 
   // ── สมัครสมาชิก ──
   window.submitRegister = window._real_submitRegister = async function submitRegister() {
-    const fname     = document.getElementById('r-fname').value.trim();
-    const lname     = sanitizeFE(document.getElementById('r-lname').value.trim());
-    const nick      = sanitizeFE(document.getElementById('r-nick').value.trim());
-    const phone     = document.getElementById('r-phone').value.trim();
+    const fname     = sanitizeName(document.getElementById('r-fname').value);
+    const lname     = sanitizeName(document.getElementById('r-lname').value);
+    const nick      = sanitizeName(document.getElementById('r-nick').value);
+    const phone     = (document.getElementById('r-phone').value || '').trim().replace(/[^0-9]/g,'');
     const password  = document.getElementById('r-password').value;
     const password2 = document.getElementById('r-password2').value;
     const errEl     = document.getElementById('reg-error');
@@ -7241,8 +7287,8 @@ function applyLang() {
       errEl.textContent = '⚠️ กรุณากรอกข้อมูลให้ครบถ้วนทุกช่องครับ';
       return;
     }
-    // เบอร์โทรลาว: input เก็บแค่ 8 หลักหลัง 020
-    const phoneDigits = phone.replace(/[^0-9]/g,'');
+    // เบอร์โทรลาว: รับแค่ 8 หลักหลัง 020
+    const phoneDigits = phone;
     if (!/^[0-9]{8}$/.test(phoneDigits)) {
       errEl.style.display = 'block';
       errEl.textContent = '⚠️ เบอร์โทรต้องเป็น 8 หลักหลังจาก 020 ครับ (เช่น 020-XXXXXXXX)';
@@ -7552,16 +7598,12 @@ setInterval(() => {
       // Avatar
       const avatarEl = document.getElementById('mob-bar-avatar');
               if (avatarEl) {
-          if (user.avatar_url) {
-            const img = document.createElement('img');
-            img.src = user.avatar_url;
-            img.style.cssText = 'width:100%;height:100%;object-fit:cover;border-radius:50%;';
-            img.onerror = function(){ this.style.display='none'; };
-            avatarEl.innerHTML = '';
-            avatarEl.appendChild(img);
-          } else {
-            avatarEl.textContent = (user.nick || '').slice(0,1).toUpperCase() || '👤';
-          }
+          const img = document.createElement('img');
+          img.src = user.avatar_url;
+          img.style.cssText = 'width:100%;height:100%;object-fit:cover;border-radius:50%;';
+          img.onerror = function(){ this.style.display='none'; };
+          avatarEl.innerHTML = '';
+          avatarEl.appendChild(img);
         }
 
       // Nav top button
@@ -7591,6 +7633,9 @@ setInterval(() => {
   window.logout = window._real_logout = function logout() {
     // cleanup realtime channels
     Object.keys(_activeChannels).forEach(n => _cleanupChannel(n));
+    // cleanup intervals
+    if (typeof _depGuardianTimer !== 'undefined') { clearInterval(_depGuardianTimer); _depGuardianTimer = null; }
+    if (typeof _isWithdrawing !== 'undefined') _isWithdrawing = false;
     // remove flag CSS classes
     document.body.classList.remove('flag-no-game','flag-no-deposit','flag-no-withdraw','flag-no-reward','flag-blacklist');
     currentUser = null;
@@ -8006,7 +8051,7 @@ setInterval(() => {
     if (navigator.clipboard) {
       navigator.clipboard.writeText(accno).then(() => showFEToast(`✅ คัดลอก ${accno} แล้วครับ`));
     } else {
-      alert('เลขบัญชี: ' + accno);
+      showFEToast('📋 เลขบัญชี: ' + accno);
     }
   }
 
@@ -8074,7 +8119,6 @@ setInterval(() => {
 
   // ── โหลดหน้าถอนเงิน (เช็คว่าผูกบัญชีหรือยัง) ──
   window.loadWithdrawPanel = window._real_loadWithdrawPanel = async function loadWithdrawPanel() {
-    if (!currentUser) return;
     // ── FLAG CHECK ──
   const _wpFlags = currentUser.flags || [];
   if (_wpFlags.includes('suspend') || _wpFlags.includes('blacklist')) {
@@ -8195,58 +8239,88 @@ setInterval(() => {
   }
 
   // ── ถอนเงิน (ใช้บัญชีที่ผูกไว้) ──
+  let _isWithdrawing = false;
   window.submitWithdraw = window._real_submitWithdraw = async function submitWithdraw() {
-    const amount  = parseInt(document.getElementById('with-amount').value);
-    const balance = currentUser?.balance || 0;
+    if (_isWithdrawing) { showFEToast('⏳ กำลังประมวลผลอยู่ครับ กรุณารอสักครู่'); return; }
 
     if (!currentUser) { showFEToast('กรุณา Login ก่อนครับ'); return; }
     const flags = currentUser.flags || [];
-    if (flags.includes('suspend') || flags.includes('blacklist')) { showFEToast('🚫 บัญชีถูกระงัน กรุณาติดต่อ Admin ครับ'); return; }
-    if (flags.includes('no_withdraw') || flags.includes('blacklist')) {
-      showFEToast('🚫 บัญชีของคุณถูกระงับสิทธิ์การถอนเงินครับ — กรุณาติดต่อ Admin');
-      return;
+    if (flags.includes('suspend') || flags.includes('blacklist')) {
+      showFEToast('🚫 บัญชีถูกระงัน กรุณาติดต่อ Admin ครับ'); return;
+    }
+    if (flags.includes('no_withdraw')) {
+      showFEToast('🚫 บัญชีของคุณถูกระงับสิทธิ์การถอนเงินครับ — กรุณาติดต่อ Admin'); return;
     }
 
-    // ── ใช้บัญชีที่เลือก ──
-    const selBank = _getSelectedBank();
-    if (!selBank.accno) {
-      showFEToast('⚠️ กรุณาเพิ่มและเลือกบัญชีธนาคารก่อนครับ'); return;
-    }
+    const rawAmount = document.getElementById('with-amount').value;
+    const amount    = parseInt(rawAmount, 10);
+    const balance   = currentUser?.balance || 0;
 
+    // ── server-side style validation ──
+    if (!validateAmount(amount, 1)) { showFEToast('⚠️ จำนวนเงินไม่ถูกต้องครับ'); return; }
     const wMin = _txLimits.withMin || 100;
     const wMax = _txLimits.withMax || 0;
-    if (!amount || amount < wMin) { showFEToast(`⚠️ จำนวนเงินขั้นต่ำคือ ${wMin.toLocaleString()} ₭`); return; }
-    if (wMax && amount > wMax)    { showFEToast(`⚠️ จำนวนเงินสูงสุดคือ ${wMax.toLocaleString()} ₭`); return; }
-    if (amount > balance)         { showFEToast(`❌ ยอดเงินไม่เพียงพอ (คงเหลือ: ${balance.toLocaleString()} ₭)`); return; }
+    if (amount < wMin) { showFEToast(`⚠️ จำนวนเงินขั้นต่ำคือ ${wMin.toLocaleString()} ₭`); return; }
+    if (wMax && amount > wMax) { showFEToast(`⚠️ จำนวนเงินสูงสุดคือ ${wMax.toLocaleString()} ₭`); return; }
+    if (amount > balance) { showFEToast(`❌ ยอดเงินไม่เพียงพอ (คงเหลือ: ${balance.toLocaleString()} ₭)`); return; }
 
-    const txn  = genTxnFE(9);
-    const nick = currentUser.nick;
+    const selBank = _getSelectedBank();
+    if (!selBank.accno) { showFEToast('⚠️ กรุณาเพิ่มและเลือกบัญชีธนาคารก่อนครับ'); return; }
+
+    // ── Disable button + set lock ──
+    _isWithdrawing = true;
+    const btn = document.querySelector('#with-submit-btn') || document.querySelector('[onclick*="submitWithdraw"]');
+    const origText = btn?.textContent || '';
+    if (btn) { btn.disabled = true; btn.textContent = '⏳ กำลังส่งคำขอ...'; }
+
+    const txn        = genTxnFE(9);
+    const nick       = currentUser.nick;
     const newBalance = balance - amount;
 
-    // บันทึกรายการถอนก่อน — ป้องกันเงินหายถ้า update balance สำเร็จแต่ insert ไม่ได้
-    const { error: withErr } = await sb.from('withdrawals').insert({
-      nick, amount, txn, status: 'pending',
-      bank:     selBank.name,
-      acc_no:   selBank.accno,
-      acc_name: selBank.accname,
-    });
+    try {
+      // ── Double-check balance จาก DB (ป้องกัน stale state) ──
+      const { data: freshMem } = await sb.from('members').select('balance,flags').eq('nick', nick).maybeSingle();
+      if (!freshMem) throw new Error('ไม่พบข้อมูลสมาชิกครับ');
+      const freshFlags = freshMem.flags || [];
+      if (freshFlags.includes('no_withdraw') || freshFlags.includes('blacklist') || freshFlags.includes('suspend')) {
+        throw new Error('บัญชีถูกระงับสิทธิ์การถอนเงินครับ');
+      }
+      const freshBalance = freshMem.balance || 0;
+      if (amount > freshBalance) {
+        if (currentUser) currentUser.balance = freshBalance;
+        updateAccBalance(freshBalance);
+        throw new Error(`ยอดเงินไม่เพียงพอ (คงเหลือล่าสุด: ${freshBalance.toLocaleString()} ₭)`);
+      }
+      const verifiedNewBalance = freshBalance - amount;
 
-    if (withErr) {
-      showFEToast('❌ เกิดข้อผิดพลาด: ' + withErr.message); return;
+      // insert withdrawal ก่อน — ถ้าล้มเหลวยังไม่หักเงิน
+      const { error: withErr } = await sb.from('withdrawals').insert({
+        nick, amount, txn, status: 'pending',
+        bank:     selBank.name,
+        acc_no:   selBank.accno,
+        acc_name: selBank.accname,
+      });
+      if (withErr) throw withErr;
+
+      // หักเงินหลังจาก insert สำเร็จ
+      const { error: balErr } = await sb.from('members')
+        .update({ balance: verifiedNewBalance }).eq('nick', nick);
+      if (balErr) {
+        await sb.from('withdrawals').delete().eq('txn', txn).eq('nick', nick);
+        throw balErr;
+      }
+
+      updateAccBalance(verifiedNewBalance);
+      if (currentUser) currentUser.balance = verifiedNewBalance;
+      document.getElementById('with-amount').value = '';
+      showFEToast(`✅ ส่งคำขอถอน ${amount.toLocaleString()} ₭ ไปที่ ${selBank.name} แล้วครับ!`);
+      loadWithHistory();
+    } catch(err) {
+      showFEToast('❌ เกิดข้อผิดพลาด: ' + err.message);
+    } finally {
+      _isWithdrawing = false;
+      if (btn) { btn.disabled = false; btn.textContent = origText; }
     }
-
-    const { error: balErr } = await sb.from('members')
-      .update({ balance: newBalance }).eq('nick', nick);
-    if (balErr) {
-      // คืนสถานะ withdrawal ถ้าหักเงินไม่ได้
-      await sb.from('withdrawals').delete().eq('txn', txn);
-      showFEToast('❌ เกิดข้อผิดพลาด: ' + balErr.message); return;
-    }
-    updateAccBalance(newBalance);
-
-    document.getElementById('with-amount').value = '';
-    showFEToast(`✅ ส่งคำขอถอน ${amount.toLocaleString()} ₭ ไปที่ ${selBank.name} แล้วครับ!`);
-    loadWithHistory();
   }
   // ── loadWithHistory ──
   window.loadWithHistory = window._real_loadWithHistory = async function loadWithHistory() {
@@ -8461,7 +8535,7 @@ setInterval(() => {
 
   // ── DEPOSIT PANEL GUARDIAN ──
   // ใช้ TAB BUTTON เป็น source of truth — ถ้า tab active แต่ panel ไม่ active → fix
-  setInterval(function _depGuardian() {
+  var _depGuardianTimer = setInterval(function _depGuardian() {
     // ตรวจปุ่ม deposit tab ด้วย data-i18n (แม่นยำที่สุด)
     var depTabBtn = document.querySelector('[data-i18n="acc.tab.deposit"]') ||
                     document.querySelector('.acc-tab[onclick*="deposit"]');
@@ -8578,7 +8652,7 @@ setInterval(() => {
     if (flags.includes('suspend') || flags.includes('blacklist')) {
       showFEToast('🚫 บัญชีของคุณถูกระงับการใช้งาน กรุณาติดต่อ Admin ครับ'); return;
     }    if (flags.includes('no_deposit') || flags.includes('blacklist')) {
-      alert('🚫 บัญชีของคุณถูกระงับสิทธิ์การเติมเงินครับ — กรุณาติดต่อ Admin');
+      showFEToast('🚫 บัญชีของคุณถูกระงับสิทธิ์การเติมเงินครับ — กรุณาติดต่อ Admin');
       return;
     }
 
@@ -8617,7 +8691,7 @@ setInterval(() => {
     });
 
     if (error) {
-      alert('❌ เกิดข้อผิดพลาด: ' + error.message);
+      showFEToast('❌ เกิดข้อผิดพลาด: ' + error.message);
       return;
     }
 
@@ -8691,9 +8765,9 @@ setInterval(() => {
   window.submitSupport = window._real_submitSupport = async function submitSupport() {
     const subject = document.getElementById('support-subject').value.trim();
     const msg     = document.getElementById('support-msg').value.trim();
-    if (!subject) { alert('กรุณาใส่หัวข้อเรื่องที่ต้องการแจ้งครับ'); return; }
-    if (!msg)     { alert('กรุณาใส่รายละเอียดข้อความครับ'); return; }
-    if (currentSupportType === 'feedback' && !currentRating) { alert('กรุณาให้คะแนนความพึงพอใจด้วยครับ'); return; }
+    if (!subject) { showFEToast('⚠️ กรุณาใส่หัวข้อเรื่องที่ต้องการแจ้งครับ'); return; }
+    if (!msg)     { showFEToast('⚠️ กรุณาใส่รายละเอียดข้อความครับ'); return; }
+    if (currentSupportType === 'feedback' && !currentRating) { showFEToast('⚠️ กรุณาให้คะแนนความพึงพอใจด้วยครับ'); return; }
 
     const typeLabel = { general:'💬 ทั่วไป', deposit:'💰 เติมเงิน', withdraw:'🏧 ถอนเงิน', bet:'🏆 การแข่งขัน', feedback:'⭐ ความคิดเห็น', bug:'🐛 แจ้งปัญหา' };
     const now     = new Date();
@@ -8746,7 +8820,7 @@ setInterval(() => {
     const lbl = document.getElementById('rating-label');
     if (lbl) lbl.textContent = 'ยังไม่ได้ให้คะแนน';
 
-    showFEToast(`✅ ส่งข้อความเรียบร้อยแล้วครับ! เจ้าหน้าที่จะตอบกลับภายใน 24 ชั่วโมงครับ`);
+    showFEToast(`✅ ส่งข้อความแล้วครับ! เจ้าหน้าที่จะตอบกลับภายใน 24 ชั่วโมงครับ`);
   }
 
   // ── BETTING SYSTEM ──
