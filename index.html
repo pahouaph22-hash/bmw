@@ -2791,6 +2791,81 @@ fns.forEach(function(fn){
     background: rgba(245,200,66,0.45);
   }
 }
+
+<style>
+/* ═══════════════════════════════════════════════
+   MOBILE ACCOUNT SHORTCUT — show only on mobile
+   ═══════════════════════════════════════════════ */
+@media (min-width: 769px) {
+  #mob-acc-bar { display: none !important; }
+}
+@media (max-width: 768px) {
+  #mob-acc-bar { display: block !important; }
+
+  /* ── Upgrade bottom nav account button ── */
+  .mob-nav-item.mob-acc-btn {
+    flex: 1.6;
+    position: relative;
+  }
+  .mob-nav-item.mob-acc-btn .mob-nav-icon {
+    width: 38px;
+    height: 38px;
+    border-radius: 50%;
+    background: rgba(245,200,66,0.18);
+    border: 2px solid rgba(245,200,66,0.6);
+    font-size: 20px;
+    box-shadow: 0 0 12px rgba(245,200,66,0.2);
+    transition: all .2s;
+  }
+  .mob-nav-item.mob-acc-btn:not(.active) .mob-nav-icon {
+    animation: mob-acc-pulse 3s ease-in-out infinite;
+  }
+  @keyframes mob-acc-pulse {
+    0%,100% { box-shadow: 0 0 8px rgba(245,200,66,0.15); border-color: rgba(245,200,66,0.5); }
+    50%      { box-shadow: 0 0 18px rgba(245,200,66,0.45); border-color: rgba(245,200,66,0.9); }
+  }
+  .mob-nav-item.mob-acc-btn .mob-nav-label {
+    font-size: 11px;
+    color: var(--gold) !important;
+    font-weight: 900;
+  }
+  .mob-nav-item.mob-acc-btn.active .mob-nav-icon {
+    background: rgba(245,200,66,0.3);
+    border-color: var(--gold);
+    box-shadow: 0 0 20px rgba(245,200,66,0.5);
+    animation: none;
+  }
+
+  /* ── Nav top: เพิ่ม account icon ด้านขวา ── */
+  #nav-mobile-acc-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    background: rgba(245,200,66,0.1);
+    border: 1.5px solid rgba(245,200,66,0.4);
+    cursor: pointer;
+    flex-shrink: 0;
+    font-size: 17px;
+    transition: all .2s;
+    -webkit-tap-highlight-color: transparent;
+  }
+  #nav-mobile-acc-btn:active {
+    background: rgba(245,200,66,0.25);
+    transform: scale(0.93);
+  }
+  #nav-mobile-acc-btn.logged-in {
+    background: rgba(245,200,66,0.18);
+    border-color: rgba(245,200,66,0.7);
+    box-shadow: 0 0 10px rgba(245,200,66,0.2);
+  }
+}
+@media (min-width: 769px) {
+  #nav-mobile-acc-btn { display: none !important; }
+}
+</style>
 </style>
 <style>
 /* ── Phetsarath OT — Global Font Override ── */
@@ -6276,98 +6351,6 @@ function applyLang() {
 
   // ── popup รางวัล — แสดงตรงกลางหน้าจอ พร้อม animation ──
 
-</script>
-<style>
-/* ═══════════════════════════════════════════════
-   MOBILE ACCOUNT SHORTCUT — show only on mobile
-   ═══════════════════════════════════════════════ */
-@media (min-width: 769px) {
-  #mob-acc-bar { display: none !important; }
-}
-@media (max-width: 768px) {
-  #mob-acc-bar { display: block !important; }
-
-  /* ── Upgrade bottom nav account button ── */
-  .mob-nav-item.mob-acc-btn {
-    flex: 1.6;
-    position: relative;
-  }
-  .mob-nav-item.mob-acc-btn .mob-nav-icon {
-    width: 38px;
-    height: 38px;
-    border-radius: 50%;
-    background: rgba(245,200,66,0.18);
-    border: 2px solid rgba(245,200,66,0.6);
-    font-size: 20px;
-    box-shadow: 0 0 12px rgba(245,200,66,0.2);
-    transition: all .2s;
-  }
-  .mob-nav-item.mob-acc-btn:not(.active) .mob-nav-icon {
-    animation: mob-acc-pulse 3s ease-in-out infinite;
-  }
-  @keyframes mob-acc-pulse {
-    0%,100% { box-shadow: 0 0 8px rgba(245,200,66,0.15); border-color: rgba(245,200,66,0.5); }
-    50%      { box-shadow: 0 0 18px rgba(245,200,66,0.45); border-color: rgba(245,200,66,0.9); }
-  }
-  .mob-nav-item.mob-acc-btn .mob-nav-label {
-    font-size: 11px;
-    color: var(--gold) !important;
-    font-weight: 900;
-  }
-  .mob-nav-item.mob-acc-btn.active .mob-nav-icon {
-    background: rgba(245,200,66,0.3);
-    border-color: var(--gold);
-    box-shadow: 0 0 20px rgba(245,200,66,0.5);
-    animation: none;
-  }
-
-  /* ── Nav top: เพิ่ม account icon ด้านขวา ── */
-  #nav-mobile-acc-btn {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    width: 36px;
-    height: 36px;
-    border-radius: 50%;
-    background: rgba(245,200,66,0.1);
-    border: 1.5px solid rgba(245,200,66,0.4);
-    cursor: pointer;
-    flex-shrink: 0;
-    font-size: 17px;
-    transition: all .2s;
-    -webkit-tap-highlight-color: transparent;
-  }
-  #nav-mobile-acc-btn:active {
-    background: rgba(245,200,66,0.25);
-    transform: scale(0.93);
-  }
-  #nav-mobile-acc-btn.logged-in {
-    background: rgba(245,200,66,0.18);
-    border-color: rgba(245,200,66,0.7);
-    box-shadow: 0 0 10px rgba(245,200,66,0.2);
-  }
-}
-@media (min-width: 769px) {
-  #nav-mobile-acc-btn { display: none !important; }
-}
-</style>
-<script>
-      <div style="background:linear-gradient(160deg,#0f2e18,#1a4a28);border:2px solid #F5C842;border-radius:22px;padding:32px 28px;width:100%;max-width:320px;text-align:center;box-shadow:0 0 60px rgba(245,200,66,.25);animation:popIn .4s cubic-bezier(.34,1.56,.64,1);position:relative;">
-        <button onclick="document.getElementById('reward-popup').remove()" style="position:absolute;top:12px;right:14px;background:rgba(255,255,255,.1);border:none;color:#fff;font-size:16px;width:28px;height:28px;border-radius:50%;cursor:pointer;line-height:1;">✕</button>
-        <div style="font-size:56px;margin-bottom:8px;animation:coinSpin .8s .2s ease both;">${icon}</div>
-        <div style="font-family:Kanit,sans-serif;font-size:13px;color:rgba(255,220,100,.7);letter-spacing:1px;margin-bottom:4px;text-transform:uppercase;">${type}</div>
-        <div style="font-family:Kanit,sans-serif;font-weight:700;font-size:15px;color:#fff;margin-bottom:16px;">${detail}</div>
-        <div style="background:linear-gradient(135deg,#F5C842,#f0a500);border-radius:12px;padding:14px;margin-bottom:20px;animation:shimmer 2s infinite;">
-          <div style="font-size:11px;color:rgba(0,0,0,.6);font-family:Kanit,sans-serif;margin-bottom:2px;">ยอดรางวัล</div>
-          <div style="font-family:Kanit,sans-serif;font-weight:900;font-size:30px;color:#1a1a1a;">+${Number(amount).toLocaleString()}</div>
-          <div style="font-size:13px;color:rgba(0,0,0,.6);font-family:Kanit,sans-serif;">₭ เข้าบัญชีแล้วครับ!</div>
-        </div>
-        <button onclick="document.getElementById('reward-popup').remove()" style="width:100%;background:linear-gradient(135deg,#1B6B2F,#27943F);color:#fff;font-family:Kanit,sans-serif;font-weight:900;font-size:15px;padding:13px;border:none;border-radius:10px;cursor:pointer;letter-spacing:.5px;">รับทราบ ✓</button>
-      </div>`;
-    pop.addEventListener('click', e => { if (e.target === pop) pop.remove(); });
-    document.body.appendChild(pop);
-    setTimeout(() => pop?.remove(), 8000);
-  }
 
   window.submitChangePass = window._real_submitChangePass = async function submitChangePass() {
     const oldPass = document.getElementById('cp-old').value;
