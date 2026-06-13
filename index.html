@@ -8397,7 +8397,8 @@ setInterval(() => {
         if (t.getAttribute('onclick')?.includes(`'${id}'`)) t.classList.add('active');
       });
     }
-    if (id === 'dashboard')     if (id === 'txn')       loadTxnHistory();
+    if (id === 'dashboard')     loadDashboard?.();
+    if (id === 'txn')           loadTxnHistory();
     if (id === 'deposit') {
       const s1 = document.getElementById('dep-step1');
       const s2 = document.getElementById('dep-step2');
@@ -8464,7 +8465,6 @@ setInterval(() => {
     if (_ds1) _ds1.style.display = 'block';
     if (_ds2) _ds2.style.display = 'none';
     if (_ds3) _ds3.style.display = 'none';
-  });
 
   function genTxnFE(prefix) {
     return String(prefix) + Array.from({length:8}, ()=>Math.floor(Math.random()*10)).join('');
