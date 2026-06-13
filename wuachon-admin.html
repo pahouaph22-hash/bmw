@@ -2229,6 +2229,9 @@ input, textarea, select, button {
             <button class="mo-tab" data-tab="flags"
               onclick="if(typeof switchMoTab==='function')switchMoTab(this,'flags')"
               style="padding:11px 16px;border:none;border-bottom:3px solid transparent;background:transparent;font-family:'Kanit',sans-serif;font-size:12px;font-weight:700;color:#9ca3af;cursor:pointer;white-space:nowrap;margin-bottom:-2px;flex-shrink:0;">🏷️ ป้ายกำกับ</button>
+            <button class="mo-tab" data-tab="password"
+              onclick="if(typeof switchMoTab==='function')switchMoTab(this,'password')"
+              style="padding:11px 16px;border:none;border-bottom:3px solid transparent;background:transparent;font-family:'Kanit',sans-serif;font-size:12px;font-weight:700;color:#9ca3af;cursor:pointer;white-space:nowrap;margin-bottom:-2px;flex-shrink:0;">🔑 รหัสผ่าน</button>
             
           </div>
 
@@ -2647,6 +2650,64 @@ input, textarea, select, button {
     </div>
   </div>
 </div>
+            </div>
+
+            <!-- ── Tab: รหัสผ่าน (Reset Password) ── -->
+            <div class="mo-pane" id="mo-pane-password" style="display:none;padding:0 0 16px;">
+              <div style="padding:14px 20px 10px;border-bottom:1px solid #f3f4f6;margin-bottom:16px;">
+                <div style="font-family:'Kanit',sans-serif;font-weight:900;font-size:14px;color:#374151;">🔑 รีเซ็ตรหัสผ่านลูกค้า</div>
+                <div style="font-size:11px;color:#9ca3af;margin-top:2px;">กำหนดรหัสผ่านใหม่ให้ลูกค้า แล้วส่งให้ลูกค้าทาง LINE หรือโทรศัพท์</div>
+              </div>
+
+              <div style="padding:0 20px;">
+                <!-- ── ข้อมูล user ที่กำลังจัดการ ── -->
+                <div style="background:#f9fafb;border:1px solid #e5e7eb;border-radius:10px;padding:12px 14px;margin-bottom:16px;">
+                  <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
+                    <div style="font-family:'Kanit',sans-serif;font-size:13px;font-weight:700;color:#374151;">👤</div>
+                    <div style="font-family:'Kanit',sans-serif;font-size:13px;font-weight:900;color:#1a1a1a;" id="mo-pw-nick">—</div>
+                    <span style="color:#d1d5db;">·</span>
+                    <div style="font-family:'Kanit',sans-serif;font-size:12px;color:#6b7280;" id="mo-pw-phone">—</div>
+                  </div>
+                </div>
+
+                <!-- ── ครั้งล่าสุดที่รีเซ็ต ── -->
+                <div style="background:#fffbeb;border:1px solid #fde68a;border-radius:10px;padding:11px 14px;margin-bottom:18px;">
+                  <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;">
+                    <div>
+                      <div style="font-size:10px;color:#92400e;font-family:'Kanit',sans-serif;font-weight:700;letter-spacing:.04em;">📋 ครั้งล่าสุดที่ถูกรีเซ็ต</div>
+                      <div style="font-family:'Kanit',sans-serif;font-size:13px;font-weight:700;color:#78350f;margin-top:2px;" id="mo-pw-lastreset">— ยังไม่เคยถูกรีเซ็ต —</div>
+                    </div>
+                    <div style="font-size:22px;">🕐</div>
+                  </div>
+                </div>
+
+                <!-- ── ฟอร์มรหัสผ่านใหม่ ── -->
+                <div style="margin-bottom:16px;">
+                  <label style="display:block;font-family:'Kanit',sans-serif;font-size:12px;font-weight:700;color:#374151;margin-bottom:6px;">🔑 รหัสผ่านใหม่ <span style="color:#9ca3af;font-weight:400;">(≥ 6 ตัวอักษร)</span></label>
+                  <div style="display:flex;gap:8px;">
+                    <input type="text" id="mo-pw-new" autocomplete="off"
+                      placeholder="กรอกรหัสผ่านใหม่ หรือกดปุ่มสุ่ม"
+                      style="flex:1;padding:11px 14px;border:1.5px solid #e5e7eb;border-radius:9px;font-family:'Kanit','Courier New',monospace;font-size:14px;font-weight:700;letter-spacing:.05em;box-sizing:border-box;">
+                    <button type="button" onclick="_pwResetGenRandom()"
+                      style="padding:0 16px;background:#f3f4f6;border:1.5px solid #e5e7eb;border-radius:9px;font-family:'Kanit',sans-serif;font-size:12px;font-weight:700;color:#374151;cursor:pointer;white-space:nowrap;">🎲 สุ่มให้</button>
+                  </div>
+                  <div id="mo-pw-err" style="display:none;font-size:11px;color:#dc2626;font-family:'Kanit',sans-serif;margin-top:6px;"></div>
+                </div>
+
+                <!-- ── ปุ่ม Action ── -->
+                <div style="display:flex;gap:8px;align-items:center;">
+                  <button onclick="_pwResetSubmit()"
+                    style="flex:1;background:linear-gradient(135deg,#dc2626,#b91c1c);color:#fff;border:none;padding:12px;border-radius:9px;font-family:'Kanit',sans-serif;font-weight:900;font-size:13px;cursor:pointer;">
+                    🔐 ยืนยันรีเซ็ตรหัสผ่าน
+                  </button>
+                  <button onclick="document.getElementById('mo-pw-new').value='';_pwResetHideErr();"
+                    style="background:#fff;color:#6b7280;border:1.5px solid #e5e7eb;padding:12px 16px;border-radius:9px;font-family:'Kanit',sans-serif;font-weight:700;font-size:13px;cursor:pointer;">ล้าง</button>
+                </div>
+
+                <div style="margin-top:14px;font-size:11px;color:#9ca3af;font-family:'Kanit',sans-serif;line-height:1.7;background:#f9fafb;border-radius:8px;padding:10px 12px;">
+                  ℹ️ ระบบจะขอให้ admin ยืนยันรหัสผ่านของตนเอง (หรือ 2FA) ก่อนทำรายการ และจะแสดงรหัสใหม่ให้ copy ส่งให้ลูกค้าหลังบันทึกสำเร็จ
+                </div>
+              </div>
             </div>
 
           </div><!-- end tab content -->
@@ -6543,6 +6604,13 @@ function switchMoTab(btn,tab){
       _renderFlagsPane(nick3, mem3 ? mem3.flags : []);
     }, 20);
   }
+  // load password tab (reset password)
+  if(tab==='password'){
+    setTimeout(function(){
+      var nick4 = document.getElementById('mo-nick') ? document.getElementById('mo-nick').textContent.trim() : '';
+      if (typeof _pwResetLoad === 'function') _pwResetLoad(nick4);
+    }, 20);
+  }
 }
 async function saveMemberNote(){const note=document.getElementById('mo-note-input')?.value||'';const nick=document.getElementById('mo-nick')?.textContent;if(!nick||nick==='—')return;const{error}=await sb.from('members').update({admin_note:note}).eq('nick',nick);if(error){showToast('❌ '+error.message,'error');return;}showToast('💾 บันทึก ✅');await loadMembers();}
 async function toggleMemberFlag(flag){
@@ -7260,6 +7328,212 @@ async function runSchemaMigration(){
     } catch(e) {
       showToast('❌ บันทึกไม่ได้: ' + e.message, 'error');
     }
+  }
+
+  // ══════════════════════════════════════════════════════════════
+  // RESET PASSWORD — ฟีเจอร์รีเซ็ตรหัสผ่านลูกค้าโดย admin
+  // ══════════════════════════════════════════════════════════════
+
+  // ── format วันที่ ISO เป็นข้อความอ่านง่าย (ใช้กับ last_pw_reset_at) ──
+  function _pwFmtDate(iso) {
+    if (!iso) return '';
+    try {
+      var d = new Date(iso);
+      if (isNaN(d.getTime())) return '';
+      var pad = function(n){ return n < 10 ? '0' + n : '' + n; };
+      return d.getFullYear() + '-' + pad(d.getMonth()+1) + '-' + pad(d.getDate())
+        + ' ' + pad(d.getHours()) + ':' + pad(d.getMinutes());
+    } catch(_) { return ''; }
+  }
+
+  // ── โหลดข้อมูล user ลงใน password pane ──
+  function _pwResetLoad(nick) {
+    if (!nick || nick === '—') return;
+    var mem = (allMembers || []).find(function(m){ return m.nick === nick; });
+    if (!mem) return;
+
+    var nEl = document.getElementById('mo-pw-nick');
+    if (nEl) nEl.textContent = '@' + (mem.nick || '—');
+    var pEl = document.getElementById('mo-pw-phone');
+    if (pEl) pEl.textContent = mem.phone ? ('📞 ' + mem.phone) : '— ไม่มีเบอร์ —';
+
+    // last reset info
+    var lrEl = document.getElementById('mo-pw-lastreset');
+    if (lrEl) {
+      if (mem.last_pw_reset_at) {
+        var when = _pwFmtDate(mem.last_pw_reset_at);
+        var by   = mem.last_pw_reset_by || 'ไม่ทราบ';
+        lrEl.textContent = when + ' · โดย ' + by;
+      } else {
+        lrEl.textContent = '— ยังไม่เคยถูกรีเซ็ต —';
+      }
+    }
+    // reset form
+    var inp = document.getElementById('mo-pw-new');
+    if (inp) inp.value = '';
+    _pwResetHideErr();
+  }
+
+  // ── สุ่มรหัสผ่าน 10 ตัว (อ่านง่าย ไม่มี 0 O 1 l) ──
+  function _pwResetGenRandom() {
+    var chars = 'ABCDEFGHJKLMNPQRSTUVWXYZabcdefghjkmnpqrstuvwxyz23456789';
+    var out = '';
+    var len = 10;
+    if (window.crypto && window.crypto.getRandomValues) {
+      var buf = new Uint32Array(len);
+      window.crypto.getRandomValues(buf);
+      for (var i = 0; i < len; i++) out += chars.charAt(buf[i] % chars.length);
+    } else {
+      for (var j = 0; j < len; j++) out += chars.charAt(Math.floor(Math.random() * chars.length));
+    }
+    var inp = document.getElementById('mo-pw-new');
+    if (inp) { inp.value = out; inp.focus(); inp.select(); }
+    _pwResetHideErr();
+  }
+
+  function _pwResetShowErr(msg) {
+    var el = document.getElementById('mo-pw-err');
+    if (el) { el.textContent = '❌ ' + msg; el.style.display = 'block'; }
+  }
+  function _pwResetHideErr() {
+    var el = document.getElementById('mo-pw-err');
+    if (el) el.style.display = 'none';
+  }
+
+  // ── popup แสดงรหัสใหม่หลัง reset สำเร็จ (ให้ admin copy ส่งให้ลูกค้า) ──
+  function _pwResetShowResult(nick, newPass) {
+    var existing = document.getElementById('pw-reset-result-modal');
+    if (existing) existing.remove();
+
+    var m = document.createElement('div');
+    m.id = 'pw-reset-result-modal';
+    m.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.7);z-index:99999;display:flex;align-items:center;justify-content:center;padding:16px;';
+    m.innerHTML = ''
+      + '<div style="background:#fff;border-radius:16px;width:100%;max-width:420px;overflow:hidden;box-shadow:0 24px 80px rgba(0,0,0,0.4);">'
+      +   '<div style="background:linear-gradient(135deg,#16a34a,#15803d);padding:20px 24px;text-align:center;">'
+      +     '<div style="font-size:36px;margin-bottom:6px;">✅</div>'
+      +     '<div style="font-family:Kanit,sans-serif;font-size:16px;font-weight:900;color:#fff;">รีเซ็ตรหัสผ่านสำเร็จ</div>'
+      +     '<div style="font-size:12px;color:rgba(255,255,255,0.85);margin-top:4px;">รหัสใหม่ของ @' + nick + '</div>'
+      +   '</div>'
+      +   '<div style="padding:22px 24px;">'
+      +     '<div style="font-size:11px;color:#6b7280;font-family:Kanit,sans-serif;font-weight:700;margin-bottom:6px;letter-spacing:.04em;">🔑 รหัสผ่านใหม่:</div>'
+      +     '<div id="pw-result-value" style="background:#f0fdf4;border:2px dashed #86efac;border-radius:10px;padding:18px;text-align:center;font-family:\'Courier New\',monospace;font-size:22px;font-weight:900;letter-spacing:.1em;color:#14532d;margin-bottom:14px;user-select:all;">' + newPass + '</div>'
+      +     '<button id="pw-result-copy-btn" style="width:100%;padding:11px;background:#16a34a;color:#fff;border:none;border-radius:9px;font-family:Kanit,sans-serif;font-weight:900;font-size:13px;cursor:pointer;margin-bottom:8px;">📋 คัดลอกรหัสผ่าน</button>'
+      +     '<div style="background:#fffbeb;border:1px solid #fde68a;border-radius:8px;padding:10px 12px;font-size:11px;color:#92400e;font-family:Kanit,sans-serif;line-height:1.7;margin-bottom:14px;">'
+      +       '⚠️ <b>กรุณาคัดลอกตอนนี้</b> — ระบบไม่เก็บรหัสผ่านเป็นข้อความ ถ้าปิดกล่องนี้แล้วจะดูรหัสนี้อีกไม่ได้'
+      +     '</div>'
+      +     '<button onclick="document.getElementById(\'pw-reset-result-modal\').remove()" style="width:100%;padding:11px;background:#f5f5f3;color:#555;border:none;border-radius:9px;font-family:Kanit,sans-serif;font-weight:700;font-size:13px;cursor:pointer;">เสร็จสิ้น</button>'
+      +   '</div>'
+      + '</div>';
+    document.body.appendChild(m);
+
+    // wire copy button
+    var btn = document.getElementById('pw-result-copy-btn');
+    if (btn) {
+      btn.onclick = function() {
+        var ok = false;
+        try {
+          if (navigator.clipboard && navigator.clipboard.writeText) {
+            navigator.clipboard.writeText(newPass);
+            ok = true;
+          }
+        } catch(_) {}
+        if (!ok) {
+          // fallback
+          var ta = document.createElement('textarea');
+          ta.value = newPass;
+          document.body.appendChild(ta);
+          ta.select();
+          try { document.execCommand('copy'); ok = true; } catch(_) {}
+          document.body.removeChild(ta);
+        }
+        if (ok) {
+          btn.textContent = '✅ คัดลอกแล้ว';
+          btn.style.background = '#15803d';
+          setTimeout(function(){
+            btn.textContent = '📋 คัดลอกรหัสผ่าน';
+            btn.style.background = '#16a34a';
+          }, 1500);
+        } else {
+          showToast('❌ คัดลอกไม่ได้ — กรุณาเลือกข้อความและกด Ctrl+C', 'error');
+        }
+      };
+    }
+  }
+
+  // ── ตัว submit หลัก — ตรวจ input, เรียก _requireActionOTP, แล้ว update DB ──
+  function _pwResetSubmit() {
+    _pwResetHideErr();
+
+    var nick = document.getElementById('mo-nick') ? document.getElementById('mo-nick').textContent.trim() : '';
+    if (!nick || nick === '—') { _pwResetShowErr('ไม่พบผู้ใช้'); return; }
+
+    var newPass = (document.getElementById('mo-pw-new')?.value || '').trim();
+    if (!newPass) { _pwResetShowErr('กรุณากรอกรหัสผ่านใหม่'); return; }
+    if (newPass.length < 6) { _pwResetShowErr('รหัสผ่านต้องยาว ≥ 6 ตัวอักษร'); return; }
+    if (newPass.length > 100) { _pwResetShowErr('รหัสผ่านยาวเกินไป (สูงสุด 100 ตัว)'); return; }
+
+    var mem = (allMembers || []).find(function(m){ return m.nick === nick; });
+    if (!mem) { _pwResetShowErr('ไม่พบสมาชิกในระบบ'); return; }
+    if (!mem.phone) { _pwResetShowErr('สมาชิกคนนี้ไม่มีเบอร์โทร — ไม่สามารถ hash รหัสได้'); return; }
+
+    // กัน admin reset รหัสตัวเอง (ป้องกันสับสน) — ถ้า adminNick ตรงกับ user.nick
+    var adminName = _adminNick();
+    if (adminName && adminName === nick) {
+      _pwResetShowErr('ไม่สามารถรีเซ็ตรหัสผ่านของตัวเองผ่านเมนูนี้ได้ครับ');
+      return;
+    }
+
+    // confirm dialog เพิ่มความระมัดระวัง
+    if (!confirm('ยืนยันรีเซ็ตรหัสผ่านของ @' + nick + ' ?\n\nรหัสใหม่: ' + newPass + '\n\n(จะต้องยืนยันรหัสผ่านของคุณอีกครั้ง)')) {
+      return;
+    }
+
+    // เรียก re-authentication ของ admin ก่อน (ใช้ระบบเดียวกับการอนุมัติเงิน)
+    _requireActionOTP('รีเซ็ตรหัสผ่านลูกค้า @' + nick, async function() {
+      try {
+        // 1. คำนวณ hash: SHA-256(phone + ':' + password) — ตรงกับฝั่ง client
+        var hashInput = mem.phone + ':' + newPass;
+        var pwHash    = await hashPassword(hashInput);
+
+        // 2. update DB
+        var now = new Date().toISOString();
+        var res = await sb.from('members').update({
+          password:         pwHash,
+          last_pw_reset_at: now,
+          last_pw_reset_by: adminName || 'admin',
+        }).eq('nick', nick);
+        if (res.error) throw res.error;
+
+        // 3. cache local
+        mem.last_pw_reset_at = now;
+        mem.last_pw_reset_by = adminName || 'admin';
+
+        // 4. audit log
+        try {
+          await sb.from('staff_logs').insert({
+            staff_username: adminName || 'admin',
+            action:         'reset_password',
+            detail:         'รีเซ็ตรหัสผ่านของ "' + nick + '" โดย ' + (adminName || 'admin'),
+          });
+        } catch(_) {}
+
+        // 5. ล้างฟอร์ม + แสดงผลให้ copy
+        var inp = document.getElementById('mo-pw-new');
+        if (inp) inp.value = '';
+        _pwResetLoad(nick); // refresh last-reset display
+        _pwResetShowResult(nick, newPass);
+        showToast('✅ รีเซ็ตรหัสผ่านของ @' + nick + ' สำเร็จ');
+      } catch(e) {
+        var msg = (e && e.message) ? e.message : String(e);
+        // จับกรณี column ยังไม่มี
+        if (/last_pw_reset_at|last_pw_reset_by|column/i.test(msg)) {
+          showToast('❌ ยังไม่มี column last_pw_reset_at/by ใน DB — กรุณารัน migration SQL ก่อนครับ', 'error');
+        } else {
+          showToast('❌ บันทึกไม่ได้: ' + msg, 'error');
+        }
+      }
+    });
   }
 
   // ══════════════════════════════════════
