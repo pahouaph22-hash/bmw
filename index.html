@@ -9565,6 +9565,36 @@ document.addEventListener('DOMContentLoaded', () => {
   window._real_supportFileChange = window.supportFileChange = supportFileChange;
   window._real__updateMobAccBar = window._updateMobAccBar = _updateMobAccBar;
 
+  // ── Expose functions used by inline HTML handlers (onclick/onchange) ──
+  // i18n / language switcher
+  window.setLang        = setLang;
+  window.applyLang      = applyLang;
+  window.t              = t;
+  // navigation
+  window.goHome         = goHome;
+  window.loadModalPhoto = loadModalPhoto;
+  window.switchMode     = switchMode;
+  window.switchSchedTab = switchSchedTab;
+  window.switchHistTab  = switchHistTab;
+  window.loadTxnHistory = loadTxnHistory;
+  // betting
+  window.selectSide     = selectSide;
+  window.calcExpected   = calcExpected;
+  window.placeBet       = placeBet;
+  window.joinBet        = joinBet;
+  window.joinBetPartial = joinBetPartial;
+  window._setJoinMax    = _setJoinMax;
+  // notifications
+  window._filterNotif   = _filterNotif;
+  window._markNotifRead = _markNotifRead;
+  window._viewSlipFE    = _viewSlipFE;
+  // auth / banks
+  window._sendMagicLink   = _sendMagicLink;
+  window._selectBank      = _selectBank;
+  window._showAddBankForm = _showAddBankForm;
+  window._hideAddBankForm = _hideAddBankForm;
+  window._saveNewBank     = _saveNewBank;
+
 })();
 </script>
 
