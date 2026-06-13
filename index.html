@@ -7655,10 +7655,13 @@ setInterval(() => {
   }
 
   function updateDepAmount() {
-    const amt = parseInt(document.getElementById('dep-amount').value) || 0;
+    const amtEl   = document.getElementById('dep-amount');
     const preview = document.getElementById('dep-amount-preview');
     const show    = document.getElementById('dep-amount-show');
-    if (amt >= 100) {
+    if (!amtEl || !preview || !show) return;
+    const amt = parseInt(amtEl.value) || 0;
+    const dMin = (typeof _txLimits === 'object' && _txLimits.depMin) || 100;
+    if (amt >= dMin) {
       preview.style.display = 'block';
       show.textContent = amt.toLocaleString() + ' ₭';
     } else {
@@ -7862,14 +7865,39 @@ setInterval(() => {
     }
   }
 
-  function copyDepAccNo() {
+  async function copyDepAccNo() {
     const b = _depBanks[_depBankIdx];
     const accno = b?.accno || b?.accNo || document.getElementById('dep-acc-no')?.textContent || '';
-    if (navigator.clipboard) {
-      navigator.clipboard.writeText(accno).then(() => showFEToast(`✅ คัดลอก ${accno} แล้วครับ`));
-    } else {
-      showFEToast('📋 เลขบัญชี: ' + accno);
+    if (!accno || accno === '—') {
+      showFEToast('⚠️ ยังไม่มีเลขบัญชีให้คัดลอกครับ');
+      return;
     }
+    // ทาง 1: ใช้ Clipboard API (browser ทันสมัย + HTTPS)
+    try {
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        await navigator.clipboard.writeText(accno);
+        showFEToast(`✅ คัดลอกเลขบัญชี ${accno} แล้วครับ`);
+        return;
+      }
+    } catch(_) { /* fall through to fallback */ }
+    // ทาง 2: fallback ด้วย textarea + execCommand (เก่า/บาง iOS)
+    try {
+      const ta = document.createElement('textarea');
+      ta.value = accno;
+      ta.setAttribute('readonly', '');
+      ta.style.cssText = 'position:fixed;top:0;left:0;opacity:0;';
+      document.body.appendChild(ta);
+      ta.select();
+      ta.setSelectionRange(0, accno.length);
+      const ok = document.execCommand && document.execCommand('copy');
+      document.body.removeChild(ta);
+      if (ok) {
+        showFEToast(`✅ คัดลอกเลขบัญชี ${accno} แล้วครับ`);
+        return;
+      }
+    } catch(_) {}
+    // ทาง 3: ถ้าทั้ง 2 วิธีล้มเหลว แสดงเลขให้ user copy เอง
+    showFEToast(`📋 เลขบัญชี: ${accno} (กรุณาคัดลอกด้วยตัวเองครับ)`);
   }
 
   window.setWithAmount = window._real_setWithAmount = function setWithAmount(n) { document.getElementById('with-amount').value = n; }
@@ -7901,7 +7929,7 @@ setInterval(() => {
 
     try { await sb.rpc('set_current_nick', { p_nick: currentUser.nick }); } catch(_) {}
     const { data } = await sb.from('deposits')
-      .select('txn,amount,bank,status,slip_url,created_at,approved_at')
+      .select('txn,amount,bank,status,slip_url,created_at,approved_at,approved_by,reason')
       .eq('nick', currentUser.nick)
       .order('created_at', { ascending: false }).limit(20);
 
@@ -8451,12 +8479,28 @@ setInterval(() => {
   if (depFile) {
     depFile.addEventListener('change', function() {
       const file = this.files[0]; if (!file) return;
+      // ── Validate ก่อน preview (UX: บอก user ทันที ไม่รอจน submit) ──
+      const MAX_SIZE = 3 * 1024 * 1024; // 3 MB
+      const isImage = (file.type || '').startsWith('image/');
+      if (!isImage) {
+        if (typeof showFEToast === 'function') showFEToast('⚠️ กรุณาเลือกไฟล์รูปภาพ (JPG, PNG) เท่านั้นครับ');
+        this.value = ''; // clear file input
+        return;
+      }
+      if (file.size > MAX_SIZE) {
+        if (typeof showFEToast === 'function') showFEToast('⚠️ ไฟล์ใหญ่เกิน 3MB กรุณาเลือกไฟล์ใหม่ครับ');
+        this.value = '';
+        return;
+      }
       const reader = new FileReader();
       reader.onload = e => {
         const img = document.getElementById('dep-slip-preview');
         img.src = e.target.result; img.style.display = 'block';
         document.getElementById('dep-slip-placeholder').style.display = 'none';
         document.getElementById('dep-slip-box').style.borderColor = 'var(--accent)';
+      };
+      reader.onerror = () => {
+        if (typeof showFEToast === 'function') showFEToast('⚠️ อ่านไฟล์รูปไม่ได้ กรุณาเลือกไฟล์ใหม่ครับ');
       };
       reader.readAsDataURL(file);
     });
@@ -8475,33 +8519,75 @@ setInterval(() => {
   }
 
   window.submitDeposit = window._real_submitDeposit = async function submitDeposit() {
-    const amount  = parseInt(document.getElementById('dep-amount').value);
-    let bank      = document.getElementById('dep-bank-from').value;
-    const slipFile = document.getElementById('dep-slip-file')?.files?.[0];
-    const hasSlip = !!(slipFile && slipFile.size > 0);
-    if (!amount || amount < 100) { showFEToast('⚠️ กรุณาระบุจำนวนเงินขั้นต่ำ 100 ₭ครับ'); return; }
-    if (!bank)    bank = 'ไม่ระบุ'; // ถ้าไม่เลือกธนาคาร ใช้ค่า default
-    if (!hasSlip) { showFEToast('⚠️ กรุณาแนบสลิปการโอนเงินครับ'); return; }
+    // ── อ่าน inputs แบบ defensive ──
+    const amtEl   = document.getElementById('dep-amount');
+    const bankEl  = document.getElementById('dep-bank-from');
+    const slipEl  = document.getElementById('dep-slip-file');
+    const submitBtn = document.querySelector('button[onclick="submitDeposit()"]');
+
+    const amount   = parseInt(amtEl?.value) || 0;
+    let bank       = bankEl?.value || '';
+    const slipFile = slipEl?.files?.[0];
+    const hasSlip  = !!(slipFile && slipFile.size > 0);
+
+    // ── Validation (ใช้ค่าจาก _txLimits ที่ admin ตั้งไว้) ──
+    const dMin = (typeof _txLimits === 'object' && _txLimits.depMin) || 100;
+    const dMax = (typeof _txLimits === 'object' && _txLimits.depMax) || 0;
+    if (!amount || amount < dMin) {
+      showFEToast(`⚠️ กรุณาระบุจำนวนเงินขั้นต่ำ ${dMin.toLocaleString()} ₭ ครับ`); return;
+    }
+    if (dMax && amount > dMax) {
+      showFEToast(`⚠️ จำนวนเงินสูงสุดสำหรับเติมเงินคือ ${dMax.toLocaleString()} ₭ ครับ`); return;
+    }
+    if (!bank) bank = 'ไม่ระบุ';
+    if (!hasSlip)     { showFEToast('⚠️ กรุณาแนบสลิปการโอนเงินครับ'); return; }
     if (!currentUser) { showFEToast('⚠️ กรุณา Login ก่อนครับ'); return; }
-    // ── FLAG CHECK ──
+
+    // ── Flag checks (เคลียร์ logic — เช็คตามลำดับความรุนแรง) ──
     const flags = currentUser.flags || [];
-    if (flags.includes('suspend') || flags.includes('blacklist')) {
-      showFEToast('🚫 บัญชีของคุณถูกระงับการใช้งาน กรุณาติดต่อ Admin ครับ'); return;
-    }    if (flags.includes('no_deposit') || flags.includes('blacklist')) {
-      showFEToast('🚫 บัญชีของคุณถูกระงับสิทธิ์การเติมเงินครับ — กรุณาติดต่อ Admin');
-      return;
+    if (flags.includes('blacklist')) {
+      showFEToast('🚫 บัญชีของคุณถูกระงับการใช้งาน (blacklist) กรุณาติดต่อ Admin ครับ'); return;
+    }
+    if (flags.includes('suspend')) {
+      showFEToast('🚫 บัญชีของคุณถูกระงับการใช้งานชั่วคราว กรุณาติดต่อ Admin ครับ'); return;
+    }
+    if (flags.includes('no_deposit')) {
+      showFEToast('🚫 บัญชีของคุณถูกระงับสิทธิ์การเติมเงิน — กรุณาติดต่อ Admin ครับ'); return;
     }
 
-    const txn  = genTxnFE(4);
-    const nick = currentUser.nick || '';
+    // ── File re-validation (เผื่อ user เปลี่ยนไฟล์ภายหลัง) ──
+    if (!(slipFile.type || '').startsWith('image/')) {
+      showFEToast('⚠️ ไฟล์สลิปต้องเป็นรูปภาพ (JPG, PNG) เท่านั้นครับ'); return;
+    }
+    if (slipFile.size > 3 * 1024 * 1024) {
+      showFEToast('⚠️ ไฟล์สลิปใหญ่เกิน 3MB กรุณาเลือกไฟล์ใหม่ครับ'); return;
+    }
 
-    // ── Convert สลิปเป็น base64 (ไม่ใช้ Storage เพื่อหลีกเลี่ยง bucket permission issue) ──
-    let slip_url = '';
-    if (slipFile) {
-      if (slipFile.size > 3 * 1024 * 1024) {
-        showFEToast('⚠️ ไฟล์สลิปใหญ่เกิน 3MB กรุณาเลือกไฟล์ใหม่ครับ');
-        return;
-      }
+    // ── Disable ปุ่ม + แสดง loading (ป้องกัน double-submit) ──
+    const origBtnHtml = submitBtn ? submitBtn.innerHTML : '';
+    const origBtnDisabled = submitBtn ? submitBtn.disabled : false;
+    if (submitBtn) {
+      submitBtn.disabled = true;
+      submitBtn.style.opacity = '0.6';
+      submitBtn.style.cursor = 'wait';
+      submitBtn.innerHTML = '⏳ กำลังส่งคำขอ...';
+    }
+
+    // Helper สำหรับคืนปุ่มสู่สภาพเดิม (เรียกใน error path ทุกครั้ง)
+    const restoreBtn = () => {
+      if (!submitBtn) return;
+      submitBtn.disabled = origBtnDisabled;
+      submitBtn.style.opacity = '';
+      submitBtn.style.cursor = '';
+      submitBtn.innerHTML = origBtnHtml;
+    };
+
+    try {
+      const txn  = genTxnFE(4);
+      const nick = currentUser.nick || '';
+
+      // ── Convert สลิปเป็น base64 (ไม่ใช้ Storage เพื่อหลีกเลี่ยง bucket permission) ──
+      let slip_url = '';
       try {
         slip_url = await new Promise((resolve, reject) => {
           const reader = new FileReader();
@@ -8510,45 +8596,56 @@ setInterval(() => {
           reader.readAsDataURL(slipFile);
         });
       } catch(e) {
+        restoreBtn();
         showFEToast('⚠️ แปลงไฟล์สลิปไม่ได้: ' + e.message);
         return;
       }
+
+      // ── ยืนยัน session nick ก่อน INSERT (ป้องกัน RLS block บน mobile) ──
+      try { await sb.rpc('set_current_nick', { p_nick: nick }); } catch(_) {}
+
+      // ── บันทึกลง Supabase deposits ──
+      const { error } = await sb.from('deposits').insert({
+        nick,
+        fname: currentUser.fname || '',
+        lname: currentUser.lname || '',
+        phone: currentUser.phone || '',
+        amount, bank, txn,
+        slip_url,
+        status: 'pending'
+      });
+
+      if (error) {
+        restoreBtn();
+        showFEToast('❌ เกิดข้อผิดพลาด: ' + error.message);
+        return;
+      }
+
+      // ── Success path ──
+      addTxnItem('dep','💰','เติมเงิน (รอตรวจสอบ)',`${bank} · รอ Admin อนุมัติ`,txn,`+${amount.toLocaleString()} ₭`,'dep');
+
+      // reset form
+      if (amtEl)  amtEl.value  = '';
+      if (bankEl) bankEl.value = '';
+      const slipPrev = document.getElementById('dep-slip-preview');
+      const slipPh   = document.getElementById('dep-slip-placeholder');
+      const slipBox  = document.getElementById('dep-slip-box');
+      const amtPrev  = document.getElementById('dep-amount-preview');
+      if (slipPrev) slipPrev.style.display = 'none';
+      if (slipPh)   slipPh.style.display = 'block';
+      if (slipBox)  slipBox.style.borderColor = 'rgba(39,148,63,0.3)';
+      if (slipEl)   slipEl.value = '';
+      if (amtPrev)  amtPrev.style.display = 'none';
+
+      restoreBtn();
+      goDepStep1();
+
+      showFEToast(`✅ ส่งคำขอเติมเงินสำเร็จ! TXN: ${txn} — Admin จะตรวจสอบโดยเร็วครับ`);
+      loadDepHistory();
+    } catch(unexpected) {
+      restoreBtn();
+      showFEToast('❌ เกิดข้อผิดพลาดที่ไม่คาดคิด: ' + (unexpected?.message || unexpected));
     }
-
-    // ✅ ยืนยัน session nick ก่อน INSERT (ป้องกัน RLS block บน mobile)
-    try { await sb.rpc('set_current_nick', { p_nick: nick }); } catch(_) {}
-
-    // ✅ บันทึกลง Supabase deposits
-    const { error } = await sb.from('deposits').insert({
-      nick,
-      fname: currentUser.fname || '',
-      lname: currentUser.lname || '',
-      phone: currentUser.phone || '',
-      amount, bank, txn,
-      slip_url,
-      status: 'pending'
-    });
-
-    if (error) {
-      showFEToast('❌ เกิดข้อผิดพลาด: ' + error.message);
-      return;
-    }
-
-    // เพิ่มใน txn list UI
-    addTxnItem('dep','💰','เติมเงิน (รอตรวจสอบ)',`${bank} · รอ Admin อนุมัติ`,txn,`+${amount.toLocaleString()} ₭`,'dep');
-
-    // reset form
-    document.getElementById('dep-amount').value = '';
-    document.getElementById('dep-bank-from').value = '';
-    document.getElementById('dep-slip-preview').style.display = 'none';
-    document.getElementById('dep-slip-placeholder').style.display = 'block';
-    document.getElementById('dep-slip-box').style.borderColor = 'rgba(39,148,63,0.3)';
-    document.getElementById('dep-slip-file').value = '';
-    document.getElementById('dep-amount-preview').style.display = 'none';
-    goDepStep1();
-
-    showFEToast(`✅ ส่งคำขอเติมเงินสำเร็จ! TXN: ${txn} — Admin จะตรวจสอบโดยเร็วครับ`);
-    loadDepHistory();
   }
 
 
