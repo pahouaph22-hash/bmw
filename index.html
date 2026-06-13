@@ -2876,6 +2876,7 @@ input, textarea, select, button {
   font-family: 'Phetsarath', 'Noto Sans Lao', 'Kanit', sans-serif !important;
 }
 </style>
+</head>
 <body>
 
 <!-- MODAL -->
@@ -8431,40 +8432,43 @@ setInterval(() => {
     if (currentUser?.flags?.length) setTimeout(() => applyFlagUI(currentUser.flags), 50);
   }
 
-  // Deposit slip preview — ต้องรอ DOM โหลดก่อน
-    // ── Auto-refresh balance เมื่อ user กลับมาที่ tab ──
-    document.addEventListener('visibilitychange', function() {
-      if (!document.hidden && currentUser) {
-        refreshBalance();
-      }
-    });
-    // ── Auto-refresh balance ทุก 30 วินาที (fallback) ──
-    setInterval(function() {
-      if (currentUser && !document.hidden) {
-        refreshBalance();
-      }
-    }, 30000);
-    const depFile = document.getElementById('dep-slip-file');
-    if (depFile) {
-      depFile.addEventListener('change', function() {
-        const file = this.files[0]; if (!file) return;
-        const reader = new FileReader();
-        reader.onload = e => {
-          const img = document.getElementById('dep-slip-preview');
-          img.src = e.target.result; img.style.display = 'block';
-          document.getElementById('dep-slip-placeholder').style.display = 'none';
-          document.getElementById('dep-slip-box').style.borderColor = 'var(--accent)';
-        };
-        reader.readAsDataURL(file);
-      });
+  // ── Auto-refresh balance เมื่อ user กลับมาที่ tab ──
+  document.addEventListener('visibilitychange', function() {
+    if (!document.hidden && currentUser) {
+      refreshBalance();
     }
-    // ── reset dep-steps ให้ step1 แสดงเสมอตอน page load ──
-    const _ds1 = document.getElementById('dep-step1');
-    const _ds2 = document.getElementById('dep-step2');
-    const _ds3 = document.getElementById('dep-step3');
-    if (_ds1) _ds1.style.display = 'block';
-    if (_ds2) _ds2.style.display = 'none';
-    if (_ds3) _ds3.style.display = 'none';
+  });
+
+  // ── Auto-refresh balance ทุก 30 วินาที (fallback) ──
+  setInterval(function() {
+    if (currentUser && !document.hidden) {
+      refreshBalance();
+    }
+  }, 30000);
+
+  // ── Deposit slip preview ──
+  const depFile = document.getElementById('dep-slip-file');
+  if (depFile) {
+    depFile.addEventListener('change', function() {
+      const file = this.files[0]; if (!file) return;
+      const reader = new FileReader();
+      reader.onload = e => {
+        const img = document.getElementById('dep-slip-preview');
+        img.src = e.target.result; img.style.display = 'block';
+        document.getElementById('dep-slip-placeholder').style.display = 'none';
+        document.getElementById('dep-slip-box').style.borderColor = 'var(--accent)';
+      };
+      reader.readAsDataURL(file);
+    });
+  }
+
+  // ── reset dep-steps ให้ step1 แสดงเสมอตอน page load ──
+  const _ds1 = document.getElementById('dep-step1');
+  const _ds2 = document.getElementById('dep-step2');
+  const _ds3 = document.getElementById('dep-step3');
+  if (_ds1) _ds1.style.display = 'block';
+  if (_ds2) _ds2.style.display = 'none';
+  if (_ds3) _ds3.style.display = 'none';
 
   function genTxnFE(prefix) {
     return String(prefix) + Array.from({length:8}, ()=>Math.floor(Math.random()*10)).join('');
