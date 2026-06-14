@@ -8150,26 +8150,41 @@ setInterval(() => {
         updateAccBalance(freshBalance);
         throw new Error(`ยอดเงินไม่เพียงพอ (คงเหลือล่าสุด: ${freshBalance.toLocaleString()} ₭)`);
       }
-      const verifiedNewBalance = freshBalance - amount;
 
-      // insert withdrawal ก่อน — ถ้าล้มเหลวยังไม่หักเงิน
-      // ยืนยัน session nick ก่อน INSERT
-      try { await sb.rpc('set_current_nick', { p_nick: nick }); } catch(_) {}
-      const { error: withErr } = await sb.from('withdrawals').insert({
-        nick, amount, txn, status: 'pending',
-        bank:     selBank.name,
-        acc_no:   selBank.accno,
-        acc_name: selBank.accname,
+      // ── ใช้ RPC create_withdrawal (atomic: insert + หักเงิน, ข้าม RLS) ──
+      const { data: wRes, error: wErr } = await sb.rpc('create_withdrawal', {
+        p_nick: nick, p_amount: amount, p_txn: txn,
+        p_bank: selBank.name, p_accno: selBank.accno, p_accname: selBank.accname
       });
-      if (withErr) throw withErr;
 
-      // หักเงินหลังจาก insert สำเร็จ
-      const { error: balErr } = await sb.from('members')
-        .update({ balance: verifiedNewBalance }).eq('nick', nick);
-      if (balErr) {
-        await sb.from('withdrawals').delete().eq('txn', txn).eq('nick', nick);
-        throw balErr;
+      if (wErr) {
+        // fallback ถ้า RPC ยังไม่ถูกสร้าง (DB เก่า) — ใช้วิธีเดิม
+        if ((wErr.message||'').includes('function') && (wErr.message||'').includes('does not exist')) {
+          try { await sb.rpc('set_current_nick', { p_nick: nick }); } catch(_) {}
+          const { error: withErr } = await sb.from('withdrawals').insert({
+            nick, amount, txn, status: 'pending',
+            bank: selBank.name, acc_no: selBank.accno, acc_name: selBank.accname,
+          });
+          if (withErr) throw withErr;
+          await sb.rpc('adjust_member_balance', { p_nick: nick, p_delta: -amount });
+        } else {
+          throw wErr;
+        }
+      } else if (wRes && wRes.length && !wRes[0].ok) {
+        // RPC ทำงานแต่ปฏิเสธ (ยอดไม่พอ/ถูกระงับ) — แสดงเหตุผลจาก DB
+        const m = wRes[0].msg || 'ไม่สามารถถอนได้';
+        if (typeof wRes[0].new_balance !== 'undefined') {
+          const nb = Number(wRes[0].new_balance||0);
+          if (currentUser) currentUser.balance = nb;
+          updateAccBalance(nb);
+        }
+        throw new Error(m);
       }
+
+      // อัปเดตยอดจากผลลัพธ์ RPC
+      const verifiedNewBalance = (wRes && wRes.length && typeof wRes[0].new_balance !== 'undefined')
+        ? Number(wRes[0].new_balance || 0)
+        : (freshBalance - amount);
 
       updateAccBalance(verifiedNewBalance);
       if (currentUser) currentUser.balance = verifiedNewBalance;
