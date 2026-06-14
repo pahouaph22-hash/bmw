@@ -4433,10 +4433,8 @@ function switchMatchSec(sec) {
 }
 
 async function loadMatches() {
-  // ⚡ ไม่ดึง photo_a/photo_b (base64 รูปวัวขนาดใหญ่) — ตารางแอดมินไม่แสดงรูป
-  //    การ select('*') ดึงรูปวัวทุกแมตช์ → query หนัก → timeout (เหมือนปัญหา slip)
-  const {data} = await sb.from('matches')
-    .select('id,code,round,name_a,owner_a,weight_a,name_b,owner_b,weight_b,date,time,location,prize,winner,status,stream_url,created_at,odds_a,odds_b')
+  // รูป match เก็บเป็น Storage URL (เบา) ไม่ใช่ base64 — select(*) ปลอดภัย แค่ใส่ limit กันโตเกิน
+  const {data} = await sb.from('matches').select('*')
     .order('date',{ascending:true}).order('created_at',{ascending:false}).limit(500);
   allMatches = data || [];
   filterMatches_();
@@ -4751,9 +4749,7 @@ function switchVerdictSec(sec) {
 }
 
 async function loadVerdict() {
-  // ⚡ ไม่ดึง photo_a/photo_b (base64) — หน้าตัดสินไม่แสดงรูป
-  const {data} = await sb.from('matches')
-    .select('id,code,round,name_a,owner_a,name_b,owner_b,date,time,location,prize,winner,status,created_at')
+  const {data} = await sb.from('matches').select('*')
     .in('status',['upcoming','live','done']).order('date',{ascending:true}).limit(500);
   const pending = (data||[]).filter(m => (m.status==='done') && !m.winner);
   const done    = (data||[]).filter(m => m.winner);
@@ -6987,7 +6983,7 @@ async function addStaff(){
   const{data:newStaff,error:e1}=await sb.from('staff').insert({username:user,password:hash,role,is_active:true,created_at:new Date().toISOString()}).select().maybeSingle();
   if(e1){showToast('❌ '+e1.message,'error');return;}
   if(newStaff?.id){try{await sb.from('staff').update({name:nameVal,must_change_password:true,must_setup_2fa:true,totp_secret:null}).eq('id',newStaff.id);}catch(_){}}
-  await sb.from('staff_logs').insert({admin:_adminNick(),action:'add_staff',nick:user,note:'เพิ่มพนักงาน "'+nameVal+'" ('+user+')',created_at:new Date().toISOString()}).select().maybeSingle();
+  await sb.from('staff_logs').insert({staff_username:_adminNick(),action:'add_staff',detail:'เพิ่มพนักงาน "'+nameVal+'" ('+user+') โดย '+_adminNick()});
   _showStaffCreatedPopup(nameVal,user,pass,role);
   ['new-staff-name','new-staff-user','new-staff-pass'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
   await loadStaffPanel();switchStaffSec('list');
