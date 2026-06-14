@@ -6383,7 +6383,8 @@ function applyLang() {
 
     // บันทึกรหัสใหม่
     const newHash = await sha256Hash(phone + ':' + newPass);
-    const { error } = await sb.from('members').update({ password: newHash }).eq('id', currentUser.id);
+    try { await sb.rpc('set_current_nick', { p_nick: currentUser.nick }); } catch(_) {}
+    const { error } = await sb.from('members').update({ password: newHash }).eq('nick', currentUser.nick);
     if (error) { errEl.style.display = 'block'; errEl.textContent = '❌ เกิดข้อผิดพลาด: ' + error.message; return; }
 
     // ล้าง form
@@ -6954,7 +6955,8 @@ function applyLang() {
       if (fbId && !existing.fb_id) updates.fb_id = fbId;
       if (email && !existing.email) updates.email = email;
       if (Object.keys(updates).length) {
-        await sb.from('members').update(updates).eq('id', existing.id);
+        try { await sb.rpc('set_current_nick', { p_nick: existing.nick }); } catch(_) {}
+        await sb.from('members').update(updates).eq('nick', existing.nick);
       }
       currentUser = { ...existing, ...updates };
       _safeStorage.setItem('bw_user', JSON.stringify(currentUser));
@@ -7614,6 +7616,7 @@ setInterval(() => {
         // สร้าง referral_code ถ้ายังไม่มี
         if (!currentUser.referral_code) {
           const autoCode = currentUser.nick.toUpperCase().slice(0,4) + Math.floor(1000+Math.random()*9000);
+          try { await sb.rpc('set_current_nick', { p_nick: currentUser.nick }); } catch(_) {}
           await sb.from('members').update({ referral_code: autoCode }).eq('nick', currentUser.nick);
           currentUser.referral_code = autoCode;
           _safeStorage.setItem('bw_user', JSON.stringify(currentUser));
@@ -8309,6 +8312,7 @@ setInterval(() => {
       avatarEl.style.background = 'linear-gradient(135deg,var(--green),var(--green2))';
     }
     if (!currentUser) return;
+    try { await sb.rpc('set_current_nick', { p_nick: currentUser.nick }); } catch(_) {}
     await sb.from('members').update({ avatar_type: 'emoji', avatar_value: emoji }).eq('nick', currentUser.nick);
     currentUser.avatar_type = 'emoji';
     currentUser.avatar_value = emoji;
@@ -8328,6 +8332,7 @@ setInterval(() => {
       if (img) img.remove();
       avatarEl.style.background = 'linear-gradient(135deg,var(--green),var(--green2))';
     }
+    try { await sb.rpc('set_current_nick', { p_nick: currentUser.nick }); } catch(_) {}
     await sb.from('members').update({ avatar_type: 'auto', avatar_value: letter }).eq('nick', currentUser.nick);
     currentUser.avatar_type = 'auto';
     currentUser.avatar_value = letter;
@@ -8355,6 +8360,7 @@ setInterval(() => {
         img.style.cssText = 'width:100%;height:100%;object-fit:cover;border-radius:50%;';
       }
       // บันทึกลง Supabase (base64 — ถ้า avatar_value column รองรับ TEXT ขนาดใหญ่)
+      try { await sb.rpc('set_current_nick', { p_nick: currentUser.nick }); } catch(_) {}
       const { error } = await sb.from('members').update({ avatar_type: 'image', avatar_value: base64 }).eq('nick', currentUser.nick);
       if (error) {
         showFEToast('⚠️ บันทึกรูปไม่สำเร็จ: ' + error.message);
@@ -9163,10 +9169,9 @@ setInterval(() => {
       const refund = Number(bet.remaining_amount || 0);
       if (refund <= 0) continue;
 
-      // คืนเงินส่วนที่ยังจับคู่ไม่ได้
-      const { data: mem } = await sb.rpc('get_member_by_nick', { p_nick: currentUser.nick }).then(r => ({ data: r.data?.[0] || null, error: r.error }));
-      if (mem) {
-        await sb.from('members').update({ balance: mem.balance + refund }).eq('nick', currentUser.nick);
+      // คืนเงินส่วนที่ยังจับคู่ไม่ได้ (atomic RPC)
+      await sb.rpc('adjust_member_balance', { p_nick: currentUser.nick, p_delta: refund });
+      {
         await sb.from('bets').update({
           match_status: 'timeout',
           remaining_amount: 0,
