@@ -791,7 +791,6 @@ input, textarea, select, button {
         <div class="card">
           <div class="card-title">👥 รายชื่อสมาชิก
             <button onclick="loadMembers()" style="margin-left:auto;font-family:'Phetsarath','Phetsarath','Noto Sans Lao','Kanit',sans-serif;font-size:11px;font-weight:700;padding:5px 12px;border:1px solid #e0e0e0;border-radius:7px;background:#fff;color:#555;cursor:pointer;white-space:nowrap;">🔄 รีเฟรช</button>
-            <button onclick="loadMembers()" style="margin-left:auto;font-family:'Phetsarath','Phetsarath','Noto Sans Lao','Kanit',sans-serif;font-size:11px;font-weight:700;padding:5px 12px;border:1px solid #e0e0e0;border-radius:7px;background:#fff;color:#555;cursor:pointer;white-space:nowrap;">🔄 รีเฟรช</button>
             <span style="font-size:12px;color:#aaa;font-weight:400;" id="members-count"></span>
           </div>
           <div class="date-filter">
@@ -818,7 +817,7 @@ input, textarea, select, button {
             </select>
           </div>
           <div style="overflow-x:auto;">
-            <table style="table-layout:fixed;width:100%;min-width:860px;">
+            <table style="table-layout:fixed;width:100%;min-width:1060px;">
               <colgroup>
                 <col style="width:130px"><!-- Nick -->
                 <col style="width:120px"><!-- VIP -->
@@ -829,6 +828,8 @@ input, textarea, select, button {
                 <col style="width:95px"> <!-- ถอนสะสม -->
                 <col style="width:105px"><!-- เติม-ถอน -->
                 <col style="width:95px"> <!-- สมัครเมื่อ -->
+                <col style="width:90px"> <!-- ระงับบัญชี -->
+                <col style="width:90px"> <!-- ระงับถอน -->
                 <col style="width:100px"><!-- จัดการ -->
               </colgroup>
               <thead>
@@ -848,7 +849,7 @@ input, textarea, select, button {
                 </tr>
               </thead>
               <tbody id="members-tbody">
-                <tr class="loading-row"><td colspan="10" style="text-align:center;padding:24px;color:#aaa;">กำลังโหลด...</td></tr>
+                <tr class="loading-row"><td colspan="12" style="text-align:center;padding:24px;color:#aaa;">กำลังโหลด...</td></tr>
               </tbody>
             </table>
           </div>
@@ -4260,7 +4261,7 @@ async function loadMembers() {
 
   } catch(e) {
     console.error('loadMembers error:', e);
-    if (tb) tb.innerHTML = `<tr><td colspan="10" style="text-align:center;padding:24px;color:#dc2626;">
+    if (tb) tb.innerHTML = `<tr><td colspan="12" style="text-align:center;padding:24px;color:#dc2626;">
       ❌ โหลดข้อมูลไม่ได้: ${e.message || 'Unknown error'}<br>
       <small style="color:#aaa;">กรุณา deploy บน server (ไม่รองรับการเปิดจาก file://)</small>
     </td></tr>`;
@@ -4280,7 +4281,7 @@ function filterMembers() {
   document.getElementById('members-count').textContent = `(${rows.length} คน)`;
   const tb = document.getElementById('members-tbody');
   if (!rows.length) {
-    tb.innerHTML = '<tr><td colspan="10" style="text-align:center;padding:24px;color:#aaa;">ไม่พบข้อมูล</td></tr>';
+    tb.innerHTML = '<tr><td colspan="12" style="text-align:center;padding:24px;color:#aaa;">ไม่พบข้อมูล</td></tr>';
     return;
   }
   tb.innerHTML = rows.map((m, i) => {
@@ -5143,6 +5144,11 @@ function switchChartPeriod(period) {
 // DATE-TIME PICKER — Match Form
 // ═══════════════════════════════════════════════
 function initMatchDatePickers() {
+  // Graceful fallback: if flatpickr CDN fails to load, native HTML5 date input still works
+  if (typeof flatpickr !== 'function') {
+    console.warn('[initMatchDatePickers] flatpickr not loaded — using native date input');
+    return;
+  }
   const dateEl = document.getElementById('m-date');
   const timeEl = document.getElementById('m-time');
   if (dateEl && !dateEl._flatpickr) {
@@ -6153,7 +6159,91 @@ async function loadActivityPanel(){
 }
 function loadActivityLogs(){loadActivityPanel();}
 async function loadRefRateLevels(){try{const r=await sb.from('settings').select('value').eq('key','referralRate').maybeSingle();const rate=r.data?.value||0.05;const el=document.getElementById('set-ref-rate');if(el)el.value=(rate*100).toFixed(1);}catch(e){}}
-function subscribeNotifications(){sb.channel('adm-dep').on('postgres_changes',{event:'INSERT',schema:'public',table:'deposits'},p=>{if(p.new?.status==='pending'){const b=document.getElementById('notif-badge');if(b){b.textContent=(parseInt(b.textContent)||0)+1;b.style.display='inline';}showToast('💰 เติมเงินใหม่: '+p.new.nick+' — '+Number(p.new.amount).toLocaleString()+' ₭');if(_currentPanel==='deposits')loadDeposits();loadOverview();}}).subscribe();sb.channel('adm-with').on('postgres_changes',{event:'INSERT',schema:'public',table:'withdrawals'},p=>{if(p.new?.status==='pending'){showToast('🏧 ถอนเงินใหม่: '+p.new.nick+' — '+Number(p.new.amount).toLocaleString()+' ₭');if(_currentPanel==='withdrawals')loadWithdrawals();loadOverview();}}).subscribe();}
+function subscribeNotifications(){
+  // ── ล้าง channels เก่าก่อน (กัน zombie subscriptions) ──
+  try {
+    if (window._admDepChannel) sb.removeChannel(window._admDepChannel);
+    if (window._admWithChannel) sb.removeChannel(window._admWithChannel);
+  } catch(_) {}
+
+  // ── Deposits channel (เติมเงิน) ──
+  window._admDepChannel = sb.channel('adm-dep-' + Date.now())
+    .on('postgres_changes',
+      { event: '*', schema: 'public', table: 'deposits' },
+      payload => {
+        try {
+          const evt = payload.eventType || payload.event;
+          const rec = payload.new || payload.record;
+          // เฉพาะ INSERT pending → แจ้งเตือนใหม่
+          if (evt === 'INSERT' && rec?.status === 'pending') {
+            const b = document.getElementById('notif-badge');
+            if (b) {
+              b.textContent = (parseInt(b.textContent) || 0) + 1;
+              b.style.display = 'inline';
+            }
+            try {
+              showToast('💰 เติมเงินใหม่: ' + rec.nick + ' — ' + Number(rec.amount).toLocaleString() + ' ₭');
+            } catch(_) {}
+            try { _playNotifSound && _playNotifSound(); } catch(_) {}
+          }
+          // INSERT หรือ UPDATE — refresh panel ถ้ากำลังเปิดดูอยู่
+          if (_currentPanel === 'deposits') {
+            try { loadDeposits(); } catch(_) {}
+          }
+          try { loadOverview(); } catch(_) {}
+        } catch(e) {
+          console.warn('[realtime/deposits handler]', e);
+        }
+      }
+    )
+    .subscribe(status => {
+      console.log('[realtime/deposits] status:', status);
+      if (status === 'SUBSCRIBED') {
+        console.log('✅ Realtime สำหรับ deposits พร้อมใช้งาน');
+      } else if (status === 'CHANNEL_ERROR' || status === 'TIMED_OUT' || status === 'CLOSED') {
+        console.warn('⚠️ Realtime deposits ล้มเหลว status=' + status);
+        console.warn('   → ตรวจสอบว่ารัน SQL นี้แล้วหรือยัง:');
+        console.warn('     ALTER PUBLICATION supabase_realtime ADD TABLE deposits;');
+        // Optional: แสดง toast แจ้ง admin (ครั้งเดียวพอ)
+        if (!window._depRealtimeWarned) {
+          window._depRealtimeWarned = true;
+          try {
+            showToast('⚠️ Realtime เติมเงินยังไม่พร้อม — กรุณารัน SQL migration', 'error');
+          } catch(_) {}
+        }
+      }
+    });
+
+  // ── Withdrawals channel (ถอนเงิน) ──
+  window._admWithChannel = sb.channel('adm-with-' + Date.now())
+    .on('postgres_changes',
+      { event: '*', schema: 'public', table: 'withdrawals' },
+      payload => {
+        try {
+          const evt = payload.eventType || payload.event;
+          const rec = payload.new || payload.record;
+          if (evt === 'INSERT' && rec?.status === 'pending') {
+            try {
+              showToast('🏧 ถอนเงินใหม่: ' + rec.nick + ' — ' + Number(rec.amount).toLocaleString() + ' ₭');
+            } catch(_) {}
+            try { _playNotifSound && _playNotifSound(); } catch(_) {}
+          }
+          if (_currentPanel === 'withdrawals') {
+            try { loadWithdrawals(); } catch(_) {}
+          }
+          try { loadOverview(); } catch(_) {}
+        } catch(e) {
+          console.warn('[realtime/withdrawals handler]', e);
+        }
+      }
+    )
+    .subscribe(status => {
+      console.log('[realtime/withdrawals] status:', status);
+      if (status === 'CHANNEL_ERROR' || status === 'TIMED_OUT' || status === 'CLOSED') {
+        console.warn('⚠️ Realtime withdrawals ล้มเหลว — รัน: ALTER PUBLICATION supabase_realtime ADD TABLE withdrawals;');
+      }
+    });
+}
 
 // ── MEMBER OVERLAY ──
 function _adminNick(){return currentStaff?.username||currentStaff?.nick||'admin';}
@@ -7200,6 +7290,68 @@ function _uploadQRFile(input,urlInputId,imgId,phId){
 function clearHeroBull(){} function clearLogoUpload(){}
 function setDateSection2(s){setDateSection(s);} function clearDateSection2(s){clearDateSection(s);} function setChartRange(p){switchChartPeriod(p);}
 function showMemberDetail(row){}
+
+// ── Missing function implementations (found by audit 2026-06-13) ──
+// Prevent silent ReferenceError from inline onclick/oninput/onchange handlers
+
+// Admin language switcher — persist preference, no-op for now (i18n not wired up in admin)
+function setAdminLang(v) {
+  try { localStorage.setItem('admin_lang', v || 'th'); } catch(_) {}
+}
+
+// Referral search/filter — fall back to full reload of the panel
+function filterReferralSummary() {
+  if (typeof loadReferralPanel === 'function') loadReferralPanel();
+}
+function filterReferralLogs() {
+  if (typeof loadReferralPanel === 'function') loadReferralPanel();
+}
+
+// Worklog table re-render — re-run the loader to apply current filter inputs
+function renderWorklog() {
+  if (typeof loadWorklogPanel === 'function') loadWorklogPanel();
+}
+
+// Preview helpers — read file/URL and set preview element
+function previewLogoUpload(inp) {
+  var f = inp && inp.files && inp.files[0]; if (!f) return;
+  var r = new FileReader();
+  r.onload = function(e) {
+    var box = document.getElementById('sf-logo-preview-wrap');
+    if (!box) return;
+    box.innerHTML = '<img src="' + e.target.result + '" style="width:100%;height:100%;object-fit:cover;border-radius:50%;">';
+  };
+  r.readAsDataURL(f);
+}
+function previewLogoUrl(url) {
+  var box = document.getElementById('sf-logo-preview-wrap');
+  if (!box) return;
+  if (!url || !/^https?:\/\//i.test(url)) {
+    box.innerHTML = '🐂';
+    return;
+  }
+  box.innerHTML = '<img src="' + url.replace(/"/g, '&quot;') + '" style="width:100%;height:100%;object-fit:cover;border-radius:50%;" onerror="this.parentNode.innerHTML=\'🐂\'">';
+}
+function previewHeroBull(inp) {
+  var f = inp && inp.files && inp.files[0]; if (!f) return;
+  if (f.size > 2 * 1024 * 1024) {
+    if (typeof showToast === 'function') showToast('⚠️ ไฟล์ใหญ่เกิน 2MB', 'error');
+    return;
+  }
+  var r = new FileReader();
+  r.onload = function(e) {
+    var box = document.getElementById('hero-bull-preview');
+    if (!box) return;
+    box.innerHTML = '<img src="' + e.target.result + '" style="width:100%;height:100%;object-fit:contain;">';
+  };
+  r.readAsDataURL(f);
+}
+
+// Live preview placeholders — values are already shown in their input fields,
+// so a separate preview pane is optional. Defined as safe no-ops.
+function updateSitePreview() {}
+function updateActPreview()  {}
+function updateTxPreview()   {}
 
 
 async function runSchemaMigration(){
