@@ -8064,17 +8064,26 @@ setInterval(() => {
       showFEToast('⚠️ เลขบัญชีไม่ถูกต้อง (ตัวเลข 10-15 หลัก)'); return;
     }
 
-    const { data: exist } = await sb.from('members')
-      .select('nick').eq('bank_accno', accNo).neq('nick', currentUser.nick).maybeSingle();
-    if (exist) {
-      showFEToast('❌ เลขบัญชีนี้ถูกผูกกับบัญชีอื่นแล้วครับ'); return;
+    // ── ยืนยัน session nick ก่อน (เผื่อ RLS ต้องใช้) ──
+    try { await sb.rpc('set_current_nick', { p_nick: currentUser.nick }); } catch(_) {}
+
+    // ── ใช้ RPC (SECURITY DEFINER) อัปเดตบัญชี — ข้ามปัญหา RLS ──
+    const { data: bkRes, error } = await sb.rpc('update_member_bank', {
+      p_nick: currentUser.nick, p_slot: 1,
+      p_name: bankName, p_accno: accNo, p_accname: accName
+    });
+
+    if (error) {
+      // ถ้า RPC ยังไม่ถูกสร้าง fallback ไป update ตรง (เผื่อ DB เก่า)
+      if ((error.message||'').includes('function') && (error.message||'').includes('does not exist')) {
+        const { error: e2 } = await sb.from('members').update({
+          bank_name: bankName, bank_accno: accNo, bank_accname: accName
+        }).eq('nick', currentUser.nick);
+        if (e2) { showFEToast('❌ เพิ่มบัญชีไม่สำเร็จ: ' + e2.message); return; }
+      } else {
+        showFEToast('❌ ' + error.message); return;
+      }
     }
-
-    const { error } = await sb.from('members').update({
-      bank_name: bankName, bank_accno: accNo, bank_accname: accName
-    }).eq('nick', currentUser.nick);
-
-    if (error) { showFEToast('❌ เกิดข้อผิดพลาด: ' + error.message); return; }
 
     currentUser.bank_name    = bankName;
     currentUser.bank_accno   = accNo;
@@ -9696,19 +9705,35 @@ document.addEventListener('DOMContentLoaded', () => {
       showFEToast('⚠️ เลขบัญชีไม่ถูกต้อง (ตัวเลข 10-15 หลัก)'); return;
     }
 
-    // ตรวจเลขบัญชีซ้ำ
-    var exist_res = await sb.from('members')
-      .select('nick').eq('bank_accno', baccno).neq('nick', currentUser.nick).maybeSingle();
-    if (exist_res.data) { showFEToast('❌ เลขบัญชีนี้ใช้งานอยู่แล้วในระบบครับ'); return; }
+    // ── ยืนยัน session nick ก่อน ──
+    try { await sb.rpc('set_current_nick', { p_nick: currentUser.nick }); } catch(_) {}
 
-    var updates = {};
-    if (slot === 2) { updates.bank2_name = bname; updates.bank2_accno = baccno; updates.bank2_accname = baccname; }
-    if (slot === 3) { updates.bank3_name = bname; updates.bank3_accno = baccno; updates.bank3_accname = baccname; }
+    // ── ใช้ RPC (SECURITY DEFINER) ข้ามปัญหา RLS ──
+    var rpc_res = await sb.rpc('update_member_bank', {
+      p_nick: currentUser.nick, p_slot: slot,
+      p_name: bname, p_accno: baccno, p_accname: baccname
+    });
 
-    var save_res = await sb.from('members').update(updates).eq('nick', currentUser.nick);
-    if (save_res.error) { showFEToast('❌ เกิดข้อผิดพลาด: ' + save_res.error.message); return; }
+    if (rpc_res.error) {
+      var em = rpc_res.error.message || '';
+      // fallback ถ้า RPC ยังไม่ถูกสร้าง
+      if (em.includes('function') && em.includes('does not exist')) {
+        var updates = {};
+        if (slot === 2) { updates.bank2_name = bname; updates.bank2_accno = baccno; updates.bank2_accname = baccname; }
+        if (slot === 3) { updates.bank3_name = bname; updates.bank3_accno = baccno; updates.bank3_accname = baccname; }
+        var save_res = await sb.from('members').update(updates).eq('nick', currentUser.nick);
+        if (save_res.error) { showFEToast('❌ เพิ่มบัญชีไม่สำเร็จ: ' + save_res.error.message); return; }
+        Object.assign(currentUser, updates);
+      } else {
+        showFEToast('❌ ' + em); return;
+      }
+    } else {
+      var updates2 = {};
+      if (slot === 2) { updates2.bank2_name = bname; updates2.bank2_accno = baccno; updates2.bank2_accname = baccname; }
+      if (slot === 3) { updates2.bank3_name = bname; updates2.bank3_accno = baccno; updates2.bank3_accname = baccname; }
+      Object.assign(currentUser, updates2);
+    }
 
-    Object.assign(currentUser, updates);
     _safeStorage.setItem('bw_user', JSON.stringify(currentUser));
     _hideAddBankForm();
     showFEToast('✅ เพิ่มบัญชีที่ ' + slot + ' สำเร็จแล้วครับ!');
