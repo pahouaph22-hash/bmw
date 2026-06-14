@@ -3224,9 +3224,21 @@ function switchPanel(name) {
   document.getElementById('panel-'+name)?.classList.add('active');
   document.querySelectorAll(`[data-panel="${name}"]`).forEach(el => el.classList.add('active'));
   _currentPanel = name;
-  if (name === 'overview') {
-    loadOverview();
-    setTimeout(function(){ try { renderGrowthChart(); } catch(e){} }, 400);
+
+  // ── รีโหลดข้อมูลสด ๆ ทุกครั้งที่เปิด panel (กันข้อมูลค้าง/ตกหล่น) ──
+  try {
+    if      (name === 'overview')    { loadOverview(); setTimeout(function(){ try { renderGrowthChart(); } catch(e){} }, 400); }
+    else if (name === 'members')     { if (typeof loadMembers === 'function')     loadMembers(); }
+    else if (name === 'matches')     { if (typeof loadMatches === 'function')     loadMatches(); }
+    else if (name === 'verdict')     { if (typeof loadVerdict === 'function')     loadVerdict(); }
+    else if (name === 'deposits')    { if (typeof loadDeposits === 'function')    loadDeposits(); }
+    else if (name === 'withdrawals') { if (typeof loadWithdrawals === 'function') loadWithdrawals(); }
+    else if (name === 'bets')        { if (typeof loadBets === 'function')        loadBets(); }
+    else if (name === 'referral')    { if (typeof loadReferralPanel === 'function') loadReferralPanel(); }
+    else if (name === 'activity')    { if (typeof loadActivityPanel === 'function') loadActivityPanel(); }
+    else if (name === 'news')        { if (typeof loadNews === 'function')        loadNews(); }
+  } catch(e) {
+    console.warn('[switchPanel reload]', name, e);
   }
 }
 
@@ -3250,7 +3262,25 @@ function fmtDate(iso) {
 // ===== LOAD ALL =====
 // ===== DATE FILTER UTILITIES =====
 function todayStr() {
-  return new Date().toISOString().slice(0,10);
+  // ใช้เวลาท้องถิ่น (UTC+7 ลาว/ไทย) ไม่ใช่ UTC
+  // toISOString() จะแปลงเป็น UTC ทำให้ช่วงใกล้เที่ยงคืนวันคลาดเคลื่อน
+  const d = new Date();
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, '0');
+  const day = String(d.getDate()).padStart(2, '0');
+  return `${y}-${m}-${day}`;
+}
+
+// ── แปลง ISO timestamp (UTC จาก DB) เป็นวันที่ท้องถิ่น YYYY-MM-DD ──
+// ใช้ตอนเทียบกับ date filter เพื่อให้ตรงกับเวลาที่ admin/ลูกค้าเห็นจริง
+function localDateOf(iso) {
+  if (!iso) return '';
+  const d = new Date(iso);
+  if (isNaN(d.getTime())) return '';
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, '0');
+  const day = String(d.getDate()).padStart(2, '0');
+  return `${y}-${m}-${day}`;
 }
 
 function setDateToday(prefix) {
@@ -3344,7 +3374,7 @@ function inDateRange(row, prefix, field = 'created_at') {
   // แปลง field เป็น date string YYYY-MM-DD
   let rowDate = '';
   if (field === 'created_at') {
-    rowDate = row[field] ? row[field].slice(0,10) : '';
+    rowDate = localDateOf(row[field]); // timezone-aware (local UTC+7)
   } else {
     // field = 'date' — อาจเป็น dd.mm.yyyy หรือ yyyy-mm-dd
     const raw = row[field] || '';
@@ -5932,10 +5962,38 @@ async function _rejectWithdrawReal(id,nick,amount){
 }
 
 // ── DEPOSITS core ──
+let _loadDepSeq = 0; // ป้องกัน race condition: เก็บ sequence ของ request ล่าสุด
 async function loadDeposits(){
+  const seq = ++_loadDepSeq;
   try {
-const res=await sb.from('deposits').select('id,nick,fname,lname,phone,amount,bank,status,txn,slip_url,created_at,approved_at,approved_by,reason,is_first_deposit').order('created_at',{ascending:false});allDeposits=res.data||[];const sc=(id,n)=>{const e=document.getElementById(id);if(e)e.textContent=n?'('+n+')':'';}; sc('dep-pending-count',allDeposits.filter(d=>d.status==='pending').length);sc('dep-done-count',allDeposits.filter(d=>d.status==='approved').length);sc('dep-reject-count',allDeposits.filter(d=>d.status==='rejected').length);filterDeposits();filterDepDone();filterDepReject();
-  } catch(e) { console.error('loadDeposits:', e); }
+    const res = await sb.from('deposits')
+      .select('id,nick,fname,lname,phone,amount,bank,status,txn,slip_url,created_at,approved_at,approved_by,reason,is_first_deposit')
+      .order('created_at', { ascending: false });
+
+    // ── Race guard: ถ้ามี request ใหม่กว่าเข้ามาแล้ว ทิ้งผลลัพธ์เก่านี้ ──
+    if (seq !== _loadDepSeq) return;
+
+    if (res.error) throw res.error;
+
+    allDeposits = res.data || [];
+
+    // อัพเดท count badges
+    const sc = (id, n) => { const e = document.getElementById(id); if (e) e.textContent = n ? '(' + n + ')' : ''; };
+    sc('dep-pending-count', allDeposits.filter(d => d.status === 'pending').length);
+    sc('dep-done-count',    allDeposits.filter(d => d.status === 'approved').length);
+    sc('dep-reject-count',  allDeposits.filter(d => d.status === 'rejected').length);
+
+    // render ทั้ง 3 sections
+    filterDeposits();
+    filterDepDone();
+    filterDepReject();
+  } catch(e) {
+    // Bug #4: ไม่กลืน error เงียบ ๆ — แจ้ง admin แต่คงข้อมูลเดิมไว้ (ไม่ทำตารางว่าง)
+    console.error('[loadDeposits]', e);
+    if (seq === _loadDepSeq) {
+      try { showToast('⚠️ โหลดรายการเติมเงินไม่สำเร็จ: ' + (e.message || 'network') + ' — ลองรีเฟรชอีกครั้ง', 'error'); } catch(_) {}
+    }
+  }
 }
 function switchDepSec(sec){document.querySelectorAll('#panel-deposits .match-sec').forEach(s=>s.classList.remove('active'));document.querySelectorAll('#panel-deposits .match-nav-item').forEach(i=>i.classList.remove('active'));document.getElementById('dep-sec-'+sec)?.classList.add('active');document.getElementById('dnav-'+sec)?.classList.add('active');}
 function filterDeposits(){
@@ -5943,7 +6001,8 @@ function filterDeposits(){
   var from=document.getElementById('dep-date-from')?.value||'';
   var to=document.getElementById('dep-date-to')?.value||'';
   var rows=allDeposits.filter(function(d){
-    return d.status==='pending'&&(!from||(d.created_at||'').slice(0,10)>=from)&&(!to||(d.created_at||'').slice(0,10)<=to);
+    var ld = localDateOf(d.created_at);
+    return d.status==='pending'&&(!from||ld>=from)&&(!to||ld<=to);
   });
   var tb=document.getElementById('dep-tbody');if(!tb)return;
   if(!rows.length){
@@ -5978,7 +6037,7 @@ function filterDeposits(){
 }
 function filterDepDone(){
   var from=document.getElementById('dep-done-from')?.value||'',to=document.getElementById('dep-done-to')?.value||'';
-  var rows=allDeposits.filter(function(d){return d.status==='approved'&&(!from||(d.approved_at||d.created_at||'').slice(0,10)>=from)&&(!to||(d.approved_at||d.created_at||'').slice(0,10)<=to);});
+  var rows=allDeposits.filter(function(d){var ld=localDateOf(d.approved_at||d.created_at);return d.status==='approved'&&(!from||ld>=from)&&(!to||ld<=to);});
   var tb=document.getElementById('dep-done-tbody');if(!tb)return;
   if(!rows.length){tb.innerHTML='<tr><td colspan="6" style="text-align:center;padding:28px;color:#aaa;">ไม่มีรายการ</td></tr>';return;}
   tb.innerHTML=rows.map(function(d){
@@ -6002,7 +6061,7 @@ function filterDepDone(){
 }
 function filterDepReject(){
   var from=document.getElementById('dep-reject-from')?.value||'',to=document.getElementById('dep-reject-to')?.value||'';
-  var rows=allDeposits.filter(function(d){return d.status==='rejected'&&(!from||(d.created_at||'').slice(0,10)>=from)&&(!to||(d.created_at||'').slice(0,10)<=to);});
+  var rows=allDeposits.filter(function(d){var ld=localDateOf(d.created_at);return d.status==='rejected'&&(!from||ld>=from)&&(!to||ld<=to);});
   var tb=document.getElementById('dep-reject-tbody');if(!tb)return;
   if(!rows.length){tb.innerHTML='<tr><td colspan="4" style="text-align:center;padding:28px;color:#aaa;">ไม่มีรายการ</td></tr>';return;}
   tb.innerHTML=rows.map(function(d){
@@ -6023,10 +6082,29 @@ function filterDepReject(){
 }
 
 // ── WITHDRAWALS core ──
+let _loadWithSeq = 0;
 async function loadWithdrawals(){
+  const seq = ++_loadWithSeq;
   try {
-const res=await sb.from('withdrawals').select('id,nick,amount,bank,acc_no,acc_name,status,txn,reason,created_at,approved_at,approved_by').order('created_at',{ascending:false});allWithdrawals=res.data||[];const sc=(id,n)=>{const e=document.getElementById(id);if(e)e.textContent=n?'('+n+')':'';}; sc('with-pending-count',allWithdrawals.filter(w=>w.status==='pending').length);sc('with-done-count',allWithdrawals.filter(w=>w.status==='approved').length);sc('with-reject-count',allWithdrawals.filter(w=>w.status==='rejected').length);filterWithdrawals();filterWithDone();filterWithReject();
-  } catch(e) { console.error('loadWithdrawals:', e); }
+    const res = await sb.from('withdrawals')
+      .select('id,nick,amount,bank,acc_no,acc_name,status,txn,reason,created_at,approved_at,approved_by')
+      .order('created_at', { ascending: false });
+    if (seq !== _loadWithSeq) return;
+    if (res.error) throw res.error;
+    allWithdrawals = res.data || [];
+    const sc = (id, n) => { const e = document.getElementById(id); if (e) e.textContent = n ? '(' + n + ')' : ''; };
+    sc('with-pending-count', allWithdrawals.filter(w => w.status === 'pending').length);
+    sc('with-done-count',    allWithdrawals.filter(w => w.status === 'approved').length);
+    sc('with-reject-count',  allWithdrawals.filter(w => w.status === 'rejected').length);
+    filterWithdrawals();
+    filterWithDone();
+    filterWithReject();
+  } catch(e) {
+    console.error('[loadWithdrawals]', e);
+    if (seq === _loadWithSeq) {
+      try { showToast('⚠️ โหลดรายการถอนเงินไม่สำเร็จ: ' + (e.message || 'network'), 'error'); } catch(_) {}
+    }
+  }
 }
 function switchWithSec(sec){document.querySelectorAll('#panel-withdrawals .match-sec').forEach(s=>s.classList.remove('active'));document.querySelectorAll('#panel-withdrawals .match-nav-item').forEach(i=>i.classList.remove('active'));document.getElementById('with-sec-'+sec)?.classList.add('active');document.getElementById('wnav-'+sec)?.classList.add('active');}
 function filterWithdrawals(){
@@ -6034,7 +6112,7 @@ function filterWithdrawals(){
   var from=document.getElementById('with-date-from')?.value||'';
   var to=document.getElementById('with-date-to')?.value||'';
   var rows=allWithdrawals.filter(function(w){
-    return w.status==='pending'&&(!from||(w.created_at||'').slice(0,10)>=from)&&(!to||(w.created_at||'').slice(0,10)<=to);
+    var ld=localDateOf(w.created_at);return w.status==='pending'&&(!from||ld>=from)&&(!to||ld<=to);
   });
   var tb=document.getElementById('with-tbody');if(!tb)return;
   if(!rows.length){
@@ -6067,7 +6145,7 @@ function filterWithDone(){
   var from=document.getElementById('with-done-from')?.value||'',to=document.getElementById('with-done-to')?.value||'';
   var rows=allWithdrawals.filter(function(w){
     var dt=(w.approved_at||w.created_at||'');
-    return w.status==='approved'&&(!from||dt.slice(0,10)>=from)&&(!to||dt.slice(0,10)<=to);
+    var ld=localDateOf(dt);return w.status==='approved'&&(!from||ld>=from)&&(!to||ld<=to);
   });
   var tb=document.getElementById('with-done-tbody');if(!tb)return;
   if(!rows.length){
@@ -6091,7 +6169,7 @@ function filterWithDone(){
 }
 function filterWithReject(){
   var from=document.getElementById('with-reject-from')?.value||'',to=document.getElementById('with-reject-to')?.value||'';
-  var rows=allWithdrawals.filter(function(w){return w.status==='rejected'&&(!from||(w.created_at||'').slice(0,10)>=from)&&(!to||(w.created_at||'').slice(0,10)<=to);});
+  var rows=allWithdrawals.filter(function(w){var ld=localDateOf(w.created_at);return w.status==='rejected'&&(!from||ld>=from)&&(!to||ld<=to);});
   var tb=document.getElementById('with-reject-tbody');if(!tb)return;
   if(!rows.length){tb.innerHTML='<tr><td colspan="4" style="text-align:center;padding:28px;color:#aaa;">ไม่มีรายการ</td></tr>';return;}
   tb.innerHTML=rows.map(function(w){return'<tr><td style="font-weight:700;cursor:pointer;color:var(--green)" onclick="openMember(\''+( w.nick||'')+'\')">'+( w.nick||'—')+'</td><td style="font-weight:700;color:#dc2626">'+Number(w.amount||0).toLocaleString()+' ₭</td><td style="font-size:12px;color:#888">'+(w.reason||w.note||'—')+'</td><td style="font-size:11px;color:#888">'+fmtDate(w.created_at)+'</td></tr>';}).join('');
@@ -6103,7 +6181,7 @@ function filterBets(){
   var from=document.getElementById('bet-date-from')?.value||'',to=document.getElementById('bet-date-to')?.value||'';
   var status=document.getElementById('bet-status-filter')?.value||'all';
   updateDateTag('bet');
-  var rows=allBets.filter(function(b){return(!from||(b.created_at||'').slice(0,10)>=from)&&(!to||(b.created_at||'').slice(0,10)<=to)&&(status==='all'||b.status===status);});
+  var rows=allBets.filter(function(b){var ld=localDateOf(b.created_at);return(!from||ld>=from)&&(!to||ld<=to)&&(status==='all'||b.status===status);});
   var tb=document.getElementById('bet-tbody');if(!tb)return;
   if(!rows.length){tb.innerHTML='<tr><td colspan="8" style="text-align:center;padding:28px;color:#aaa;">ไม่มีรายการ</td></tr>';return;}
   var bx={pending:'<span style="background:#fef9c3;color:#854d0e;padding:2px 8px;border-radius:12px;font-size:11px;font-weight:700">⏳ รอ</span>',matched:'<span style="background:#dbeafe;color:#1d4ed8;padding:2px 8px;border-radius:12px;font-size:11px;font-weight:700">🎯 จับคู่</span>',won:'<span style="background:#dcfce7;color:#15803d;padding:2px 8px;border-radius:12px;font-size:11px;font-weight:700">🏆 ชนะ</span>',lost:'<span style="background:#fee2e2;color:#991b1b;padding:2px 8px;border-radius:12px;font-size:11px;font-weight:700">💔 แพ้</span>'};
