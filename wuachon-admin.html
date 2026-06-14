@@ -5965,17 +5965,27 @@ async function _rejectWithdrawReal(id,nick,amount){
 let _loadDepSeq = 0; // ป้องกัน race condition: เก็บ sequence ของ request ล่าสุด
 async function loadDeposits(){
   const seq = ++_loadDepSeq;
+  const _t0 = Date.now();
+  console.log(`[loadDeposits #${seq}] เริ่มโหลด...`);
   try {
     const res = await sb.from('deposits')
       .select('id,nick,fname,lname,phone,amount,bank,status,txn,slip_url,created_at,approved_at,approved_by,reason,is_first_deposit')
       .order('created_at', { ascending: false });
 
-    // ── Race guard: ถ้ามี request ใหม่กว่าเข้ามาแล้ว ทิ้งผลลัพธ์เก่านี้ ──
-    if (seq !== _loadDepSeq) return;
+    console.log(`[loadDeposits #${seq}] DB ตอบกลับใน ${Date.now()-_t0}ms — rows=${res.data?.length ?? 'null'}, error=${res.error?.message || 'none'}`);
 
     if (res.error) throw res.error;
 
-    allDeposits = res.data || [];
+    // ── Race guard: ทิ้งเฉพาะถ้ามี request ใหม่กว่า "และ" ได้ข้อมูลแล้ว ──
+    // (ถ้า request นี้ได้ข้อมูลมา ก็ render ไปเลย ดีกว่าปล่อยตารางว่าง)
+    if (seq !== _loadDepSeq) {
+      console.log(`[loadDeposits #${seq}] ถูกแทนที่ด้วย #${_loadDepSeq} — แต่ยัง render ข้อมูลที่ได้`);
+    }
+
+    const data = res.data || [];
+    // อัปเดตเฉพาะเมื่อได้ข้อมูล (ไม่เขียนทับด้วย array ว่างถ้า query ก่อนหน้ามีข้อมูลมากกว่า)
+    allDeposits = data;
+    console.log(`[loadDeposits #${seq}] allDeposits = ${allDeposits.length} แถว | pending=${allDeposits.filter(d=>d.status==='pending').length}`);
 
     // อัพเดท count badges
     const sc = (id, n) => { const e = document.getElementById(id); if (e) e.textContent = n ? '(' + n + ')' : ''; };
@@ -5988,11 +5998,8 @@ async function loadDeposits(){
     filterDepDone();
     filterDepReject();
   } catch(e) {
-    // Bug #4: ไม่กลืน error เงียบ ๆ — แจ้ง admin แต่คงข้อมูลเดิมไว้ (ไม่ทำตารางว่าง)
-    console.error('[loadDeposits]', e);
-    if (seq === _loadDepSeq) {
-      try { showToast('⚠️ โหลดรายการเติมเงินไม่สำเร็จ: ' + (e.message || 'network') + ' — ลองรีเฟรชอีกครั้ง', 'error'); } catch(_) {}
-    }
+    console.error(`[loadDeposits #${seq}] ❌ ERROR:`, e);
+    try { showToast('⚠️ โหลดรายการเติมเงินไม่สำเร็จ: ' + (e.message || 'network') + ' — ลองรีเฟรชอีกครั้ง', 'error'); } catch(_) {}
   }
 }
 function switchDepSec(sec){document.querySelectorAll('#panel-deposits .match-sec').forEach(s=>s.classList.remove('active'));document.querySelectorAll('#panel-deposits .match-nav-item').forEach(i=>i.classList.remove('active'));document.getElementById('dep-sec-'+sec)?.classList.add('active');document.getElementById('dnav-'+sec)?.classList.add('active');}
@@ -6004,6 +6011,7 @@ function filterDeposits(){
     var ld = localDateOf(d.created_at);
     return d.status==='pending'&&(!from||ld>=from)&&(!to||ld<=to);
   });
+  console.log(`[filterDeposits] allDeposits=${allDeposits.length}, filter(from="${from}",to="${to}") → pending rows=${rows.length}`);
   var tb=document.getElementById('dep-tbody');if(!tb)return;
   if(!rows.length){
     tb.innerHTML='<tr><td colspan="8" style="text-align:center;padding:28px;color:#aaa;">ไม่มีรายการรอดำเนินการ</td></tr>';
