@@ -5989,9 +5989,17 @@ async function loadDeposits(){
 
     // อัพเดท count badges
     const sc = (id, n) => { const e = document.getElementById(id); if (e) e.textContent = n ? '(' + n + ')' : ''; };
-    sc('dep-pending-count', allDeposits.filter(d => d.status === 'pending').length);
+    const pendingCount = allDeposits.filter(d => d.status === 'pending').length;
+    sc('dep-pending-count', pendingCount);
     sc('dep-done-count',    allDeposits.filter(d => d.status === 'approved').length);
     sc('dep-reject-count',  allDeposits.filter(d => d.status === 'rejected').length);
+
+    // ── Sync top notification badge กับจำนวน pending จริง (กัน badge/ตาราง ไม่ตรงกัน) ──
+    const notifBadge = document.getElementById('notif-badge');
+    if (notifBadge) {
+      notifBadge.textContent = pendingCount;
+      notifBadge.style.display = pendingCount > 0 ? 'inline' : 'none';
+    }
 
     // render ทั้ง 3 sections
     filterDeposits();
@@ -6014,7 +6022,16 @@ function filterDeposits(){
   console.log(`[filterDeposits] allDeposits=${allDeposits.length}, filter(from="${from}",to="${to}") → pending rows=${rows.length}`);
   var tb=document.getElementById('dep-tbody');if(!tb)return;
   if(!rows.length){
-    tb.innerHTML='<tr><td colspan="8" style="text-align:center;padding:28px;color:#aaa;">ไม่มีรายการรอดำเนินการ</td></tr>';
+    // แยกแยะ: ไม่มีข้อมูลเลย vs มีข้อมูลแต่ตัวกรองวันที่ซ่อนไว้
+    var totalPending = allDeposits.filter(function(d){return d.status==='pending';}).length;
+    if (totalPending > 0 && (from || to)) {
+      tb.innerHTML='<tr><td colspan="8" style="text-align:center;padding:28px;color:#d97706;">'
+        + '⚠️ มีรายการรอดำเนินการ ' + totalPending + ' รายการ แต่ถูกซ่อนด้วยตัวกรองวันที่<br>'
+        + '<button onclick="clearDate(\'dep\')" style="margin-top:10px;background:#16a34a;color:#fff;border:none;padding:7px 16px;border-radius:7px;font-family:Kanit,sans-serif;font-size:12px;font-weight:700;cursor:pointer;">✕ ล้างตัวกรองวันที่ เพื่อดูทั้งหมด</button>'
+        + '</td></tr>';
+    } else {
+      tb.innerHTML='<tr><td colspan="8" style="text-align:center;padding:28px;color:#aaa;">ไม่มีรายการรอดำเนินการ</td></tr>';
+    }
     return;
   }
   var html2=rows.map(function(d){
@@ -6260,22 +6277,16 @@ function subscribeNotifications(){
         try {
           const evt = payload.eventType || payload.event;
           const rec = payload.new || payload.record;
-          // เฉพาะ INSERT pending → แจ้งเตือนใหม่
+          // แจ้งเตือน + เสียง เมื่อมี INSERT pending ใหม่
           if (evt === 'INSERT' && rec?.status === 'pending') {
-            const b = document.getElementById('notif-badge');
-            if (b) {
-              b.textContent = (parseInt(b.textContent) || 0) + 1;
-              b.style.display = 'inline';
-            }
             try {
-              showToast('💰 เติมเงินใหม่: ' + rec.nick + ' — ' + Number(rec.amount).toLocaleString() + ' ₭');
+              showToast('💰 เติมเงินใหม่: ' + (rec.nick||'') + ' — ' + Number(rec.amount||0).toLocaleString() + ' ₭');
             } catch(_) {}
             try { _playNotifSound && _playNotifSound(); } catch(_) {}
           }
-          // INSERT หรือ UPDATE — refresh panel ถ้ากำลังเปิดดูอยู่
-          if (_currentPanel === 'deposits') {
-            try { loadDeposits(); } catch(_) {}
-          }
+          // ── โหลดข้อมูลใหม่เสมอ (ไม่ว่าเปิด panel ไหนอยู่) แล้วค่อยอัปเดต badge จากข้อมูลจริง ──
+          // ใช้ loadDeposits() เพื่อให้ allDeposits + badge + ตาราง sync กันเสมอ
+          try { loadDeposits(); } catch(_) {}
           try { loadOverview(); } catch(_) {}
         } catch(e) {
           console.warn('[realtime/deposits handler]', e);
