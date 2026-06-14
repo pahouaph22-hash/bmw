@@ -3491,8 +3491,8 @@ async function loadOverview() {
   // รายการล่าสุด
   const [deps, withs, newMems] = await Promise.all([
     isAll
-      ? sb.from('deposits').select('id,nick,fname,lname,phone,amount,bank,status,txn,slip_url,created_at,approved_at,approved_by,reason,is_first_deposit').order('created_at',{ascending:false}).limit(8)
-      : sb.from('deposits').select('id,nick,fname,lname,phone,amount,bank,status,txn,slip_url,created_at,approved_at,approved_by,reason,is_first_deposit').gte('created_at', fromISO).lt('created_at', toISO).order('created_at',{ascending:false}).limit(8),
+      ? sb.from('deposits').select('id,nick,fname,lname,phone,amount,bank,status,txn,created_at,approved_at,approved_by,reason,is_first_deposit').order('created_at',{ascending:false}).limit(8)
+      : sb.from('deposits').select('id,nick,fname,lname,phone,amount,bank,status,txn,created_at,approved_at,approved_by,reason,is_first_deposit').gte('created_at', fromISO).lt('created_at', toISO).order('created_at',{ascending:false}).limit(8),
     isAll
       ? sb.from('withdrawals').select('id,nick,amount,bank,acc_no,acc_name,status,txn,reason,created_at,approved_at,approved_by').order('created_at',{ascending:false}).limit(8)
       : sb.from('withdrawals').select('id,nick,amount,bank,acc_no,acc_name,status,txn,reason,created_at,approved_at,approved_by').gte('created_at', fromISO).lt('created_at', toISO).order('created_at',{ascending:false}).limit(8),
@@ -4262,9 +4262,9 @@ async function loadMembers() {
   const tb = document.getElementById('members-tbody');
   try {
     const [memRes, depRes, withRes] = await Promise.all([
-      sb.from('members').select('id,nick,fname,lname,phone,addr1,addr2,balance,created_at,bank_name,bank_accno,bank_accname,bank_acc_name,bank_acc_no,bank_branch,bank_account,account_name,bank2_name,bank2_accno,bank2_accname,bank3_name,bank3_accno,bank3_accname,referral_code,referred_by,flags,admin_note').order('created_at',{ascending:false}),
-      sb.from('deposits').select('nick,amount').eq('status','approved'),
-      sb.from('withdrawals').select('nick,amount').eq('status','approved'),
+      sb.from('members').select('id,nick,fname,lname,phone,addr1,addr2,balance,created_at,bank_name,bank_accno,bank_accname,bank_acc_name,bank_acc_no,bank_branch,bank_account,account_name,bank2_name,bank2_accno,bank2_accname,bank3_name,bank3_accno,bank3_accname,referral_code,referred_by,flags,admin_note').order('created_at',{ascending:false}).limit(2000),
+      sb.from('deposits').select('nick,amount').eq('status','approved').limit(10000),
+      sb.from('withdrawals').select('nick,amount').eq('status','approved').limit(10000),
     ]);
 
     if (memRes.error) throw memRes.error;
@@ -4433,7 +4433,11 @@ function switchMatchSec(sec) {
 }
 
 async function loadMatches() {
-  const {data} = await sb.from('matches').select('*').order('date',{ascending:true}).order('created_at',{ascending:false});
+  // ⚡ ไม่ดึง photo_a/photo_b (base64 รูปวัวขนาดใหญ่) — ตารางแอดมินไม่แสดงรูป
+  //    การ select('*') ดึงรูปวัวทุกแมตช์ → query หนัก → timeout (เหมือนปัญหา slip)
+  const {data} = await sb.from('matches')
+    .select('id,code,round,name_a,owner_a,weight_a,name_b,owner_b,weight_b,date,time,location,prize,winner,status,stream_url,created_at,odds_a,odds_b')
+    .order('date',{ascending:true}).order('created_at',{ascending:false}).limit(500);
   allMatches = data || [];
   filterMatches_();
 }
@@ -4747,7 +4751,10 @@ function switchVerdictSec(sec) {
 }
 
 async function loadVerdict() {
-  const {data} = await sb.from('matches').select('*').in('status',['upcoming','live','done']).order('date',{ascending:true});
+  // ⚡ ไม่ดึง photo_a/photo_b (base64) — หน้าตัดสินไม่แสดงรูป
+  const {data} = await sb.from('matches')
+    .select('id,code,round,name_a,owner_a,name_b,owner_b,date,time,location,prize,winner,status,created_at')
+    .in('status',['upcoming','live','done']).order('date',{ascending:true}).limit(500);
   const pending = (data||[]).filter(m => (m.status==='done') && !m.winner);
   const done    = (data||[]).filter(m => m.winner);
   renderVerdictPending(pending);
@@ -5062,6 +5069,14 @@ async function renderGrowthChart() {
   window._growthRaw={deps:depsData,withs:withsData,mems:memsData,labels:labels,groupBy:groupBy};
 
   var ctx=canvas.getContext('2d');
+  // กัน Canvas reuse error: destroy chart ใดๆ ที่ผูกกับ canvas นี้ (เผื่อ race ระหว่าง await)
+  try {
+    if (_growthChart) { _growthChart.destroy(); _growthChart = null; }
+    if (typeof Chart !== 'undefined' && Chart.getChart) {
+      var _existing = Chart.getChart(canvas);
+      if (_existing) _existing.destroy();
+    }
+  } catch(_) {}
   _growthChart=new Chart(ctx,{
     type:'line',
     data:{labels,datasets},
@@ -5477,6 +5492,34 @@ async function loadFinanceTable() {
 
 
 // ── SLIP MODAL ──
+// ── โหลดสลิปแบบ on-demand จาก DB (slip_url ไม่ถูกดึงมาในรายการแล้ว เพื่อความเร็ว) ──
+async function openSlipById(depId, meta) {
+  var modal   = document.getElementById('slip-modal');
+  var content = document.getElementById('slip-content');
+  var metaEl  = document.getElementById('slip-meta');
+  var dlBtn   = document.getElementById('slip-download');
+  if (!modal || !content) return;
+
+  // แสดง loading state ทันที
+  if (metaEl) metaEl.textContent = meta || '';
+  if (dlBtn)  dlBtn.style.display = 'none';
+  content.innerHTML = '<div style="padding:40px;color:#9ca3af;font-family:Kanit,sans-serif;">⏳ กำลังโหลดสลิป...</div>';
+  modal.style.display = 'flex';
+  document.addEventListener('keydown', _slipKeyClose);
+
+  try {
+    const { data, error } = await sb.from('deposits')
+      .select('slip_url')
+      .eq('id', depId)
+      .maybeSingle();
+    if (error) throw error;
+    openSlip(data?.slip_url || '', meta);
+  } catch(e) {
+    console.error('[openSlipById]', e);
+    content.innerHTML = '<div style="padding:40px;color:#dc2626;font-family:Kanit,sans-serif;">❌ โหลดสลิปไม่ได้: ' + (e.message||'') + '</div>';
+  }
+}
+
 function openSlip(slipUrl, meta) {
   var modal   = document.getElementById('slip-modal');
   var content = document.getElementById('slip-content');
@@ -5965,27 +6008,21 @@ async function _rejectWithdrawReal(id,nick,amount){
 let _loadDepSeq = 0; // ป้องกัน race condition: เก็บ sequence ของ request ล่าสุด
 async function loadDeposits(){
   const seq = ++_loadDepSeq;
-  const _t0 = Date.now();
-  console.log(`[loadDeposits #${seq}] เริ่มโหลด...`);
   try {
+    // ⚡ ไม่ดึง slip_url (base64 รูปสลิปขนาดใหญ่) มาในรายการ — โหลดแยกตอนกด "ดูสลิป"
+    //    การดึง slip_url ทุกแถวทำให้ query หนักหลายร้อย MB → timeout → ตารางว่าง
+    //    จำกัด 300 แถวล่าสุดเพื่อความเร็ว (รายการเก่ากว่านั้นดูผ่านตัวกรองวันที่)
     const res = await sb.from('deposits')
-      .select('id,nick,fname,lname,phone,amount,bank,status,txn,slip_url,created_at,approved_at,approved_by,reason,is_first_deposit')
-      .order('created_at', { ascending: false });
-
-    console.log(`[loadDeposits #${seq}] DB ตอบกลับใน ${Date.now()-_t0}ms — rows=${res.data?.length ?? 'null'}, error=${res.error?.message || 'none'}`);
+      .select('id,nick,fname,lname,phone,amount,bank,status,txn,created_at,approved_at,approved_by,reason,is_first_deposit')
+      .order('created_at', { ascending: false })
+      .limit(300);
 
     if (res.error) throw res.error;
 
-    // ── Race guard: ทิ้งเฉพาะถ้ามี request ใหม่กว่า "และ" ได้ข้อมูลแล้ว ──
-    // (ถ้า request นี้ได้ข้อมูลมา ก็ render ไปเลย ดีกว่าปล่อยตารางว่าง)
-    if (seq !== _loadDepSeq) {
-      console.log(`[loadDeposits #${seq}] ถูกแทนที่ด้วย #${_loadDepSeq} — แต่ยัง render ข้อมูลที่ได้`);
-    }
+    // ── Race guard: ถ้ามี request ใหม่กว่าเข้ามาแล้ว ทิ้งผลลัพธ์เก่านี้ ──
+    if (seq !== _loadDepSeq) return;
 
-    const data = res.data || [];
-    // อัปเดตเฉพาะเมื่อได้ข้อมูล (ไม่เขียนทับด้วย array ว่างถ้า query ก่อนหน้ามีข้อมูลมากกว่า)
-    allDeposits = data;
-    console.log(`[loadDeposits #${seq}] allDeposits = ${allDeposits.length} แถว | pending=${allDeposits.filter(d=>d.status==='pending').length}`);
+    allDeposits = res.data || [];
 
     // อัพเดท count badges
     const sc = (id, n) => { const e = document.getElementById(id); if (e) e.textContent = n ? '(' + n + ')' : ''; };
@@ -6006,8 +6043,10 @@ async function loadDeposits(){
     filterDepDone();
     filterDepReject();
   } catch(e) {
-    console.error(`[loadDeposits #${seq}] ❌ ERROR:`, e);
-    try { showToast('⚠️ โหลดรายการเติมเงินไม่สำเร็จ: ' + (e.message || 'network') + ' — ลองรีเฟรชอีกครั้ง', 'error'); } catch(_) {}
+    console.error('[loadDeposits]', e);
+    if (seq === _loadDepSeq) {
+      try { showToast('⚠️ โหลดรายการเติมเงินไม่สำเร็จ: ' + (e.message || 'network') + ' — ลองรีเฟรชอีกครั้ง', 'error'); } catch(_) {}
+    }
   }
 }
 function switchDepSec(sec){document.querySelectorAll('#panel-deposits .match-sec').forEach(s=>s.classList.remove('active'));document.querySelectorAll('#panel-deposits .match-nav-item').forEach(i=>i.classList.remove('active'));document.getElementById('dep-sec-'+sec)?.classList.add('active');document.getElementById('dnav-'+sec)?.classList.add('active');}
@@ -6019,7 +6058,6 @@ function filterDeposits(){
     var ld = localDateOf(d.created_at);
     return d.status==='pending'&&(!from||ld>=from)&&(!to||ld<=to);
   });
-  console.log(`[filterDeposits] allDeposits=${allDeposits.length}, filter(from="${from}",to="${to}") → pending rows=${rows.length}`);
   var tb=document.getElementById('dep-tbody');if(!tb)return;
   if(!rows.length){
     // แยกแยะ: ไม่มีข้อมูลเลย vs มีข้อมูลแต่ตัวกรองวันที่ซ่อนไว้
@@ -6037,11 +6075,8 @@ function filterDeposits(){
   var html2=rows.map(function(d){
     var a=Number(d.amount||0);
     var slipMeta = (d.nick||'') + ' · ' + fmtDate(d.created_at) + ' · ' + Number(d.amount||0).toLocaleString() + ' ₭';
-    var slipEscUrl = (d.slip_url||'').replace(/\\/g,'\\\\').replace(/'/g,"\\'");
     var slipEscMeta = slipMeta.replace(/'/g,"\\'");
-    var slip = d.slip_url
-      ? '<button onclick="openSlip(\'' + slipEscUrl + '\',\'' + slipEscMeta + '\')" style="background:#eff6ff;color:#2563eb;border:1px solid #bfdbfe;border-radius:7px;padding:3px 10px;font-family:\'Kanit\',sans-serif;font-size:12px;font-weight:700;cursor:pointer;white-space:nowrap;">🧾 ดูสลิป</button>'
-      : '<span style="color:#d1d5db;font-size:12px;">—</span>';
+    var slip = '<button onclick="openSlipById(\'' + (d.id||'') + '\',\'' + slipEscMeta + '\')" style="background:#eff6ff;color:#2563eb;border:1px solid #bfdbfe;border-radius:7px;padding:3px 10px;font-family:\'Kanit\',sans-serif;font-size:12px;font-weight:700;cursor:pointer;white-space:nowrap;">🧾 ดูสลิป</button>';
     var approver=d.approved_by?('<span style="background:#f0fdf4;color:#15803d;padding:2px 8px;border-radius:8px;font-size:11px;font-weight:700">👤 '+d.approved_by+'</span>'):'<span style="color:#d1d5db;font-size:11px">—</span>';
     return[
       '<tr>',
@@ -6068,11 +6103,8 @@ function filterDepDone(){
   tb.innerHTML=rows.map(function(d){
     var approvedBy = d.approved_by || '—';
     var slipMeta   = (d.nick||'') + ' · ' + fmtDate(d.approved_at||d.created_at) + ' · ' + Number(d.amount||0).toLocaleString() + ' ₭';
-    var slipEscUrl  = (d.slip_url||'').replace(/\\/g,'\\\\').replace(/'/g,"\\'");
     var slipEscMeta = slipMeta.replace(/'/g,"\\'");
-    var slipCell = d.slip_url
-      ? '<button onclick="openSlip(\'' + slipEscUrl + '\',\'' + slipEscMeta + '\')" style="background:#eff6ff;color:#2563eb;border:1px solid #bfdbfe;border-radius:7px;padding:3px 10px;font-family:\'Kanit\',sans-serif;font-size:12px;font-weight:700;cursor:pointer;white-space:nowrap;">🧾 ดูสลิป</button>'
-      : '<span style="color:#d1d5db;font-size:12px;">—</span>';
+    var slipCell = '<button onclick="openSlipById(\'' + (d.id||'') + '\',\'' + slipEscMeta + '\')" style="background:#eff6ff;color:#2563eb;border:1px solid #bfdbfe;border-radius:7px;padding:3px 10px;font-family:\'Kanit\',sans-serif;font-size:12px;font-weight:700;cursor:pointer;white-space:nowrap;">🧾 ดูสลิป</button>';
     return '<tr>'
       + '<td style="font-weight:700;cursor:pointer;color:var(--green)" onclick="openMember(\'' + (d.nick||'') + '\')">' + (d.nick||'—') + '</td>'
       + '<td style="font-weight:700;color:#16a34a">' + Number(d.amount||0).toLocaleString() + ' ₭</td>'
@@ -6091,11 +6123,8 @@ function filterDepReject(){
   if(!rows.length){tb.innerHTML='<tr><td colspan="4" style="text-align:center;padding:28px;color:#aaa;">ไม่มีรายการ</td></tr>';return;}
   tb.innerHTML=rows.map(function(d){
     var slipMeta    = (d.nick||'') + ' · ' + fmtDate(d.created_at) + ' · ' + Number(d.amount||0).toLocaleString() + ' ₭ · ❌ปฏิเสธ';
-    var slipEscUrl  = (d.slip_url||'').replace(/\\/g,'\\\\').replace(/'/g,"\\'");
     var slipEscMeta = slipMeta.replace(/'/g,"\\'");
-    var slipCell = d.slip_url
-      ? '<button onclick="openSlip(\'' + slipEscUrl + '\',\'' + slipEscMeta + '\')" style="background:#fff5f5;color:#dc2626;border:1px solid #fca5a5;border-radius:7px;padding:3px 10px;font-family:\'Kanit\',sans-serif;font-size:12px;font-weight:700;cursor:pointer;white-space:nowrap;">🧾 ดูสลิป</button>'
-      : '<span style="color:#d1d5db;font-size:12px;">—</span>';
+    var slipCell = '<button onclick="openSlipById(\'' + (d.id||'') + '\',\'' + slipEscMeta + '\')" style="background:#fff5f5;color:#dc2626;border:1px solid #fca5a5;border-radius:7px;padding:3px 10px;font-family:\'Kanit\',sans-serif;font-size:12px;font-weight:700;cursor:pointer;white-space:nowrap;">🧾 ดูสลิป</button>';
     return '<tr>'
       + '<td style="font-weight:700;cursor:pointer;color:var(--green)" onclick="openMember(\'' + (d.nick||'') + '\')">' + (d.nick||'—') + '</td>'
       + '<td style="font-weight:700;color:#dc2626;">' + Number(d.amount||0).toLocaleString() + ' ₭</td>'
@@ -6201,7 +6230,7 @@ function filterWithReject(){
 }
 
 // ── BETS / NEWS / SETTINGS / WORKLOG / REFERRAL / ACTIVITY ──
-async function loadBets(){const res=await sb.from('bets').select('*').order('created_at',{ascending:false});allBets=res.data||[];filterBets();}
+async function loadBets(){const res=await sb.from('bets').select('*').order('created_at',{ascending:false}).limit(500);allBets=res.data||[];filterBets();}
 function filterBets(){
   var from=document.getElementById('bet-date-from')?.value||'',to=document.getElementById('bet-date-to')?.value||'';
   var status=document.getElementById('bet-status-filter')?.value||'all';
@@ -6615,7 +6644,7 @@ async function _loadMemberTxns(nick){
            '<span style="background:#fef9c3;color:#854d0e;padding:2px 8px;border-radius:12px;font-size:10px;font-weight:700">⏳</span>';
   };
   try{
-    var r1=await sb.from('deposits').select('id,nick,fname,lname,phone,amount,bank,status,txn,slip_url,created_at,approved_at,approved_by,reason,is_first_deposit').eq('nick',nick).order('created_at',{ascending:false}).limit(50);
+    var r1=await sb.from('deposits').select('id,nick,fname,lname,phone,amount,bank,status,txn,created_at,approved_at,approved_by,reason,is_first_deposit').eq('nick',nick).order('created_at',{ascending:false}).limit(50);
     var dt=document.getElementById('mo-dep-tbody');
     if(dt) dt.innerHTML=(r1.data||[]).length?(r1.data||[]).map(function(d){
       return '<tr><td style="padding:9px 12px;font-size:11px;color:#888">'+fmtDate(d.created_at)+'</td>'+
@@ -8111,7 +8140,7 @@ function clearDateMem() {
           : '<div style="text-align:center;padding:40px;color:#9ca3af;">ไม่มีข้อมูลในช่วงนี้</div>';
 
       } else if (type === 'deposits' || type === 'pending_dep') {
-        var q = sb.from('deposits').select('id,nick,fname,lname,phone,amount,bank,status,txn,slip_url,created_at,approved_at,approved_by,reason,is_first_deposit').order('created_at',{ascending:false});
+        var q = sb.from('deposits').select('id,nick,fname,lname,phone,amount,bank,status,txn,created_at,approved_at,approved_by,reason,is_first_deposit').order('created_at',{ascending:false}).limit(300);
         if (type === 'pending_dep') q = q.eq('status','pending');
         else q = q.gte('created_at', fromISO).lt('created_at', toISO);
         var res2 = await q;
@@ -8119,7 +8148,7 @@ function clearDateMem() {
         html_content = _buildTxTable(rows, 'dep');
 
       } else if (type === 'withdrawals' || type === 'pending_with') {
-        var q2 = sb.from('withdrawals').select('id,nick,amount,bank,acc_no,acc_name,status,txn,reason,created_at,approved_at,approved_by').order('created_at',{ascending:false});
+        var q2 = sb.from('withdrawals').select('id,nick,amount,bank,acc_no,acc_name,status,txn,reason,created_at,approved_at,approved_by').order('created_at',{ascending:false}).limit(300);
         if (type === 'pending_with') q2 = q2.eq('status','pending');
         else q2 = q2.gte('created_at', fromISO).lt('created_at', toISO);
         var res3 = await q2;
