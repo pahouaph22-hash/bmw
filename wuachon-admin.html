@@ -4811,8 +4811,17 @@ async function doDrawVerdict(matchId, nameA, nameB) {
     `• ยอดเงินจะโอนกลับเข้ากระเป๋าสมาชิกทันที`
   )) return;
 
-  // อัปเดต match → done / winner = เสมอ
-  await sb.from('matches').update({ winner: 'เสมอ', status: 'done' }).eq('id', matchId);
+  // ── Guard: เช็คว่าแมตช์ยังไม่ถูกตัดสิน (กันคืนเงินซ้ำ) ──
+  const { data: mCheck } = await sb.from('matches').select('winner,status').eq('id', matchId).maybeSingle();
+  if (mCheck && mCheck.winner) {
+    showToast('⚠️ แมตช์นี้ถูกตัดสินไปแล้ว — ไม่คืนเงินซ้ำครับ', 'error');
+    loadVerdict(); loadMatches();
+    return;
+  }
+
+  // อัปเดต match → done / winner = เสมอ (lock ก่อนคืนเงิน)
+  const { error: upErr } = await sb.from('matches').update({ winner: 'เสมอ', status: 'done' }).eq('id', matchId);
+  if (upErr) { showToast('❌ บันทึกผลไม่สำเร็จ: ' + upErr.message, 'error'); return; }
 
   // ดึง bets ทั้งหมดของแมตช์นี้ (ทุกสถานะที่ยังไม่ได้จ่าย)
   const { data: bets } = await sb.from('bets')
@@ -4862,7 +4871,19 @@ async function doVerdict(matchId, winner, winnerName) {
   const FEE_RATE   = await loadFeeRate();
   const feePercent = (FEE_RATE * 100).toFixed(1);
   if (!confirm(`ยืนยัน: "${winnerName}" ชนะ ใช่ไหมครับ?\n\nระบบจะ:\n• รวมเงินเดิมพันทั้งหมด\n• หัก ${feePercent}% ค่าบริการ\n• โอนเงินที่เหลือให้ผู้ชนะทุกคนตามสัดส่วน`)) return;
-  await sb.from('matches').update({ winner, status: 'done' }).eq('id', matchId);
+
+  // ── Guard: เช็คว่าแมตช์ยังไม่ถูกตัดสิน (กันจ่ายซ้ำถ้ากด 2 ครั้ง) ──
+  const { data: mCheck } = await sb.from('matches').select('winner,status').eq('id', matchId).maybeSingle();
+  if (mCheck && mCheck.winner) {
+    showToast('⚠️ แมตช์นี้ถูกตัดสินไปแล้ว (ผู้ชนะ: ' + mCheck.winner + ') — ไม่จ่ายซ้ำครับ', 'error');
+    loadVerdict(); loadMatches();
+    return;
+  }
+
+  // ตั้ง winner + status ก่อน เพื่อ lock ไม่ให้กดซ้ำ
+  const { error: upErr } = await sb.from('matches').update({ winner, status: 'done' }).eq('id', matchId);
+  if (upErr) { showToast('❌ บันทึกผลไม่สำเร็จ: ' + upErr.message, 'error'); return; }
+
   const result = await payoutBets(matchId, winner, FEE_RATE);
   showToast(`✅ ${winnerName} ชนะ! รวม ${result.totalPool.toLocaleString()} ₭ หัก ${feePercent}% = ${result.fee.toLocaleString()} ₭ จ่ายผู้ชนะ ${result.totalPaid.toLocaleString()} ₭`);
   loadVerdict(); loadMatches(); loadBets(); loadOverview(); loadMembers();
