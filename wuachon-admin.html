@@ -4849,7 +4849,7 @@ async function doDrawVerdict(matchId, nameA, nameB) {
 
   // โอนเงินคืนแต่ละสมาชิก (batch by nick)
   for (const [nick, refund] of Object.entries(memberMap)) {
-    await sb.rpc('adjust_member_balance', { p_nick: nick, p_delta: Number(refund) });
+    await sb.rpc('adjust_member_balance', { p_nick: nick, p_delta: Number(refund), p_type: 'bet_refund', p_note: 'คืนเงินเสมอ' });
   }
 
   // อัปเดตสถานะ bets ทั้งหมดเป็น draw
@@ -4970,7 +4970,7 @@ async function payoutBets(matchId, winner, FEE_RATE = 0.07) {
   // โอนเงิน (atomic)
   for (const [nick, amount] of payMap.entries()) {
     if (amount <= 0) continue;
-    await sb.rpc('adjust_member_balance', { p_nick: nick, p_delta: Number(amount) });
+    await sb.rpc('adjust_member_balance', { p_nick: nick, p_delta: Number(amount), p_type: 'bet_win', p_note: 'เงินรางวัลชนะเดิมพัน' });
   }
 
   // บันทึกค่าบริการเพื่อ Finance tracking
@@ -5922,7 +5922,7 @@ async function _approveDepositReal(id,nick,amount){
 
     // 2. บวกยอดเงินแบบ atomic ที่ DB (ไม่พึ่ง cache — กันยอดเดิมหาย/race condition)
     const{data:balData,error:e2}=await sb.rpc('adjust_member_balance',{
-      p_nick:nick, p_delta:Number(amount)
+      p_nick:nick, p_delta:Number(amount), p_type:'deposit', p_note:'เติมเงินอนุมัติ'
     });
     if(e2)throw e2;
     // ถ้า RPC ไม่คืนแถว = ไม่เจอ user → rollback สถานะ deposit กลับ
@@ -6016,7 +6016,7 @@ async function _rejectWithdrawReal(id,nick,amount){
     if(e1)throw e1;
     // คืน balance แบบ atomic ที่ DB (ไม่พึ่ง cache)
     const{data:balData,error:e2}=await sb.rpc('adjust_member_balance',{
-      p_nick:nick, p_delta:Number(amount)
+      p_nick:nick, p_delta:Number(amount), p_type:'withdraw_refund', p_note:'คืนยอดถอนที่ถูกปฏิเสธ'
     });
     if(e2)throw e2;
     if(!balData || !balData.length){
@@ -6910,7 +6910,7 @@ async function adjAddBalance(){
     var oldBal = m.balance||0;
     var staff  = _adminNick();
 
-    var res = await sb.rpc('adjust_member_balance', { p_nick: nick, p_delta: Number(amount) });
+    var res = await sb.rpc('adjust_member_balance', { p_nick: nick, p_delta: Number(amount), p_type: 'admin_adjust', p_note: 'แอดมินเพิ่มยอด: '+(reason||'') });
     if(res.error){ showToast('❌ '+res.error.message,'error'); return; }
     if(!res.data || !res.data.length){ showToast('❌ ไม่พบสมาชิก "'+nick+'"','error'); return; }
     var newBal = Number(res.data[0].new_balance||0);
@@ -6973,7 +6973,7 @@ async function adjSubBalance(){
   if(cur.error){ showToast('❌ '+cur.error.message,'error'); return; }
   var curBal = Number(cur.data?.balance||0);
   var delta  = -Math.min(amount, curBal); // หักได้ไม่เกินยอดที่มี
-  var res = await sb.rpc('adjust_member_balance', { p_nick: nick, p_delta: delta });
+  var res = await sb.rpc('adjust_member_balance', { p_nick: nick, p_delta: delta, p_type: 'admin_adjust', p_note: 'แอดมินลดยอด: '+(reason||'') });
   if(res.error){ showToast('❌ '+res.error.message,'error'); return; }
   if(!res.data || !res.data.length){ showToast('❌ ไม่พบสมาชิก "'+nick+'"','error'); return; }
   var newBal = Number(res.data[0].new_balance||0);

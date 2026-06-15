@@ -7501,55 +7501,127 @@ setInterval(() => {
     const list = document.getElementById('acc-txn-list');
     if (!list) return;
 
-    // ดึงข้อมูลเติมเงินและถอนเงินพร้อมกัน
-    const [deps, withs] = await Promise.all([
-      sb.from('deposits').select('txn,amount,bank,status,slip_url,created_at,approved_at').eq('nick', nick).order('created_at', { ascending: false }).limit(20),
-      sb.from('withdrawals').select('*').eq('nick', nick).order('created_at', { ascending: false }).limit(20),
+    list.innerHTML = '<div style="text-align:center;padding:24px;color:rgba(240,255,232,0.3);font-family:Kanit,sans-serif;">⏳ กำลังโหลด...</div>';
+
+    // ดึงทุกประเภทพร้อมกัน: เติมเงิน / ถอนเงิน / เดิมพัน / ปรับยอดโดยแอดมิน
+    const [deps, withs, bets, adjLogs] = await Promise.all([
+      sb.from('deposits').select('txn,amount,bank,status,reason,created_at,approved_at,approved_by').eq('nick', nick).order('created_at', { ascending: false }).limit(50),
+      sb.from('withdrawals').select('txn,amount,bank,status,reason,created_at,approved_at,approved_by').eq('nick', nick).order('created_at', { ascending: false }).limit(50),
+      sb.from('bets').select('txn,amount,odds,side_name,status,match_status,order_amount,matched_amount,created_at').eq('nick', nick).order('created_at', { ascending: false }).limit(80),
+      sb.from('balance_logs').select('type,delta,balance_after,note,created_at').eq('nick', nick).eq('type','admin_adjust').order('created_at', { ascending: false }).limit(50),
     ]);
 
-    // รวมและเรียงตามเวลา
-    const allTxn = [
-      ...(deps.data || []).map(d => ({ ...d, type: 'dep' })),
-      ...(withs.data || []).map(w => ({ ...w, type: 'with' })),
-    ].sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+    const FEE = (typeof FEE_RATE !== 'undefined') ? FEE_RATE : 0.07;
+    const rows = [];
+
+    // ── เติมเงิน ──
+    (deps.data || []).forEach(d => {
+      rows.push({
+        cat:'deposit', icon:'💰', cls:'dep',
+        label: d.status==='approved' ? 'เติมเงิน' : d.status==='rejected' ? 'เติมเงิน (ปฏิเสธ)' : 'เติมเงิน (รอตรวจสอบ)',
+        sub: d.bank || '', txn: d.txn, at: d.created_at,
+        sign: '+', amount: Number(d.amount||0),
+        status: d.status, reason: d.reason, approved_at: d.approved_at, approved_by: d.approved_by,
+        dim: d.status==='rejected', muted: d.status==='pending',
+      });
+    });
+
+    // ── ถอนเงิน ──
+    (withs.data || []).forEach(w => {
+      rows.push({
+        cat:'withdraw', icon:'🏧', cls:'with',
+        label: w.status==='approved' ? 'ถอนเงิน' : w.status==='rejected' ? 'ถอนเงิน (คืนยอดแล้ว)' : 'ถอนเงิน (รอตรวจสอบ)',
+        sub: w.bank || '', txn: w.txn, at: w.created_at,
+        sign: '-', amount: Number(w.amount||0),
+        status: w.status, reason: w.reason, approved_at: w.approved_at, approved_by: w.approved_by,
+        dim: w.status==='rejected', muted: w.status==='pending',
+      });
+    });
+
+    // ── เดิมพัน (แยกตามสถานะ) ──
+    (bets.data || []).forEach(b => {
+      const stake   = Number(b.order_amount || b.amount || 0);
+      const matched = Number(b.matched_amount || 0);
+      const odds    = Number(b.odds || 1);
+      const at      = b.created_at;
+      const sideName = b.side_name || '';
+
+      if (b.status === 'won') {
+        // คืนทุน(matched) + กำไรสุทธิ
+        const profit = Math.floor(matched * (odds - 1));
+        const fee    = Math.floor(profit * FEE);
+        const net    = matched + profit - fee;
+        rows.push({ cat:'bet_win', icon:'🏆', cls:'dep', label:'ชนะเดิมพัน', sub:`${sideName} · ทุน ${matched.toLocaleString()} + กำไร ${(profit-fee).toLocaleString()}`, txn:b.txn, at, sign:'+', amount:net, status:'won' });
+      } else if (b.status === 'lost') {
+        rows.push({ cat:'bet_lose', icon:'❌', cls:'with', label:'แพ้เดิมพัน', sub:`${sideName} · เสีย ${matched.toLocaleString()} ₭`, txn:b.txn, at, sign:'-', amount:matched, status:'lost' });
+      } else if (b.status === 'refunded' || b.status === 'cancelled' || b.match_status === 'timeout') {
+        rows.push({ cat:'bet_refund', icon:'↩️', cls:'dep', label:'คืนเงินเดิมพัน', sub:`${sideName} · ไม่มีคู่จับ`, txn:b.txn, at, sign:'+', amount:stake, status:'refunded' });
+      } else {
+        // waiting / matched / partial — เงินถูกกักไว้
+        rows.push({ cat:'bet_place', icon:'🎯', cls:'with', label:'วางเดิมพัน', sub:`${sideName} · อัตรา ${odds} · กักไว้`, txn:b.txn, at, sign:'-', amount:stake, status:b.status, muted:true });
+      }
+    });
+
+    // ── ปรับยอดโดยแอดมิน (จาก balance_logs) ──
+    (adjLogs.data || []).forEach(g => {
+      const delta = Number(g.delta || 0);
+      rows.push({
+        cat:'admin_adjust', icon:'⚙️', cls: delta >= 0 ? 'dep' : 'with',
+        label:'ปรับยอดโดยระบบ', sub: g.note || '', txn:null, at: g.created_at,
+        sign: delta >= 0 ? '+' : '-', amount: Math.abs(delta),
+        status:'admin_adjust', balance_after: g.balance_after,
+      });
+    });
+
+    // เรียงตามเวลาใหม่ → เก่า
+    rows.sort((a, b) => new Date(b.at) - new Date(a.at));
 
     list.innerHTML = '';
-
-    if (!allTxn.length) {
+    if (!rows.length) {
       list.innerHTML = '<div style="text-align:center;padding:24px;color:rgba(240,255,232,0.3);font-family:Kanit,sans-serif;">ยังไม่มีรายการครับ</div>';
       return;
     }
 
-    allTxn.forEach(txn => {
-      const isDep     = txn.type === 'dep';
-      const isApproved = txn.status === 'approved';
-      const isRejected = txn.status === 'rejected';
-      const isPending  = txn.status === 'pending';
-
-      // แสดงเวลาอนุมัติ
+    rows.forEach(r => {
+      const dateStr = new Date(r.at).toLocaleString('th-TH', { dateStyle:'short', timeStyle:'short' });
       let statusHtml = '';
-      if (isApproved) {
-        const approvedTime = txn.approved_at ? new Date(txn.approved_at).toLocaleString('th-TH', { dateStyle:'short', timeStyle:'short' }) : '—';
-        statusHtml = `<div style="font-size:10px;color:var(--accent);font-family:Kanit,sans-serif;margin-top:2px;">✅ อนุมัติแล้ว · ${txn.approved_by || 'Admin'} · ${approvedTime}</div>`;
-      } else if (isRejected) {
-        statusHtml = `<div style="font-size:10px;color:#f87171;font-family:Kanit,sans-serif;margin-top:2px;">❌ ปฏิเสธ${txn.reason ? ' · ' + txn.reason : ''}</div>`;
-      } else {
+      if (r.status === 'approved') {
+        const t = r.approved_at ? new Date(r.approved_at).toLocaleString('th-TH', { dateStyle:'short', timeStyle:'short' }) : '';
+        statusHtml = `<div style="font-size:10px;color:var(--accent);font-family:Kanit,sans-serif;margin-top:2px;">✅ สำเร็จ${r.approved_by ? ' · '+r.approved_by : ''}${t ? ' · '+t : ''}</div>`;
+      } else if (r.status === 'rejected') {
+        statusHtml = `<div style="font-size:10px;color:#f87171;font-family:Kanit,sans-serif;margin-top:2px;">❌ ปฏิเสธ${r.reason ? ' · '+r.reason : ''}</div>`;
+      } else if (r.status === 'pending') {
         statusHtml = `<div style="font-size:10px;color:rgba(240,255,232,0.4);font-family:Kanit,sans-serif;margin-top:2px;">⏳ รอ Admin ตรวจสอบ</div>`;
+      } else if (r.status === 'won') {
+        statusHtml = `<div style="font-size:10px;color:var(--accent);font-family:Kanit,sans-serif;margin-top:2px;">🏆 ได้รับเงินรางวัลแล้ว</div>`;
+      } else if (r.status === 'lost') {
+        statusHtml = `<div style="font-size:10px;color:#f87171;font-family:Kanit,sans-serif;margin-top:2px;">ผลการแข่งขัน: แพ้</div>`;
+      } else if (r.status === 'refunded') {
+        statusHtml = `<div style="font-size:10px;color:var(--accent);font-family:Kanit,sans-serif;margin-top:2px;">↩️ คืนเงินเข้าบัญชีแล้ว</div>`;
+      } else if (r.muted) {
+        statusHtml = `<div style="font-size:10px;color:rgba(240,255,232,0.4);font-family:Kanit,sans-serif;margin-top:2px;">⏳ รอผลการแข่งขัน</div>`;
+      } else if (r.status === 'admin_adjust') {
+        statusHtml = `<div style="font-size:10px;color:var(--gold);font-family:Kanit,sans-serif;margin-top:2px;">⚙️ ปรับโดยแอดมิน</div>`;
       }
+      // ยอดคงเหลือหลังทำรายการ (เฉพาะที่มีข้อมูล)
+      const balAfterHtml = (typeof r.balance_after !== 'undefined' && r.balance_after !== null)
+        ? `<div style="font-size:10px;color:rgba(240,255,232,0.4);font-family:Kanit,sans-serif;margin-top:1px;">คงเหลือ ${Number(r.balance_after).toLocaleString()} ₭</div>`
+        : '';
 
-      const dateStr = new Date(txn.created_at).toLocaleString('th-TH', { dateStyle:'short', timeStyle:'short' });
       const item = document.createElement('div');
       item.className = 'txn-item';
       item.innerHTML = `
-        <div class="txn-icon ${isDep ? 'dep' : 'with'}">${isDep ? '💰' : '🏧'}</div>
+        <div class="txn-icon ${r.cls}">${r.icon}</div>
         <div class="txn-info">
-          <div class="txn-label">${isDep ? 'เติมเงิน' : 'ถอนเงิน'}${isPending ? ' (รอตรวจสอบ)' : ''}</div>
+          <div class="txn-label">${r.label}</div>
+          ${r.sub ? `<div style="font-size:11px;color:rgba(240,255,232,0.45);font-family:Kanit,sans-serif;">${r.sub}</div>` : ''}
           <div class="txn-date">${dateStr}</div>
-          <div class="txn-id">TXN: ${txn.txn || '—'}</div>
+          ${r.txn ? `<div class="txn-id">TXN: ${r.txn}</div>` : ''}
           ${statusHtml}
         </div>
         <div>
-          <div class="txn-amount ${isDep ? 'dep' : 'with'}" style="${isRejected ? 'opacity:.4;' : ''}">${isDep ? '+' : '-'}${Number(txn.amount).toLocaleString()} ₭</div>
+          <div class="txn-amount ${r.cls}" style="${r.dim ? 'opacity:.4;text-decoration:line-through;' : ''}${r.muted ? 'opacity:.6;' : ''}">${r.sign}${r.amount.toLocaleString()} ₭</div>
+          ${balAfterHtml}
         </div>`;
       list.appendChild(item);
     });
@@ -8166,7 +8238,7 @@ setInterval(() => {
             bank: selBank.name, acc_no: selBank.accno, acc_name: selBank.accname,
           });
           if (withErr) throw withErr;
-          await sb.rpc('adjust_member_balance', { p_nick: nick, p_delta: -amount });
+          await sb.rpc('adjust_member_balance', { p_nick: nick, p_delta: -amount, p_type: 'bet_place', p_note: 'วางเดิมพัน '+(sideName||''), p_txn: txn });
         } else {
           throw wErr;
         }
@@ -8935,7 +9007,7 @@ setInterval(() => {
       return;
     }
     // 3) หักเงินทันที (atomic ผ่าน RPC ที่ทำงานชัวร์)
-    const { data: adj, error: adjErr } = await sb.rpc('adjust_member_balance', { p_nick: nick, p_delta: -amount });
+    const { data: adj, error: adjErr } = await sb.rpc('adjust_member_balance', { p_nick: nick, p_delta: -amount, p_type: 'bet_place', p_note: 'วางเดิมพัน '+(sideName||''), p_txn: txn });
     if (adjErr || !adj || !adj.length) {
       showFEToast('❌ หักยอดไม่สำเร็จ กรุณาลองใหม่ครับ'); return;
     }
@@ -8969,7 +9041,7 @@ setInterval(() => {
 
     if (error) {
       // คืนเงินถ้า insert ไม่ได้ (atomic)
-      const { data: rb } = await sb.rpc('adjust_member_balance', { p_nick: nick, p_delta: amount });
+      const { data: rb } = await sb.rpc('adjust_member_balance', { p_nick: nick, p_delta: amount, p_type: 'bet_refund', p_note: 'คืนเงิน (วางไม่สำเร็จ)', p_txn: txn });
       const restored = (rb && rb.length) ? Number(rb[0].new_balance||0) : bal;
       updateAccBalance(restored); currentUser.balance = restored;
       showFEToast('❌ เกิดข้อผิดพลาด: ' + error.message); return;
@@ -9118,7 +9190,7 @@ setInterval(() => {
       showFEToast(`⚠️ ยอดเงินไม่เพียงพอครับ (เหลือ ${jFreshBal.toLocaleString()} ₭)`);
       return;
     }
-    const { data: jadj, error: jErr } = await sb.rpc('adjust_member_balance', { p_nick: nick, p_delta: -actualJoin });
+    const { data: jadj, error: jErr } = await sb.rpc('adjust_member_balance', { p_nick: nick, p_delta: -actualJoin, p_type: 'bet_place', p_note: 'จับคู่เดิมพัน', p_txn: txn });
     if (jErr || !jadj || !jadj.length) {
       showFEToast('❌ หักยอดไม่สำเร็จ กรุณาลองใหม่ครับ'); return;
     }
@@ -9217,7 +9289,7 @@ setInterval(() => {
       if (refund <= 0) continue;
 
       // คืนเงินส่วนที่ยังจับคู่ไม่ได้ (atomic RPC)
-      await sb.rpc('adjust_member_balance', { p_nick: currentUser.nick, p_delta: refund });
+      await sb.rpc('adjust_member_balance', { p_nick: currentUser.nick, p_delta: refund, p_type: 'bet_refund', p_note: 'คืนเงินหมดเวลา', p_txn: bet.txn });
       {
         await sb.from('bets').update({
           match_status: 'timeout',

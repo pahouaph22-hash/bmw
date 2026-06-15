@@ -609,7 +609,7 @@ async function autoRefundUnmatched() {
     for (const bet of data) {
       const refund = Number(bet.remaining_amount||0);
       if (refund <= 0) continue;
-      const { data: radj } = await sb.rpc('adjust_member_balance', { p_nick: bet.nick, p_delta: refund });
+      const { data: radj } = await sb.rpc('adjust_member_balance', { p_nick: bet.nick, p_delta: refund, p_type: 'bet_refund', p_note: 'คืนเงินเดิมพันไม่มีคู่จับ', p_txn: bet.txn });
       await sb.from('bets').update({ status:'cancelled', match_status:'timeout', remaining_amount:0 }).eq('id', bet.id);
       if (currentUser?.nick === bet.nick) {
         const nb = (radj && radj.length) ? Number(radj[0].new_balance||0) : (currentUser.balance||0);
@@ -961,7 +961,7 @@ async function joinBet(betId, oppNick, oppSide, oppOdds) {
   });
 
   // หักเงิน B (atomic ผ่าน RPC + เช็คยอดสด)
-  const { data: jadj, error: jAdjErr } = await sb.rpc('adjust_member_balance', { p_nick: currentUser.nick, p_delta: -joinAmt });
+  const { data: jadj, error: jAdjErr } = await sb.rpc('adjust_member_balance', { p_nick: currentUser.nick, p_delta: -joinAmt, p_type: 'bet_place', p_note: 'จับคู่เดิมพัน '+mySideName, p_txn: txn });
   const jRows = (jadj && jadj.length && typeof jadj[0].rows_hit !== 'undefined') ? Number(jadj[0].rows_hit) : (jadj && jadj.length ? 1 : 0);
   if (jAdjErr || !jadj || !jadj.length || jRows === 0) {
     // หักไม่สำเร็จ → rollback bet B + คืนสถานะ A
@@ -1173,7 +1173,7 @@ async function submitBetDetail() {
   }
 
   // ── หักเงินจริงที่ DB ผ่าน RPC (atomic) ──
-  const { data: adj, error: adjErr } = await sb.rpc('adjust_member_balance', { p_nick: currentUser.nick, p_delta: -amount });
+  const { data: adj, error: adjErr } = await sb.rpc('adjust_member_balance', { p_nick: currentUser.nick, p_delta: -amount, p_type: 'bet_place', p_note: 'วางเดิมพัน '+sideName, p_txn: txn });
   const rowsHit = (adj && adj.length && typeof adj[0].rows_hit !== 'undefined') ? Number(adj[0].rows_hit) : (adj && adj.length ? 1 : 0);
   if (adjErr || !adj || !adj.length || rowsHit === 0) {
     // หักไม่สำเร็จ → ลบ bet ที่เพิ่ง insert (rollback) กันวางฟรี
