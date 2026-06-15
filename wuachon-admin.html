@@ -5374,21 +5374,39 @@ async function loadFinanceTable() {
   async function fetchRow(label, startDate, endDate) {
     const startISO = startDate.toISOString();
     const endISO   = endDate.toISOString();
-    const [deps, withs, newMems] = await Promise.all([
+    const [deps, withs, newMems, logs] = await Promise.all([
       sb.from('deposits').select('amount,bank,status').eq('status','approved')
         .gte('created_at', startISO).lte('created_at', endISO),
       sb.from('withdrawals').select('amount,status').eq('status','approved')
         .gte('created_at', startISO).lte('created_at', endISO),
       sb.from('members').select('id', {count:'exact', head:true})
         .gte('created_at', startISO).lte('created_at', endISO),
+      // balance_logs — แหล่งใหม่ของ คอม/รางวัล/ค่าบริการ
+      sb.from('balance_logs').select('type,delta,created_at')
+        .in('type',['referral_commission','activity_reward','bet_fee'])
+        .gte('created_at', startISO).lte('created_at', endISO),
     ]);
     const depData = deps.data || [];
-    const depReal     = depData.filter(function(x){ return !x.bank?.includes('ค่าบริการ') && !x.bank?.includes('กิจกรรม') && !x.bank?.includes('คอม') && !x.bank?.includes('referral'); })
+    const logData = logs.data || [];
+
+    // รายรับจริง (เติมเงินลูกค้า) — ไม่รวมรายการระบบ
+    const depReal = depData.filter(function(x){ return !x.bank?.includes('ค่าบริการ') && !x.bank?.includes('กิจกรรม') && !x.bank?.includes('คอม') && !x.bank?.includes('referral'); })
+                            .reduce(function(s,x){ return s + Number(x.amount||0); }, 0);
+
+    // ค่าบริการ: deposits เก่า (bank='ค่าบริการ') + balance_logs ใหม่ (type=bet_fee)
+    const feeFromDep  = depData.filter(function(x){ return x.bank?.includes('ค่าบริการ'); })
                                 .reduce(function(s,x){ return s + Number(x.amount||0); }, 0);
-    const feeTotal    = depData.filter(function(x){ return x.bank?.includes('ค่าบริการ'); })
+    const feeFromLog  = logData.filter(function(x){ return x.type==='bet_fee'; })
+                                .reduce(function(s,x){ return s + Math.abs(Number(x.delta||0)); }, 0);
+    const feeTotal    = feeFromDep + feeFromLog;
+
+    // เงินรางวัลที่ให้: deposits เก่า + balance_logs ใหม่ (คอม + รางวัลกิจกรรม)
+    const rewardFromDep = depData.filter(function(x){ return x.bank?.includes('กิจกรรม') || x.bank?.includes('คอม') || x.bank?.includes('referral') || x.bank?.includes('แนะนำ'); })
                                 .reduce(function(s,x){ return s + Number(x.amount||0); }, 0);
-    const rewardTotal = depData.filter(function(x){ return x.bank?.includes('กิจกรรม') || x.bank?.includes('คอม') || x.bank?.includes('referral') || x.bank?.includes('แนะนำ'); })
-                                .reduce(function(s,x){ return s + Number(x.amount||0); }, 0);
+    const rewardFromLog = logData.filter(function(x){ return x.type==='referral_commission' || x.type==='activity_reward'; })
+                                .reduce(function(s,x){ return s + Math.abs(Number(x.delta||0)); }, 0);
+    const rewardTotal   = rewardFromDep + rewardFromLog;
+
     const withTotal   = (withs.data||[]).reduce(function(s,x){ return s + Number(x.amount||0); }, 0);
     const netFlow     = depReal - withTotal;
     return { label, members: newMems.count||0, depReal, withTotal, netFlow, profit: netFlow, feeTotal, rewardTotal };
