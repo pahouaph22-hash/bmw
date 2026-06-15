@@ -6818,80 +6818,75 @@ async function _loadTxnHistory(nick){
   }
   tb.innerHTML='<tr><td colspan="5" style="text-align:center;padding:24px;color:#9ca3af;font-size:12px;">กำลังโหลด...</td></tr>';
   try{
-    // ดึงข้อมูลทั้งหมดพร้อมกัน
-    var [depRes, withRes, logRes] = await Promise.all([
-      sb.from('deposits').select('amount,created_at,status,bank,txn').eq('nick',nick).eq('status','approved'),
-      sb.from('withdrawals').select('amount,created_at,status,bank,acc_no').eq('nick',nick).eq('status','approved'),
-      sb.from('staff_logs').select('action,detail,created_at,staff_username')
-        .in('action',['balance_add','balance_sub','balance_adjust'])
-        .ilike('detail','%'+nick+'%'),
-    ]);
-
     var rows=[];
 
-    // deposits → +
-    (depRes.data||[]).forEach(function(d){
-      rows.push({
-        date:   d.created_at,
-        label:  '💰 เติมเงิน'+(d.bank?' ('+d.bank+')':''),
-        change: +Number(d.amount||0),
-        type:   'deposit',
-      });
-    });
+    // ── หลัก: ดึงจาก balance_logs (ครบทุกประเภท + มี before/after จริง) ──
+    var logRes = await sb.from('balance_logs')
+      .select('type,delta,balance_before,balance_after,note,created_at,ref_txn')
+      .eq('nick',nick).order('created_at',{ascending:true});
 
-    // withdrawals → -
-    (withRes.data||[]).forEach(function(w){
-      rows.push({
-        date:   w.created_at,
-        label:  '🏧 ถอนเงิน'+(w.bank?' → '+w.bank:''),
-        change: -Number(w.amount||0),
-        type:   'withdraw',
-      });
-    });
+    var typeMap = {
+      deposit:        {icon:'💰', name:'เติมเงิน'},
+      withdraw:       {icon:'🏧', name:'ถอนเงิน'},
+      withdraw_refund:{icon:'↩️', name:'คืนยอดถอน'},
+      bet_place:      {icon:'🎯', name:'วางเดิมพัน'},
+      bet_win:        {icon:'🏆', name:'ชนะเดิมพัน'},
+      bet_refund:     {icon:'↩️', name:'คืนเงินเดิมพัน'},
+      referral_commission:{icon:'🎁', name:'ค่าคอมแนะนำ'},
+      admin_adjust:   {icon:'⚙️', name:'ปรับยอดโดยแอดมิน'},
+      adjust:         {icon:'⚙️', name:'ปรับยอด'},
+    };
 
-    // staff_logs balance adjustments
-    (logRes.data||[]).forEach(function(l){
-      var detail=l.detail||'';
-      var action=l.action||'';
-      // parse amount from detail e.g. "+1,000 ₭" or "-500 ₭"
-      var amtMatch=detail.match(/([+\-])[\s]*([\d,]+)\s*₭/);
-      var amt=0;
-      if(amtMatch){
-        amt=parseInt(amtMatch[2].replace(/,/g,''))*(amtMatch[1]==='+'?1:-1);
-      }
-      // parse reason
-      var reason='';
-      var rMatch=detail.match(/เหตุผล:\s*([^|]+)/);
-      if(rMatch) reason=rMatch[1].trim().slice(0,30);
-      var staff=l.staff_username||'';
-      rows.push({
-        date:   l.created_at,
-        label:  (action==='balance_add'?'➕ ปรับเพิ่มยอด':'➖ ปรับลดยอด')+(reason?' ('+reason+')':'')+(staff?' — '+staff:''),
-        change: amt,
-        type:   action,
+    var hasLogs = (logRes.data||[]).length>0;
+
+    if(hasLogs){
+      (logRes.data||[]).forEach(function(l){
+        var t=typeMap[l.type]||{icon:'•',name:l.type||'รายการ'};
+        rows.push({
+          date:   l.created_at,
+          label:  t.icon+' '+t.name+(l.note?' · '+l.note:''),
+          change: Number(l.delta||0),
+          balBefore: (l.balance_before!=null)?Number(l.balance_before):null,
+          balAfter:  (l.balance_after!=null)?Number(l.balance_after):null,
+          type:   l.type,
+        });
       });
-    });
+    } else {
+      // ── Fallback: ข้อมูลเก่าก่อนมีระบบ balance_logs → ดึงจากตารางตรง ──
+      var [depRes, withRes, slRes] = await Promise.all([
+        sb.from('deposits').select('amount,created_at,bank').eq('nick',nick).eq('status','approved'),
+        sb.from('withdrawals').select('amount,created_at,bank').eq('nick',nick).eq('status','approved'),
+        sb.from('staff_logs').select('action,detail,created_at,staff_username').in('action',['balance_add','balance_sub','balance_adjust']).ilike('detail','%'+nick+'%'),
+      ]);
+      (depRes.data||[]).forEach(function(d){rows.push({date:d.created_at,label:'💰 เติมเงิน'+(d.bank?' ('+d.bank+')':''),change:+Number(d.amount||0),type:'deposit'});});
+      (withRes.data||[]).forEach(function(w){rows.push({date:w.created_at,label:'🏧 ถอนเงิน'+(w.bank?' → '+w.bank:''),change:-Number(w.amount||0),type:'withdraw'});});
+      (slRes.data||[]).forEach(function(l){
+        var detail=l.detail||'',amtMatch=detail.match(/([+\-])[\s]*([\d,]+)\s*₭/),amt=0;
+        if(amtMatch)amt=parseInt(amtMatch[2].replace(/,/g,''))*(amtMatch[1]==='+'?1:-1);
+        rows.push({date:l.created_at,label:(l.action==='balance_add'?'➕ ปรับเพิ่มยอด':'➖ ปรับลดยอด')+(l.staff_username?' — '+l.staff_username:''),change:amt,type:l.action});
+      });
+    }
 
     if(!rows.length){
       tb.innerHTML='<tr><td colspan="5" style="text-align:center;padding:28px;color:#9ca3af;font-size:12px;">ยังไม่มีประวัติการทำธุรกรรม</td></tr>';
       return;
     }
 
-    // เรียงตาม date จากเก่า → ใหม่ เพื่อคำนวณ running balance
+    // เรียงเก่า → ใหม่
     rows.sort(function(a,b){ return new Date(a.date)-new Date(b.date); });
 
-    // คำนวณ running balance
+    // เติม running balance สำหรับแถวที่ balance_logs ไม่มี (fallback) — คำนวณเอง
     var running=0;
     rows.forEach(function(r){
-      r.balBefore=running;
-      running+=r.change;
-      r.balAfter=running;
+      if(r.balBefore!=null && r.balAfter!=null){
+        running=r.balAfter; // ใช้ค่าจริงจาก log
+      } else {
+        r.balBefore=running; running+=r.change; r.balAfter=running;
+      }
     });
 
-    // แสดงผลจากใหม่ → เก่า (reverse)
+    // แสดงใหม่ → เก่า
     rows.reverse();
-
-    var colorMap={deposit:'#16a34a',withdraw:'#dc2626',balance_add:'#2563eb',balance_sub:'#dc2626',balance_adjust:'#7c3aed'};
 
     tb.innerHTML=rows.map(function(r){
       var changeColor=r.change>=0?'#16a34a':'#dc2626';
@@ -6899,15 +6894,14 @@ async function _loadTxnHistory(nick){
       return [
         '<tr style="border-bottom:1px solid #f3f4f6">',
           '<td style="padding:8px 12px;font-size:11px;color:#9ca3af;white-space:nowrap">'+fmtDate(r.date)+'</td>',
-          '<td style="padding:8px 12px;font-size:12px;color:#374151;max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="'+r.label+'">'+r.label+'</td>',
-          '<td style="padding:8px 12px;text-align:right;font-size:12px;color:#6b7280">'+r.balBefore.toLocaleString()+'</td>',
+          '<td style="padding:8px 12px;font-size:12px;color:#374151;max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="'+(r.label||'').replace(/"/g,'')+'">'+r.label+'</td>',
+          '<td style="padding:8px 12px;text-align:right;font-size:12px;color:#6b7280">'+(r.balBefore!=null?r.balBefore.toLocaleString():'—')+'</td>',
           '<td style="padding:8px 12px;text-align:right;font-weight:700;color:'+changeColor+'">'+changeStr+'</td>',
-          '<td style="padding:8px 12px;text-align:right;font-weight:900;color:#111827;font-family:\'Kanit\',sans-serif;">'+r.balAfter.toLocaleString()+'</td>',
+          '<td style="padding:8px 12px;text-align:right;font-weight:900;color:#111827;font-family:\'Kanit\',sans-serif;">'+(r.balAfter!=null?r.balAfter.toLocaleString():'—')+'</td>',
         '</tr>'
       ].join('');
     }).join('');
 
-    // อัพ stats
     var betsCount=document.getElementById('mo-bets-count');
     if(betsCount) betsCount.textContent=rows.length;
 
