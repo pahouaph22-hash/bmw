@@ -609,12 +609,11 @@ async function autoRefundUnmatched() {
     for (const bet of data) {
       const refund = Number(bet.remaining_amount||0);
       if (refund <= 0) continue;
-      const { data: mem } = await sb.from('members_public').select('balance').eq('nick', bet.nick).maybeSingle();
-      const newBal = (Number(mem?.balance)||0) + refund;
-      await sb.from('members').update({ balance:newBal }).eq('nick', bet.nick);
+      const { data: radj } = await sb.rpc('adjust_member_balance', { p_nick: bet.nick, p_delta: refund });
       await sb.from('bets').update({ status:'cancelled', match_status:'timeout', remaining_amount:0 }).eq('id', bet.id);
       if (currentUser?.nick === bet.nick) {
-        currentUser.balance = newBal; updateBalanceDisplay();
+        const nb = (radj && radj.length) ? Number(radj[0].new_balance||0) : (currentUser.balance||0);
+        currentUser.balance = nb; updateBalanceDisplay();
         showToast(`💰 คืนเงิน ${refund.toLocaleString()} ₭ เพราะยังไม่มีคู่จับครับ`);
       }
     }
@@ -961,9 +960,20 @@ async function joinBet(betId, oppNick, oppSide, oppOdds) {
     parent_bet_id:betId,
   });
 
-  // หักเงิน B
-  const newBal = (currentUser.balance||0) - joinAmt;
-  await sb.from('members').update({ balance:newBal }).eq('nick', currentUser.nick);
+  // หักเงิน B (atomic ผ่าน RPC + เช็คยอดสด)
+  const { data: jadj, error: jAdjErr } = await sb.rpc('adjust_member_balance', { p_nick: currentUser.nick, p_delta: -joinAmt });
+  const jRows = (jadj && jadj.length && typeof jadj[0].rows_hit !== 'undefined') ? Number(jadj[0].rows_hit) : (jadj && jadj.length ? 1 : 0);
+  if (jAdjErr || !jadj || !jadj.length || jRows === 0) {
+    // หักไม่สำเร็จ → rollback bet B + คืนสถานะ A
+    await sb.from('bets').delete().eq('txn', txn);
+    await sb.from('bets').update({
+      matched_amount:order.matched_amount, remaining_amount:order.remaining_amount,
+      match_status: order.match_status, status: order.status,
+    }).eq('id', betId);
+    showToast('❌ หักยอดไม่สำเร็จ กรุณาลองใหม่ครับ');
+    await loadBets(); renderBetsList(); return;
+  }
+  const newBal = Number(jadj[0].new_balance || 0);
   currentUser.balance = newBal;
   sessionStorage.setItem('bw_user', JSON.stringify(currentUser));
   updateBalanceDisplay();
@@ -1126,7 +1136,6 @@ async function submitBetDetail() {
   if (normalizeStatus(matchData?.status)!=='upcoming') { showToast('ปิดรับเดิมพันแล้วครับ'); return; }
   const amount = parseFloat(document.getElementById('bd-amt')?.value);
   if (!amount||amount<10) { showToast('ขั้นต่ำ 10 ₭ครับ'); return; }
-  if (currentUser.balance<amount) { showToast('ยอดไม่พอครับ'); return; }
 
   const { side, type, num, den } = _bd;
   const sideKey  = side==='a' ? 'red' : 'blue';
@@ -1135,6 +1144,19 @@ async function submitBetDetail() {
   const emoji    = type==='tor' ? '⚔️' : '🛡️';
   const btn = document.getElementById('bd-submit');
   if (btn) { btn.disabled=true; btn.textContent='⏳ กำลังส่ง...'; }
+
+  // ── เช็คยอดสดจาก DB ก่อน (กันวางเกินยอด/วางซ้ำ) ──
+  const { data: freshRows, error: freshErr } = await sb.rpc('get_member_by_nick', { p_nick: currentUser.nick });
+  if (freshErr || !freshRows || !freshRows.length) {
+    if (btn) { btn.disabled=false; btn.textContent=`วางเดิมพัน ${sideName}`; }
+    showToast('❌ ตรวจสอบยอดเงินไม่สำเร็จ ลองใหม่ครับ'); return;
+  }
+  const freshBal = Number(freshRows[0].balance || 0);
+  if (amount > freshBal) {
+    currentUser.balance = freshBal; updateBalanceDisplay();
+    if (btn) { btn.disabled=false; btn.textContent=`วางเดิมพัน ${sideName}`; }
+    showToast(`⚠️ ยอดเงินไม่เพียงพอครับ (เหลือ ${freshBal.toLocaleString()} ₭)`); return;
+  }
 
   const txn = 'BET-'+Date.now()+'-'+Math.random().toString(36).slice(2,6).toUpperCase();
   const { error } = await sb.from('bets').insert({
@@ -1145,15 +1167,28 @@ async function submitBetDetail() {
     expires_at:new Date(Date.now()+2*60*60*1000).toISOString(),
   });
 
-  if (btn) { btn.disabled=false; btn.textContent=`วางเดิมพัน ${sideName}`; }
-  if (error) { showToast('เกิดข้อผิดพลาด: '+error.message); return; }
+  if (error) {
+    if (btn) { btn.disabled=false; btn.textContent=`วางเดิมพัน ${sideName}`; }
+    showToast('เกิดข้อผิดพลาด: '+error.message); return;
+  }
 
-  const newBal = (currentUser.balance||0)-amount;
-  await sb.from('members').update({ balance:newBal }).eq('nick',currentUser.nick);
+  // ── หักเงินจริงที่ DB ผ่าน RPC (atomic) ──
+  const { data: adj, error: adjErr } = await sb.rpc('adjust_member_balance', { p_nick: currentUser.nick, p_delta: -amount });
+  const rowsHit = (adj && adj.length && typeof adj[0].rows_hit !== 'undefined') ? Number(adj[0].rows_hit) : (adj && adj.length ? 1 : 0);
+  if (adjErr || !adj || !adj.length || rowsHit === 0) {
+    // หักไม่สำเร็จ → ลบ bet ที่เพิ่ง insert (rollback) กันวางฟรี
+    await sb.from('bets').delete().eq('txn', txn);
+    if (btn) { btn.disabled=false; btn.textContent=`วางเดิมพัน ${sideName}`; }
+    console.error('[submitBetDetail] หักเงินไม่สำเร็จ rows_hit=0 nick=', JSON.stringify(currentUser.nick));
+    showToast('❌ หักยอดไม่สำเร็จ กรุณาลองใหม่ครับ'); return;
+  }
+
+  const newBal = Number(adj[0].new_balance || 0);
   currentUser.balance = newBal;
   sessionStorage.setItem('bw_user', JSON.stringify(currentUser));
   updateBalanceDisplay();
 
+  if (btn) { btn.disabled=false; btn.textContent=`วางเดิมพัน ${sideName}`; }
   showToast(`✅ ${emoji} ${sideName} ราคา ${num}/${den} จำนวน ${amount.toLocaleString()} ₭`);
   document.getElementById('bd-amt').value = '';
   document.getElementById('bd-preview').innerHTML = '';

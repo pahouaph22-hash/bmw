@@ -8939,6 +8939,12 @@ setInterval(() => {
     if (adjErr || !adj || !adj.length) {
       showFEToast('❌ หักยอดไม่สำเร็จ กรุณาลองใหม่ครับ'); return;
     }
+    // ⚠️ ตรวจ rows_hit — ถ้า 0 = DB ไม่ได้หักจริง (nick ไม่ตรง) → หยุด ห้ามวาง
+    const rowsHit = (typeof adj[0].rows_hit !== 'undefined') ? Number(adj[0].rows_hit) : 1;
+    if (rowsHit === 0) {
+      console.error('[placeBet] หักเงินไม่สำเร็จ: rows_hit=0, nick ส่งไป =', JSON.stringify(nick), 'len=', nick.length);
+      showFEToast('❌ ระบบไม่พบบัญชีของคุณ กรุณาออกจากระบบแล้วเข้าใหม่ครับ'); return;
+    }
     const newBal = Number(adj[0].new_balance || 0);
     updateAccBalance(newBal);
     currentUser.balance = newBal;
