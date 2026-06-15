@@ -5000,18 +5000,19 @@ async function payoutBets(matchId, winner, FEE_RATE = 0.07) {
   let totalFee  = 0;
   let totalPaid = 0;
 
-  // จ่ายผู้ชนะ: คืนเงินต้นส่วนที่จับคู่ + กำไรสุทธิ (หัก fee จากกำไร)
-  // ⚠️ odds ในระบบนี้ = อัตรากำไรโดยตรง (กำไร = matched × odds) ไม่ใช่ตัวคูณรวม
-  //   เช่น ต่อ odds=0.8 → กำไร = matched × 0.8 · รอง odds=1.25 → กำไร = matched × 1.25
+  // จ่ายผู้ชนะ: คืนเงินต้นส่วนที่จับคู่ + กำไร แล้วหัก fee จาก "ยอดรวม"
+  // ⚠️ odds = อัตรากำไรโดยตรง (กำไร = matched × odds)
+  //   เช่น Q1 รอง odds=1.25 ลง 8,000 → กำไร 10,000 → รวม 18,000 → หัก fee 7% = 1,260 → ได้ 16,740
   for (const bet of winnerBets) {
-    const matched     = Number(bet.matched_amount || 0);
-    const odds        = Number(bet.odds || 0);
-    const profit      = Math.floor(matched * odds);          // กำไร = ทุน × อัตรากำไร
-    const feeOnProfit = Math.floor(profit * FEE_RATE);
-    const netReturn   = matched + profit - feeOnProfit;       // คืนทุน + กำไร - fee
+    const matched   = Number(bet.matched_amount || 0);
+    const odds      = Number(bet.odds || 0);
+    const profit    = Math.floor(matched * odds);        // กำไร = ทุน × อัตรากำไร
+    const gross     = matched + profit;                  // ยอดรวม (ทุน + กำไร)
+    const feeOnGross= Math.floor(gross * FEE_RATE);       // ค่าบริการหักจากยอดรวม
+    const netReturn = gross - feeOnGross;                 // เงินสุทธิที่ผู้ชนะได้รับ
 
     totalPool += matched;
-    totalFee  += feeOnProfit;
+    totalFee  += feeOnGross;
     totalPaid += netReturn;
     if (netReturn > 0) payMap.set(bet.nick, (payMap.get(bet.nick) || 0) + netReturn);
   }
