@@ -5001,13 +5001,14 @@ async function payoutBets(matchId, winner, FEE_RATE = 0.07) {
   let totalPaid = 0;
 
   // จ่ายผู้ชนะ: คืนเงินต้นส่วนที่จับคู่ + กำไรสุทธิ (หัก fee จากกำไร)
-  // ใช้ matched (ไม่ใช่ amount เต็ม) เพราะส่วน remaining คืนแยกด้านล่าง
+  // ⚠️ odds ในระบบนี้ = อัตรากำไรโดยตรง (กำไร = matched × odds) ไม่ใช่ตัวคูณรวม
+  //   เช่น ต่อ odds=0.8 → กำไร = matched × 0.8 · รอง odds=1.25 → กำไร = matched × 1.25
   for (const bet of winnerBets) {
     const matched     = Number(bet.matched_amount || 0);
-    const odds        = Number(bet.odds || 1);
-    const profit      = Math.floor(matched * (odds - 1));
+    const odds        = Number(bet.odds || 0);
+    const profit      = Math.floor(matched * odds);          // กำไร = ทุน × อัตรากำไร
     const feeOnProfit = Math.floor(profit * FEE_RATE);
-    const netReturn   = matched + profit - feeOnProfit;
+    const netReturn   = matched + profit - feeOnProfit;       // คืนทุน + กำไร - fee
 
     totalPool += matched;
     totalFee  += feeOnProfit;
