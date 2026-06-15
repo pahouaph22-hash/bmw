@@ -3210,7 +3210,8 @@ async function changeAdminPass() {
   if (!p1 || p1.length < 6) { showToast('⚠️ รหัสผ่านต้องมีอย่างน้อย 6 ตัวอักษรครับ','error'); return; }
   if (p1 !== p2) { showToast('⚠️ รหัสผ่านไม่ตรงกันครับ','error'); return; }
   // บันทึกใน Supabase
-  await safeUpsertSettings('admin_password', p1);
+  const { error } = await sb.from('settings').upsert({ key:'admin_password', value:p1 });
+  if (error) { showToast('❌ บันทึกไม่สำเร็จ: ' + error.message, 'error'); return; }
   ADMIN_PASS = p1;
   document.getElementById('new-pass').value = '';
   document.getElementById('new-pass2').value = '';
@@ -3793,23 +3794,40 @@ function renderVipSettingsUI() {
 }
 
 async function saveVipSettings() {
-  const levels = _vipLevels.map(lv => {
+  // อ่านค่าจาก input ทุกตัวที่มีอยู่จริงใน DOM (id = vip-min-<tier>)
+  const baseLevels = (_vipLevels && _vipLevels.length) ? _vipLevels : VIP_DEFAULTS;
+  const levels = baseLevels.map(lv => {
     const inp = document.getElementById(`vip-min-${lv.tier}`);
-    return { ...lv, min: parseFloat(inp?.value||lv.min)||lv.min };
+    let raw = inp ? String(inp.value).replace(/[,\s]/g,'') : '';   // ตัด comma/ช่องว่าง
+    let val = parseFloat(raw);
+    if (!isFinite(val) || val < 0) val = Number(lv.min)||0;          // fallback
+    return { ...lv, min: val };
   });
 
-  // validate: ต้องเรียงน้อยไปมาก
+  // เรียงตาม min จากน้อยไปมาก (กันกรณี _vipLevels เรียงผิด/tier สลับ)
+  levels.sort((a,b) => a.min - b.min);
+
+  // validate: ห้ามมีค่าเท่ากัน (หลัง sort แล้ว ถ้าเท่ากัน = ผิด)
   for (let i = 1; i < levels.length; i++) {
-    if (levels[i].min <= levels[i-1].min) {
-      showToast(`⚠️ ${levels[i].icon} ${levels[i].name} ต้องมีเกณฑ์มากกว่า ${levels[i-1].icon} ${levels[i-1].name} ครับ`, 'error');
+    if (levels[i].min === levels[i-1].min) {
+      showToast(`⚠️ ${levels[i].icon} ${levels[i].name} กับ ${levels[i-1].icon} ${levels[i-1].name} มีเกณฑ์เท่ากัน — กรุณาตั้งค่าให้ต่างกันครับ`, 'error');
       return;
     }
   }
 
-  await safeUpsertSettings('vipLevels', { levels });
+  // re-assign tier ตามลำดับใหม่ (tier 1 = น้อยสุด) เพื่อให้ getVipLevel ทำงานถูก
+  levels.forEach((lv, idx) => { lv.tier = idx + 1; });
+
+  // บันทึกลง settings (ใช้ upsert ตรง เหมือนฟังก์ชันอื่นในระบบ)
+  const { error } = await sb.from('settings').upsert({ key:'vipLevels', value:{ levels } });
+  if (error) {
+    showToast('❌ บันทึกไม่สำเร็จ: ' + error.message, 'error');
+    return;
+  }
   _vipLevels = levels;
+  renderVipSettingsUI();          // re-render ด้วยลำดับที่ sort แล้ว
   showToast('✅ บันทึกระดับ VIP แล้วครับ! สมาชิกจะได้รับการอัปเดตทันที');
-  filterMembers(); // re-render ตาราง
+  if (typeof filterMembers === 'function') filterMembers();
 }
 
 // ===== FLAG / BAN SYSTEM =====
