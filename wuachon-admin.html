@@ -5953,7 +5953,14 @@ async function _approveDepositReal(id,nick,amount){
       // หาว่าใครเป็นผู้แนะนำของสมาชิกคนนี้
       const { data: meRow } = await sb.from('members').select('referred_by').eq('nick', nick).maybeSingle();
       const referrer = meRow?.referred_by;
-      if (referrer) {
+      if (referrer && referrer !== nick) {   // กันแนะนำตัวเอง
+        // ── เช็คว่าเคยจ่ายคอมให้ลูกทีมคนนี้แล้วหรือยัง (จ่ายเฉพาะเติมครั้งแรก) ──
+        const { data: existingCom } = await sb.from('referral_logs')
+          .select('id').eq('referrer_nick', referrer).eq('new_member_nick', nick).limit(1);
+        if (existingCom && existingCom.length > 0) {
+          // เคยจ่ายแล้ว = เติมครั้งที่ 2+ → ไม่จ่ายซ้ำ
+          console.log('[referral] ข้ามคอม — '+nick+' เติมซ้ำ (จ่ายเฉพาะครั้งแรก)');
+        } else {
         // ดึง rate คอมจาก settings (default 5%)
         const { data: rateRow } = await sb.from('settings').select('value').eq('key','referralRate').maybeSingle();
         let rate = rateRow?.value;
@@ -5965,7 +5972,7 @@ async function _approveDepositReal(id,nick,amount){
           const { data: comRes } = await sb.rpc('adjust_member_balance', {
             p_nick: referrer, p_delta: commission,
             p_type: 'referral_commission',
-            p_note: 'ค่าคอมแนะนำ '+nick+' เติม '+Number(amount).toLocaleString()+' ₭ ('+(rate*100).toFixed(1)+'%)',
+            p_note: 'ค่าคอมแนะนำ '+nick+' (เติมครั้งแรก '+Number(amount).toLocaleString()+' ₭)',
             p_txn: comTxn,
           });
           // บันทึกประวัติคอมมิชชัน (referral_logs) — ไม่ให้ error มากระทบ
@@ -5979,6 +5986,7 @@ async function _approveDepositReal(id,nick,amount){
           if (comRes && comRes.length) {
             showToast('🎁 จ่ายค่าคอม '+commission.toLocaleString()+' ₭ ให้ผู้แนะนำ "'+referrer+'"');
           }
+        }
         }
       }
     } catch(comErr) { console.warn('[referral commission]', comErr); }

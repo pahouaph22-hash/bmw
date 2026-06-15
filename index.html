@@ -7138,6 +7138,12 @@ function applyLang() {
     if (refCode) {
       const { data: refMember } = await sb.from('members_public').select('nick').eq('referral_code', refCode).maybeSingle();
       if (refMember) {
+        if (refMember.nick === nick) {
+          errEl.style.display = 'block';
+          errEl.textContent = '⚠️ ใช้รหัสแนะนำของตัวเองไม่ได้ครับ';
+          btn.disabled = false; btn.textContent = 'สมัครสมาชิก →';
+          return;
+        }
         referredBy = refMember.nick;
       } else {
         errEl.style.display = 'block';
