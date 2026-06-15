@@ -9104,7 +9104,11 @@ setInterval(() => {
     const actualJoin = Math.min(joinAmt, order.remaining_amount);
     const potential  = (actualJoin * odds).toFixed(0);
     const mySide     = ownerSide === 'red' ? 'blue' : 'red';
-    const mySideName = ownerSide === 'red' ? order.side_name?.replace(order.side_name, '') || '🔵' : order.side_name;
+    // ชื่อวัวฝั่งตรงข้ามจริง (เพื่อให้ payout เทียบ side_name === winner ได้ถูกต้อง)
+    const _nameA = document.getElementById('btn-name-a')?.textContent?.trim() || '';
+    const _nameB = document.getElementById('btn-name-b')?.textContent?.trim() || '';
+    // owner เลือกฝั่งไหน ผู้จับคู่ก็ได้ฝั่งตรงข้าม
+    const myRealSideName = (ownerSide === 'red') ? _nameB : _nameA;
     const txn        = '7' + Array.from({length:8},()=>Math.floor(Math.random()*10)).join('');
     const nick       = currentUser.nick;
 
@@ -9143,10 +9147,10 @@ setInterval(() => {
       status: newStatus === 'full' ? 'matched' : 'waiting',
     }).eq('id', betId);
 
-    // สร้าง bet ของฝ่ายตรงข้าม (join bet)
+    // สร้าง bet ของฝ่ายตรงข้าม (join bet) — ใช้ชื่อวัวจริงเพื่อให้ payout เทียบได้
     await sb.from('bets').insert({
       nick, match_id: matchId,
-      side_name: `ฝั่งตรงข้าม ${sideName}`, side: mySide,
+      side_name: myRealSideName, side: mySide,
       amount: actualJoin, odds, txn,
       status: 'matched',
       match_status: 'full',

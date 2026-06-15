@@ -4912,51 +4912,68 @@ async function payoutBets(matchId, winner, FEE_RATE = 0.07) {
   const { data: bets } = await sb.from('bets').select('*').eq('match_id', matchId);
   if (!bets?.length) return { totalPool: 0, fee: 0, totalPaid: 0 };
 
-  const winnerBets = bets.filter(b => b.side_name === winner && ['matched','waiting','partial'].includes(b.status));
-  const loserBets  = bets.filter(b => b.side_name !== winner  && ['matched','waiting','partial'].includes(b.status));
+  // ── หาฝั่งที่ชนะ (red/blue) จากชื่อวัวของแมตช์ เพื่อเทียบได้แม่นยำ ──
+  const { data: matchRow } = await sb.from('matches').select('name_a,name_b').eq('id', matchId).maybeSingle();
+  const nameA = (matchRow?.name_a || '').trim();
+  const nameB = (matchRow?.name_b || '').trim();
+  let winnerSide = null;
+  if (winner && winner.trim() === nameA) winnerSide = 'red';
+  else if (winner && winner.trim() === nameB) winnerSide = 'blue';
 
-  // อัปเดต status ทุก bet
-  for (const bet of [...winnerBets, ...loserBets]) {
-    const newStatus = bet.side_name === winner ? 'won' : 'lost';
-    await sb.from('bets').update({ status: newStatus }).eq('id', bet.id);
+  // ตัดสินว่า bet นี้ชนะไหม — เทียบ side เป็นหลัก, fallback เป็น side_name
+  const isWinnerBet = (b) => {
+    if (winnerSide && b.side) return b.side === winnerSide;
+    return b.side_name === winner;
+  };
+
+  // bet ที่ยัง active (ยังไม่ถูกจ่าย/ตัดสิน)
+  const ACTIVE = ['matched','waiting','partial','full'];
+  const activeBets = bets.filter(b => ACTIVE.includes(b.status));
+  const winnerBets = activeBets.filter(isWinnerBet);
+  const loserBets  = activeBets.filter(b => !isWinnerBet(b));
+
+  // อัปเดต status ทุก bet ที่ active
+  for (const bet of activeBets) {
+    const newStatus = isWinnerBet(bet) ? 'won' : 'lost';
+    await sb.from('bets').update({ status: newStatus, match_status: 'done' }).eq('id', bet.id);
   }
 
   const payMap = new Map();
   let totalPool = 0;
-  let totalFee  = 0;  // สะสม fee จริงจากแต่ละ bet
+  let totalFee  = 0;
   let totalPaid = 0;
 
   // จ่ายผู้ชนะ: คืนเงินต้นส่วนที่จับคู่ + กำไรสุทธิ (หัก fee จากกำไร)
-  // หมายเหตุ: ใช้ matched (ไม่ใช่ amount เต็ม) เพราะส่วน remaining คืนแยกด้านล่าง
+  // ใช้ matched (ไม่ใช่ amount เต็ม) เพราะส่วน remaining คืนแยกด้านล่าง
   for (const bet of winnerBets) {
     const matched     = Number(bet.matched_amount || 0);
     const odds        = Number(bet.odds || 1);
-    const profit      = Math.floor(matched * (odds - 1)); // กำไรสุทธิ = ทุน×(odds-1)
+    const profit      = Math.floor(matched * (odds - 1));
     const feeOnProfit = Math.floor(profit * FEE_RATE);
-    const netReturn   = matched + profit - feeOnProfit;    // เงินต้นที่จับ + กำไร - fee
+    const netReturn   = matched + profit - feeOnProfit;
 
     totalPool += matched;
     totalFee  += feeOnProfit;
     totalPaid += netReturn;
-    payMap.set(bet.nick, (payMap.get(bet.nick) || 0) + netReturn);
+    if (netReturn > 0) payMap.set(bet.nick, (payMap.get(bet.nick) || 0) + netReturn);
   }
 
-  // คืนส่วนที่ยังไม่ถูกจับคู่ให้เจ้าของทุกคน (ไม่หัก fee)
-  for (const bet of [...winnerBets, ...loserBets]) {
+  // คืนส่วนที่ยังไม่ถูกจับคู่ (remaining) ให้เจ้าของทุกคน — ทั้งผู้ชนะและผู้แพ้
+  // (remaining = เงินที่ไม่มีคู่ ไม่ถือเป็นการเดิมพันจริง จึงคืนเต็ม ไม่หัก fee)
+  for (const bet of activeBets) {
     const remaining = Number(bet.remaining_amount || 0);
     if (remaining > 0) {
       payMap.set(bet.nick, (payMap.get(bet.nick) || 0) + remaining);
     }
-    totalPool += (bet.side_name !== winner ? Number(bet.amount || 0) : 0);
   }
 
-  // โอนเงิน
+  // โอนเงิน (atomic)
   for (const [nick, amount] of payMap.entries()) {
     if (amount <= 0) continue;
     await sb.rpc('adjust_member_balance', { p_nick: nick, p_delta: Number(amount) });
   }
 
-  // บันทึกค่าบริการใน deposits table เพื่อ Finance tracking
+  // บันทึกค่าบริการเพื่อ Finance tracking
   if (totalFee > 0) {
     const feePercent = (FEE_RATE * 100).toFixed(1);
     await sb.from('deposits').insert({
