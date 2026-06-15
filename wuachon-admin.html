@@ -5947,6 +5947,41 @@ async function _approveDepositReal(id,nick,amount){
       action:'approve_deposit',
       detail:'อนุมัติเติมเงิน '+Number(amount).toLocaleString()+' ₭ ให้ "'+nick+'" โดย '+_adminNick(),
     });}catch(_){}
+
+    // ── จ่ายค่าคอมมิชชันให้ผู้แนะนำ (ถ้ามี) ──
+    try {
+      // หาว่าใครเป็นผู้แนะนำของสมาชิกคนนี้
+      const { data: meRow } = await sb.from('members').select('referred_by').eq('nick', nick).maybeSingle();
+      const referrer = meRow?.referred_by;
+      if (referrer) {
+        // ดึง rate คอมจาก settings (default 5%)
+        const { data: rateRow } = await sb.from('settings').select('value').eq('key','referralRate').maybeSingle();
+        let rate = rateRow?.value;
+        rate = (typeof rate === 'number') ? rate : 0.05;
+        const commission = Math.floor(Number(amount) * rate);
+        if (commission > 0) {
+          // จ่ายคอมเข้าบัญชีผู้แนะนำ (atomic + log อัตโนมัติ)
+          const comTxn = 'COM-' + Date.now();
+          const { data: comRes } = await sb.rpc('adjust_member_balance', {
+            p_nick: referrer, p_delta: commission,
+            p_type: 'referral_commission',
+            p_note: 'ค่าคอมแนะนำ '+nick+' เติม '+Number(amount).toLocaleString()+' ₭ ('+(rate*100).toFixed(1)+'%)',
+            p_txn: comTxn,
+          });
+          // บันทึกประวัติคอมมิชชัน (referral_logs) — ไม่ให้ error มากระทบ
+          try {
+            await sb.from('referral_logs').insert({
+              referrer_nick: referrer, new_member_nick: nick,
+              deposit_amount: Number(amount), ref_rate: (rate*100),
+              commission: commission, txn: comTxn,
+            });
+          } catch(_) {}
+          if (comRes && comRes.length) {
+            showToast('🎁 จ่ายค่าคอม '+commission.toLocaleString()+' ₭ ให้ผู้แนะนำ "'+referrer+'"');
+          }
+        }
+      }
+    } catch(comErr) { console.warn('[referral commission]', comErr); }
   }
 }
 async function _rejectDepositReal(id,nick){
@@ -7294,8 +7329,39 @@ async function _checkSessionToken(){if(!_st)return true;try{const{data}=await sb
 setTimeout(async()=>{await _initSessionToken();setInterval(_checkSessionToken,2*60*1000);},3000);
 
 // ── STUBS ──
-function switchRefSec(sec){document.querySelectorAll('#panel-referral .match-sec').forEach(s=>s.classList.remove('active'));document.querySelectorAll('#panel-referral .match-nav-item').forEach(i=>i.classList.remove('active'));document.getElementById('ref-sec-'+sec)?.classList.add('active');document.getElementById('rnav-'+sec)?.classList.add('active');}
-function loadRefCommissionLogs(){} function _refLogToday(){} function _refLogMonth(){} function _refLogClear(){}
+function switchRefSec(sec){document.querySelectorAll('#panel-referral .match-sec').forEach(s=>s.classList.remove('active'));document.querySelectorAll('#panel-referral .match-nav-item').forEach(i=>i.classList.remove('active'));document.getElementById('ref-sec-'+sec)?.classList.add('active');document.getElementById('rnav-'+sec)?.classList.add('active');if(sec==='logs'){try{loadRefCommissionLogs();}catch(e){}}}
+async function loadRefCommissionLogs(){
+  const tb = document.getElementById('ref-logs-tbody');
+  if(!tb) return;
+  tb.innerHTML='<tr><td colspan="7" style="text-align:center;padding:24px;color:#aaa;">กำลังโหลด...</td></tr>';
+  try{
+    let q = sb.from('referral_logs').select('*').order('created_at',{ascending:false}).limit(200);
+    const fromD = document.getElementById('ref-log-from')?.value;
+    const toD   = document.getElementById('ref-log-to')?.value;
+    if(fromD) q = q.gte('created_at', fromD+'T00:00:00');
+    if(toD)   q = q.lte('created_at', toD+'T23:59:59');
+    const { data, error } = await q;
+    if(error) throw error;
+    const rows = data||[];
+    if(!rows.length){ tb.innerHTML='<tr><td colspan="7" style="text-align:center;padding:24px;color:#aaa;">ยังไม่มีประวัติคอมมิชชัน</td></tr>'; return; }
+    tb.innerHTML = rows.map(function(r,i){
+      return '<tr>'+
+        '<td>'+(i+1)+'</td>'+
+        '<td style="text-align:center;">'+(r.level||1)+'</td>'+
+        '<td style="font-weight:700;cursor:pointer;color:var(--green);" onclick="openMember(\''+(r.referrer_nick||'')+'\')">'+(r.referrer_nick||'—')+'</td>'+
+        '<td style="cursor:pointer;color:#2563eb;" onclick="openMember(\''+(r.new_member_nick||'')+'\')">'+(r.new_member_nick||'—')+'</td>'+
+        '<td style="text-align:right;">'+Number(r.deposit_amount||0).toLocaleString()+'</td>'+
+        '<td style="text-align:right;font-weight:700;color:#16a34a;">'+Number(r.commission||0).toLocaleString()+'</td>'+
+        '<td style="text-align:right;font-size:11px;color:#888;">'+fmtDate(r.created_at)+'</td>'+
+      '</tr>';
+    }).join('');
+  }catch(e){
+    tb.innerHTML='<tr><td colspan="7" style="text-align:center;color:#dc2626;">❌ '+(e.message||e)+'</td></tr>';
+  }
+}
+function _refLogToday(){const t=todayStr();const f=document.getElementById('ref-log-from'),to=document.getElementById('ref-log-to');if(f)f.value=t;if(to)to.value=t;loadRefCommissionLogs();}
+function _refLogMonth(){const d=new Date();const m=String(d.getMonth()+1).padStart(2,'0');const first=d.getFullYear()+'-'+m+'-01';const f=document.getElementById('ref-log-from'),to=document.getElementById('ref-log-to');if(f)f.value=first;if(to)to.value=todayStr();loadRefCommissionLogs();}
+function _refLogClear(){const f=document.getElementById('ref-log-from'),to=document.getElementById('ref-log-to');if(f)f.value='';if(to)to.value='';loadRefCommissionLogs();}
 function switchSubNav(p,s){document.querySelectorAll('#panel-'+p+' .match-sec').forEach(x=>x.classList.remove('active'));document.querySelectorAll('#panel-'+p+' .sub-nav-item').forEach(i=>i.classList.remove('active'));document.getElementById('sec-'+s)?.classList.add('active');document.querySelector('[data-sec="'+s+'"]')?.classList.add('active');}
 function switchActSec(sec){document.querySelectorAll('#panel-activity .match-sec').forEach(s=>s.classList.remove('active'));document.querySelectorAll('#panel-activity .match-nav-item').forEach(i=>i.classList.remove('active'));document.getElementById('act-sec-'+sec)?.classList.add('active');document.getElementById('anav-'+sec)?.classList.add('active');}
 function sendActivity(){showToast('กำลังส่ง...');}
