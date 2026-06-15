@@ -7555,7 +7555,7 @@ setInterval(() => {
       sb.from('deposits').select('txn,amount,bank,status,reason,created_at,approved_at,approved_by').eq('nick', nick).order('created_at', { ascending: false }).limit(50),
       sb.from('withdrawals').select('txn,amount,bank,status,reason,created_at,approved_at,approved_by').eq('nick', nick).order('created_at', { ascending: false }).limit(50),
       sb.from('bets').select('txn,amount,odds,side_name,status,match_status,order_amount,matched_amount,created_at').eq('nick', nick).order('created_at', { ascending: false }).limit(80),
-      sb.from('balance_logs').select('type,delta,balance_after,note,created_at').eq('nick', nick).in('type',['admin_adjust','referral_commission','activity_reward']).order('created_at', { ascending: false }).limit(80),
+      sb.from('balance_logs').select('type,delta,balance_after,note,created_at').eq('nick', nick).in('type',['admin_adjust','referral_commission','activity_reward','bet_commission']).order('created_at', { ascending: false }).limit(80),
     ]);
 
     const FEE = (typeof FEE_RATE !== 'undefined') ? FEE_RATE : 0.07;
@@ -7614,9 +7614,10 @@ setInterval(() => {
       const delta = Number(g.delta || 0);
       const isCom = g.type === 'referral_commission';
       const isAct = g.type === 'activity_reward';
+      const isBetCom = g.type === 'bet_commission';
       rows.push({
-        cat: g.type, icon: isCom ? '🎁' : isAct ? '🎉' : '⚙️', cls: delta >= 0 ? 'dep' : 'with',
-        label: isCom ? 'ค่าคอมแนะนำเพื่อน' : isAct ? 'รางวัลกิจกรรม' : 'ปรับยอดโดยระบบ',
+        cat: g.type, icon: isCom ? '🎁' : isAct ? '🎉' : isBetCom ? '💸' : '⚙️', cls: delta >= 0 ? 'dep' : 'with',
+        label: isCom ? 'ค่าคอมแนะนำเพื่อน' : isAct ? 'รางวัลกิจกรรม' : isBetCom ? 'คอมมิชชันเดิมพัน' : 'ปรับยอดโดยระบบ',
         sub: g.note || '', txn:null, at: g.created_at,
         sign: delta >= 0 ? '+' : '-', amount: Math.abs(delta),
         status: g.type, balance_after: g.balance_after,
@@ -7656,6 +7657,8 @@ setInterval(() => {
         statusHtml = `<div style="font-size:10px;color:var(--accent);font-family:Kanit,sans-serif;margin-top:2px;">🎁 ค่าคอมแนะนำเพื่อน</div>`;
       } else if (r.status === 'activity_reward') {
         statusHtml = `<div style="font-size:10px;color:var(--gold);font-family:Kanit,sans-serif;margin-top:2px;">🎉 รางวัลกิจกรรม</div>`;
+      } else if (r.status === 'bet_commission') {
+        statusHtml = `<div style="font-size:10px;color:var(--accent);font-family:Kanit,sans-serif;margin-top:2px;">💸 คอมมิชชันจากการเดิมพันของสายงาน</div>`;
       }
       // ยอดคงเหลือหลังทำรายการ (เฉพาะที่มีข้อมูล)
       const balAfterHtml = (typeof r.balance_after !== 'undefined' && r.balance_after !== null)
@@ -8365,8 +8368,33 @@ setInterval(() => {
 
 
   // ===== REFERRAL TAB =====
+  // helper เช็ค feature flag (ฝั่งสมาชิก)
+  window._isFeatureEnabled = async function(key) {
+    try {
+      const r = await sb.from('settings').select('value').eq('key','featureFlags').maybeSingle();
+      const v = r.data?.value || {};
+      const flags = v.flags || {};
+      if (flags[key] === false) return false;
+      const now = new Date();
+      if (v.promoStart && now < new Date(v.promoStart)) return false;
+      if (v.promoEnd && now > new Date(v.promoEnd)) return false;
+      return true;
+    } catch(e) { return true; }
+  };
+
   window.loadReferralTab = window._real_loadReferralTab = async function loadReferralTab() {
     if (!currentUser) return;
+    // เช็คว่าระบบแนะนำเพื่อนเปิดอยู่ไหม
+    const refEnabled = await window._isFeatureEnabled('referralSystem');
+    if (!refEnabled) {
+      const panel = document.getElementById('acc-referral');
+      if (panel) {
+        const titleEl = panel.querySelector('.panel-title');
+        const keepTitle = titleEl ? titleEl.outerHTML : '';
+        panel.innerHTML = keepTitle + '<div style="text-align:center;padding:48px 24px;color:rgba(240,255,232,0.4);"><div style="font-size:48px;margin-bottom:12px;">🔒</div><div style="font-family:Kanit,sans-serif;font-size:15px;">ระบบแนะนำเพื่อนปิดให้บริการชั่วคราว</div></div>';
+      }
+      return;
+    }
     // แสดง referral_code
     const code = currentUser.referral_code || '—';
     const codeEl = document.getElementById('my-ref-code');

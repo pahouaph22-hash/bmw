@@ -1746,7 +1746,11 @@ input, textarea, select, button {
           <!-- ── Sidebar Tabs ── -->
           <div style="background:#f7f7f5;border-right:1px solid #e5e5e0;padding:12px 0;">
             <div style="font-family:'Kanit',sans-serif;font-size:11px;font-weight:700;color:#aaa;letter-spacing:.08em;padding:8px 16px 12px;text-transform:uppercase;">⚙️ ตั้งค่าระบบ</div>
-        <button class="cfg-tab active" onclick="switchCfgTab('siteinfo')" id="cfg-tab-siteinfo">
+        <button class="cfg-tab active" onclick="switchCfgTab('features')" id="cfg-tab-features" style="border-left:3px solid #16a34a;">
+          <span style="font-size:18px;">🎛️</span>
+          <span>ระบบ & โปรโมชั่น</span>
+        </button>
+        <button class="cfg-tab " onclick="switchCfgTab('siteinfo')" id="cfg-tab-siteinfo">
           <span style="font-size:18px;">🐂</span>
           <span>ชื่อเว็บ & โลโก้</span>
         </button>
@@ -1778,7 +1782,31 @@ input, textarea, select, button {
 
           <!-- ── Content Panes ── -->
           <div style="padding:20px 24px;overflow-y:auto;max-height:80vh;">
-        <div class="cfg-pane active" id="cfg-pane-siteinfo">
+        <!-- ── ระบบ & โปรโมชั่น (Feature Flags) ── -->
+        <div class="cfg-pane active" id="cfg-pane-features">
+          <div class="card" style="border-left:4px solid #16a34a;">
+            <div class="card-title">🎛️ ควบคุมระบบ & โปรโมชั่น
+              <button onclick="loadFeatureFlags()" style="margin-left:auto;font-family:Kanit,sans-serif;font-size:11px;font-weight:700;padding:5px 12px;border:1px solid #e0e0e0;border-radius:7px;background:#fff;color:#555;cursor:pointer;">🔄 รีเฟรช</button>
+            </div>
+            <div style="font-size:12px;color:#888;margin-bottom:18px;">เปิด/ปิดแต่ละระบบได้ทันที · เมื่อปิด ระบบนั้นจะหยุดทำงานทั่วทั้งเว็บ</div>
+
+            <div id="feature-flags-list" style="display:flex;flex-direction:column;gap:10px;"></div>
+
+            <!-- ช่วงเวลาโปรโมชั่น -->
+            <div style="margin-top:20px;padding:16px;background:#f0fdf4;border:1px solid #bbf7d0;border-radius:10px;">
+              <div style="font-family:Kanit,sans-serif;font-weight:700;font-size:14px;color:#15803d;margin-bottom:12px;">📅 ช่วงเวลาโปรโมชั่น (ไม่บังคับ)</div>
+              <div style="font-size:11px;color:#16a34a;margin-bottom:12px;">ถ้ากำหนดช่วงเวลา ระบบโปรโมชั่นจะทำงานเฉพาะในช่วงนี้ · เว้นว่าง = ไม่จำกัดเวลา</div>
+              <div style="display:flex;gap:12px;flex-wrap:wrap;align-items:end;">
+                <div><label style="font-size:11px;color:#666;display:block;margin-bottom:4px;">เริ่มต้น</label><input type="datetime-local" id="promo-start" style="padding:8px 10px;border:1px solid #bbf7d0;border-radius:7px;font-size:13px;"></div>
+                <div><label style="font-size:11px;color:#666;display:block;margin-bottom:4px;">สิ้นสุด</label><input type="datetime-local" id="promo-end" style="padding:8px 10px;border:1px solid #bbf7d0;border-radius:7px;font-size:13px;"></div>
+              </div>
+            </div>
+
+            <button class="save-btn" onclick="saveFeatureFlags()" style="width:100%;margin-top:18px;background:linear-gradient(135deg,#16a34a,#15803d);">💾 บันทึกการตั้งค่าระบบ</button>
+          </div>
+        </div>
+
+        <div class="cfg-pane " id="cfg-pane-siteinfo">
         <div class="card" style="border-left:4px solid #C8102E;">
           <div class="card-title">🐂 ชื่อเว็บไซต์ & โลโก้</div>
 
@@ -1912,67 +1940,78 @@ input, textarea, select, button {
         </div>
         <div class="cfg-pane " id="cfg-pane-referral">
         <div class="card" style="border-left:4px solid #60a5fa;">
-          <div class="card-title">🎁 ค่าคอมมิชชันระบบแนะนำสมาชิก (5 ชั้น)</div>
-          <div style="font-size:12px;color:#888;margin-bottom:14px;">คำนวณจากยอดเดิมพัน ทุกครั้งที่สมาชิกในสายงานลงเดิมพัน — สมาชิก A แนะนำ B แนะนำ C … ไล่ขึ้นไป 5 ชั้น</div>
+          <div class="card-title">🎁 ค่าคอมมิชชันระบบแนะนำสมาชิก</div>
+          <div style="font-size:12px;color:#888;margin-bottom:18px;">เมื่อสมาชิกที่ถูกแนะนำ <b>เติมเงินครั้งแรก</b> ผู้แนะนำจะได้รับค่าคอมมิชชันตามเปอร์เซ็นต์ที่กำหนด (จ่ายครั้งเดียวต่อสมาชิก 1 คน)</div>
 
-          <div style="display:grid;gap:8px;margin-bottom:14px;" id="ref-levels-wrap">
-            <div style="display:grid;grid-template-columns:110px 1fr 120px;align-items:center;gap:10px;padding:9px 14px;background:#f0f9ff;border:1px solid #bae6fd;border-radius:8px;">
-              <div style="font-family:'Phetsarath','Phetsarath','Noto Sans Lao','Kanit',sans-serif;font-weight:700;font-size:13px;">🥇 ชั้นที่ 1</div>
-              <div style="display:flex;align-items:center;gap:8px;">
-                <label style="font-size:12px;color:#888;white-space:nowrap;">ผู้แนะนำโดยตรง</label>
-                <input type="number" id="sf-ref-rate-1" min="0" max="30" step="0.1" placeholder="5" style="flex:1;padding:7px 10px;border:1px solid #bae6fd;border-radius:7px;font-family:'Phetsarath','Phetsarath','Noto Sans Lao','Kanit',sans-serif;font-size:14px;font-weight:700;text-align:right;">
-                <span style="color:#0ea5e9;font-weight:700;font-family:'Phetsarath','Phetsarath','Noto Sans Lao','Kanit',sans-serif;">%</span>
-              </div>
-              <div style="font-size:11px;color:#aaa;" id="ref-ex-1">ตัวอย่าง: —</div>
+          <div style="display:grid;grid-template-columns:1fr 130px;align-items:center;gap:14px;padding:16px 18px;background:#f0f9ff;border:1px solid #bae6fd;border-radius:10px;margin-bottom:16px;">
+            <div>
+              <div style="font-family:'Phetsarath','Phetsarath','Noto Sans Lao','Kanit',sans-serif;font-weight:700;font-size:14px;color:#0c4a6e;">เปอร์เซ็นต์ค่าคอมมิชชัน</div>
+              <div style="font-size:11px;color:#0891b2;margin-top:3px;">คำนวณจากยอดเติมเงินครั้งแรกของผู้ถูกแนะนำ</div>
             </div>
-            <div style="display:grid;grid-template-columns:110px 1fr 120px;align-items:center;gap:10px;padding:9px 14px;background:#f0fdf4;border:1px solid #bbf7d0;border-radius:8px;">
-              <div style="font-family:'Phetsarath','Phetsarath','Noto Sans Lao','Kanit',sans-serif;font-weight:700;font-size:13px;">🥈 ชั้นที่ 2</div>
-              <div style="display:flex;align-items:center;gap:8px;">
-                <label style="font-size:12px;color:#888;white-space:nowrap;">แนะนำชั้น 2</label>
-                <input type="number" id="sf-ref-rate-2" min="0" max="20" step="0.1" placeholder="3" style="flex:1;padding:7px 10px;border:1px solid #bbf7d0;border-radius:7px;font-family:'Phetsarath','Phetsarath','Noto Sans Lao','Kanit',sans-serif;font-size:14px;font-weight:700;text-align:right;">
-                <span style="color:#16a34a;font-weight:700;font-family:'Phetsarath','Phetsarath','Noto Sans Lao','Kanit',sans-serif;">%</span>
-              </div>
-              <div style="font-size:11px;color:#aaa;" id="ref-ex-2">ตัวอย่าง: —</div>
-            </div>
-            <div style="display:grid;grid-template-columns:110px 1fr 120px;align-items:center;gap:10px;padding:9px 14px;background:#fffbeb;border:1px solid #fde68a;border-radius:8px;">
-              <div style="font-family:'Phetsarath','Phetsarath','Noto Sans Lao','Kanit',sans-serif;font-weight:700;font-size:13px;">🥉 ชั้นที่ 3</div>
-              <div style="display:flex;align-items:center;gap:8px;">
-                <label style="font-size:12px;color:#888;white-space:nowrap;">แนะนำชั้น 3</label>
-                <input type="number" id="sf-ref-rate-3" min="0" max="15" step="0.1" placeholder="2" style="flex:1;padding:7px 10px;border:1px solid #fde68a;border-radius:7px;font-family:'Phetsarath','Phetsarath','Noto Sans Lao','Kanit',sans-serif;font-size:14px;font-weight:700;text-align:right;">
-                <span style="color:#d97706;font-weight:700;font-family:'Phetsarath','Phetsarath','Noto Sans Lao','Kanit',sans-serif;">%</span>
-              </div>
-              <div style="font-size:11px;color:#aaa;" id="ref-ex-3">ตัวอย่าง: —</div>
-            </div>
-            <div style="display:grid;grid-template-columns:110px 1fr 120px;align-items:center;gap:10px;padding:9px 14px;background:#fdf4ff;border:1px solid #e9d5ff;border-radius:8px;">
-              <div style="font-family:'Phetsarath','Phetsarath','Noto Sans Lao','Kanit',sans-serif;font-weight:700;font-size:13px;">4️⃣ ชั้นที่ 4</div>
-              <div style="display:flex;align-items:center;gap:8px;">
-                <label style="font-size:12px;color:#888;white-space:nowrap;">แนะนำชั้น 4</label>
-                <input type="number" id="sf-ref-rate-4" min="0" max="10" step="0.1" placeholder="1" style="flex:1;padding:7px 10px;border:1px solid #e9d5ff;border-radius:7px;font-family:'Phetsarath','Phetsarath','Noto Sans Lao','Kanit',sans-serif;font-size:14px;font-weight:700;text-align:right;">
-                <span style="color:#9333ea;font-weight:700;font-family:'Phetsarath','Phetsarath','Noto Sans Lao','Kanit',sans-serif;">%</span>
-              </div>
-              <div style="font-size:11px;color:#aaa;" id="ref-ex-4">ตัวอย่าง: —</div>
-            </div>
-            <div style="display:grid;grid-template-columns:110px 1fr 120px;align-items:center;gap:10px;padding:9px 14px;background:#fff1f2;border:1px solid #fecdd3;border-radius:8px;">
-              <div style="font-family:'Phetsarath','Phetsarath','Noto Sans Lao','Kanit',sans-serif;font-weight:700;font-size:13px;">5️⃣ ชั้นที่ 5</div>
-              <div style="display:flex;align-items:center;gap:8px;">
-                <label style="font-size:12px;color:#888;white-space:nowrap;">แนะนำชั้น 5</label>
-                <input type="number" id="sf-ref-rate-5" min="0" max="10" step="0.1" placeholder="0.5" style="flex:1;padding:7px 10px;border:1px solid #fecdd3;border-radius:7px;font-family:'Phetsarath','Phetsarath','Noto Sans Lao','Kanit',sans-serif;font-size:14px;font-weight:700;text-align:right;">
-                <span style="color:#e11d48;font-weight:700;font-family:'Phetsarath','Phetsarath','Noto Sans Lao','Kanit',sans-serif;">%</span>
-              </div>
-              <div style="font-size:11px;color:#aaa;" id="ref-ex-5">ตัวอย่าง: —</div>
+            <div style="display:flex;align-items:center;gap:8px;">
+              <input type="number" id="set-ref-rate" min="0" max="100" step="0.1" placeholder="5"
+                style="width:90px;padding:10px 12px;border:1px solid #bae6fd;border-radius:8px;font-family:'Phetsarath','Phetsarath','Noto Sans Lao','Kanit',sans-serif;font-size:16px;font-weight:900;text-align:right;color:#0c4a6e;"
+                oninput="_refRatePreview()">
+              <span style="color:#0ea5e9;font-weight:900;font-size:18px;">%</span>
             </div>
           </div>
 
-          <div style="background:#f9f9f7;border:1px solid #e5e5e0;border-radius:8px;padding:11px 14px;font-size:12px;color:#666;margin-bottom:14px;">
-            💡 ตัวอย่าง: A แนะนำ B แนะนำ C → C เดิมพัน 1,000 ₭ → B ได้ชั้น 1, A ได้ชั้น 2
-            <br>ใส่ <b>0</b> เพื่อปิดชั้นนั้น · คอมมิชชันคำนวณจากยอดเดิมพัน ทุกครั้งที่สมาชิกลงเดิมพัน
+          <!-- ตัวอย่างคำนวณ -->
+          <div id="ref-rate-preview" style="background:#f0fdf4;border:1px solid #86efac;border-radius:10px;padding:14px 16px;margin-bottom:16px;font-size:13px;color:#15803d;">
+            <div style="font-weight:700;margin-bottom:6px;">💡 ตัวอย่างการคำนวณ</div>
+            <div id="ref-rate-example" style="color:#166534;">ผู้ถูกแนะนำเติมเงินครั้งแรก 10,000 ₭ → ผู้แนะนำได้ค่าคอม <b>500 ₭</b></div>
           </div>
 
-          <div style="display:flex;gap:8px;">
-            <button class="save-btn" onclick="saveRefRateLevels()" style="flex:1;">💾 บันทึกค่าคอมมิชชัน</button>
-            <button class="btn btn-primary" onclick="previewRefExample()" style="padding:10px 16px;font-size:12px;">👁 ดูตัวอย่าง</button>
+          <div style="background:#fffbeb;border:1px solid #fde68a;border-radius:8px;padding:11px 14px;font-size:12px;color:#92400e;margin-bottom:16px;">
+            ⚠️ ค่าคอมจ่าย <b>เฉพาะการเติมเงินครั้งแรก</b> ของสมาชิกที่ถูกแนะนำเท่านั้น · ใส่ <b>0</b> เพื่อปิดระบบคอมมิชชัน
           </div>
-          <div id="ref-preview-result" style="display:none;margin-top:12px;background:#f0fdf4;border:1px solid #86efac;border-radius:8px;padding:12px 14px;font-size:12px;"></div>
+
+          <button class="save-btn" onclick="saveSettings('referral')" style="width:100%;background:linear-gradient(135deg,#0ea5e9,#0284c7);">💾 บันทึกค่าคอมมิชชัน</button>
+        </div>
+
+        <!-- คอมมิชชันจากการเดิมพัน 5 ชั้น -->
+        <div class="card" style="border-left:4px solid #8b5cf6;margin-top:16px;">
+          <div class="card-title">🎯 ค่าคอมมิชชันจากการเดิมพัน (5 ชั้น)</div>
+          <div style="font-size:12px;color:#888;margin-bottom:16px;">เมื่อสมาชิกในสายงานเดิมพัน ระบบจ่ายคอมให้ผู้แนะนำไล่ขึ้นไป 5 ชั้น คำนวณจาก <b>ยอดเดิมพันรวม</b> · จ่ายตอนตัดสินผลแมตช์</div>
+
+          <div style="display:grid;gap:8px;margin-bottom:16px;" id="ref-bet-levels-wrap">
+            <div style="display:grid;grid-template-columns:120px 1fr 70px;align-items:center;gap:10px;padding:10px 14px;background:#f0f9ff;border:1px solid #bae6fd;border-radius:8px;">
+              <div style="font-family:Kanit,sans-serif;font-weight:700;font-size:13px;">🥇 ชั้นที่ 1</div>
+              <div style="font-size:11px;color:#888;">ผู้แนะนำโดยตรง</div>
+              <div style="display:flex;align-items:center;gap:5px;"><input type="number" id="bet-lv-1" min="0" max="50" step="0.1" placeholder="0" oninput="_betLevelPreview()" style="width:55px;padding:7px;border:1px solid #bae6fd;border-radius:6px;font-size:13px;font-weight:700;text-align:right;"><span style="color:#0ea5e9;font-weight:700;">%</span></div>
+            </div>
+            <div style="display:grid;grid-template-columns:120px 1fr 70px;align-items:center;gap:10px;padding:10px 14px;background:#f0fdf4;border:1px solid #bbf7d0;border-radius:8px;">
+              <div style="font-family:Kanit,sans-serif;font-weight:700;font-size:13px;">🥈 ชั้นที่ 2</div>
+              <div style="font-size:11px;color:#888;">ผู้แนะนำของผู้แนะนำ</div>
+              <div style="display:flex;align-items:center;gap:5px;"><input type="number" id="bet-lv-2" min="0" max="50" step="0.1" placeholder="0" oninput="_betLevelPreview()" style="width:55px;padding:7px;border:1px solid #bbf7d0;border-radius:6px;font-size:13px;font-weight:700;text-align:right;"><span style="color:#16a34a;font-weight:700;">%</span></div>
+            </div>
+            <div style="display:grid;grid-template-columns:120px 1fr 70px;align-items:center;gap:10px;padding:10px 14px;background:#fffbeb;border:1px solid #fde68a;border-radius:8px;">
+              <div style="font-family:Kanit,sans-serif;font-weight:700;font-size:13px;">🥉 ชั้นที่ 3</div>
+              <div style="font-size:11px;color:#888;">ชั้นที่ 3</div>
+              <div style="display:flex;align-items:center;gap:5px;"><input type="number" id="bet-lv-3" min="0" max="50" step="0.1" placeholder="0" oninput="_betLevelPreview()" style="width:55px;padding:7px;border:1px solid #fde68a;border-radius:6px;font-size:13px;font-weight:700;text-align:right;"><span style="color:#d97706;font-weight:700;">%</span></div>
+            </div>
+            <div style="display:grid;grid-template-columns:120px 1fr 70px;align-items:center;gap:10px;padding:10px 14px;background:#fdf4ff;border:1px solid #e9d5ff;border-radius:8px;">
+              <div style="font-family:Kanit,sans-serif;font-weight:700;font-size:13px;">4️⃣ ชั้นที่ 4</div>
+              <div style="font-size:11px;color:#888;">ชั้นที่ 4</div>
+              <div style="display:flex;align-items:center;gap:5px;"><input type="number" id="bet-lv-4" min="0" max="50" step="0.1" placeholder="0" oninput="_betLevelPreview()" style="width:55px;padding:7px;border:1px solid #e9d5ff;border-radius:6px;font-size:13px;font-weight:700;text-align:right;"><span style="color:#9333ea;font-weight:700;">%</span></div>
+            </div>
+            <div style="display:grid;grid-template-columns:120px 1fr 70px;align-items:center;gap:10px;padding:10px 14px;background:#fff1f2;border:1px solid #fecdd3;border-radius:8px;">
+              <div style="font-family:Kanit,sans-serif;font-weight:700;font-size:13px;">5️⃣ ชั้นที่ 5</div>
+              <div style="font-size:11px;color:#888;">ชั้นที่ 5</div>
+              <div style="display:flex;align-items:center;gap:5px;"><input type="number" id="bet-lv-5" min="0" max="50" step="0.1" placeholder="0" oninput="_betLevelPreview()" style="width:55px;padding:7px;border:1px solid #fecdd3;border-radius:6px;font-size:13px;font-weight:700;text-align:right;"><span style="color:#e11d48;font-weight:700;">%</span></div>
+            </div>
+          </div>
+
+          <div id="ref-bet-preview" style="background:#faf5ff;border:1px solid #e9d5ff;border-radius:8px;padding:12px 14px;font-size:12px;color:#6b21a8;margin-bottom:16px;">
+            <div style="font-weight:700;margin-bottom:5px;">💡 ตัวอย่าง: สมาชิกเดิมพันรวม 10,000 ₭</div>
+            <div id="bet-level-example" style="color:#7c3aed;">—</div>
+          </div>
+
+          <div style="background:#fffbeb;border:1px solid #fde68a;border-radius:8px;padding:11px 14px;font-size:12px;color:#92400e;margin-bottom:16px;">
+            ⚠️ คำนวณจากยอดเดิมพันรวม · จ่ายตอนตัดสินผลแมตช์ · ใส่ <b>0</b> เพื่อปิดชั้นนั้น
+          </div>
+
+          <button class="save-btn" onclick="saveBetLevels()" style="width:100%;background:linear-gradient(135deg,#8b5cf6,#7c3aed);">💾 บันทึกคอมเดิมพัน 5 ชั้น</button>
         </div>
         </div>
         <div class="cfg-pane " id="cfg-pane-bank">
@@ -4985,11 +5024,23 @@ async function payoutBets(matchId, winner, FEE_RATE = 0.07) {
     }
   }
 
+  // ── รวมยอดเดิมพันต่อคน (ทุก bet ที่ active ไม่ว่าชนะ/แพ้) เพื่อจ่ายคอมเดิมพัน ──
+  const betTotalByNick = {};
+  for (const bet of activeBets) {
+    const stake = Number(bet.matched_amount || bet.order_amount || bet.amount || 0);
+    if (stake > 0 && bet.nick) {
+      betTotalByNick[bet.nick] = (betTotalByNick[bet.nick] || 0) + stake;
+    }
+  }
+
   // โอนเงิน (atomic)
   for (const [nick, amount] of payMap.entries()) {
     if (amount <= 0) continue;
     await sb.rpc('adjust_member_balance', { p_nick: nick, p_delta: Number(amount), p_type: 'bet_win', p_note: 'เงินรางวัลชนะเดิมพัน' });
   }
+
+  // ── จ่ายคอมเดิมพัน 5 ชั้น ──
+  await payBetCommissions(betTotalByNick, matchId);
 
   // บันทึกค่าบริการเพื่อ Finance tracking
   if (totalFee > 0) {
@@ -5092,11 +5143,11 @@ async function renderGrowthChart() {
 
   var K=1000;
   var datasets=[
-    { id:'profit',   label:'📈 กำไร (K₭)',       data:labels.map(function(l){return +(profitMap[l]/K).toFixed(2);}),       borderColor:'#1d4ed8',bg:'rgba(29,78,216,0.10)',  fill:true  },
-    { id:'deposit',  label:'💰 เติมเงิน (K₭)',   data:labels.map(function(l){return +((depMap[l]||0)/K).toFixed(2);}),     borderColor:'#22c55e',bg:'rgba(34,197,94,0.07)',  fill:false },
-    { id:'withdraw', label:'🏧 ถอนเงิน (K₭)',   data:labels.map(function(l){return +((withMap[l]||0)/K).toFixed(2);}),    borderColor:'#f87171',bg:'rgba(248,113,113,0.06)',fill:false },
-    { id:'fee',      label:'⚙️ ค่าบริการ (K₭)',  data:labels.map(function(l){return +((feeMap[l]||0)/K).toFixed(2);}),    borderColor:'#f59e0b',bg:'rgba(245,158,11,0.06)', fill:false },
-    { id:'reward',   label:'🎁 รางวัล (K₭)',     data:labels.map(function(l){return +((rewardMap[l]||0)/K).toFixed(2);}), borderColor:'#8b5cf6',bg:'rgba(139,92,246,0.06)', fill:false },
+    { id:'profit',   label:'📈 กำไร (₭)',       data:labels.map(function(l){return Math.round(profitMap[l]||0);}),       borderColor:'#1d4ed8',bg:'rgba(29,78,216,0.10)',  fill:true  },
+    { id:'deposit',  label:'💰 เติมเงิน (₭)',   data:labels.map(function(l){return Math.round(depMap[l]||0);}),     borderColor:'#22c55e',bg:'rgba(34,197,94,0.07)',  fill:false },
+    { id:'withdraw', label:'🏧 ถอนเงิน (₭)',   data:labels.map(function(l){return Math.round(withMap[l]||0);}),    borderColor:'#f87171',bg:'rgba(248,113,113,0.06)',fill:false },
+    { id:'fee',      label:'⚙️ ค่าบริการ (₭)',  data:labels.map(function(l){return Math.round(feeMap[l]||0);}),    borderColor:'#f59e0b',bg:'rgba(245,158,11,0.06)', fill:false },
+    { id:'reward',   label:'🎁 รางวัล (₭)',     data:labels.map(function(l){return Math.round(rewardMap[l]||0);}), borderColor:'#8b5cf6',bg:'rgba(139,92,246,0.06)', fill:false },
     { id:'member',   label:'👥 สมาชิกใหม่ (คน)', data:labels.map(function(l){return memMap[l]||0;}),                       borderColor:'#F5C842',bg:'rgba(245,200,66,0.06)', fill:false, yAxisID:'y2', hidden:true },
   ].map(function(ds){
     return { id:ds.id, label:ds.label, data:ds.data,
@@ -5137,14 +5188,14 @@ async function renderGrowthChart() {
           titleColor:'#374151',bodyColor:'#6b7280',
           titleFont:{family:'Kanit',weight:'bold',size:12},bodyFont:{family:'Kanit',size:11},padding:10,
           callbacks:{
-            label:function(c){ return c.dataset.yAxisID==='y2'? '  '+c.dataset.label+': '+c.parsed.y+' คน': '  '+c.dataset.label+': '+c.parsed.y.toFixed(2)+'K ₭'; },
+            label:function(c){ return c.dataset.yAxisID==='y2'? '  '+c.dataset.label+': '+c.parsed.y+' คน': '  '+c.dataset.label+': '+Number(c.parsed.y).toLocaleString()+' ₭'; },
             afterBody:function(){ return['','  📌 คลิกดูรายละเอียด']; }
           }
         }
       },
       scales:{
         x:{ ticks:{color:'#9ca3af',font:{size:10,family:'Kanit'},maxTicksLimit:14,maxRotation:45},grid:{color:'rgba(0,0,0,0.04)'} },
-        y:{ ticks:{color:'#9ca3af',font:{size:10},callback:function(v){return v+'K';}},grid:{color:'rgba(0,0,0,0.04)'},title:{display:true,text:'K₭',color:'#9ca3af',font:{size:10}} },
+        y:{ ticks:{color:'#9ca3af',font:{size:10},callback:function(v){return Number(v).toLocaleString();}},grid:{color:'rgba(0,0,0,0.04)'},title:{display:true,text:'₭',color:'#9ca3af',font:{size:10}} },
         y2:{ position:'right',ticks:{color:'#F5C842',font:{size:10}},grid:{display:false},title:{display:true,text:'คน',color:'#F5C842',font:{size:10}} }
       }
     }
@@ -5383,7 +5434,7 @@ async function loadFinanceTable() {
         .gte('created_at', startISO).lte('created_at', endISO),
       // balance_logs — แหล่งใหม่ของ คอม/รางวัล/ค่าบริการ
       sb.from('balance_logs').select('type,delta,created_at')
-        .in('type',['referral_commission','activity_reward','bet_fee'])
+        .in('type',['referral_commission','activity_reward','bet_fee','bet_commission'])
         .gte('created_at', startISO).lte('created_at', endISO),
     ]);
     const depData = deps.data || [];
@@ -5403,7 +5454,7 @@ async function loadFinanceTable() {
     // เงินรางวัลที่ให้: deposits เก่า + balance_logs ใหม่ (คอม + รางวัลกิจกรรม)
     const rewardFromDep = depData.filter(function(x){ return x.bank?.includes('กิจกรรม') || x.bank?.includes('คอม') || x.bank?.includes('referral') || x.bank?.includes('แนะนำ'); })
                                 .reduce(function(s,x){ return s + Number(x.amount||0); }, 0);
-    const rewardFromLog = logData.filter(function(x){ return x.type==='referral_commission' || x.type==='activity_reward'; })
+    const rewardFromLog = logData.filter(function(x){ return x.type==='referral_commission' || x.type==='activity_reward' || x.type==='bet_commission'; })
                                 .reduce(function(s,x){ return s + Math.abs(Number(x.delta||0)); }, 0);
     const rewardTotal   = rewardFromDep + rewardFromLog;
 
@@ -5986,6 +6037,9 @@ async function _approveDepositReal(id,nick,amount){
 
     // ── จ่ายค่าคอมมิชชันให้ผู้แนะนำ (ถ้ามี) ──
     try {
+      // เช็ค feature flag — ถ้าปิดระบบคอมเติมครั้งแรก ข้าม
+      const comEnabled = await isFeatureEnabled('firstDepositCommission');
+      if (!comEnabled) { /* ปิดอยู่ — ไม่จ่ายคอม */ } else {
       // หาว่าใครเป็นผู้แนะนำของสมาชิกคนนี้
       const { data: meRow } = await sb.from('members').select('referred_by').eq('nick', nick).maybeSingle();
       const referrer = meRow?.referred_by;
@@ -6025,6 +6079,7 @@ async function _approveDepositReal(id,nick,amount){
         }
         }
       }
+      } // ปิด else ของ feature flag check
     } catch(comErr) { console.warn('[referral commission]', comErr); }
   }
 }
@@ -6495,7 +6550,192 @@ async function loadActivityPanel(){
   }catch(e){ list.innerHTML='<div style="text-align:center;color:#dc2626;padding:20px;">❌ '+e.message+'</div>'; }
 }
 function loadActivityLogs(){loadActivityPanel();}
-async function loadRefRateLevels(){try{const r=await sb.from('settings').select('value').eq('key','referralRate').maybeSingle();const rate=r.data?.value||0.05;const el=document.getElementById('set-ref-rate');if(el)el.value=(rate*100).toFixed(1);}catch(e){}}
+async function loadRefRateLevels(){try{const r=await sb.from('settings').select('value').eq('key','referralRate').maybeSingle();const rate=r.data?.value||0.05;const el=document.getElementById('set-ref-rate');if(el)el.value=(rate*100).toFixed(1);_refRatePreview();}catch(e){}}
+function _refRatePreview(){
+  var el=document.getElementById('set-ref-rate');
+  var ex=document.getElementById('ref-rate-example');
+  if(!el||!ex)return;
+  var rate=parseFloat(el.value)||0;
+  var sample=10000;
+  var com=Math.floor(sample*(rate/100));
+  ex.innerHTML='ผู้ถูกแนะนำเติมเงินครั้งแรก '+sample.toLocaleString()+' ₭ → ผู้แนะนำได้ค่าคอม <b>'+com.toLocaleString()+' ₭</b> ('+rate+'%)';
+}
+
+// ── คอมเดิมพัน 5 ชั้น: load / save / preview ──
+async function loadBetLevels(){
+  try{
+    const r=await sb.from('settings').select('value').eq('key','refBetLevels').maybeSingle();
+    const lv=r.data?.value?.levels||[0,0,0,0,0];
+    for(let i=1;i<=5;i++){
+      const el=document.getElementById('bet-lv-'+i);
+      if(el)el.value=lv[i-1]||0;
+    }
+    _betLevelPreview();
+  }catch(e){}
+}
+function _betLevelPreview(){
+  var ex=document.getElementById('bet-level-example');
+  if(!ex)return;
+  var sample=10000, html=[];
+  for(let i=1;i<=5;i++){
+    var v=parseFloat(document.getElementById('bet-lv-'+i)?.value||0);
+    if(v>0) html.push('ชั้น '+i+': '+Math.floor(sample*v/100).toLocaleString()+' ₭ ('+v+'%)');
+  }
+  ex.innerHTML = html.length ? html.join(' · ') : 'ยังไม่ได้กำหนด — ใส่ % แต่ละชั้น';
+}
+async function saveBetLevels(){
+  var levels=[];
+  for(let i=1;i<=5;i++){
+    levels.push(parseFloat(document.getElementById('bet-lv-'+i)?.value||0)||0);
+  }
+  const {error}=await sb.from('settings').upsert({key:'refBetLevels',value:{levels}});
+  if(error){showToast('❌ '+error.message,'error');return;}
+  showToast('💾 บันทึกคอมเดิมพัน 5 ชั้น ✅');
+}
+
+// ══════════════════════════════════════════════
+// FEATURE FLAGS — ควบคุมเปิด/ปิดแต่ละระบบ
+// ══════════════════════════════════════════════
+const FEATURE_DEFS = [
+  { key:'firstDepositCommission', icon:'🎁', name:'คอมมิชชันเติมเงินครั้งแรก', desc:'จ่ายคอมให้ผู้แนะนำเมื่อสมาชิกเติมเงินครั้งแรก' },
+  { key:'betCommission',          icon:'🎯', name:'คอมมิชชันการเดิมพัน 5 ชั้น', desc:'จ่ายคอมให้สายงานเมื่อสมาชิกเดิมพัน' },
+  { key:'referralSystem',         icon:'👥', name:'ระบบแนะนำเพื่อน',          desc:'รับสมัครผ่านรหัสแนะนำ + แสดงหน้าแนะนำเพื่อน' },
+  { key:'activityReward',         icon:'🎉', name:'กิจกรรมแจกรางวัล',         desc:'แอดมินส่งรางวัล/โบนัสให้สมาชิก' },
+  { key:'vipSystem',              icon:'👑', name:'ระบบ VIP',                desc:'จัดระดับสมาชิกตามยอดเติม + สิทธิประโยชน์' },
+  { key:'p2pBetting',             icon:'⚔️', name:'การเดิมพัน P2P',           desc:'เปิดให้สมาชิกวางเดิมพัน' },
+];
+
+let _featureFlags = {};
+
+async function loadFeatureFlags(){
+  try{
+    const r=await sb.from('settings').select('value').eq('key','featureFlags').maybeSingle();
+    const v=r.data?.value||{};
+    _featureFlags=v.flags||{};
+    // render toggles
+    const wrap=document.getElementById('feature-flags-list');
+    if(wrap){
+      wrap.innerHTML=FEATURE_DEFS.map(function(f){
+        const on = _featureFlags[f.key]!==false; // default เปิด
+        return '<div style="display:flex;align-items:center;gap:14px;padding:14px 16px;background:'+(on?'#f0fdf4':'#fef2f2')+';border:1px solid '+(on?'#bbf7d0':'#fecaca')+';border-radius:10px;transition:all .2s;">'+
+          '<div style="font-size:24px;">'+f.icon+'</div>'+
+          '<div style="flex:1;min-width:0;">'+
+            '<div style="font-family:Kanit,sans-serif;font-weight:700;font-size:14px;color:#1a1a1a;">'+f.name+'</div>'+
+            '<div style="font-size:11px;color:#888;margin-top:2px;">'+f.desc+'</div>'+
+          '</div>'+
+          '<label style="position:relative;display:inline-block;width:52px;height:28px;flex-shrink:0;cursor:pointer;">'+
+            '<input type="checkbox" class="feat-toggle" data-key="'+f.key+'" '+(on?'checked':'')+' onchange="_toggleFeatVisual(this)" style="opacity:0;width:0;height:0;">'+
+            '<span class="feat-slider" style="position:absolute;inset:0;background:'+(on?'#16a34a':'#cbd5e1')+';border-radius:28px;transition:.3s;"></span>'+
+            '<span style="position:absolute;top:3px;left:'+(on?'27px':'3px')+';width:22px;height:22px;background:#fff;border-radius:50%;transition:.3s;box-shadow:0 1px 3px rgba(0,0,0,.3);"></span>'+
+          '</label>'+
+        '</div>';
+      }).join('');
+    }
+    // promo window
+    const ps=document.getElementById('promo-start'), pe=document.getElementById('promo-end');
+    if(ps)ps.value=v.promoStart||'';
+    if(pe)pe.value=v.promoEnd||'';
+  }catch(e){ console.warn('loadFeatureFlags',e); }
+}
+
+function _toggleFeatVisual(cb){
+  const label=cb.closest('label');
+  const slider=label.querySelector('.feat-slider');
+  const knob=label.querySelectorAll('span')[1];
+  const row=cb.closest('div[style]');
+  if(cb.checked){
+    if(slider)slider.style.background='#16a34a';
+    if(knob)knob.style.left='27px';
+    if(row){row.style.background='#f0fdf4';row.style.borderColor='#bbf7d0';}
+  }else{
+    if(slider)slider.style.background='#cbd5e1';
+    if(knob)knob.style.left='3px';
+    if(row){row.style.background='#fef2f2';row.style.borderColor='#fecaca';}
+  }
+}
+
+async function saveFeatureFlags(){
+  const flags={};
+  document.querySelectorAll('.feat-toggle').forEach(function(cb){
+    flags[cb.dataset.key]=cb.checked;
+  });
+  const promoStart=document.getElementById('promo-start')?.value||'';
+  const promoEnd=document.getElementById('promo-end')?.value||'';
+  const {error}=await sb.from('settings').upsert({key:'featureFlags',value:{flags,promoStart,promoEnd}});
+  if(error){showToast('❌ '+error.message,'error');return;}
+  _featureFlags=flags;
+  showToast('💾 บันทึกการตั้งค่าระบบ ✅ มีผลทันที');
+}
+
+// helper เช็คว่า feature เปิดอยู่ไหม (เช็คทั้ง toggle + ช่วงเวลาโปรโมชั่น)
+async function isFeatureEnabled(key){
+  try{
+    const r=await sb.from('settings').select('value').eq('key','featureFlags').maybeSingle();
+    const v=r.data?.value||{};
+    const flags=v.flags||{};
+    if(flags[key]===false) return false;       // ปิด
+    // เช็คช่วงเวลาโปรโมชั่น (ถ้ากำหนด)
+    const now=new Date();
+    if(v.promoStart && now < new Date(v.promoStart)) return false;  // ยังไม่ถึงเวลา
+    if(v.promoEnd && now > new Date(v.promoEnd)) return false;      // หมดเวลา
+    return true;
+  }catch(e){ return true; }   // error → default เปิด (ไม่บล็อกระบบ)
+}
+
+// ── จ่ายคอมเดิมพัน 5 ชั้น (เรียกตอนตัดสินผล) ──
+// betTotalByNick: { nick: ยอดเดิมพันรวม }
+async function payBetCommissions(betTotalByNick, matchId){
+  try{
+    // เช็ค feature flag
+    const enabled = await isFeatureEnabled('betCommission');
+    if(!enabled) return;
+    // ดึง rate 5 ชั้น
+    const rl=await sb.from('settings').select('value').eq('key','refBetLevels').maybeSingle();
+    const levels=rl.data?.value?.levels||[0,0,0,0,0];
+    if(!levels.some(function(x){return x>0;})) return; // ไม่ได้ตั้งค่า → ข้าม
+
+    // โหลด referral chain ทั้งหมด (nick → referred_by)
+    const mr=await sb.from('members').select('nick,referred_by');
+    const upline={};
+    (mr.data||[]).forEach(function(m){ upline[m.nick]=m.referred_by||null; });
+
+    // สำหรับแต่ละคนที่เดิมพัน → ไล่สายงานขึ้น 5 ชั้น
+    for(const bettor in betTotalByNick){
+      const betTotal=betTotalByNick[bettor];
+      if(betTotal<=0) continue;
+      let current=upline[bettor];   // ชั้น 1 = ผู้แนะนำตรง
+      let seen={};                   // กัน loop
+      seen[bettor]=1;
+      for(let lvl=1; lvl<=5 && current; lvl++){
+        if(seen[current]) break;     // กันวนซ้ำ
+        seen[current]=1;
+        const rate=levels[lvl-1]||0;
+        if(rate>0 && current!==bettor){
+          const com=Math.floor(betTotal*rate/100);
+          if(com>0){
+            const ctxn='BETCOM-'+matchId+'-L'+lvl+'-'+current+'-'+Date.now();
+            await sb.rpc('adjust_member_balance',{
+              p_nick:current, p_delta:com,
+              p_type:'bet_commission',
+              p_note:'คอมเดิมพันชั้น '+lvl+' จาก '+bettor+' (เดิมพัน '+betTotal.toLocaleString()+' ₭ × '+rate+'%)',
+              p_txn:ctxn,
+            });
+            // บันทึกประวัติ
+            try{
+              await sb.from('referral_logs').insert({
+                referrer_nick:current, new_member_nick:bettor,
+                deposit_amount:betTotal, ref_rate:rate,
+                commission:com, level:lvl, commission_type:'bet',
+                txn:ctxn,
+              });
+            }catch(_){}
+          }
+        }
+        current=upline[current];     // ขึ้นชั้นถัดไป
+      }
+    }
+  }catch(e){ console.warn('[payBetCommissions]',e); }
+}
 function subscribeNotifications(){
   // ── ล้าง channels เก่าก่อน (กัน zombie subscriptions) ──
   try {
@@ -6898,6 +7138,7 @@ async function _loadTxnHistory(nick){
       bet_win:        {icon:'🏆', name:'ชนะเดิมพัน'},
       bet_refund:     {icon:'↩️', name:'คืนเงินเดิมพัน'},
       referral_commission:{icon:'🎁', name:'ค่าคอมแนะนำ'},
+      bet_commission:{icon:'💸', name:'คอมเดิมพัน'},
       admin_adjust:   {icon:'⚙️', name:'ปรับยอดโดยแอดมิน'},
       adjust:         {icon:'⚙️', name:'ปรับยอด'},
     };
@@ -7388,7 +7629,7 @@ async function disableTOTP(){
 }
 async function saveTwofaSettings(){const ol=document.getElementById('twofa-on-login'),oa=document.getElementById('twofa-on-approve');const en=await _checkTwofaEnabled();await _saveTwofaConfig({enabled:en,onLogin:ol?.checked!==false,onApprove:oa?.checked!==false});showToast('💾 บันทึกแล้ว');}
 function _copySecret(){const el=document.getElementById('twofa-secret-display');const t=(el?.textContent||'').replace(/\s/g,'');if(navigator.clipboard)navigator.clipboard.writeText(t).then(()=>showToast('✅ คัดลอกแล้ว'));}
-function switchCfgTab(tab){document.querySelectorAll('.cfg-tab').forEach(b=>b.classList.remove('active'));document.querySelectorAll('.cfg-pane').forEach(p=>{p.classList.remove('active');p.style.display='none';});document.getElementById('cfg-tab-'+tab)?.classList.add('active');const pane=document.getElementById('cfg-pane-'+tab);if(pane){pane.classList.add('active');pane.style.display='block';}if(tab==='twofa')loadTwofaPanel();if(tab==='bank')loadBankAccounts();}
+function switchCfgTab(tab){document.querySelectorAll('.cfg-tab').forEach(b=>b.classList.remove('active'));document.querySelectorAll('.cfg-pane').forEach(p=>{p.classList.remove('active');p.style.display='none';});document.getElementById('cfg-tab-'+tab)?.classList.add('active');const pane=document.getElementById('cfg-pane-'+tab);if(pane){pane.classList.add('active');pane.style.display='block';}if(tab==='twofa')loadTwofaPanel();if(tab==='bank')loadBankAccounts();if(tab==='referral'){loadRefRateLevels();loadBetLevels();}if(tab==='features')loadFeatureFlags();}
 
 // ── SECURITY LOG ──
 async function _logLoginActivity(u,role,r){
@@ -7544,6 +7785,11 @@ function updateActPreview(){
 }
 
 async function sendActivity(){
+  // เช็ค feature flag
+  if(typeof isFeatureEnabled==='function'){
+    const enabled=await isFeatureEnabled('activityReward');
+    if(!enabled){ showToast('⚠️ ระบบกิจกรรมถูกปิดอยู่ — เปิดได้ที่ ตั้งค่า → ระบบ & โปรโมชั่น','error'); return; }
+  }
   var name=(document.getElementById('act-name')?.value||'').trim();
   if(!name){ showToast('⚠️ กรุณาตั้งชื่อกิจกรรมครับ'); return; }
   var rewards=_actGetRewards();
