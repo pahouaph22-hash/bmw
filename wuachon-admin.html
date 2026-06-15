@@ -6429,13 +6429,34 @@ async function showReferredList(referrer){
   }catch(e){ showToast('❌ โหลดรายชื่อไม่สำเร็จ: '+(e.message||e)); }
 }
 async function loadActivityPanel(){
-  var tb=document.getElementById('activity-log-tbody');if(!tb)return;
+  // render แถวกรอกรางวัล VIP (ฟอร์มสร้างกิจกรรม)
+  try{ renderActVipRows(); }catch(_){}
+  var list=document.getElementById('act-logs-list');if(!list)return;
   try{
     var res=await sb.from('staff_logs').select('*').eq('action','activity_reward').order('created_at',{ascending:false}).limit(100);
     var rows=res.data||[];
-    if(!rows.length){tb.innerHTML='<tr><td colspan="5" style="text-align:center;padding:24px;color:#aaa;">ยังไม่มี</td></tr>';return;}
-    tb.innerHTML=rows.map(function(r2){return'<tr><td style="font-size:11px;color:#888">'+fmtDate(r2.created_at)+'</td><td style="font-weight:700">'+(r2.admin||'—')+'</td><td style="cursor:pointer;color:var(--green)" onclick="openMember(\''+( r2.nick||'')+'\')">'+( r2.nick||'—')+'</td><td style="font-weight:700;color:#16a34a">'+( r2.amount?Number(r2.amount).toLocaleString()+' ₭':'—')+'</td><td style="font-size:11px;color:#888">'+(r2.note||'—')+'</td></tr>';}).join('');
-  }catch(e){}
+    // สถิติรวม
+    var stTotal=document.getElementById('act-stat-total');
+    var stAmount=document.getElementById('act-stat-amount');
+    var stMembers=document.getElementById('act-stat-members');
+    var totalAmt=0,totalMem=0;
+    rows.forEach(function(r){
+      var d=r.detail||'';
+      var am=d.match(/รวม\s*([\d,]+)\s*₭/); if(am) totalAmt+=parseInt(am[1].replace(/,/g,''));
+      var cm=d.match(/แจกรางวัล\s*([\d,]+)\s*คน/); if(cm) totalMem+=parseInt(cm[1].replace(/,/g,''));
+    });
+    if(stTotal)stTotal.textContent=rows.length;
+    if(stAmount)stAmount.textContent=totalAmt.toLocaleString();
+    if(stMembers)stMembers.textContent=totalMem.toLocaleString();
+
+    if(!rows.length){list.innerHTML='<div style="text-align:center;padding:32px;color:#aaa;font-family:Kanit,sans-serif;">ยังไม่มีกิจกรรมครับ</div>';return;}
+    list.innerHTML=rows.map(function(r){
+      return '<div style="background:#faf9f7;border:1px solid #eee;border-radius:10px;padding:12px 16px;margin-bottom:8px;">'+
+        '<div style="font-family:Kanit,sans-serif;font-size:14px;font-weight:700;color:#374151;">'+(r.detail||'—')+'</div>'+
+        '<div style="font-size:11px;color:#9ca3af;margin-top:4px;">⏰ '+fmtDate(r.created_at)+' · 👤 '+(r.staff_username||'—')+'</div>'+
+      '</div>';
+    }).join('');
+  }catch(e){ list.innerHTML='<div style="text-align:center;color:#dc2626;padding:20px;">❌ '+e.message+'</div>'; }
 }
 function loadActivityLogs(){loadActivityPanel();}
 async function loadRefRateLevels(){try{const r=await sb.from('settings').select('value').eq('key','referralRate').maybeSingle();const rate=r.data?.value||0.05;const el=document.getElementById('set-ref-rate');if(el)el.value=(rate*100).toFixed(1);}catch(e){}}
@@ -7434,7 +7455,120 @@ function _refLogMonth(){const d=new Date();const m=String(d.getMonth()+1).padSta
 function _refLogClear(){const f=document.getElementById('ref-log-from'),to=document.getElementById('ref-log-to');if(f)f.value='';if(to)to.value='';loadRefCommissionLogs();}
 function switchSubNav(p,s){document.querySelectorAll('#panel-'+p+' .match-sec').forEach(x=>x.classList.remove('active'));document.querySelectorAll('#panel-'+p+' .sub-nav-item').forEach(i=>i.classList.remove('active'));document.getElementById('sec-'+s)?.classList.add('active');document.querySelector('[data-sec="'+s+'"]')?.classList.add('active');}
 function switchActSec(sec){document.querySelectorAll('#panel-activity .match-sec').forEach(s=>s.classList.remove('active'));document.querySelectorAll('#panel-activity .match-nav-item').forEach(i=>i.classList.remove('active'));document.getElementById('act-sec-'+sec)?.classList.add('active');document.getElementById('anav-'+sec)?.classList.add('active');}
-function sendActivity(){showToast('กำลังส่ง...');}
+// ── render แถวกรอกเงินรางวัลแต่ละระดับ VIP ──
+function renderActVipRows(){
+  var wrap=document.getElementById('act-vip-rows');
+  if(!wrap)return;
+  var levels=(_vipLevels&&_vipLevels.length)?_vipLevels:VIP_DEFAULTS;
+  var rows=[{tier:0,name:'ทั่วไป',icon:'🪨'}].concat(levels);
+  wrap.innerHTML=rows.map(function(lv){
+    return '<div style="display:flex;align-items:center;gap:10px;background:#faf9f7;border:1px solid #eee;border-radius:8px;padding:8px 12px;">'+
+      '<div style="width:130px;font-family:Kanit,sans-serif;font-size:13px;font-weight:700;">'+lv.icon+' '+lv.name+'</div>'+
+      '<input type="number" min="0" id="act-vip-'+lv.tier+'" placeholder="0" oninput="updateActPreview()" '+
+        'style="flex:1;padding:8px 12px;border:1px solid #e0e0e0;border-radius:7px;font-size:14px;font-family:Kanit,sans-serif;"> '+
+      '<span style="font-size:12px;color:#888;">₭</span>'+
+    '</div>';
+  }).join('');
+  var ct=document.getElementById('act-custom-tiers');
+  if(ct){
+    ct.innerHTML=rows.map(function(lv){
+      return '<label style="display:flex;align-items:center;gap:5px;cursor:pointer;font-size:12px;padding:5px 10px;border:1px solid #e0e0e0;border-radius:6px;background:#fff;">'+
+        '<input type="checkbox" class="act-tier-cb" value="'+lv.tier+'" onchange="updateActPreview()"> '+lv.icon+' '+lv.name+'</label>';
+    }).join('');
+  }
+}
+
+function _actGetRewards(){
+  var levels=(_vipLevels&&_vipLevels.length)?_vipLevels:VIP_DEFAULTS;
+  var rows=[{tier:0,name:'ทั่วไป',icon:'🪨',min:0}].concat(levels);
+  var map={};
+  rows.forEach(function(lv){
+    var v=Number(document.getElementById('act-vip-'+lv.tier)?.value||0);
+    if(v>0) map[lv.tier]={amount:v,name:lv.name,icon:lv.icon};
+  });
+  return map;
+}
+
+function updateActPreview(){
+  var target=document.querySelector('input[name="act-target"]:checked')?.value||'all';
+  var ctWrap=document.getElementById('act-custom-tiers');
+  if(ctWrap) ctWrap.style.display = (target==='custom')?'flex':'none';
+  var rewards=_actGetRewards();
+  var box=document.getElementById('act-preview-box');
+  var content=document.getElementById('act-preview-content');
+  if(!box||!content)return;
+  var keys=Object.keys(rewards);
+  if(!keys.length){ box.style.display='none'; return; }
+  box.style.display='block';
+  var html=keys.map(function(t){
+    return '<div>'+rewards[t].icon+' '+rewards[t].name+' → +'+rewards[t].amount.toLocaleString()+' ₭</div>';
+  }).join('');
+  var tg=target==='all'?'ทุกระดับ':target==='vip_only'?'เฉพาะ VIP (Bronze+)':'เฉพาะระดับที่เลือก';
+  content.innerHTML=html+'<div style="margin-top:6px;color:#16a34a;font-weight:700;">กลุ่มเป้าหมาย: '+tg+'</div>';
+}
+
+async function sendActivity(){
+  var name=(document.getElementById('act-name')?.value||'').trim();
+  if(!name){ showToast('⚠️ กรุณาตั้งชื่อกิจกรรมครับ'); return; }
+  var rewards=_actGetRewards();
+  if(!Object.keys(rewards).length){ showToast('⚠️ กรุณากรอกเงินรางวัลอย่างน้อย 1 ระดับครับ'); return; }
+
+  var target=document.querySelector('input[name="act-target"]:checked')?.value||'all';
+  var customTiers=[];
+  if(target==='custom'){
+    document.querySelectorAll('.act-tier-cb:checked').forEach(function(cb){customTiers.push(Number(cb.value));});
+    if(!customTiers.length){ showToast('⚠️ กรุณาเลือกระดับที่จะรับรางวัลครับ'); return; }
+  }
+
+  if(!confirm('ยืนยันส่งรางวัล "'+name+'" ใช่ไหมครับ?\nยอดเงินจะเข้าบัญชีสมาชิกทันที')) return;
+
+  var btn=document.getElementById('act-send-btn');
+  if(btn){btn.disabled=true;btn.textContent='⏳ กำลังส่งรางวัล...';}
+
+  try{
+    var memRes=await sb.from('members').select('nick');
+    var members=memRes.data||[];
+    var depRes=await sb.from('deposits').select('nick,amount').eq('status','approved');
+    var depM={};(depRes.data||[]).forEach(function(d){depM[d.nick]=(depM[d.nick]||0)+Number(d.amount||0);});
+
+    var sent=0,totalAmt=0;
+    for(var i=0;i<members.length;i++){
+      var m=members[i];
+      var totalDep=depM[m.nick]||0;
+      var vip=getVipLevel(totalDep);
+      var tier=vip.tier||0;
+      if(target==='vip_only' && tier<1) continue;
+      if(target==='custom' && customTiers.indexOf(tier)===-1) continue;
+      var reward=rewards[tier];
+      if(!reward||reward.amount<=0) continue;
+      var rtxn='ACT-'+Date.now()+'-'+i;
+      await sb.rpc('adjust_member_balance',{
+        p_nick:m.nick, p_delta:reward.amount,
+        p_type:'activity_reward',
+        p_note:'รางวัลกิจกรรม: '+name,
+        p_txn:rtxn,
+      });
+      sent++; totalAmt+=reward.amount;
+    }
+
+    try{
+      await sb.from('staff_logs').insert({
+        staff_username:_adminNick(),
+        action:'activity_reward',
+        detail:'กิจกรรม "'+name+'" แจกรางวัล '+sent+' คน รวม '+totalAmt.toLocaleString()+' ₭ (กลุ่ม: '+target+')',
+      });
+    }catch(_){}
+
+    showToast('✅ ส่งรางวัล "'+name+'" สำเร็จ! '+sent+' คน รวม '+totalAmt.toLocaleString()+' ₭');
+    document.getElementById('act-name').value='';
+    renderActVipRows();
+    var box=document.getElementById('act-preview-box');if(box)box.style.display='none';
+  }catch(e){
+    showToast('❌ ส่งรางวัลไม่สำเร็จ: '+(e.message||e));
+  }finally{
+    if(btn){btn.disabled=false;btn.textContent='🚀 ส่งรางวัลให้สมาชิกทันที';}
+  }
+}
 function switchVerdictSport(s){} function switchVerdictFootballSec(s){} function addFootballMatch(){showToast('กำลังพัฒนา');} function switchAddSport(s){} function resetVerdict(){loadVerdict();}
 function saveTxLimits(){saveSettings('fee');} function loadTxLimits(){loadSettings();} function saveRefRateLevels(){saveSettings('referral');} function previewRefExample(){}
 async function addBankAccount(){
@@ -7656,7 +7790,7 @@ function previewHeroBull(inp) {
 // Live preview placeholders — values are already shown in their input fields,
 // so a separate preview pane is optional. Defined as safe no-ops.
 function updateSitePreview() {}
-function updateActPreview()  {}
+
 function updateTxPreview()   {}
 
 

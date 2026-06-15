@@ -7555,7 +7555,7 @@ setInterval(() => {
       sb.from('deposits').select('txn,amount,bank,status,reason,created_at,approved_at,approved_by').eq('nick', nick).order('created_at', { ascending: false }).limit(50),
       sb.from('withdrawals').select('txn,amount,bank,status,reason,created_at,approved_at,approved_by').eq('nick', nick).order('created_at', { ascending: false }).limit(50),
       sb.from('bets').select('txn,amount,odds,side_name,status,match_status,order_amount,matched_amount,created_at').eq('nick', nick).order('created_at', { ascending: false }).limit(80),
-      sb.from('balance_logs').select('type,delta,balance_after,note,created_at').eq('nick', nick).in('type',['admin_adjust','referral_commission']).order('created_at', { ascending: false }).limit(80),
+      sb.from('balance_logs').select('type,delta,balance_after,note,created_at').eq('nick', nick).in('type',['admin_adjust','referral_commission','activity_reward']).order('created_at', { ascending: false }).limit(80),
     ]);
 
     const FEE = (typeof FEE_RATE !== 'undefined') ? FEE_RATE : 0.07;
@@ -7613,9 +7613,10 @@ setInterval(() => {
     (adjLogs.data || []).forEach(g => {
       const delta = Number(g.delta || 0);
       const isCom = g.type === 'referral_commission';
+      const isAct = g.type === 'activity_reward';
       rows.push({
-        cat: g.type, icon: isCom ? '🎁' : '⚙️', cls: delta >= 0 ? 'dep' : 'with',
-        label: isCom ? 'ค่าคอมแนะนำเพื่อน' : 'ปรับยอดโดยระบบ',
+        cat: g.type, icon: isCom ? '🎁' : isAct ? '🎉' : '⚙️', cls: delta >= 0 ? 'dep' : 'with',
+        label: isCom ? 'ค่าคอมแนะนำเพื่อน' : isAct ? 'รางวัลกิจกรรม' : 'ปรับยอดโดยระบบ',
         sub: g.note || '', txn:null, at: g.created_at,
         sign: delta >= 0 ? '+' : '-', amount: Math.abs(delta),
         status: g.type, balance_after: g.balance_after,
@@ -7653,6 +7654,8 @@ setInterval(() => {
         statusHtml = `<div style="font-size:10px;color:var(--gold);font-family:Kanit,sans-serif;margin-top:2px;">⚙️ ปรับโดยแอดมิน</div>`;
       } else if (r.status === 'referral_commission') {
         statusHtml = `<div style="font-size:10px;color:var(--accent);font-family:Kanit,sans-serif;margin-top:2px;">🎁 ค่าคอมแนะนำเพื่อน</div>`;
+      } else if (r.status === 'activity_reward') {
+        statusHtml = `<div style="font-size:10px;color:var(--gold);font-family:Kanit,sans-serif;margin-top:2px;">🎉 รางวัลกิจกรรม</div>`;
       }
       // ยอดคงเหลือหลังทำรายการ (เฉพาะที่มีข้อมูล)
       const balAfterHtml = (typeof r.balance_after !== 'undefined' && r.balance_after !== null)
