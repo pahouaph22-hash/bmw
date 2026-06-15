@@ -8920,40 +8920,26 @@ setInterval(() => {
     const txn      = '7' + Array.from({length:8},()=>Math.floor(Math.random()*10)).join('');
     const nick     = currentUser.nick;
 
-    // ── หักเงินแบบ atomic check-and-deduct ที่ DB ──
-    // RPC จะเช็คยอดจริงใน DB + หักในคำสั่งเดียว → กันวางเกินยอด/วางซ้ำเด็ดขาด
-    let newBal;
-    const { data: dd, error: balErr } = await sb.rpc('deduct_for_bet', {
-      p_nick: nick, p_amount: amount
-    });
-    if (balErr && (balErr.message||'').includes('does not exist')) {
-      // ── Fallback: RPC deduct_for_bet ยังไม่ถูกสร้าง → ใช้ adjust_member_balance + เช็คยอดสด ──
-      const { data: freshRows } = await sb.rpc('get_member_by_nick', { p_nick: nick });
-      const freshBal = Number(freshRows?.[0]?.balance || 0);
-      if (amount > freshBal) {
-        if (currentUser) currentUser.balance = freshBal;
-        updateAccBalance(freshBal); updateBetBalanceHints();
-        showFEToast(`⚠️ ยอดเงินไม่เพียงพอครับ (เหลือ ${freshBal.toLocaleString()} ₭)`);
-        return;
-      }
-      const { data: adj, error: adjErr } = await sb.rpc('adjust_member_balance', { p_nick: nick, p_delta: -amount });
-      if (adjErr || !adj || !adj.length) {
-        showFEToast('❌ หักยอดไม่สำเร็จ กรุณาลองใหม่ครับ'); return;
-      }
-      newBal = Number(adj[0].new_balance || 0);
-    } else if (balErr) {
-      showFEToast('❌ หักยอดไม่สำเร็จ: ' + balErr.message); return;
-    } else if (!dd || !dd.length || !dd[0].ok) {
-      // DB ปฏิเสธ (ยอดไม่พอจริง) — sync ยอดล่าสุดกลับมาแสดง
-      const realBal = (dd && dd.length) ? Number(dd[0].new_balance || 0) : bal;
-      if (currentUser) currentUser.balance = realBal;
-      updateAccBalance(realBal);
-      updateBetBalanceHints();
-      showFEToast(`⚠️ ยอดเงินไม่เพียงพอครับ (เหลือ ${realBal.toLocaleString()} ₭)`);
-      return;
-    } else {
-      newBal = Number(dd[0].new_balance || 0);
+    // ── เช็คยอดสดจาก DB แล้วหักทันที (เรียบง่าย + ไว้ใจได้) ──
+    // 1) ดึงยอดล่าสุดจาก DB (กันยอด cache เก่า)
+    const { data: freshRows, error: freshErr } = await sb.rpc('get_member_by_nick', { p_nick: nick });
+    if (freshErr || !freshRows || !freshRows.length) {
+      showFEToast('❌ ตรวจสอบยอดเงินไม่สำเร็จ กรุณาลองใหม่ครับ'); return;
     }
+    const freshBal = Number(freshRows[0].balance || 0);
+    // 2) ยอดไม่พอ → ปฏิเสธ (วางเกินยอดไม่ได้)
+    if (amount > freshBal) {
+      if (currentUser) currentUser.balance = freshBal;
+      updateAccBalance(freshBal); updateBetBalanceHints();
+      showFEToast(`⚠️ ยอดเงินไม่เพียงพอครับ (เหลือ ${freshBal.toLocaleString()} ₭)`);
+      return;
+    }
+    // 3) หักเงินทันที (atomic ผ่าน RPC ที่ทำงานชัวร์)
+    const { data: adj, error: adjErr } = await sb.rpc('adjust_member_balance', { p_nick: nick, p_delta: -amount });
+    if (adjErr || !adj || !adj.length) {
+      showFEToast('❌ หักยอดไม่สำเร็จ กรุณาลองใหม่ครับ'); return;
+    }
+    const newBal = Number(adj[0].new_balance || 0);
     updateAccBalance(newBal);
     currentUser.balance = newBal;
     window._currentUser = currentUser;
@@ -9114,22 +9100,23 @@ setInterval(() => {
 
     if (!confirm(`ยืนยันจับคู่?\n\nจับ: ${ownerNick} (${sideName})\nจำนวน: ${actualJoin.toLocaleString()} ₭\nอัตรา: 1:${odds}\nหากชนะได้รับ: ${Number(potential).toLocaleString()} ₭`)) return;
 
-    // หักเงินแบบ atomic check-and-deduct (กันวางเกินยอด/วางซ้ำ)
-    const { data: jdd, error: jErr } = await sb.rpc('deduct_for_bet', {
-      p_nick: nick, p_amount: actualJoin
-    });
-    if (jErr) {
-      showFEToast('❌ หักยอดไม่สำเร็จ: ' + jErr.message); return;
+    // ── เช็คยอดสด + หักทันที (เรียบง่าย + ไว้ใจได้) ──
+    const { data: jFresh, error: jFreshErr } = await sb.rpc('get_member_by_nick', { p_nick: nick });
+    if (jFreshErr || !jFresh || !jFresh.length) {
+      showFEToast('❌ ตรวจสอบยอดเงินไม่สำเร็จ กรุณาลองใหม่ครับ'); return;
     }
-    if (!jdd || !jdd.length || !jdd[0].ok) {
-      const realBal = (jdd && jdd.length) ? Number(jdd[0].new_balance || 0) : (currentUser?.balance || 0);
-      if (currentUser) currentUser.balance = realBal;
-      updateAccBalance(realBal);
-      updateBetBalanceHints();
-      showFEToast(`⚠️ ยอดเงินไม่เพียงพอครับ (เหลือ ${realBal.toLocaleString()} ₭)`);
+    const jFreshBal = Number(jFresh[0].balance || 0);
+    if (actualJoin > jFreshBal) {
+      if (currentUser) currentUser.balance = jFreshBal;
+      updateAccBalance(jFreshBal); updateBetBalanceHints();
+      showFEToast(`⚠️ ยอดเงินไม่เพียงพอครับ (เหลือ ${jFreshBal.toLocaleString()} ₭)`);
       return;
     }
-    const jNewBal = Number(jdd[0].new_balance || 0);
+    const { data: jadj, error: jErr } = await sb.rpc('adjust_member_balance', { p_nick: nick, p_delta: -actualJoin });
+    if (jErr || !jadj || !jadj.length) {
+      showFEToast('❌ หักยอดไม่สำเร็จ กรุณาลองใหม่ครับ'); return;
+    }
+    const jNewBal = Number(jadj[0].new_balance || 0);
     updateAccBalance(jNewBal);
     currentUser.balance = jNewBal;
     window._currentUser = currentUser;
