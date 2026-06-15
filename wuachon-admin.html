@@ -4926,16 +4926,16 @@ async function payoutBets(matchId, winner, FEE_RATE = 0.07) {
   let totalFee  = 0;  // สะสม fee จริงจากแต่ละ bet
   let totalPaid = 0;
 
-  // จ่ายผู้ชนะ: คืนเงินต้น + กำไรสุทธิ (หลังหัก fee จากกำไรส่วนที่จับคู่แล้ว)
+  // จ่ายผู้ชนะ: คืนเงินต้นส่วนที่จับคู่ + กำไรสุทธิ (หัก fee จากกำไร)
+  // หมายเหตุ: ใช้ matched (ไม่ใช่ amount เต็ม) เพราะส่วน remaining คืนแยกด้านล่าง
   for (const bet of winnerBets) {
-    const stake    = Number(bet.amount || 0);
-    const matched  = Number(bet.matched_amount || 0);
-    const odds     = Number(bet.odds || 1);
-    const profit   = Math.floor(matched * odds);
+    const matched     = Number(bet.matched_amount || 0);
+    const odds        = Number(bet.odds || 1);
+    const profit      = Math.floor(matched * (odds - 1)); // กำไรสุทธิ = ทุน×(odds-1)
     const feeOnProfit = Math.floor(profit * FEE_RATE);
-    const netReturn   = stake + profit - feeOnProfit;
+    const netReturn   = matched + profit - feeOnProfit;    // เงินต้นที่จับ + กำไร - fee
 
-    totalPool += stake;
+    totalPool += matched;
     totalFee  += feeOnProfit;
     totalPaid += netReturn;
     payMap.set(bet.nick, (payMap.get(bet.nick) || 0) + netReturn);
