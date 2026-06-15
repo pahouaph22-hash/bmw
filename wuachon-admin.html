@@ -5525,7 +5525,7 @@ async function loadFinanceTable() {
     }, { members:0, depReal:0, withTotal:0, netFlow:0, profit:0, feeTotal:0, rewardTotal:0 });
 
     const fmt  = function(n) { return Number(n).toLocaleString('th-TH', {maximumFractionDigits:0}); };
-    const fmtK = function(n) { var k = Number(n); return Math.abs(k) >= 1000 ? (k/1000).toFixed(1)+'K' : fmt(k); };
+    const fmtK = function(n) { return Number(n).toLocaleString('th-TH', {maximumFractionDigits:0}); };
 
     const renderRow = function(r, isTotals) {
       const profitColor = r.profit >= 0 ? '#16a34a' : '#dc2626';
@@ -6197,7 +6197,7 @@ function filterDeposits(){
     return[
       '<tr>',
       '<td style="font-weight:700;cursor:pointer;color:var(--green)" onclick="openMember(\''+( d.nick||'')+'\')">'+( d.nick||'—')+'</td>',
-      '<td style="text-align:right;font-weight:700;color:#16a34a">'+(a/1000).toFixed(1)+'K</td>',
+      '<td style="text-align:right;font-weight:700;color:#16a34a">'+Number(a).toLocaleString()+'</td>',
       '<td style="font-size:12px">'+(d.bank||'—')+'</td>',
       '<td style="font-size:11px;color:#888">'+(d.txn||'—')+'</td>',
       '<td style="text-align:center">'+slip+'</td>',
@@ -6297,7 +6297,7 @@ function filterWithdrawals(){
     return[
       '<tr>',
       '<td style="font-weight:700;cursor:pointer;color:var(--green)" onclick="openMember(\''+( w.nick||'')+'\')">'+( w.nick||'—')+'</td>',
-      '<td style="text-align:right;font-weight:700;color:#3b82f6">'+(a/1000).toFixed(1)+'K ₭</td>',
+      '<td style="text-align:right;font-weight:700;color:#3b82f6">'+Number(a).toLocaleString()+' ₭</td>',
       '<td style="font-size:12px">'+(w.bank||'—')+'</td>',
       '<td style="font-size:12px;color:#555">'+(w.acc_no||'—')+'</td>',
       '<td style="font-size:11px;color:#888">'+(w.txn||'—')+'</td>',
