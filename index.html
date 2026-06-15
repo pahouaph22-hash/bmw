@@ -5895,6 +5895,24 @@ function applyLang() {
         }
       })
       .on('postgres_changes', {
+        event: 'INSERT', schema: 'public', table: 'balance_logs'
+      }, payload => {
+        const l = payload.new;
+        if (l.nick !== nick) return;
+        if (l.type === 'referral_commission') {
+          const amt = Number(l.delta||0).toLocaleString();
+          const acc = (l.balance_after!=null) ? Number(l.balance_after).toLocaleString() : null;
+          refreshBalance();
+          addNotification('🎁', 'ได้รับค่าคอมมิชชัน!',
+            `+${amt} ₭ · ${l.note||'ค่าคอมแนะนำเพื่อน'}${acc?` · ยอดคงเหลือ ${acc} ₭`:''}`,
+            'success');
+          showFEToast(`🎁 ได้รับค่าคอม +${amt} ₭ จากการแนะนำเพื่อน!`);
+          _showRewardPopup('🎁', 'ค่าคอมมิชชัน', l.note||'ค่าคอมแนะนำเพื่อน', Number(l.delta||0));
+          loadTxnHistory();
+          if (typeof loadReferralTab === 'function') loadReferralTab();
+        }
+      })
+      .on('postgres_changes', {
         event: 'UPDATE', schema: 'public', table: 'members'
       }, payload => {
         const m = payload.new;
@@ -6822,6 +6840,25 @@ function applyLang() {
         });
       }
     }
+
+    // ── ค่าคอมแนะนำเพื่อน (จาก balance_logs) ──
+    try {
+      const { data: comLogs } = await sb.from('balance_logs')
+        .select('delta,balance_after,note,created_at,ref_txn')
+        .eq('nick', nick).eq('type','referral_commission')
+        .order('created_at',{ascending:false}).limit(30);
+      for (const c of (comLogs||[])) {
+        const amt = Number(c.delta||0).toLocaleString();
+        const acc = (c.balance_after!=null) ? Number(c.balance_after).toLocaleString() : null;
+        histNotifs.push({
+          id: 'hist-com-'+c.created_at,
+          icon: '🎁', title: 'ได้รับค่าคอมมิชชัน!',
+          sub: `+${amt} ₭ · ${c.note||'ค่าคอมแนะนำเพื่อน'}${acc?` · ยอดคงเหลือ ${acc} ₭`:''}`,
+          type: 'success', slip_url: '',
+          time: new Date(c.created_at), unread: false
+        });
+      }
+    } catch(_) {}
 
     // เรียงและ merge กับ notifications ใน memory
     histNotifs.sort((a,b) => b.time - a.time);
