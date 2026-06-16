@@ -3448,6 +3448,7 @@ function loadAll() {
   loadNews();
   loadSettings();
   loadVipSettings();
+  _refreshVipFlag();
   loadRefRateLevels();
   ensureFlagColumns();
   subscribeNotifications();
@@ -3780,9 +3781,21 @@ const VIP_DEFAULTS = [
   { tier:6, name:'Crown',    icon:'👑', min:150000, color:'#b45309' },
 ];
 let _vipLevels = [...VIP_DEFAULTS]; // โหลดจาก settings ทับทีหลัง
+let _vipEnabled = true;             // cache flag — โหลดจาก featureFlags
+
+// โหลดสถานะ vipSystem (เรียกตอนเริ่มระบบ + ตอนบันทึก flag)
+async function _refreshVipFlag(){
+  try{
+    const r=await sb.from('settings').select('value').eq('key','featureFlags').maybeSingle();
+    const flags=r.data?.value?.flags||{};
+    _vipEnabled = flags.vipSystem !== false;  // default เปิด
+  }catch(e){ _vipEnabled = true; }
+}
 
 function getVipLevel(totalDep) {
-  let result = { tier:0, name:'ทั่วไป', icon:'🪨', min:0, color:'#9ca3af' };
+  const base = { tier:0, name:'ทั่วไป', icon:'🪨', min:0, color:'#9ca3af' };
+  if (!_vipEnabled) return base;   // ปิดระบบ VIP → ทุกคนเป็น "ทั่วไป"
+  let result = base;
   for (const lv of _vipLevels) {
     if (totalDep >= lv.min) result = lv;
   }
@@ -6709,6 +6722,7 @@ async function saveFeatureFlags(){
   const {error}=await sb.from('settings').upsert({key:'featureFlags',value:{flags,promoStart,promoEnd}});
   if(error){showToast('❌ '+error.message,'error');return;}
   _featureFlags=flags;
+  _vipEnabled = flags.vipSystem !== false;   // อัปเดต cache VIP ทันที
   showToast('💾 บันทึกการตั้งค่าระบบ ✅ มีผลทันที');
 }
 

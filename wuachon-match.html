@@ -483,6 +483,20 @@ const SUPA_URL = 'https://xzlpdeqlfczjkospfqqi.supabase.co';
 const SUPA_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inh6bHBkZXFsZmN6amtvc3BmcXFpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzk2NzgyMjAsImV4cCI6MjA5NTI1NDIyMH0.W0pDFJy3lFeO4ht9DpNzeDgVdGvSz94p0KWGfzc0Igw';
 const sb = supabase.createClient(SUPA_URL, SUPA_KEY);
 
+// helper เช็ค feature flag (เปิด/ปิดระบบจากหลังบ้าน)
+async function _isFeatureEnabled(key) {
+  try {
+    const r = await sb.from('settings').select('value').eq('key','featureFlags').maybeSingle();
+    const v = r.data?.value || {};
+    const flags = v.flags || {};
+    if (flags[key] === false) return false;
+    const now = new Date();
+    if (v.promoStart && now < new Date(v.promoStart)) return false;
+    if (v.promoEnd && now > new Date(v.promoEnd)) return false;
+    return true;
+  } catch(e) { return true; }  // error → default เปิด (ไม่บล็อก)
+}
+
 const matchId = new URLSearchParams(location.search).get('id');
 if (!matchId) {
   document.addEventListener('DOMContentLoaded', () => {
@@ -898,6 +912,8 @@ async function joinBet(betId, oppNick, oppSide, oppOdds) {
   // oppOdds = b.odds = den/num ที่บันทึกใน DB
   // เช่น ต่อ 10/8 → odds=0.8, รอง 8/10 → odds=1.25
   if (!currentUser) { showToast('กรุณาเข้าสู่ระบบก่อนครับ'); return; }
+  // เช็คว่าระบบเดิมพัน P2P เปิดอยู่ไหม
+  if (!(await _isFeatureEnabled('p2pBetting'))) { showToast('⚠️ ระบบเดิมพันปิดให้บริการชั่วคราวครับ'); return; }
   if (currentUser.nick===oppNick) { showToast('ไม่สามารถรับคู่ของตัวเองได้ครับ'); return; }
   if (normalizeStatus(matchData?.status)!=='upcoming') { showToast('ปิดรับเดิมพันแล้วครับ'); return; }
 
@@ -951,10 +967,14 @@ async function joinBet(betId, oppNick, oppSide, oppOdds) {
   }).eq('id', betId);
 
   // สร้าง bet B
+  // ⚠️ odds ของผู้รับคู่ = ส่วนกลับของ oppOdds (ผู้รับได้กำไรฝั่งตรงข้าม)
+  //   เช่น de112233 ต่อ odds=0.8 → Q1 รอง odds = 1/0.8 = 1.25
+  //   Q1 ลง joinAmt → กำไร = joinAmt × (1/oppOdds) = ownerStakeUsed (เงิน A ที่ถูกจับ)
+  const myOdds = oppOdds > 0 ? (1 / oppOdds) : 0;
   await sb.from('bets').insert({
     match_id:matchId, nick:currentUser.nick,
     side:mySide, side_name:mySideName,
-    amount:joinAmt, odds:oppOdds, txn,
+    amount:joinAmt, odds:myOdds, txn,
     status:'matched', match_status:'full',
     order_amount:joinAmt, matched_amount:joinAmt, remaining_amount:0,
     parent_bet_id:betId,
@@ -1133,6 +1153,8 @@ function calcBdPreview() {
 
 async function submitBetDetail() {
   if (!currentUser) { showToast('กรุณาเข้าสู่ระบบก่อนครับ'); return; }
+  // เช็คว่าระบบเดิมพัน P2P เปิดอยู่ไหม
+  if (!(await _isFeatureEnabled('p2pBetting'))) { showToast('⚠️ ระบบเดิมพันปิดให้บริการชั่วคราวครับ'); return; }
   if (normalizeStatus(matchData?.status)!=='upcoming') { showToast('ปิดรับเดิมพันแล้วครับ'); return; }
   const amount = parseFloat(document.getElementById('bd-amt')?.value);
   if (!amount||amount<10) { showToast('ขั้นต่ำ 10 ₭ครับ'); return; }
