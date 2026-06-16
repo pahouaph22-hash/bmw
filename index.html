@@ -6776,10 +6776,10 @@ function applyLang() {
     if (!currentUser) return;
     const nick = currentUser.nick;
     const [depRes, withRes] = await Promise.all([
-      sb.from('deposits').select('amount,bank,status,slip_url,created_at,approved_at')
+      sb.from('deposits').select('amount,bank,status,created_at,approved_at')
         .eq('nick', nick).neq('status','pending')
         .order('created_at',{ascending:false}).limit(20),
-      sb.from('withdrawals').select('amount,status,slip_url,created_at,approved_at')
+      sb.from('withdrawals').select('amount,status,created_at,approved_at')
         .eq('nick', nick).neq('status','pending')
         .order('created_at',{ascending:false}).limit(20),
     ]);
@@ -6790,13 +6790,11 @@ function applyLang() {
     for (const w of (withRes.data||[])) {
       const amt = Number(w.amount||0).toLocaleString();
       if (w.status === 'approved') {
-        // fetch slip_url ถ้าไม่มีใน row
-        let slip = w.slip_url || '';
         histNotifs.push({
           id: 'hist-w-'+w.created_at,
           icon: '🏧', title: 'โอนเงินสำเร็จ',
-          sub: `−${amt} ₭ โอนเข้าบัญชีของคุณแล้ว${slip?' · มีสลิปแนบ':''}`,
-          type: 'success', slip_url: slip,
+          sub: `−${amt} ₭ โอนเข้าบัญชีของคุณแล้ว`,
+          type: 'success', slip_url: '',
           time: new Date(w.approved_at||w.created_at), unread: false
         });
       } else if (w.status === 'rejected') {
