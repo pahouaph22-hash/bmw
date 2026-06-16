@@ -5044,16 +5044,25 @@ async function payoutBets(matchId, winner, FEE_RATE = 0.07) {
   // ── จ่ายคอมเดิมพัน 5 ชั้น ──
   await payBetCommissions(betTotalByNick, matchId);
 
-  // บันทึกค่าบริการเพื่อ Finance tracking
+  // บันทึกค่าบริการลง balance_logs (type=bet_fee) — สะอาดกว่า ไม่ปนกับ deposits
   if (totalFee > 0) {
     const feePercent = (FEE_RATE * 100).toFixed(1);
-    await sb.from('deposits').insert({
-      nick: 'system',
-      amount: totalFee,
-      bank: 'ค่าบริการ ' + feePercent + '%',
-      status: 'approved',
-      txn: 'FEE-' + matchId + '-' + Date.now(),
-    }).catch(function(e){ console.warn('fee deposit log:', e.message); });
+    const feeTxn = 'FEE-' + matchId + '-' + Date.now();
+    try {
+      // ใช้ adjust_member_balance กับ system nick (delta=0 ไม่กระทบยอด แต่ log ค่าบริการ)
+      // หรือ insert ตรงเข้า balance_logs
+      await sb.from('balance_logs').insert({
+        nick: 'system',
+        type: 'bet_fee',
+        delta: totalFee,
+        balance_before: 0,
+        balance_after: 0,
+        note: 'ค่าบริการเดิมพัน ' + feePercent + '% (แมตช์ ' + matchId + ')',
+        ref_txn: feeTxn,
+      });
+    } catch(e) {
+      console.warn('[fee log]', e.message);
+    }
   }
 
   return { totalPool, fee: totalFee, totalPaid };
