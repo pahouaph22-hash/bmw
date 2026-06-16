@@ -8713,6 +8713,29 @@ setInterval(() => {
     return String(prefix) + Array.from({length:8}, ()=>Math.floor(Math.random()*10)).join('');
   }
 
+  // บีบอัดสลิปก่อนอัปโหลด (ย่อ ≤1400px + JPEG 0.82) — เล็กลงมาก
+  function _compressSlip(file, maxDim=1400, quality=0.82) {
+    return new Promise((resolve) => {
+      if (!file || !file.type?.startsWith('image/')) { resolve(file); return; }
+      const img = new Image();
+      const url = URL.createObjectURL(file);
+      img.onload = () => {
+        URL.revokeObjectURL(url);
+        let { width, height } = img;
+        if (width > maxDim || height > maxDim) {
+          if (width > height) { height = Math.round(height*maxDim/width); width = maxDim; }
+          else                { width = Math.round(width*maxDim/height); height = maxDim; }
+        }
+        const canvas = document.createElement('canvas');
+        canvas.width = width; canvas.height = height;
+        canvas.getContext('2d').drawImage(img, 0, 0, width, height);
+        canvas.toBlob(blob => resolve(blob || file), 'image/jpeg', quality);
+      };
+      img.onerror = () => { URL.revokeObjectURL(url); resolve(file); };
+      img.src = url;
+    });
+  }
+
   window.submitDeposit = window._real_submitDeposit = async function submitDeposit() {
     // ── อ่าน inputs แบบ defensive ──
     const amtEl   = document.getElementById('dep-amount');
@@ -8781,19 +8804,30 @@ setInterval(() => {
       const txn  = genTxnFE(4);
       const nick = currentUser.nick || '';
 
-      // ── Convert สลิปเป็น base64 (ไม่ใช้ Storage เพื่อหลีกเลี่ยง bucket permission) ──
+      // ── อัปโหลดสลิปไป Storage (เบากว่า base64 มาก) + บีบอัดก่อน ──
       let slip_url = '';
       try {
-        slip_url = await new Promise((resolve, reject) => {
-          const reader = new FileReader();
-          reader.onload  = e => resolve(e.target.result);
-          reader.onerror = () => reject(new Error('อ่านไฟล์ไม่ได้'));
-          reader.readAsDataURL(slipFile);
-        });
-      } catch(e) {
-        restoreBtn();
-        showFEToast('⚠️ แปลงไฟล์สลิปไม่ได้: ' + e.message);
-        return;
+        const compressed = await _compressSlip(slipFile);
+        const path = `slips/${nick}-${Date.now()}-${Math.random().toString(36).slice(2,8)}.jpg`;
+        const { error: upErr } = await sb.storage.from('match-images').upload(path, compressed, { upsert: true, contentType: 'image/jpeg' });
+        if (upErr) throw upErr;
+        const { data: urlData } = sb.storage.from('match-images').getPublicUrl(path);
+        slip_url = urlData?.publicUrl || '';
+      } catch(upErr) {
+        // fallback: ถ้า Storage ล้มเหลว → ใช้ base64 (ระบบไม่พัง)
+        console.warn('[slip storage fallback]', upErr.message);
+        try {
+          slip_url = await new Promise((resolve, reject) => {
+            const reader = new FileReader();
+            reader.onload  = e => resolve(e.target.result);
+            reader.onerror = () => reject(new Error('อ่านไฟล์ไม่ได้'));
+            reader.readAsDataURL(slipFile);
+          });
+        } catch(e) {
+          restoreBtn();
+          showFEToast('⚠️ อัปโหลดสลิปไม่ได้: ' + e.message);
+          return;
+        }
       }
 
       // ── ยืนยัน session nick ก่อน INSERT (ป้องกัน RLS block บน mobile) ──

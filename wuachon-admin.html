@@ -288,6 +288,16 @@ tr:hover td{background:#fafafa;}
 
   /* ── Finance table ── */
   table[style*="table-layout:fixed"]{ table-layout:auto !important; }
+
+  /* ── Mobile UX fixes (touch targets + ป้องกัน zoom) ── */
+  /* ปุ่ม action ในตารางใหญ่พอกดบนมือถือ */
+  td button, .card button[onclick]{ min-height:34px; }
+  /* input ขนาด 16px กัน iOS zoom ตอน focus */
+  input[type="text"], input[type="number"], input[type="password"], input[type="tel"], input[type="datetime-local"], select, textarea{ font-size:16px !important; }
+  /* modal เลื่อนได้เต็ม */
+  .member-modal{ overflow-y:auto !important; -webkit-overflow-scrolling:touch; }
+  /* ปุ่มบันทึก/ส่ง เต็มความกว้างกดง่าย */
+  .save-btn{ min-height:44px; }
 }
 
 @media(max-width:480px){
@@ -4994,6 +5004,14 @@ async function doVerdict(matchId, winner, winnerName) {
   if (upErr) { showToast('❌ บันทึกผลไม่สำเร็จ: ' + upErr.message, 'error'); return; }
 
   const result = await payoutBets(matchId, winner, FEE_RATE);
+  // บันทึก audit log การตัดสินผล (action เงินก้อนใหญ่)
+  try {
+    await sb.from('staff_logs').insert({
+      staff_username: _adminNick(),
+      action: 'match_verdict',
+      detail: 'ตัดสินผล: "' + winnerName + '" ชนะ · เงินรวม ' + (result.totalPool||0).toLocaleString() + ' ₭ · ค่าบริการ ' + (result.fee||0).toLocaleString() + ' ₭ · จ่ายผู้ชนะ ' + (result.totalPaid||0).toLocaleString() + ' ₭ (แมตช์ ' + matchId + ') โดย ' + _adminNick(),
+    });
+  } catch(_) {}
   showToast(`✅ ${winnerName} ชนะ! รวม ${result.totalPool.toLocaleString()} ₭ หัก ${feePercent}% = ${result.fee.toLocaleString()} ₭ จ่ายผู้ชนะ ${result.totalPaid.toLocaleString()} ₭`);
   loadVerdict(); loadMatches(); loadBets(); loadOverview(); loadMembers();
 }
@@ -6492,7 +6510,7 @@ async function loadWorklogPanel(){
     var res=await sb.from('staff_logs').select('*').order('created_at',{ascending:false}).limit(200);
     var rows=res.data||[];
     if(!rows.length){tb.innerHTML='<tr><td colspan="6" style="text-align:center;padding:24px;color:#aaa;">ยังไม่มี</td></tr>';return;}
-    var lbl={approve_deposit:'✅ อนุมัติเติมเงิน',reject_deposit:'❌ ปฏิเสธ',approve_withdraw:'✅ โอนเงิน',reject_withdraw:'❌ ปฏิเสธถอน',admin_login:'🔑 Login'};
+    var lbl={approve_deposit:'✅ อนุมัติเติมเงิน',reject_deposit:'❌ ปฏิเสธ',approve_withdraw:'✅ โอนเงิน',reject_withdraw:'❌ ปฏิเสธถอน',admin_login:'🔑 Login',match_verdict:'🏆 ตัดสินผล',balance_add:'➕ เพิ่มยอด',balance_sub:'➖ ลดยอด',activity_reward:'🎉 แจกรางวัล',reset_password:'🔑 รีเซ็ตรหัส'};
     tb.innerHTML=rows.map(function(r2){
       return'<tr><td style="font-size:11px;color:#888">'+fmtDate(r2.created_at)+'</td><td style="font-weight:700;font-size:12px;color:var(--green)">'+(r2.staff_username||r2.admin||'—')+'</td><td style="font-size:12px">'+(lbl[r2.action]||r2.action||'—')+'</td><td style="font-size:12px;cursor:pointer;color:var(--green)" onclick="openMember(\''+(r2.nick||'')+'\')">'+( r2.nick||'—')+'</td><td style="font-size:12px;font-weight:700;color:'+(r2.amount>0?'#16a34a':'#888')+'">'+( r2.amount?Number(r2.amount).toLocaleString()+' ₭':'—')+'</td><td style="font-size:11px;color:#888">'+(r2.detail||r2.note||'—')+'</td></tr>';
     }).join('');
