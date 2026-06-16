@@ -497,6 +497,23 @@ async function _isFeatureEnabled(key) {
   } catch(e) { return true; }  // error → default เปิด (ไม่บล็อก)
 }
 
+// เช็ค flag ระงับของสมาชิก จาก DB สด (กัน flag เก่าใน session) — คืน true ถ้าถูกระงับ
+async function _memberBlockedFromBet() {
+  try {
+    if (!currentUser?.nick) return false;
+    const { data } = await sb.from('members').select('flags').eq('nick', currentUser.nick).maybeSingle();
+    const f = Array.isArray(data?.flags) ? data.flags : [];
+    currentUser.flags = f;  // sync flag ล่าสุด
+    if (f.includes('blacklist') || f.includes('suspend')) {
+      showToast('🚫 บัญชีของคุณถูกระงับการใช้งาน กรุณาติดต่อ Admin ครับ'); return true;
+    }
+    if (f.includes('no_game') || f.includes('cheater')) {
+      showToast('🚫 บัญชีของคุณถูกระงับสิทธิ์การเดิมพัน กรุณาติดต่อ Admin ครับ'); return true;
+    }
+    return false;
+  } catch(e) { return false; }  // error → ไม่บล็อก (กันระบบล่ม)
+}
+
 const matchId = new URLSearchParams(location.search).get('id');
 if (!matchId) {
   document.addEventListener('DOMContentLoaded', () => {
@@ -914,6 +931,8 @@ async function joinBet(betId, oppNick, oppSide, oppOdds) {
   if (!currentUser) { showToast('กรุณาเข้าสู่ระบบก่อนครับ'); return; }
   // เช็คว่าระบบเดิมพัน P2P เปิดอยู่ไหม
   if (!(await _isFeatureEnabled('p2pBetting'))) { showToast('⚠️ ระบบเดิมพันปิดให้บริการชั่วคราวครับ'); return; }
+  // เช็ค flag ระงับของสมาชิก (จาก DB สด)
+  if (await _memberBlockedFromBet()) return;
   if (currentUser.nick===oppNick) { showToast('ไม่สามารถรับคู่ของตัวเองได้ครับ'); return; }
   if (normalizeStatus(matchData?.status)!=='upcoming') { showToast('ปิดรับเดิมพันแล้วครับ'); return; }
 
@@ -1155,6 +1174,8 @@ async function submitBetDetail() {
   if (!currentUser) { showToast('กรุณาเข้าสู่ระบบก่อนครับ'); return; }
   // เช็คว่าระบบเดิมพัน P2P เปิดอยู่ไหม
   if (!(await _isFeatureEnabled('p2pBetting'))) { showToast('⚠️ ระบบเดิมพันปิดให้บริการชั่วคราวครับ'); return; }
+  // เช็ค flag ระงับของสมาชิก (จาก DB สด)
+  if (await _memberBlockedFromBet()) return;
   if (normalizeStatus(matchData?.status)!=='upcoming') { showToast('ปิดรับเดิมพันแล้วครับ'); return; }
   const amount = parseFloat(document.getElementById('bd-amt')?.value);
   if (!amount||amount<10) { showToast('ขั้นต่ำ 10 ₭ครับ'); return; }
