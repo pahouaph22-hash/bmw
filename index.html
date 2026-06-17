@@ -9456,24 +9456,42 @@ setInterval(() => {
       .lt('expires_at', now);
 
     for (const bet of (expired || [])) {
-      const refund = Number(bet.remaining_amount || 0);
+      const refund  = Number(bet.remaining_amount || 0);
+      const matched = Number(bet.matched_amount || 0);
       if (refund <= 0) continue;
 
       // คืนเงินส่วนที่ยังจับคู่ไม่ได้ (atomic RPC)
       await sb.rpc('adjust_member_balance', { p_nick: currentUser.nick, p_delta: refund, p_type: 'bet_refund', p_note: 'คืนเงินหมดเวลา', p_txn: bet.txn });
-      {
+
+      // ── แนวทาง A: คืนเฉพาะส่วนที่ยังไม่จับคู่ (remaining) ──
+      //   ส่วนที่จับคู่แล้ว (matched) ต้องคงสถานะให้ payout ตัดสินผลได้ตามปกติ
+      //   ⚠️ ห้าม set match_status='timeout' ถ้า matched>0 (เคยทำให้ payout มองข้าม = ผู้ชนะไม่ได้เงิน)
+      if (matched > 0) {
+        // มีส่วนจับคู่แล้ว → ปิดเฉพาะส่วน remaining, คง bet ไว้รอผลแมตช์ (status=matched ให้ payout เห็น)
         await sb.from('bets').update({
-          match_status: 'timeout',
           remaining_amount: 0,
-          status: bet.matched_amount > 0 ? 'waiting' : 'refunded',
+          match_status: 'full',
+          status: 'matched',
         }).eq('id', bet.id);
 
-        addNotification('⏰', 'หมดเวลา — คืนเงินบางส่วน',
-          `คืน ${refund.toLocaleString()} ₭ เข้าบัญชีแล้วครับ (จับไปแล้ว ${Number(bet.matched_amount||0).toLocaleString()} ₭)`,
+        addNotification('⏰', 'หมดเวลา — คืนเงินส่วนที่ยังไม่จับคู่',
+          `คืน ${refund.toLocaleString()} ₭ แล้วครับ · ส่วนที่จับคู่แล้ว ${matched.toLocaleString()} ₭ รอผลการแข่งขันตามปกติ`,
+          'info');
+        showFEToast(`⏰ คืนเงินส่วนที่ยังไม่จับคู่ ${refund.toLocaleString()} ₭ · ส่วนที่จับคู่แล้วรอผลครับ`);
+      } else {
+        // ไม่มีส่วนจับคู่เลย → คืนทั้งบิล ปิด bet
+        await sb.from('bets').update({
+          remaining_amount: 0,
+          match_status: 'timeout',
+          status: 'refunded',
+        }).eq('id', bet.id);
+
+        addNotification('⏰', 'หมดเวลา — คืนเงินเต็มจำนวน',
+          `ไม่มีคู่จับ คืน ${refund.toLocaleString()} ₭ เข้าบัญชีแล้วครับ`,
           'info');
         showFEToast(`⏰ หมดเวลา — คืนเงิน ${refund.toLocaleString()} ₭ แล้วครับ`);
-        refreshBalance();
       }
+      refreshBalance();
     }
   }
 

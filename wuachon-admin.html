@@ -5054,7 +5054,17 @@ async function payoutBets(matchId, winner, FEE_RATE = 0.07) {
 
   // bet ที่ยัง active (ยังไม่ถูกจ่าย/ตัดสิน)
   const ACTIVE = ['matched','waiting','partial','full'];
-  const activeBets = bets.filter(b => ACTIVE.includes(b.status));
+  // ── สถานะที่ "จบแล้ว" (จ่าย/ตัดสิน/ยกเลิกเต็มบิลแล้ว) — ห้ามตัดสินซ้ำ ───
+  const SETTLED = ['won','lost','draw','refunded'];
+  const activeBets = bets.filter(b => {
+    // active ปกติ
+    if (ACTIVE.includes(b.status)) return true;
+    // ── Guard กันผู้ชนะตกหล่น: bet ที่จับคู่แล้ว (matched>0) ต้องถูกตัดสินเสมอ
+    //    แม้ status เพี้ยน (เช่นโดน timeout logic แตะ) ตราบใดที่ยังไม่ settled
+    //    (เคยเกิดบั๊ก: bet matched ถูก set timeout → payout มองข้าม → ผู้ชนะไม่ได้เงิน)
+    if (Number(b.matched_amount || 0) > 0 && !SETTLED.includes(b.status)) return true;
+    return false;
+  });
   const winnerBets = activeBets.filter(isWinnerBet);
   const loserBets  = activeBets.filter(b => !isWinnerBet(b));
 
