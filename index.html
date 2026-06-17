@@ -8330,13 +8330,14 @@ setInterval(() => {
         : (freshBalance - amount);
 
       // ── บันทึก balance_logs สำหรับการถอน (RPC create_withdrawal ไม่ได้ลง log) ──
+      // ใช้ RPC log_balance_change (SECURITY DEFINER ข้าม RLS — insert ตรงโดน anon RLS บล็อก)
       // ทำเฉพาะ path หลัก (RPC สำเร็จ) — path fallback ลง log ผ่าน adjust_member_balance แล้ว
       if (!wErr) {
         try {
-          await sb.from('balance_logs').insert({
-            nick, type: 'withdraw', delta: -amount,
-            balance_before: freshBalance, balance_after: verifiedNewBalance,
-            note: 'ถอนเงิน → ' + (selBank.name||''), ref_txn: txn,
+          await sb.rpc('log_balance_change', {
+            p_nick: nick, p_type: 'withdraw', p_delta: -amount,
+            p_balance_before: freshBalance, p_balance_after: verifiedNewBalance,
+            p_note: 'ถอนเงิน → ' + (selBank.name||''), p_txn: txn,
           });
         } catch(logErr) { console.warn('[withdraw log]', logErr.message); }
       }
