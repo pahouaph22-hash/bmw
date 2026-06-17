@@ -6231,6 +6231,14 @@ async function _approveWithdrawReal(id,nick,amount,bank,accNo){
         p_note:'ถอนเงิน → '+(bank||''), p_txn:wTxn,
       });
     }catch(logErr){ console.warn('[approve withdraw log]',logErr.message); }
+
+    // ── refresh ประวัติธุรกรรมถ้า modal สมาชิกคนนี้เปิดอยู่ ──
+    try{
+      var openNick = document.getElementById('mo-nick')?.textContent?.trim();
+      if(openNick===nick && typeof _loadTxnHistory==='function'){
+        setTimeout(function(){ _loadTxnHistory(nick); }, 400);
+      }
+    }catch(_){}
   }
 }
 async function _rejectWithdrawReal(id,nick,amount){
