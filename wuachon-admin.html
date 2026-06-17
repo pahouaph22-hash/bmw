@@ -6216,6 +6216,21 @@ async function _approveWithdrawReal(id,nick,amount,bank,accNo){
       action:'approve_withdraw',
       detail:'อนุมัติถอนเงิน '+Number(amount).toLocaleString()+' ₭ ให้ "'+nick+'" โดย '+_adminNick(),
     });}catch(_){}
+
+    // ── บันทึก balance_logs (ถ้ายังไม่มี) — RPC มี dup guard ตาม txn ──
+    try{
+      // หา txn ของ withdrawal นี้ + ยอดปัจจุบัน
+      const {data:wRow} = await sb.from('withdrawals').select('txn').eq('id',id).maybeSingle();
+      const {data:mRow} = await sb.from('members').select('balance').eq('nick',nick).maybeSingle();
+      const curBal = Number(mRow?.balance||0);
+      const wTxn = wRow?.txn || ('ADMW-'+id);
+      // เงินถูกหักตั้งแต่ตอนลูกค้ากดถอนแล้ว → balance ปัจจุบันคือ "หลังถอน"
+      await sb.rpc('log_balance_change',{
+        p_nick:nick, p_type:'withdraw', p_delta:-Number(amount),
+        p_balance_before:curBal+Number(amount), p_balance_after:curBal,
+        p_note:'ถอนเงิน → '+(bank||''), p_txn:wTxn,
+      });
+    }catch(logErr){ console.warn('[approve withdraw log]',logErr.message); }
   }
 }
 async function _rejectWithdrawReal(id,nick,amount){
