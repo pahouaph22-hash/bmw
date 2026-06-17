@@ -7273,14 +7273,22 @@ async function _loadTxnHistory(nick){
     // เรียงเก่า → ใหม่
     rows.sort(function(a,b){ return new Date(a.date)-new Date(b.date); });
 
-    // เติม running balance สำหรับแถวที่ balance_logs ไม่มี (fallback) — คำนวณเอง
-    var running=0;
+    // ── คำนวณ running balance ใหม่ทั้งหมดจาก delta (ต่อเนื่องเสมอ) ──
+    // ไม่พึ่ง balance_before/after รายแถว เพราะอาจไม่ต่อเนื่อง (backfill/ทดสอบ/RPC ต่างกัน)
+    // หายอดเริ่มต้น: ยอดปัจจุบันจริง − ผลรวม delta ทั้งหมด
+    var curBal = 0;
+    try {
+      var memNow = allMembers.find(function(m){ return m.nick === nick; });
+      curBal = memNow ? Number(memNow.balance||0) : 0;
+    } catch(_) {}
+    var totalDelta = rows.reduce(function(s,r){ return s + Number(r.change||0); }, 0);
+    var startBal = curBal - totalDelta;   // ยอดก่อนรายการแรกสุด
+
+    var running = startBal;
     rows.forEach(function(r){
-      if(r.balBefore!=null && r.balAfter!=null){
-        running=r.balAfter; // ใช้ค่าจริงจาก log
-      } else {
-        r.balBefore=running; running+=r.change; r.balAfter=running;
-      }
+      r.balBefore = running;
+      running += Number(r.change||0);
+      r.balAfter = running;
     });
 
     // แสดงใหม่ → เก่า
