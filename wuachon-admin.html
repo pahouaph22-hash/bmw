@@ -6125,11 +6125,20 @@ async function _approveDepositReal(id,nick,amount){
       const referrer = meRow?.referred_by;
       if (referrer && referrer !== nick) {   // กันแนะนำตัวเอง
         // ── เช็คว่าเคยจ่ายคอมให้ลูกทีมคนนี้แล้วหรือยัง (จ่ายเฉพาะเติมครั้งแรก) ──
-        const { data: existingCom } = await sb.from('referral_logs')
-          .select('id').eq('referrer_nick', referrer).eq('new_member_nick', nick).limit(1);
-        if (existingCom && existingCom.length > 0) {
-          // เคยจ่ายแล้ว = เติมครั้งที่ 2+ → ไม่จ่ายซ้ำ
-          console.log('[referral] ข้ามคอม — '+nick+' เติมซ้ำ (จ่ายเฉพาะครั้งแรก)');
+        // Guard 1: นับ approved deposits ของ nick นี้ก่อน id ปัจจุบัน
+        //   ถ้ามีอยู่แล้ว = เติมครั้งที่ 2+ → ไม่จ่ายคอม
+        const { data: prevDeps } = await sb.from('deposits')
+          .select('id').eq('nick', nick).eq('status','approved').neq('id', id).limit(1);
+        const isFirst = !prevDeps || prevDeps.length === 0;
+        // Guard 2: balance_logs ไม่มีรายการ referral_commission ที่ note มี nick นี้
+        //   (ป้องกัน double-pay กรณี approve พร้อมกัน 2 ครั้ง)
+        const { data: existingLog } = await sb.from('balance_logs')
+          .select('id').eq('type','referral_commission')
+          .ilike('note','%'+nick+'%').limit(1);
+        const alreadyPaid = existingLog && existingLog.length > 0;
+        if (!isFirst || alreadyPaid) {
+          // ไม่ใช่เติมครั้งแรก หรือจ่ายคอมไปแล้ว → ข้าม
+          console.log('[referral] ข้ามคอม — isFirst='+isFirst+' alreadyPaid='+alreadyPaid);
         } else {
         // ดึง rate คอมจาก settings (default 5%)
         const { data: rateRow } = await sb.from('settings').select('value').eq('key','referralRate').maybeSingle();
@@ -6138,21 +6147,19 @@ async function _approveDepositReal(id,nick,amount){
         const commission = Math.floor(Number(amount) * rate);
         if (commission > 0) {
           // จ่ายคอมเข้าบัญชีผู้แนะนำ (atomic + log อัตโนมัติ)
-          const comTxn = 'COM-' + Date.now();
           const { data: comRes } = await sb.rpc('adjust_member_balance', {
             p_nick: referrer, p_delta: commission,
             p_type: 'referral_commission',
             p_note: 'ค่าคอมแนะนำ '+nick+' (เติมครั้งแรก '+Number(amount).toLocaleString()+' ₭)',
-            p_txn: comTxn,
           });
-          // บันทึกประวัติคอมมิชชัน (referral_logs) — ไม่ให้ error มากระทบ
+          // บันทึกประวัติคอมมิชชัน (referral_logs) — cols จริง: ไม่มี txn
           try {
             await sb.from('referral_logs').insert({
               referrer_nick: referrer, new_member_nick: nick,
               deposit_amount: Number(amount), ref_rate: (rate*100),
-              commission: commission, txn: comTxn,
+              commission: commission,
             });
-          } catch(_) {}
+          } catch(e) { console.warn('[referral_logs insert]', e?.message||e); }
           if (comRes && comRes.length) {
             showToast('🎁 จ่ายค่าคอม '+commission.toLocaleString()+' ₭ ให้ผู้แนะนำ "'+referrer+'"');
           }
