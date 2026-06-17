@@ -5951,6 +5951,18 @@ function applyLang() {
             if (_allFlagMsgs[f]) showFEToast(_allFlagMsgs[f]);
             if (f === 'chg_pass') setTimeout(() => _setChgPassForced(true), 800);
           });
+
+          // ── ถูกระงับ (blacklist/suspend) ขณะออนไลน์ → เตะออกจากระบบทันที ──
+          if (added.includes('blacklist') || added.includes('suspend')) {
+            setTimeout(() => {
+              const msg = added.includes('blacklist')
+                ? '⛔ บัญชีของคุณถูกระงับการใช้งานถาวร กรุณาติดต่อ Admin ครับ'
+                : '🚫 บัญชีของคุณถูกระงับการใช้งานชั่วคราว กรุณาติดต่อ Admin ครับ';
+              alert(msg);
+              if (typeof logout === 'function') logout();
+              else { _safeStorage.removeItem('bw_user'); location.reload(); }
+            }, 1500);
+          }
         }
       })
       // ── deposits INSERT → แจ้งเตือนรางวัล/คอมฯ ทันที ──
@@ -7367,12 +7379,16 @@ setInterval(() => {
     currentUser.flags = Array.isArray(data.flags) ? data.flags : [];
     _safeStorage.setItem('bw_user', JSON.stringify(currentUser));
 
-    // ── FLAG: blacklist → block login ──
-    if (currentUser.flags.includes('blacklist')) {
+    // ── FLAG: blacklist / suspend → block login ทันที ──
+    const _f = currentUser.flags || [];
+    if (_f.includes('blacklist') || _f.includes('suspend')) {
+      const reason = currentUser.flag_reason || data.flag_reason || '';
       currentUser = null;
       _safeStorage.removeItem('bw_user');
       errEl.style.display = 'block';
-      errEl.textContent = '⛔ บัญชีของคุณถูกระงับการใช้งาน — กรุณาติดต่อ Admin ครับ';
+      errEl.textContent = _f.includes('blacklist')
+        ? ('⛔ บัญชีของคุณถูกระงับการใช้งานถาวร' + (reason ? ' — ' + reason : '') + ' กรุณาติดต่อ Admin ครับ')
+        : ('🚫 บัญชีของคุณถูกระงับการใช้งานชั่วคราว' + (reason ? ' — ' + reason : '') + ' กรุณาติดต่อ Admin ครับ');
       btn.disabled = false; btn.textContent = '🔑 เข้าสู่ระบบ →';
       return;
     }
@@ -8293,7 +8309,7 @@ setInterval(() => {
             bank: selBank.name, acc_no: selBank.accno, acc_name: selBank.accname,
           });
           if (withErr) throw withErr;
-          await sb.rpc('adjust_member_balance', { p_nick: nick, p_delta: -amount, p_type: 'bet_place', p_note: 'วางเดิมพัน '+(sideName||''), p_txn: txn });
+          await sb.rpc('adjust_member_balance', { p_nick: nick, p_delta: -amount, p_type: 'withdraw', p_note: 'ถอนเงิน', p_txn: txn });
         } else {
           throw wErr;
         }
