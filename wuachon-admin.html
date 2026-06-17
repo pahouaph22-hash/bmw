@@ -1933,7 +1933,7 @@ input, textarea, select, button {
             <div class="fg">
               <label>อัตราค่าบริการ (%)</label>
               <div style="display:flex;align-items:center;gap:8px;">
-                <input id="sf-fee-rate" type="number" min="0" max="50" step="0.5" placeholder="7" style="flex:1;">
+                <input id="set-fee-rate" type="number" min="0" max="50" step="0.5" placeholder="7" oninput="_feePreview()" style="flex:1;">
                 <span style="font-family:'Phetsarath','Phetsarath','Noto Sans Lao','Kanit',sans-serif;font-weight:700;font-size:16px;color:var(--gold);">%</span>
               </div>
               <div style="font-size:11px;color:#aaa;margin-top:4px;">หักจาก pool รวมก่อนจ่ายผู้ชนะ (ค่าเริ่มต้น 7%)</div>
@@ -5018,9 +5018,8 @@ async function doVerdict(matchId, winner, winnerName) {
 
 async function loadFeeRate() {
   try {
-    const {data} = await sb.rpc('admin_save_setting',{p_key:'feeRate',p_value:{rate:7}}).then(()=>
-      sb.from('settings').select('value').eq('key','feeRate').maybeSingle()
-    ).catch(()=> sb.from('settings').select('value').eq('key','feeRate').maybeSingle());
+    // อ่านค่า fee จาก settings (ไม่เขียนทับ!)
+    const {data} = await sb.from('settings').select('value').eq('key','feeRate').maybeSingle();
     const val = data?.value;
     // รองรับหลายรูปแบบ: {rate:7}, 7, "7", 0.07
     let rate;
@@ -6501,7 +6500,18 @@ async function loadNews(){try{const r=await sb.from('settings').select('value').
 function _rnl(){const tb=document.getElementById('news-list-tbody');if(!tb)return;if(!_nl.length){tb.innerHTML='<tr><td colspan="3" style="text-align:center;padding:24px;color:#aaa;">ยังไม่มีข่าว</td></tr>';return;}tb.innerHTML=_nl.map((x,i)=>'<tr><td>'+(typeof x==='object'?x.title||x:x)+'</td><td style="text-align:center;color:#aaa;">'+(i+1)+'</td><td><button onclick="_dn('+i+')" style="padding:3px 10px;background:#fff;color:#dc2626;border:1px solid #dc2626;border-radius:6px;font-size:11px;cursor:pointer;">🗑</button></td></tr>').join('');}
 async function addNews(){const inp=document.getElementById('news-input');const t=inp?.value?.trim();if(!t){showToast('กรุณากรอกข้อความ','error');return;}_nl.push(t);await sb.from('settings').upsert({key:'newsTicker',value:_nl});if(inp)inp.value='';showToast('เพิ่มข่าว ✅');_rnl();}
 async function _dn(i){if(!confirm('ลบ?'))return;_nl.splice(i,1);await sb.from('settings').upsert({key:'newsTicker',value:_nl});showToast('ลบสำเร็จ');_rnl();}
-async function loadSettings(){try{const res=await sb.from('settings').select('*');const rows=res.data||[];const find=k=>rows.find(r=>r.key===k)?.value||{};const sv=(id,val)=>{const e=document.getElementById(id);if(e&&val!==undefined)e.value=val;};const c=find('contact'),fee=find('feeRate'),ref=find('referralRate');sv('set-line-id',c?.lineId||'');sv('set-fb-url',c?.fbUrl||'');sv('set-tel',c?.phone1||'');sv('set-fee-rate',typeof fee==='number'?fee*100:fee||7);sv('set-ref-rate',typeof ref==='number'?ref*100:ref||5);}catch(e){}}
+async function loadSettings(){try{const res=await sb.from('settings').select('*');const rows=res.data||[];const find=k=>rows.find(r=>r.key===k)?.value||{};const sv=(id,val)=>{const e=document.getElementById(id);if(e&&val!==undefined)e.value=val;};const c=find('contact'),fee=find('feeRate'),ref=find('referralRate');sv('set-line-id',c?.lineId||'');sv('set-fb-url',c?.fbUrl||'');sv('set-tel',c?.phone1||'');sv('set-fee-rate',typeof fee==='number'?fee*100:fee||7);sv('set-ref-rate',typeof ref==='number'?ref*100:ref||5);if(typeof _feePreview==='function')_feePreview();}catch(e){}}
+function _feePreview(){
+  var el=document.getElementById('set-fee-rate');
+  var box=document.getElementById('fee-preview');
+  if(!el||!box)return;
+  var rate=parseFloat(el.value)||0;
+  // ตัวอย่าง: pool 75,000
+  var pool=75000;
+  var fee=Math.floor(pool*rate/100);
+  var net=pool-fee;
+  box.innerHTML='ยอดรวมผู้ชนะ '+pool.toLocaleString()+' ₭<br>หักค่าบริการ '+rate+'% = <b style="color:#d97706;">'+fee.toLocaleString()+' ₭</b><br>ผู้ชนะได้รับ = <b style="color:#16a34a;">'+net.toLocaleString()+' ₭</b>';
+}
 async function saveSettings(section){const get=id=>document.getElementById(id)?.value?.trim()??'';let key='',value={};if(section==='contact'){key='contact';value={lineId:get('set-line-id'),fbUrl:get('set-fb-url'),phone1:get('set-tel')};}else if(section==='fee'){key='feeRate';value=parseFloat(get('set-fee-rate'))/100||0.07;}else if(section==='referral'){key='referralRate';value=parseFloat(get('set-ref-rate'))/100||0.05;}else{showToast('ไม่รู้จัก: '+section,'error');return;}const{error}=await sb.from('settings').upsert({key,value});if(error){showToast('❌ '+error.message,'error');return;}showToast('💾 บันทึก ✅');}
 async function loadWorklogPanel(){
   var tb=document.getElementById('worklog-tbody');if(!tb)return;
@@ -7711,7 +7721,7 @@ async function disableTOTP(){
 }
 async function saveTwofaSettings(){const ol=document.getElementById('twofa-on-login'),oa=document.getElementById('twofa-on-approve');const en=await _checkTwofaEnabled();await _saveTwofaConfig({enabled:en,onLogin:ol?.checked!==false,onApprove:oa?.checked!==false});showToast('💾 บันทึกแล้ว');}
 function _copySecret(){const el=document.getElementById('twofa-secret-display');const t=(el?.textContent||'').replace(/\s/g,'');if(navigator.clipboard)navigator.clipboard.writeText(t).then(()=>showToast('✅ คัดลอกแล้ว'));}
-function switchCfgTab(tab){document.querySelectorAll('.cfg-tab').forEach(b=>b.classList.remove('active'));document.querySelectorAll('.cfg-pane').forEach(p=>{p.classList.remove('active');p.style.display='none';});document.getElementById('cfg-tab-'+tab)?.classList.add('active');const pane=document.getElementById('cfg-pane-'+tab);if(pane){pane.classList.add('active');pane.style.display='block';}if(tab==='twofa')loadTwofaPanel();if(tab==='bank')loadBankAccounts();if(tab==='referral'){loadRefRateLevels();loadBetLevels();}if(tab==='features')loadFeatureFlags();}
+function switchCfgTab(tab){document.querySelectorAll('.cfg-tab').forEach(b=>b.classList.remove('active'));document.querySelectorAll('.cfg-pane').forEach(p=>{p.classList.remove('active');p.style.display='none';});document.getElementById('cfg-tab-'+tab)?.classList.add('active');const pane=document.getElementById('cfg-pane-'+tab);if(pane){pane.classList.add('active');pane.style.display='block';}if(tab==='twofa')loadTwofaPanel();if(tab==='bank')loadBankAccounts();if(tab==='referral'){loadRefRateLevels();loadBetLevels();}if(tab==='features')loadFeatureFlags();if(tab==='p2p')loadSettings();}
 
 // ── SECURITY LOG ──
 async function _logLoginActivity(u,role,r){
