@@ -5208,6 +5208,20 @@ function applyLang() {
   const SUPA_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inh6bHBkZXFsZmN6amtvc3BmcXFpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzk2NzgyMjAsImV4cCI6MjA5NTI1NDIyMH0.W0pDFJy3lFeO4ht9DpNzeDgVdGvSz94p0KWGfzc0Igw';
   const sb = supabase.createClient(SUPA_URL, SUPA_KEY);
 
+  // ── ค่าบริการ (โหลดจาก settings — ใช้แสดงในประวัติเดิมพัน) ──
+  let _feeRate = 0.07;  // default จนกว่าจะโหลดเสร็จ
+  async function _loadFeeRate() {
+    try {
+      const { data } = await sb.from('settings').select('value').eq('key','feeRate').maybeSingle();
+      let v = data?.value;
+      if (v && typeof v === 'object') v = v.rate;
+      v = parseFloat(v);
+      if (!isNaN(v)) _feeRate = v > 1 ? v/100 : v;  // 7 → 0.07, 0.05 → 0.05
+    } catch(_) {}
+    return _feeRate;
+  }
+  _loadFeeRate();  // โหลดทันทีตอนเริ่ม
+
 
   // ── SHA-256 password hash (แทน btoa ที่ถอดรหัสได้ง่าย) ──
   async function sha256Hash(str) {
@@ -6523,6 +6537,7 @@ function applyLang() {
   // ── BET HISTORY จาก Supabase ──
   window.loadBetHistory = window._real_loadBetHistory = async function loadBetHistory() {
     if (!currentUser) return;
+    await _loadFeeRate();  // ดึงค่าบริการล่าสุดก่อนแสดง
     const el = document.getElementById('bet-history-list');
     if (el) el.innerHTML = '<div style="text-align:center;padding:20px;color:rgba(240,255,232,0.25);">กำลังโหลด...</div>';
 
@@ -6573,7 +6588,7 @@ function applyLang() {
 
       // กำไร A = เงิน B ที่เข้ามาสู้ (สมมาตร P2P)
       const profitGross  = oppJoined;
-      const FEE          = 0.07;
+      const FEE          = _feeRate;
       const feeAmt       = Math.floor(profitGross * FEE);
       const profitNet    = profitGross - feeAmt;
       // รับรวม = ทุนทั้งหมด (รวม remaining ที่คืน) + กำไรสุทธิ
@@ -7572,7 +7587,7 @@ setInterval(() => {
       sb.from('balance_logs').select('type,delta,balance_after,note,created_at').eq('nick', nick).in('type',['admin_adjust','referral_commission','activity_reward','bet_commission']).order('created_at', { ascending: false }).limit(80),
     ]);
 
-    const FEE = (typeof FEE_RATE !== 'undefined') ? FEE_RATE : 0.07;
+    const FEE = (typeof _feeRate !== 'undefined') ? _feeRate : 0.07;
     const rows = [];
 
     // ── เติมเงิน ──
