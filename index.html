@@ -6586,13 +6586,13 @@ function applyLang() {
       // เช่น A ต่อ 10/5 (odds=0.5): matched=40,000 → B จับ = 40,000×0.5 = 20,000
       const oppJoined    = Math.floor(matched * odds);
 
-      // กำไร A = เงิน B ที่เข้ามาสู้ (สมมาตร P2P)
-      const profitGross  = oppJoined;
+      // ── ค่าบริการคิดจาก "กำไร" เท่านั้น (ไม่แตะเงินต้น) ──
+      const profitGross  = oppJoined;                    // กำไร = เงินฝั่งตรงข้ามที่เข้าสู้
       const FEE          = _feeRate;
-      const feeAmt       = Math.floor(profitGross * FEE);
-      const profitNet    = profitGross - feeAmt;
-      // รับรวม = ทุนทั้งหมด (รวม remaining ที่คืน) + กำไรสุทธิ
-      const totalReturn  = stake + profitNet;
+      const feeAmt       = Math.floor(profitGross * FEE); // fee จากกำไร
+      const profitNet    = profitGross - feeAmt;          // กำไรสุทธิ
+      // รับรวม = คืนทุนเต็ม + กำไรสุทธิ + remaining ที่คืน
+      const totalReturn  = matched + profitNet + remaining;
 
       const payout = isDraw
         ? `↩️ คืน ${stake.toLocaleString()} ₭ (เสมอ)`
