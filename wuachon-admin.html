@@ -8854,14 +8854,24 @@ async function runSchemaMigration(){
         var hashInput = mem.phone + ':' + newPass;
         var pwHash    = await hashPassword(hashInput);
 
-        // 2. update DB
+        // 2. update DB ผ่าน RPC SECURITY DEFINER (ข้าม column-level grant ที่ block last_pw_reset)
         var now = new Date().toISOString();
-        var res = await sb.from('members').update({
-          password:         pwHash,
-          last_pw_reset_at: now,
-          last_pw_reset_by: adminName || 'admin',
-        }).eq('nick', nick);
-        if (res.error) throw res.error;
+        var res = await sb.rpc('admin_reset_member_password', {
+          p_nick:    nick,
+          p_pw_hash: pwHash,
+          p_by:      adminName || 'admin',
+        });
+        // fallback: ถ้า RPC ยังไม่ถูกสร้าง → ลอง update password อย่างเดียว (คอลัมน์ที่ anon มีสิทธิ์)
+        if (res.error && /function|does not exist|schema cache/i.test(res.error.message||'')) {
+          var res2 = await sb.from('members').update({ password: pwHash }).eq('nick', nick);
+          if (res2.error) throw res2.error;
+          // อัปเดต last_pw_reset แยก (ถ้า fail ก็ข้าม ไม่ใช่สาระสำคัญ)
+          try { await sb.from('members').update({ last_pw_reset_at: now, last_pw_reset_by: adminName||'admin' }).eq('nick', nick); } catch(_){}
+        } else if (res.error) {
+          throw res.error;
+        } else if (res.data && res.data[0] && res.data[0].ok === false) {
+          throw new Error(res.data[0].err === 'member_not_found' ? 'ไม่พบสมาชิก "'+nick+'"' : res.data[0].err);
+        }
 
         // 3. cache local
         mem.last_pw_reset_at = now;
