@@ -3258,13 +3258,20 @@ async function changeAdminPass() {
   const p2 = document.getElementById('new-pass2').value;
   if (!p1 || p1.length < 6) { showToast('⚠️ รหัสผ่านต้องมีอย่างน้อย 6 ตัวอักษรครับ','error'); return; }
   if (p1 !== p2) { showToast('⚠️ รหัสผ่านไม่ตรงกันครับ','error'); return; }
-  // บันทึกใน Supabase
-  const { error } = await sb.from('settings').upsert({ key:'admin_password', value:p1 });
+  // ── เก็บเป็น SHA-256 hash (ไม่เก็บ plaintext) — login รองรับ hash อยู่แล้ว (ADMIN_PASS===ph) ──
+  const p1Hash = await hashPassword(p1);
+  // ป้องกันกรณี crypto fallback คืน btoa (สั้นกว่า 64) → เตือนว่าไม่ปลอดภัยพอ
+  if (!p1Hash || p1Hash.length < 64) {
+    showToast('❌ เบราว์เซอร์ไม่รองรับการเข้ารหัสที่ปลอดภัย กรุณาใช้เบราว์เซอร์อื่น (Chrome/Edge/Safari ล่าสุด)','error');
+    return;
+  }
+  // บันทึก hash ลง Supabase
+  const { error } = await sb.from('settings').upsert({ key:'admin_password', value:p1Hash });
   if (error) { showToast('❌ บันทึกไม่สำเร็จ: ' + error.message, 'error'); return; }
-  ADMIN_PASS = p1;
+  ADMIN_PASS = p1Hash;
   document.getElementById('new-pass').value = '';
   document.getElementById('new-pass2').value = '';
-  showToast('✅ เปลี่ยนรหัสผ่านเรียบร้อยแล้วครับ');
+  showToast('✅ เปลี่ยนรหัสผ่านเรียบร้อยแล้วครับ (เก็บแบบเข้ารหัส)');
 }
 
 // ===== PANEL SWITCH =====
