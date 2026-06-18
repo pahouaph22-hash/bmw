@@ -5582,15 +5582,21 @@ function applyLang() {
           const accounts = payload.new.value?.accounts || [];
           const active   = accounts.filter(b => b.active === true);
           if (active.length > 0) {
+            _depBanks = active.map(b => ({
+              name: b.name||b.bankName||'', accno: b.accno||b.accNo||'',
+              accname: b.accname||b.accName||'', note: b.note||'',
+              active: true, qr_url: b.qr_url||b.qrUrl||'',
+            }));
             _renderDepBankAccounts(active);
           } else {
+            _depBanks = [];  // sync: ไม่มีบัญชี active → ปิดรับฝาก
             _renderDepBankAccounts([]);
             const wrap = document.getElementById('dep-bank-info-wrap');
             if (wrap) {
               wrap.innerHTML = `
                 <div style="text-align:center;padding:20px;background:rgba(255,255,255,0.04);border-radius:12px;border:1px solid rgba(255,255,255,0.08);">
                   <div style="font-size:28px;margin-bottom:8px;">🔒</div>
-                  <div style="font-family:'Phetsarath','Noto Sans Lao','Kanit',sans-serif;font-size:13px;color:rgba(240,255,232,0.5);">ขณะนี้ยังไม่มีบัญชีรับเงินที่เปิดใช้งาน<br>กรุณาติดต่อ Admin ครับ</div>
+                  <div style="font-family:'Phetsarath','Noto Sans Lao','Kanit',sans-serif;font-size:13px;color:rgba(240,255,232,0.5);">ขณะนี้ระบบปิดรับฝากชั่วคราว<br>กรุณาติดต่อ Admin ครับ</div>
                 </div>`;
             }
           }
@@ -7901,19 +7907,31 @@ setInterval(() => {
     document.getElementById('dep-step3').style.display = 'none';
   }
 
-  function goDepStep2() {
+  async function goDepStep2() {
     const amt  = parseInt(document.getElementById('dep-amount').value) || 0;
     const dMin = _txLimits.depMin  || 100;
     const dMax = _txLimits.depMax  || 0;
     const fmt  = amt.toLocaleString() + ' ₭';
     if (amt < dMin) { showFEToast(`⚠️ จำนวนเงินขั้นต่ำสำหรับเติมเงินคือ ${dMin.toLocaleString()} ₭ ครับ`); return; }
     if (dMax && amt > dMax) { showFEToast(`⚠️ จำนวนเงินสูงสุดสำหรับเติมเงินคือ ${dMax.toLocaleString()} ₭ ครับ`); return; }
-    // ── ถ้าไม่มีบัญชีรับเงิน → ข้าม step 2 ไป step 3 ทันที ──
-    if (!_depBanks || _depBanks.length === 0) {
-      document.getElementById('dep-step3-amount').textContent = fmt;
-      document.getElementById('dep-step1').style.display = 'none';
-      document.getElementById('dep-step2').style.display = 'none';
-      document.getElementById('dep-step3').style.display = 'block';
+    // ── เช็คบัญชีรับเงินสดจาก DB (ปิดรับฝากถ้าไม่มีบัญชี active แม้แต่บัญชีเดียว) ──
+    try {
+      const _bk = await sb.from('settings').select('value').eq('key','bankAccounts').maybeSingle();
+      const _accts = _bk.data?.value?.accounts || [];
+      const _activeAccts = _accts.filter(b => b.active !== false);
+      if (_activeAccts.length === 0) {
+        showFEToast('🔒 ขณะนี้ระบบปิดรับฝากชั่วคราว — กรุณาลองใหม่ภายหลังครับ');
+        try { loadDepBanks(); } catch(_){}  // refresh UI แสดงข้อความปิดรับฝาก
+        return;
+      }
+      // sync _depBanks ให้ตรง DB ล่าสุด
+      _depBanks = _activeAccts.map(b => ({
+        name: b.name||b.bankName||'', accno: b.accno||b.accNo||'',
+        accname: b.accname||b.accName||'', note: b.note||'',
+        active: true, qr_url: b.qr_url||b.qrUrl||'',
+      }));
+    } catch(_) {
+      showFEToast('⚠️ ตรวจสอบบัญชีรับเงินไม่สำเร็จ กรุณาลองใหม่ครับ');
       return;
     }
     document.getElementById('dep-confirm-amount').textContent  = fmt;
@@ -8890,6 +8908,24 @@ setInterval(() => {
 
       // ── ยืนยัน session nick ก่อน INSERT (ป้องกัน RLS block บน mobile) ──
       try { await sb.rpc('set_current_nick', { p_nick: nick }); } catch(_) {}
+
+      // ── เช็คบัญชีรับเงินสดจาก DB (ปิดรับฝากถ้าไม่มีบัญชี active แม้แต่บัญชีเดียว) ──
+      try {
+        const _bk = await sb.from('settings').select('value').eq('key','bankAccounts').maybeSingle();
+        const _accts = _bk.data?.value?.accounts || [];
+        const _activeAccts = _accts.filter(b => b.active !== false);
+        if (_activeAccts.length === 0) {
+          restoreBtn();
+          showFEToast('🔒 ขณะนี้ระบบปิดรับฝากชั่วคราว — กรุณาลองใหม่ภายหลังครับ');
+          try { loadDepBanks(); } catch(_){}  // refresh UI ให้ตรงสถานะ
+          return;
+        }
+      } catch(_) {
+        // ถ้าเช็คไม่ได้ → ปลอดภัยไว้ก่อน ปฏิเสธ
+        restoreBtn();
+        showFEToast('⚠️ ตรวจสอบบัญชีรับเงินไม่สำเร็จ กรุณาลองใหม่ครับ');
+        return;
+      }
 
       // ── เช็คสถานะระงับจาก DB สด (กัน cache เก่า / bypass) ──
       try {
