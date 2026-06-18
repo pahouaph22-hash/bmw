@@ -8920,6 +8920,49 @@ function clearDateMem() {
 
   async function _quickToggleFlag(nick, flagId, enable) {
     try {
+      // ── suspend: ใช้ RPC atomic (ป้องกัน cache เขียนทับ → กลับมาใช้งานเอง) ──
+      if (flagId === 'suspend') {
+        if (enable) {
+          // ระงับ — ถามเหตุผล
+          var reason = prompt('เหตุผลการระงับบัญชี "' + nick + '":', '');
+          if (reason === null) { filterMembers(); return; }  // ยกเลิก
+          var rs = await sb.rpc('suspend_member', {
+            p_nick: nick, p_type: 'suspend', p_reason: reason || '', p_by: _adminNick()
+          });
+          if (rs.error) throw rs.error;
+          if (rs.data && rs.data[0] && !rs.data[0].ok) throw new Error(rs.data[0].err || 'suspend failed');
+          var newFlags = (rs.data && rs.data[0]) ? rs.data[0].flags : ['suspend'];
+          var mem1 = (allMembers||[]).find(function(m){ return m.nick === nick; });
+          if (mem1) mem1.flags = newFlags;
+          showToast('🚫 ระงับบัญชี "' + nick + '" แล้วครับ (ล็อกถาวรจนกว่าจะปลดระงับ)');
+          try { await sb.from('staff_logs').insert({
+            staff_username: _adminNick(), action: 'suspend_account',
+            detail: '🚫 ระงับบัญชี "' + nick + '" เหตุผล: ' + (reason||'ไม่ระบุ') + ' · โดย ' + _adminNick() + ' · ' + new Date().toLocaleString('th-TH'),
+          }); } catch(_) {}
+          filterMembers();
+          return;
+        } else {
+          // ── ปลดระงับ — ต้องยืนยันตัวตน admin ──
+          if (!confirm('⚠️ ยืนยันปลดระงับบัญชี "' + nick + '"?\n\nบัญชีนี้จะกลับมาเข้าสู่ระบบและใช้งานได้ตามปกติ\nการดำเนินการนี้บันทึกประวัติผู้ทำไว้')) {
+            filterMembers(); return;
+          }
+          var ru = await sb.rpc('unsuspend_member', { p_nick: nick, p_by: _adminNick() });
+          if (ru.error) throw ru.error;
+          if (ru.data && ru.data[0] && !ru.data[0].ok) throw new Error(ru.data[0].err || 'unsuspend failed');
+          var newFlags2 = (ru.data && ru.data[0]) ? ru.data[0].flags : [];
+          var mem2 = (allMembers||[]).find(function(m){ return m.nick === nick; });
+          if (mem2) mem2.flags = newFlags2;
+          showToast('✅ ปลดระงับบัญชี "' + nick + '" — เปิดใช้งานแล้วครับ');
+          try { await sb.from('staff_logs').insert({
+            staff_username: _adminNick(), action: 'unsuspend_account',
+            detail: '✅ ปลดระงับบัญชี "' + nick + '" · โดย ' + _adminNick() + ' · ' + new Date().toLocaleString('th-TH'),
+          }); } catch(_) {}
+          filterMembers();
+          return;
+        }
+      }
+
+      // ── flag อื่น (no_withdraw ฯลฯ): update ปกติ ──
       var res = await sb.from('members').select('flags').eq('nick', nick).maybeSingle();
       if (res.error) throw res.error;
       var flags = Array.isArray(res.data?.flags) ? res.data.flags.slice() : [];
@@ -8937,7 +8980,7 @@ function clearDateMem() {
       var mem = (allMembers||[]).find(function(m){ return m.nick === nick; });
       if (mem) mem.flags = flags;
 
-      var flagName = flagId==='suspend' ? 'ระงับบัญชี' : 'ระงับถอนเงิน';
+      var flagName = 'ระงับถอนเงิน';
       showToast((enable?'🚫 เปิด':'✅ ปิด') + flagName + ' "' + nick + '" แล้วครับ');
 
       // log

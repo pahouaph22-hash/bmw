@@ -7392,21 +7392,35 @@ setInterval(() => {
     // บันทึก session
     currentUser = data;
     currentUser.flags = Array.isArray(data.flags) ? data.flags : [];
-    _safeStorage.setItem('bw_user', JSON.stringify(currentUser));
 
-    // ── FLAG: blacklist / suspend → block login ทันที ──
-    const _f = currentUser.flags || [];
-    if (_f.includes('blacklist') || _f.includes('suspend')) {
-      const reason = currentUser.flag_reason || data.flag_reason || '';
-      currentUser = null;
-      _safeStorage.removeItem('bw_user');
-      errEl.style.display = 'block';
-      errEl.textContent = _f.includes('blacklist')
-        ? ('⛔ บัญชีของคุณถูกระงับการใช้งานถาวร' + (reason ? ' — ' + reason : '') + ' กรุณาติดต่อ Admin ครับ')
-        : ('🚫 บัญชีของคุณถูกระงับการใช้งานชั่วคราว' + (reason ? ' — ' + reason : '') + ' กรุณาติดต่อ Admin ครับ');
-      btn.disabled = false; btn.textContent = '🔑 เข้าสู่ระบบ →';
-      return;
+    // ── เช็คสถานะระงับสดจาก DB ผ่าน RPC (เชื่อถือได้สุด ไม่พึ่ง cache/data) ──
+    try {
+      const _susp = await sb.rpc('is_member_suspended', { p_nick: data.nick });
+      if (!_susp.error && _susp.data?.length && _susp.data[0].suspended) {
+        const _reason = _susp.data[0].reason || '';
+        const _ftype  = _susp.data[0].flag_type || 'suspend';
+        currentUser = null;
+        _safeStorage.removeItem('bw_user');
+        errEl.style.display = 'block';
+        errEl.textContent = _ftype === 'blacklist'
+          ? ('⛔ บัญชีของคุณถูกระงับการใช้งานถาวร' + (_reason ? ' — ' + _reason : '') + ' กรุณาติดต่อผู้ดูแลระบบครับ')
+          : ('🚫 บัญชีของคุณถูกระงับ' + (_reason ? ' — ' + _reason : '') + ' กรุณาติดต่อผู้ดูแลระบบครับ');
+        btn.disabled = false; btn.textContent = '🔑 เข้าสู่ระบบ →';
+        return;
+      }
+    } catch(_) {
+      // ถ้า RPC ใช้ไม่ได้ → fallback เช็คจาก flags ที่ดึงมา (ความปลอดภัยขั้นต่ำ)
+      const _ff = currentUser.flags || [];
+      if (_ff.includes('blacklist') || _ff.includes('suspend')) {
+        currentUser = null; _safeStorage.removeItem('bw_user');
+        errEl.style.display = 'block';
+        errEl.textContent = '🚫 บัญชีของคุณถูกระงับ กรุณาติดต่อผู้ดูแลระบบครับ';
+        btn.disabled = false; btn.textContent = '🔑 เข้าสู่ระบบ →';
+        return;
+      }
     }
+
+    _safeStorage.setItem('bw_user', JSON.stringify(currentUser));
 
     setLoggedIn(data.nick);
     subscribeTxnStatus();
@@ -8877,6 +8891,28 @@ setInterval(() => {
       // ── ยืนยัน session nick ก่อน INSERT (ป้องกัน RLS block บน mobile) ──
       try { await sb.rpc('set_current_nick', { p_nick: nick }); } catch(_) {}
 
+      // ── เช็คสถานะระงับจาก DB สด (กัน cache เก่า / bypass) ──
+      try {
+        const _dchk = await sb.rpc('get_member_by_nick', { p_nick: nick });
+        const _dflags = (!_dchk.error && _dchk.data?.[0] && Array.isArray(_dchk.data[0].flags)) ? _dchk.data[0].flags : [];
+        if (_dflags.includes('suspend') || _dflags.includes('blacklist') || _dflags.includes('no_deposit')) {
+          restoreBtn();
+          currentUser.flags = _dflags;
+          try { applyFlagUI(_dflags); } catch(_){}
+          showFEToast('🚫 บัญชีของคุณถูกระงับ ไม่สามารถเติมเงินได้ครับ — กรุณาติดต่อ Admin');
+          if (_dflags.includes('suspend') || _dflags.includes('blacklist')) {
+            setTimeout(function(){
+              alert(_dflags.includes('blacklist')
+                ? '⛔ บัญชีของคุณถูกระงับการใช้งานถาวร กรุณาติดต่อ Admin ครับ'
+                : '🚫 บัญชีของคุณถูกระงับการใช้งานชั่วคราว กรุณาติดต่อ Admin ครับ');
+              if (typeof logout === 'function') logout();
+              else { try { _safeStorage.removeItem('bw_user'); } catch(_){} location.reload(); }
+            }, 1500);
+          }
+          return;
+        }
+      } catch(_) {}
+
       // ── บันทึกลง Supabase deposits ──
       const { error } = await sb.from('deposits').insert({
         nick,
@@ -9170,6 +9206,24 @@ setInterval(() => {
       showFEToast('❌ ตรวจสอบยอดเงินไม่สำเร็จ กรุณาลองใหม่ครับ'); return;
     }
     const freshBal = Number(freshRows[0].balance || 0);
+    // ── เช็คสถานะระงับจาก flags สด (กัน bypass CSS/DevTools) ──
+    const _freshFlags = Array.isArray(freshRows[0].flags) ? freshRows[0].flags : [];
+    if (_freshFlags.includes('suspend') || _freshFlags.includes('blacklist') || _freshFlags.includes('no_game') || _freshFlags.includes('cheater')) {
+      currentUser.flags = _freshFlags;
+      try { applyFlagUI(_freshFlags); } catch(_){}
+      showFEToast('🚫 บัญชีของคุณถูกระงับ ไม่สามารถเดิมพันได้ครับ — กรุณาติดต่อ Admin');
+      // ถ้าโดน suspend/blacklist → เตะออกจากระบบ
+      if (_freshFlags.includes('suspend') || _freshFlags.includes('blacklist')) {
+        setTimeout(function(){
+          alert(_freshFlags.includes('blacklist')
+            ? '⛔ บัญชีของคุณถูกระงับการใช้งานถาวร กรุณาติดต่อ Admin ครับ'
+            : '🚫 บัญชีของคุณถูกระงับการใช้งานชั่วคราว กรุณาติดต่อ Admin ครับ');
+          if (typeof logout === 'function') logout();
+          else { try { _safeStorage.removeItem('bw_user'); } catch(_){} location.reload(); }
+        }, 1500);
+      }
+      return;
+    }
     // 2) ยอดไม่พอ → ปฏิเสธ (วางเกินยอดไม่ได้)
     if (amount > freshBal) {
       if (currentUser) currentUser.balance = freshBal;
