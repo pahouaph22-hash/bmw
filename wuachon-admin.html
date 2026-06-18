@@ -8657,8 +8657,8 @@ async function runSchemaMigration(){
       }
 
       var res = await sb.from('members').update(updateObj).eq('nick', nick);
-      // ถ้า error เพราะ column ไม่มี → ลองใหม่แบบเฉพาะ flags
-      if (res.error && /column|flag_reason|flag_at|flag_by/i.test(res.error.message||'')) {
+      // ถ้า error เพราะ column ไม่มี หรือ permission denied (column-grant ขาด) → ลองใหม่แบบเฉพาะ flags
+      if (res.error && /column|flag_reason|flag_at|flag_by|permission denied/i.test(res.error.message||'')) {
         res = await sb.from('members').update({ flags: _currentMoFlags }).eq('nick', nick);
       }
       if (res.error) throw res.error;

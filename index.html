@@ -7910,10 +7910,15 @@ setInterval(() => {
         // สร้าง referral_code ถ้ายังไม่มี
         if (!currentUser.referral_code) {
           const autoCode = currentUser.nick.toUpperCase().slice(0,4) + Math.floor(1000+Math.random()*9000);
-          try { await sb.rpc('set_current_nick', { p_nick: currentUser.nick }); } catch(_) {}
-          await sb.from('members').update({ referral_code: autoCode }).eq('nick', currentUser.nick);
-          currentUser.referral_code = autoCode;
-          _safeStorage.setItem('bw_user', JSON.stringify(currentUser));
+          try {
+            try { await sb.rpc('set_current_nick', { p_nick: currentUser.nick }); } catch(_) {}
+            const _rc = await sb.from('members').update({ referral_code: autoCode }).eq('nick', currentUser.nick);
+            if (!_rc.error) {
+              currentUser.referral_code = autoCode;
+              _safeStorage.setItem('bw_user', JSON.stringify(currentUser));
+            }
+            // ถ้า error (เช่น column-grant ขาด) → ข้ามไป ไม่ให้ flow หยุด
+          } catch(_) { /* ไม่บล็อก flow ถ้าสร้างโค้ดไม่ได้ */ }
         }
         const refCodeEl = document.getElementById('my-ref-code');
         if (refCodeEl) {
