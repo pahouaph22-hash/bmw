@@ -2174,13 +2174,22 @@ input, textarea, select, button {
         <div class="cfg-pane " id="cfg-pane-contact">
         <div class="card">
           <div class="card-title">📞 ข้อมูลติดต่อ</div>
+          <div style="font-size:12px;color:#888;margin-bottom:14px;">ข้อมูลที่กรอกจะแสดงในหน้า "เกี่ยวกับเรา" ของลูกค้าอัตโนมัติ · เว้นว่างช่องที่ไม่ใช้ได้</div>
           <div class="form-row">
-            <div class="fg"><label>เบอร์โทรศัพท์</label><input id="sf-phone" placeholder="08x-xxx-xxxx"></div>
-            <div class="fg"><label>Line OA</label><input id="sf-line" placeholder="@wuachon"></div>
+            <div class="fg"><label>📱 เบอร์โทรศัพท์</label><input id="set-tel" placeholder="020-xxxx-xxxx"></div>
+            <div class="fg"><label>💬 WhatsApp</label><input id="set-whatsapp" placeholder="+856 20 xxxx xxxx"></div>
           </div>
           <div class="form-row">
-            <div class="fg"><label>Facebook Page URL</label><input id="sf-fb" placeholder="https://facebook.com/..."></div>
-            <div class="fg"><label>เวลาทำการ</label><input id="sf-hours" placeholder="08:00 – 22:00 น."></div>
+            <div class="fg"><label>✈️ Telegram</label><input id="set-telegram" placeholder="@username หรือ https://t.me/..."></div>
+            <div class="fg"><label>💚 Line OA</label><input id="set-line-id" placeholder="@wuachon"></div>
+          </div>
+          <div class="form-row">
+            <div class="fg"><label>📘 Facebook Page URL</label><input id="set-fb-url" placeholder="https://facebook.com/..."></div>
+            <div class="fg"><label>✉️ อีเมล</label><input id="set-email" placeholder="support@example.com"></div>
+          </div>
+          <div class="form-row">
+            <div class="fg"><label>🕐 เวลาทำการ</label><input id="set-hours" placeholder="08:00 – 22:00 น."></div>
+            <div class="fg"><label>🔗 ช่องทางอื่นๆ</label><input id="set-other" placeholder="เช่น เว็บไซต์ / ช่องทางเสริม"></div>
           </div>
           <button class="save-btn" onclick="saveSettings('contact')">💾 บันทึกข้อมูลติดต่อ</button>
         </div>
@@ -6724,7 +6733,7 @@ async function loadNews(){try{const r=await sb.from('settings').select('value').
 function _rnl(){const tb=document.getElementById('news-list-tbody');if(!tb)return;if(!_nl.length){tb.innerHTML='<tr><td colspan="3" style="text-align:center;padding:24px;color:#aaa;">ยังไม่มีข่าว</td></tr>';return;}tb.innerHTML=_nl.map((x,i)=>'<tr><td>'+(typeof x==='object'?x.title||x:x)+'</td><td style="text-align:center;color:#aaa;">'+(i+1)+'</td><td><button onclick="_dn('+i+')" style="padding:3px 10px;background:#fff;color:#dc2626;border:1px solid #dc2626;border-radius:6px;font-size:11px;cursor:pointer;">🗑</button></td></tr>').join('');}
 async function addNews(){const inp=document.getElementById('news-input');const t=inp?.value?.trim();if(!t){showToast('กรุณากรอกข้อความ','error');return;}_nl.push(t);await sb.from('settings').upsert({key:'newsTicker',value:_nl});if(inp)inp.value='';showToast('เพิ่มข่าว ✅');_rnl();}
 async function _dn(i){if(!confirm('ลบ?'))return;_nl.splice(i,1);await sb.from('settings').upsert({key:'newsTicker',value:_nl});showToast('ลบสำเร็จ');_rnl();}
-async function loadSettings(){try{const res=await sb.from('settings').select('*');const rows=res.data||[];const find=k=>rows.find(r=>r.key===k)?.value||{};const sv=(id,val)=>{const e=document.getElementById(id);if(e&&val!==undefined)e.value=val;};const c=find('contact'),fee=find('feeRate'),ref=find('referralRate');sv('set-line-id',c?.lineId||'');sv('set-fb-url',c?.fbUrl||'');sv('set-tel',c?.phone1||'');sv('set-fee-rate',typeof fee==='number'?fee*100:fee||7);sv('set-ref-rate',typeof ref==='number'?ref*100:ref||5);if(typeof _feePreview==='function')_feePreview();}catch(e){}}
+async function loadSettings(){try{const res=await sb.from('settings').select('*');const rows=res.data||[];const find=k=>rows.find(r=>r.key===k)?.value||{};const sv=(id,val)=>{const e=document.getElementById(id);if(e&&val!==undefined)e.value=val;};const c=find('contact'),fee=find('feeRate'),ref=find('referralRate');sv('set-tel',c?.phone1||'');sv('set-whatsapp',c?.whatsapp||'');sv('set-telegram',c?.telegram||'');sv('set-line-id',c?.lineId||'');sv('set-fb-url',c?.fbUrl||'');sv('set-email',c?.email||'');sv('set-hours',c?.hours||'');sv('set-other',c?.other||'');sv('set-fee-rate',typeof fee==='number'?fee*100:fee||7);sv('set-ref-rate',typeof ref==='number'?ref*100:ref||5);if(typeof _feePreview==='function')_feePreview();}catch(e){}}
 function _feePreview(){
   var el=document.getElementById('set-fee-rate');
   var box=document.getElementById('fee-preview');
@@ -6736,7 +6745,7 @@ function _feePreview(){
   var net=pool-fee;
   box.innerHTML='ยอดรวมผู้ชนะ '+pool.toLocaleString()+' ₭<br>หักค่าบริการ '+rate+'% = <b style="color:#d97706;">'+fee.toLocaleString()+' ₭</b><br>ผู้ชนะได้รับ = <b style="color:#16a34a;">'+net.toLocaleString()+' ₭</b>';
 }
-async function saveSettings(section){const get=id=>document.getElementById(id)?.value?.trim()??'';let key='',value={};if(section==='contact'){key='contact';value={lineId:get('set-line-id'),fbUrl:get('set-fb-url'),phone1:get('set-tel')};}else if(section==='fee'){key='feeRate';value=parseFloat(get('set-fee-rate'))/100||0.07;}else if(section==='referral'){key='referralRate';value=parseFloat(get('set-ref-rate'))/100||0.05;}else{showToast('ไม่รู้จัก: '+section,'error');return;}const{error}=await sb.from('settings').upsert({key,value});if(error){showToast('❌ '+error.message,'error');return;}showToast('💾 บันทึก ✅');}
+async function saveSettings(section){const get=id=>document.getElementById(id)?.value?.trim()??'';let key='',value={};if(section==='contact'){key='contact';value={phone1:get('set-tel'),whatsapp:get('set-whatsapp'),telegram:get('set-telegram'),lineId:get('set-line-id'),fbUrl:get('set-fb-url'),email:get('set-email'),hours:get('set-hours'),other:get('set-other')};}else if(section==='fee'){key='feeRate';value=parseFloat(get('set-fee-rate'))/100||0.07;}else if(section==='referral'){key='referralRate';value=parseFloat(get('set-ref-rate'))/100||0.05;}else{showToast('ไม่รู้จัก: '+section,'error');return;}const{error}=await sb.from('settings').upsert({key,value});if(error){showToast('❌ '+error.message,'error');return;}showToast('💾 บันทึก ✅');}
 async function loadWorklogPanel(){
   var tb=document.getElementById('worklog-tbody');if(!tb)return;
   tb.innerHTML='<tr><td colspan="6" style="text-align:center;padding:24px;color:#aaa;">กำลังโหลด...</td></tr>';
