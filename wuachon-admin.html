@@ -7789,14 +7789,20 @@ async function adjAddBalance(){
 // ── ลด/ลบยอดเงิน (ไม่ต้อง OTP) ──
 async function adjSubBalance(){
   var nick = document.getElementById('mo-nick')?.textContent;
-  var amtEl = document.getElementById('mo-sub-amount');
-  var rsEl  = document.getElementById('mo-sub-reason');
-  var amount = parseFloat(amtEl?.value||'0');
-  var reason = (rsEl?.value||'').trim();
+  // อ่านจากทั้ง 2 ฟอร์ม (legacy + ใหม่) — ชุดไหนมีค่าใช้ชุดนั้น
+  var amtEl    = document.getElementById('mo-sub-amount');
+  var amtElLeg = document.getElementById('mo-sub-amount-legacy');
+  var rsEl     = document.getElementById('mo-sub-reason');
+  var rsElLeg  = document.getElementById('mo-sub-reason-legacy');
+  // เลือก element ที่มีค่ากรอกไว้ (ให้ความสำคัญกับช่องที่ไม่ว่าง)
+  var amtUsed = (amtEl && amtEl.value && parseFloat(amtEl.value)>0) ? amtEl : amtElLeg;
+  var rsUsed  = (amtUsed === amtEl) ? rsEl : rsElLeg;
+  var amount = parseFloat(amtUsed?.value||'0');
+  var reason = (rsUsed?.value||'').trim();
 
   if(!nick||nick==='—'){ showToast('⚠️ ไม่พบชื่อสมาชิก','error'); return; }
-  if(!amount||amount<=0||isNaN(amount)){ showToast('⚠️ กรุณากรอกจำนวนที่ต้องการลด','error'); if(amtEl)amtEl.focus(); return; }
-  if(!reason){ showToast('⚠️ กรุณาระบุเหตุผล','error'); if(rsEl)rsEl.focus(); return; }
+  if(!amount||amount<=0||isNaN(amount)){ showToast('⚠️ กรุณากรอกจำนวนที่ต้องการลด','error'); if(amtUsed)amtUsed.focus(); return; }
+  if(!reason){ showToast('⚠️ กรุณาระบุเหตุผล','error'); if(rsUsed)rsUsed.focus(); return; }
 
   var m = allMembers.find(function(x){ return x.nick===nick; });
   if(!m){ showToast('❌ ไม่พบข้อมูลสมาชิก','error'); return; }
@@ -7831,6 +7837,8 @@ async function adjSubBalance(){
   if(balDisp) balDisp.textContent = newBal.toLocaleString()+' ₭';
   if(amtEl) amtEl.value='';
   if(rsEl)  rsEl.value='';
+  if(amtElLeg) amtElLeg.value='';
+  if(rsElLeg)  rsElLeg.value='';
 
   showToast('✅ ลดยอด -'+amount.toLocaleString()+' ₭ ของ "'+nick+'" สำเร็จ | โดย: '+staff);
   await loadMembers();
