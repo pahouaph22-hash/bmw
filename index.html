@@ -9361,9 +9361,77 @@ setInterval(() => {
       showFEToast(`⚠️ ยอดเงินไม่เพียงพอครับ (เหลือ ${jFreshBal.toLocaleString()} ₭)`);
       return;
     }
-    const { data: jadj, error: jErr } = await sb.rpc('adjust_member_balance', { p_nick: nick, p_delta: -actualJoin, p_type: 'bet_place', p_note: 'จับคู่เดิมพัน', p_txn: txn });
+    // ════════════════════════════════════════════════════════════
+    // ── จับคู่แบบ ATOMIC (กัน race condition / over-match) ──
+    //   ลำดับสำคัญ: จับคู่ก่อน (DB ล็อกแถว + คืน actualJoin จริง)
+    //   → แล้วค่อยหักเงินตาม actualJoin จริง (กันหักเกินถ้าคนอื่นจับไปก่อน)
+    //   ⚠️ ไม่เปลี่ยนสูตรคำนวณ — RPC ใช้ตรรกะเดิมเป๊ะ (LEAST + matched+actual)
+    // ════════════════════════════════════════════════════════════
+    const { data: mRes, error: mErr } = await sb.rpc('match_bet_atomic', {
+      p_bet_id:       betId,
+      p_join_nick:    nick,
+      p_join_amount:  actualJoin,
+      p_my_side:      mySide,
+      p_my_side_name: myRealSideName,
+      p_odds:         odds,
+      p_txn:          txn,
+      p_match_id:     String(matchId),
+    });
+
+    // ── fallback: ถ้า RPC ยังไม่ถูกสร้างใน DB → ใช้วิธีเดิม (read-then-write) ──
+    let realJoin, newMatched, newRemaining, newStatus, rpcOk = false;
+    if (!mErr && mRes && mRes.length && mRes[0].ok) {
+      rpcOk        = true;
+      realJoin     = Number(mRes[0].actual_join || 0);
+      newMatched   = Number(mRes[0].new_matched || 0);
+      newRemaining = Number(mRes[0].new_remaining || 0);
+      newStatus    = mRes[0].new_status || 'waiting';
+    } else if (!mErr && mRes && mRes.length && !mRes[0].ok) {
+      // RPC ทำงาน แต่จับคู่ไม่ได้ (จับครบแล้ว / มีคนชิงไปก่อน)
+      showFEToast('⚠️ รายการนี้เพิ่งถูกจับคู่ครบแล้วครับ ลองรายการอื่น');
+      loadBetQueue(matchId);
+      return;
+    } else {
+      // RPC ไม่มี (DB เก่า) → fallback read-then-write (เสี่ยง race แต่กันระบบล่ม)
+      const fb = await sb.from('bets').select('*').eq('id', betId).maybeSingle();
+      const fbOrder = fb.data;
+      if (!fbOrder || fbOrder.match_status === 'full' || fbOrder.remaining_amount <= 0) {
+        showFEToast('⚠️ รายการนี้จับคู่ครบแล้วครับ'); loadBetQueue(matchId); return;
+      }
+      realJoin     = Math.min(actualJoin, fbOrder.remaining_amount);
+      newMatched   = Number(fbOrder.matched_amount || 0) + realJoin;
+      newRemaining = Number(fbOrder.order_amount) - newMatched;
+      newStatus    = newRemaining <= 0 ? 'full' : newMatched > 0 ? 'partial' : 'waiting';
+      await sb.from('bets').update({
+        matched_amount: newMatched, remaining_amount: Math.max(0, newRemaining),
+        match_status: newStatus, status: newStatus === 'full' ? 'matched' : 'waiting',
+      }).eq('id', betId);
+      await sb.from('bets').insert({
+        nick, match_id: matchId, side_name: myRealSideName, side: mySide,
+        amount: realJoin, odds, txn, status: 'matched', match_status: 'full',
+        order_amount: realJoin, matched_amount: realJoin, remaining_amount: 0,
+        parent_bet_id: betId,
+      });
+    }
+
+    // ── หักเงินตาม "actualJoin จริง" ที่จับได้ (กันหักเกิน) ──
+    const { data: jadj, error: jErr } = await sb.rpc('adjust_member_balance', { p_nick: nick, p_delta: -realJoin, p_type: 'bet_place', p_note: 'จับคู่เดิมพัน', p_txn: txn });
     if (jErr || !jadj || !jadj.length) {
-      showFEToast('❌ หักยอดไม่สำเร็จ กรุณาลองใหม่ครับ'); return;
+      // หักเงินไม่ได้ → ต้อง unwind การจับคู่ (กันสถานะค้าง)
+      try {
+        if (rpcOk && mRes[0].join_bet_id) {
+          await sb.from('bets').delete().eq('id', mRes[0].join_bet_id);
+          await sb.from('bets').update({
+            matched_amount: Math.max(0, newMatched - realJoin),
+            remaining_amount: newRemaining + realJoin,
+            match_status: (newMatched - realJoin) > 0 ? 'partial' : 'waiting',
+            status: 'waiting',
+          }).eq('id', betId);
+        }
+      } catch(_) {}
+      showFEToast('❌ หักยอดไม่สำเร็จ — ยกเลิกการจับคู่แล้วครับ กรุณาลองใหม่');
+      loadBetQueue(matchId);
+      return;
     }
     const jNewBal = Number(jadj[0].new_balance || 0);
     updateAccBalance(jNewBal);
@@ -9371,30 +9439,7 @@ setInterval(() => {
     window._currentUser = currentUser;
     updateBetBalanceHints();
 
-    // อัปเดต bet order หลัก
-    const newMatched   = Number(order.matched_amount || 0) + actualJoin;
-    const newRemaining = Number(order.order_amount) - newMatched;
-    const newStatus    = newRemaining <= 0 ? 'full' : newMatched > 0 ? 'partial' : 'waiting';
-
-    await sb.from('bets').update({
-      matched_amount: newMatched,
-      remaining_amount: Math.max(0, newRemaining),
-      match_status: newStatus,
-      status: newStatus === 'full' ? 'matched' : 'waiting',
-    }).eq('id', betId);
-
-    // สร้าง bet ของฝ่ายตรงข้าม (join bet) — ใช้ชื่อวัวจริงเพื่อให้ payout เทียบได้
-    await sb.from('bets').insert({
-      nick, match_id: matchId,
-      side_name: myRealSideName, side: mySide,
-      amount: actualJoin, odds, txn,
-      status: 'matched',
-      match_status: 'full',
-      order_amount: actualJoin,
-      matched_amount: actualJoin,
-      remaining_amount: 0,
-      parent_bet_id: betId,
-    });
+    const realPotential = (realJoin * odds).toFixed(0);
 
     // อัปเดต UI: progress bar + status
     const item = document.getElementById(`bq-${betId}`);
@@ -9407,11 +9452,15 @@ setInterval(() => {
 
     // สถานะฝั่งผู้จับ
     const statusMsg = newRemaining <= 0
-      ? `✅ <strong>จับคู่สำเร็จ!</strong> · กับ ${ownerNick} · ${actualJoin.toLocaleString()} ₭ · คาดได้รับ <strong style="color:var(--gold);">${Number(potential).toLocaleString()} ₭</strong>`
-      : `✅ จับบางส่วน ${actualJoin.toLocaleString()} ₭ · กับ ${ownerNick} · คาด <strong style="color:var(--gold);">${Number(potential).toLocaleString()} ₭</strong>`;
+      ? `✅ <strong>จับคู่สำเร็จ!</strong> · กับ ${ownerNick} · ${realJoin.toLocaleString()} ₭ · คาดได้รับ <strong style="color:var(--gold);">${Number(realPotential).toLocaleString()} ₭</strong>`
+      : `✅ จับบางส่วน ${realJoin.toLocaleString()} ₭ · กับ ${ownerNick} · คาด <strong style="color:var(--gold);">${Number(realPotential).toLocaleString()} ₭</strong>`;
     showBetStatus(matchId, 'matched', statusMsg);
-    addBetToHistory(sideName, ownerNick, actualJoin, potential, txn, odds);
-    showFEToast(`✅ จับคู่ ${actualJoin.toLocaleString()} ₭ กับ ${ownerNick} สำเร็จแล้วครับ!`);
+    addBetToHistory(sideName, ownerNick, realJoin, realPotential, txn, odds);
+    if (realJoin < actualJoin) {
+      showFEToast(`✅ จับคู่ ${realJoin.toLocaleString()} ₭ กับ ${ownerNick} (บางส่วนถูกจับไปก่อน คืนส่วนต่างแล้ว)`);
+    } else {
+      showFEToast(`✅ จับคู่ ${realJoin.toLocaleString()} ₭ กับ ${ownerNick} สำเร็จแล้วครับ!`);
+    }
   }
 
   // โหลด bet orders จาก DB เข้า queue (realtime)
