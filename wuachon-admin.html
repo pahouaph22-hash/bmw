@@ -638,6 +638,48 @@ input, textarea, select, button {
             </div>
             <div class="stat-arrow">→</div>
           </div>
+
+          <!-- การเดิมพัน -->
+          <div class="stat-card stat-card-click" onclick="openOvDetail('bets')" title="คลิกดูรายละเอียด">
+            <div class="stat-card-icon-wrap stat-ico-gold">🎯</div>
+            <div class="stat-card-body">
+              <div class="stat-main-row">
+                <span class="stat-val" id="ov-bet-total">—</span>
+                <span class="stat-badge stat-badge-gold" id="ov-bet-today-badge">วันนี้ 0</span>
+              </div>
+              <div class="stat-lbl">รายการเดิมพันทั้งหมด</div>
+              <div class="stat-sub">ยอดเดิมพันรวม <b id="ov-bet-amount" style="color:var(--gold);">0</b> ₭ · เปิดอยู่ <b id="ov-bet-open" style="color:var(--green);">0</b> · ตัดสินแล้ว <b id="ov-bet-done">0</b></div>
+            </div>
+            <div class="stat-arrow">→</div>
+          </div>
+
+          <!-- ค่าบริการ -->
+          <div class="stat-card stat-card-click" onclick="openOvDetail('fees')" title="คลิกดูรายละเอียด">
+            <div class="stat-card-icon-wrap stat-ico-green">⚙️</div>
+            <div class="stat-card-body">
+              <div class="stat-main-row">
+                <span class="stat-val" id="ov-fee-total" style="color:var(--green);">—</span>
+                <span class="stat-badge stat-badge-green" id="ov-fee-range-badge">วันนี้ 0</span>
+              </div>
+              <div class="stat-lbl">ค่าบริการสะสมทั้งหมด (₭)</div>
+              <div class="stat-sub">วันนี้ <b id="ov-fee-today" style="color:var(--green);">0</b> ₭ · ช่วงที่เลือก <b id="ov-fee-range" style="color:var(--gold);">0</b> ₭</div>
+            </div>
+            <div class="stat-arrow">→</div>
+          </div>
+
+          <!-- รางวัลที่ส่ง -->
+          <div class="stat-card stat-card-click" onclick="openOvDetail('rewards')" title="คลิกดูรายละเอียด">
+            <div class="stat-card-icon-wrap stat-ico-gold">🎁</div>
+            <div class="stat-card-body">
+              <div class="stat-main-row">
+                <span class="stat-val" id="ov-reward-total" style="color:var(--gold);">—</span>
+                <span class="stat-badge stat-badge-gold" id="ov-reward-count-badge">0 ครั้ง</span>
+              </div>
+              <div class="stat-lbl">รางวัลที่ส่งทั้งหมด (₭)</div>
+              <div class="stat-sub">ส่งแล้ว <b id="ov-reward-count">0</b> ครั้ง · วันนี้ <b id="ov-reward-today" style="color:var(--gold);">0</b> ₭</div>
+            </div>
+            <div class="stat-arrow">→</div>
+          </div>
         </div>
 
 
@@ -647,7 +689,7 @@ input, textarea, select, button {
   <div style="display:flex;align-items:flex-start;justify-content:space-between;flex-wrap:wrap;gap:10px;margin-bottom:14px;">
     <div>
       <div style="font-family:'Kanit',sans-serif;font-weight:700;font-size:15px;">📈 แนวโน้มการเติบโต</div>
-      <div style="font-size:12px;color:#aaa;margin-top:2px;">กำไร · ค่าบริการ · รางวัล/โบนัส และตัวชี้วัดอื่นๆ</div>
+      <div style="font-size:12px;color:#aaa;margin-top:2px;">ยอดคงเหลือจริง · ค่าบริการ · รางวัล/โบนัส และตัวชี้วัดอื่นๆ</div>
     </div>
     <button onclick="renderGrowthChart()" style="font-family:'Kanit',sans-serif;font-size:11px;font-weight:700;padding:6px 14px;border:1px solid #e0e0e0;border-radius:7px;background:#fff;color:#555;cursor:pointer;">🔄 รีเฟรช</button>
   </div>
@@ -657,7 +699,7 @@ input, textarea, select, button {
     <span style="font-family:'Kanit',sans-serif;font-size:11px;color:#6b7280;font-weight:700;">แสดง:</span>
     <label style="display:inline-flex;align-items:center;gap:5px;cursor:pointer;font-family:'Kanit',sans-serif;font-size:12px;font-weight:600;">
       <input type="checkbox" id="gct-profit"   checked onchange="toggleGrowthDataset('profit')"   style="accent-color:#1d4ed8;width:14px;height:14px;">
-      <span style="color:#1d4ed8;">📈 กำไร</span>
+      <span style="color:#1d4ed8;">📈 ยอดคงเหลือจริง</span>
     </label>
     <label style="display:inline-flex;align-items:center;gap:5px;cursor:pointer;font-family:'Kanit',sans-serif;font-size:12px;font-weight:600;">
       <input type="checkbox" id="gct-deposit"  checked onchange="toggleGrowthDataset('deposit')"  style="accent-color:#22c55e;width:14px;height:14px;">
@@ -703,7 +745,7 @@ input, textarea, select, button {
             <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;margin-bottom:12px;">
               <div>
                 <div style="font-family:'Phetsarath','Phetsarath','Noto Sans Lao','Kanit',sans-serif;font-weight:700;font-size:15px;">💹 สรุปการเงิน</div>
-                <div style="font-size:12px;color:#aaa;margin-top:2px;">เปรียบเทียบรายรับ-รายจ่าย และกำไร/ขาดทุนตามช่วงเวลา
+                <div style="font-size:12px;color:#aaa;margin-top:2px;">เปรียบเทียบรายรับ-รายจ่าย และยอดคงเหลือจริงตามช่วงเวลา
                   &nbsp;·&nbsp; <span style="color:#16a34a;font-weight:700;" id="fin-range-label">วันนี้</span></div>
               </div>
               <button onclick="loadFinanceTable()" style="font-family:'Phetsarath','Phetsarath','Noto Sans Lao','Kanit',sans-serif;font-size:12px;font-weight:700;padding:6px 14px;border:1px solid #e0e0e0;border-radius:7px;background:#fff;color:#555;cursor:pointer;">🔄 รีเฟรช</button>
@@ -733,7 +775,7 @@ input, textarea, select, button {
                   <th style="padding:11px 14px;text-align:right;font-family:'Phetsarath','Phetsarath','Noto Sans Lao','Kanit',sans-serif;font-size:12px;font-weight:700;color:#16a34a;border-bottom:2px solid #e5e5e0;white-space:nowrap;">💰 เติมเงิน (₭)</th>
                   <th style="padding:11px 14px;text-align:right;font-family:'Phetsarath','Phetsarath','Noto Sans Lao','Kanit',sans-serif;font-size:12px;font-weight:700;color:#dc2626;border-bottom:2px solid #e5e5e0;white-space:nowrap;">🏧 ถอนเงิน (₭)</th>
                   <th style="padding:11px 14px;text-align:right;font-family:'Phetsarath','Phetsarath','Noto Sans Lao','Kanit',sans-serif;font-size:12px;font-weight:700;color:#666;border-bottom:2px solid #e5e5e0;white-space:nowrap;">⇄ เติม−ถอน (₭)</th>
-                  <th style="padding:11px 14px;text-align:right;font-family:'Phetsarath','Phetsarath','Noto Sans Lao','Kanit',sans-serif;font-size:12px;font-weight:700;color:#666;border-bottom:2px solid #e5e5e0;white-space:nowrap;">📊 กำไร/ขาดทุน (₭)</th>
+                  <th style="padding:11px 14px;text-align:right;font-family:'Phetsarath','Phetsarath','Noto Sans Lao','Kanit',sans-serif;font-size:12px;font-weight:700;color:#666;border-bottom:2px solid #e5e5e0;white-space:nowrap;">📊 ยอดคงเหลือจริง (₭)</th>
                   <th style="padding:11px 14px;text-align:right;font-family:'Phetsarath','Phetsarath','Noto Sans Lao','Kanit',sans-serif;font-size:12px;font-weight:700;color:#854d0e;border-bottom:2px solid #e5e5e0;white-space:nowrap;">🏦 ค่าบริการ (₭)</th>
                   <th style="padding:11px 14px;text-align:right;font-family:'Phetsarath','Phetsarath','Noto Sans Lao','Kanit',sans-serif;font-size:12px;font-weight:700;color:#dc2626;border-bottom:2px solid #e5e5e0;white-space:nowrap;">🎁 เงินรางวัลที่ให้ (₭)</th>
                 </tr>
@@ -748,7 +790,7 @@ input, textarea, select, button {
           <div style="padding:10px 16px;background:#fafaf8;border-top:1px solid #f0f0ee;font-size:11px;color:#bbb;display:flex;gap:16px;flex-wrap:wrap;">
             <span>* เติมเงิน = deposits approved ที่ลูกค้าโอนเข้ามาจริง (ไม่รวมรางวัล/ค่าบริการ)</span>
             <span>* เติม−ถอน = ยอดเติมเงินจริง − ยอดถอนเงินอนุมัติ</span>
-            <span>* กำไร/ขาดทุน = เติม − ถอน (มุมมองสภาพคล่องระบบ)</span>
+            <span>* ยอดคงเหลือจริง = เติม − ถอน (มุมมองสภาพคล่องระบบ)</span>
             <span>* ค่าบริการ = ดึงจากรายการ deposits ที่ bank = "ค่าบริการ X%" (บันทึกตอน Admin ตัดสินผล)</span>
             <span>* เงินรางวัลที่ให้ = ดึงจากรายการ deposits ที่ bank = "กิจกรรม:" หรือ "คอมฯ/referral/แนะนำ"</span>
           </div>
@@ -3541,6 +3583,83 @@ async function loadOverview() {
   set('ov-with-today-n', wRange);
   set('ov-with-pending-n', wPend);
 
+  // ── การเดิมพัน ──
+  try {
+    // นับ + ดึงยอด: ใช้ order bets เป็นหลัก (parent_bet_id null = บิลต้นฉบับ ไม่นับ join ซ้ำยอด)
+    //   เปิดอยู่   = status ใน (waiting, partial, matched) และ match_status ไม่ใช่ draw/refunded/timeout/done
+    //   ตัดสินแล้ว = status ใน (won, lost) หรือ match_status = draw
+    const betCountQ = isAll
+      ? sb.from('bets').select('*',{count:'exact',head:true})
+      : sb.from('bets').select('*',{count:'exact',head:true}).gte('created_at', fromISO).lt('created_at', toISO);
+    // ดึงเฉพาะ field ที่ต้องใช้คำนวณยอด/สถานะ (limit สูงเพื่อรวมยอด)
+    const betDataQ = isAll
+      ? sb.from('bets').select('order_amount,amount,status,match_status,parent_bet_id').limit(5000)
+      : sb.from('bets').select('order_amount,amount,status,match_status,parent_bet_id').gte('created_at', fromISO).lt('created_at', toISO).limit(5000);
+
+    const [betCountRes, betDataRes] = await Promise.all([betCountQ, betDataQ]);
+    const betTotal = betCountRes.count ?? 0;
+    const allBets  = betDataRes.data || [];
+
+    let betAmount = 0, betOpen = 0, betDone = 0;
+    for (const b of allBets) {
+      // ยอดเดิมพันรวม: นับเฉพาะบิลต้นฉบับ (parent_bet_id null) เพื่อไม่นับ join ซ้ำ
+      if (!b.parent_bet_id) {
+        betAmount += Number(b.order_amount || b.amount || 0);
+      }
+      const st = b.status || '';
+      const ms = b.match_status || '';
+      if (ms === 'draw' || st === 'won' || st === 'lost') {
+        betDone++;
+      } else if (['waiting','partial','matched','full'].includes(st) && !['draw','refunded'].includes(ms)) {
+        betOpen++;
+      }
+    }
+
+    set('ov-bet-total',  isAll ? betTotal.toLocaleString() : betTotal.toLocaleString());
+    set('ov-bet-today-badge', badge_label + ' ' + betTotal);
+    set('ov-bet-amount', betAmount.toLocaleString());
+    set('ov-bet-open',   betOpen.toLocaleString());
+    set('ov-bet-done',   betDone.toLocaleString());
+  } catch(_) {
+    set('ov-bet-total','0'); set('ov-bet-amount','0'); set('ov-bet-open','0'); set('ov-bet-done','0');
+  }
+
+  // ── ค่าบริการ (bet_fee) + รางวัล (activity_reward) จาก balance_logs ──
+  try {
+    // ค่าบริการ: สะสมทั้งหมด / วันนี้ / ช่วงที่เลือก
+    const [feeAllRes, feeTodayRes, feeRangeRes, rewAllRes, rewTodayRes] = await Promise.all([
+      sb.from('balance_logs').select('delta').eq('type','bet_fee'),
+      sb.from('balance_logs').select('delta').eq('type','bet_fee').gte('created_at', todayISO),
+      isAll
+        ? sb.from('balance_logs').select('delta').eq('type','bet_fee')
+        : sb.from('balance_logs').select('delta').eq('type','bet_fee').gte('created_at', fromISO).lt('created_at', toISO),
+      sb.from('balance_logs').select('delta').eq('type','activity_reward'),
+      sb.from('balance_logs').select('delta').eq('type','activity_reward').gte('created_at', todayISO),
+    ]);
+    const sumDelta = (rows) => (rows||[]).reduce((s,r)=>s+Number(r.delta||0),0);
+
+    // ค่าบริการ
+    const feeAll   = sumDelta(feeAllRes.data);
+    const feeToday = sumDelta(feeTodayRes.data);
+    const feeRange = sumDelta(feeRangeRes.data);
+    set('ov-fee-total', feeAll.toLocaleString());
+    set('ov-fee-range-badge', badge_label + ' ' + feeRange.toLocaleString());
+    set('ov-fee-today', feeToday.toLocaleString());
+    set('ov-fee-range', feeRange.toLocaleString());
+
+    // รางวัลที่ส่ง
+    const rewAll   = sumDelta(rewAllRes.data);
+    const rewCount = (rewAllRes.data||[]).length;
+    const rewToday = sumDelta(rewTodayRes.data);
+    set('ov-reward-total', rewAll.toLocaleString());
+    set('ov-reward-count-badge', rewCount.toLocaleString() + ' ครั้ง');
+    set('ov-reward-count', rewCount.toLocaleString());
+    set('ov-reward-today', rewToday.toLocaleString());
+  } catch(_) {
+    set('ov-fee-total','0'); set('ov-fee-today','0'); set('ov-fee-range','0');
+    set('ov-reward-total','0'); set('ov-reward-count','0'); set('ov-reward-today','0');
+  }
+
   // notif badge
   const totalPending = dPend + wPend;
   const badge = document.getElementById('notif-badge');
@@ -4946,8 +5065,16 @@ async function doDrawVerdict(matchId, nameA, nameB) {
   }
 
   // อัปเดต match → done / winner = เสมอ (lock ก่อนคืนเงิน)
-  const { error: upErr } = await sb.from('matches').update({ winner: 'เสมอ', status: 'done' }).eq('id', matchId);
+  // ── atomic guard: update เฉพาะเมื่อ winner ยัง null (กันคืนเงินซ้ำกรณีกดพร้อมกัน) ──
+  const { data: lockRows, error: upErr } = await sb.from('matches')
+    .update({ winner: 'เสมอ', status: 'done' })
+    .eq('id', matchId).is('winner', null).select();
   if (upErr) { showToast('❌ บันทึกผลไม่สำเร็จ: ' + upErr.message, 'error'); return; }
+  if (!lockRows || !lockRows.length) {
+    showToast('⚠️ แมตช์นี้เพิ่งถูกตัดสินไปแล้ว — ไม่คืนเงินซ้ำครับ', 'error');
+    loadVerdict(); loadMatches();
+    return;
+  }
 
   // ดึง bets ทั้งหมดของแมตช์นี้ (ทุกสถานะที่ยังไม่ได้จ่าย)
   const { data: bets } = await sb.from('bets')
@@ -5007,8 +5134,17 @@ async function doVerdict(matchId, winner, winnerName) {
   }
 
   // ตั้ง winner + status ก่อน เพื่อ lock ไม่ให้กดซ้ำ
-  const { error: upErr } = await sb.from('matches').update({ winner, status: 'done' }).eq('id', matchId);
+  // ── atomic guard: update เฉพาะเมื่อ winner ยัง null (กัน admin 2 คนกดพร้อมกัน → จ่ายซ้ำ) ──
+  const { data: lockRows, error: upErr } = await sb.from('matches')
+    .update({ winner, status: 'done' })
+    .eq('id', matchId).is('winner', null).select();
   if (upErr) { showToast('❌ บันทึกผลไม่สำเร็จ: ' + upErr.message, 'error'); return; }
+  // ถ้าไม่มีแถวถูกอัปเดต = มีคนตัดสินไปก่อนแล้ว (เพิ่ง lock โดย admin อีกคน) → หยุด ห้ามจ่าย
+  if (!lockRows || !lockRows.length) {
+    showToast('⚠️ แมตช์นี้เพิ่งถูกตัดสินไปแล้ว — ไม่จ่ายซ้ำครับ', 'error');
+    loadVerdict(); loadMatches();
+    return;
+  }
 
   const result = await payoutBets(matchId, winner, FEE_RATE);
   // บันทึก audit log การตัดสินผล (action เงินก้อนใหญ่)
@@ -5240,7 +5376,7 @@ async function renderGrowthChart() {
 
   var K=1000;
   var datasets=[
-    { id:'profit',   label:'📈 กำไร (₭)',       data:labels.map(function(l){return Math.round(profitMap[l]||0);}),       borderColor:'#1d4ed8',bg:'rgba(29,78,216,0.10)',  fill:true  },
+    { id:'profit',   label:'📈 ยอดคงเหลือจริง (₭)',       data:labels.map(function(l){return Math.round(profitMap[l]||0);}),       borderColor:'#1d4ed8',bg:'rgba(29,78,216,0.10)',  fill:true  },
     { id:'deposit',  label:'💰 เติมเงิน (₭)',   data:labels.map(function(l){return Math.round(depMap[l]||0);}),     borderColor:'#22c55e',bg:'rgba(34,197,94,0.07)',  fill:false },
     { id:'withdraw', label:'🏧 ถอนเงิน (₭)',   data:labels.map(function(l){return Math.round(withMap[l]||0);}),    borderColor:'#f87171',bg:'rgba(248,113,113,0.06)',fill:false },
     { id:'fee',      label:'⚙️ ค่าบริการ (₭)',  data:labels.map(function(l){return Math.round(feeMap[l]||0);}),    borderColor:'#f59e0b',bg:'rgba(245,158,11,0.06)', fill:false },
@@ -5358,7 +5494,7 @@ async function _showGrowthDrilldown(label) {
 
   body.innerHTML =
     '<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:12px;">'
-    + '<div style="background:#eff6ff;border-radius:8px;padding:10px;text-align:center;"><div style="font-size:16px;font-weight:900;color:#1d4ed8;">'+(profit>=0?'+':'')+profit.toLocaleString()+'</div><div style="font-size:10px;color:#6b7280;">กำไร ₭</div></div>'
+    + '<div style="background:#eff6ff;border-radius:8px;padding:10px;text-align:center;"><div style="font-size:16px;font-weight:900;color:#1d4ed8;">'+(profit>=0?'+':'')+profit.toLocaleString()+'</div><div style="font-size:10px;color:#6b7280;">ยอดคงเหลือจริง ₭</div></div>'
     + '<div style="background:#f0fdf4;border-radius:8px;padding:10px;text-align:center;"><div style="font-size:16px;font-weight:900;color:#16a34a;">+'+totalDep.toLocaleString()+'</div><div style="font-size:10px;color:#6b7280;">เติมเงิน ₭</div></div>'
     + '<div style="background:#fef2f2;border-radius:8px;padding:10px;text-align:center;"><div style="font-size:16px;font-weight:900;color:#dc2626;">-'+totalWith.toLocaleString()+'</div><div style="font-size:10px;color:#6b7280;">ถอนเงิน ₭</div></div>'
     + '<div style="background:#fffbeb;border-radius:8px;padding:10px;text-align:center;"><div style="font-size:16px;font-weight:900;color:#d97706;">'+totalFee.toLocaleString()+'</div><div style="font-size:10px;color:#6b7280;">ค่าบริการ ₭</div></div>'
@@ -8927,6 +9063,9 @@ function clearDateMem() {
       pending_dep:'⏳ รอดำเนินการ (เติมเงิน)',
       pending_with:'⏳ รอดำเนินการ (ถอนเงิน)',
       financial: '📊 สรุปการเงิน',
+      bets:      '🎯 รายการเดิมพัน',
+      fees:      '⚙️ รายการค่าบริการ',
+      rewards:   '🎁 รางวัลที่ส่ง',
     };
     if (title)   title.textContent   = titles[type] || '📋 รายละเอียด';
     if (subtitle) subtitle.textContent = label;
@@ -8995,13 +9134,129 @@ function clearDateMem() {
         html_content = '<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px;margin-bottom:20px;">'
           + _statBox('💰 เติมเงิน', totalDep.toLocaleString()+' ₭', '#16a34a', '#f0fdf4')
           + _statBox('🏧 ถอนเงิน', totalWith.toLocaleString()+' ₭', '#dc2626', '#fef2f2')
-          + _statBox(profit>=0?'📈 กำไร':'📉 ขาดทุน', (profit>=0?'+':'')+profit.toLocaleString()+' ₭', profit>=0?'#1d4ed8':'#dc2626', profit>=0?'#eff6ff':'#fef2f2')
+          + _statBox('💵 ยอดคงเหลือจริง', (profit>=0?'+':'')+profit.toLocaleString()+' ₭', profit>=0?'#1d4ed8':'#dc2626', profit>=0?'#eff6ff':'#fef2f2')
           + '</div>'
           + '<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px;">'
           + _statBox('👥 สมาชิกใหม่', mems2.length+' คน', '#7c3aed', '#f5f3ff')
           + _statBox('⏳ รอเติม', deps2.filter(function(d){return d.status==='pending';}).length+' รายการ', '#d97706', '#fffbeb')
           + _statBox('⏳ รอถอน', withs2.filter(function(w){return w.status==='pending';}).length+' รายการ', '#d97706', '#fffbeb')
           + '</div>';
+
+      } else if (type === 'bets') {
+        // ── รายการเดิมพัน: ดึง order bets (parent null) ในช่วงเวลา ──
+        var qb = sb.from('bets')
+          .select('nick,side_name,order_amount,amount,odds,status,match_status,parent_bet_id,created_at')
+          .order('created_at',{ascending:false}).limit(300);
+        if (!isAll && _ovrRange.key !== 'all') {
+          qb = qb.gte('created_at', fromISO).lt('created_at', toISO);
+        }
+        var resB = await qb;
+        var allB = resB.data || [];
+        // สรุปยอด (นับเฉพาะบิลต้นฉบับ ไม่นับ join ซ้ำ)
+        var orderB = allB.filter(function(b){ return !b.parent_bet_id; });
+        var sumAmt = orderB.reduce(function(s,b){ return s + Number(b.order_amount||b.amount||0); }, 0);
+        var cntOpen = 0, cntDone = 0;
+        allB.forEach(function(b){
+          var st=b.status||'', ms=b.match_status||'';
+          if (ms==='draw' || st==='won' || st==='lost') cntDone++;
+          else if (['waiting','partial','matched','full'].indexOf(st)>=0 && ['draw','refunded'].indexOf(ms)<0) cntOpen++;
+        });
+        // กล่องสรุป
+        html_content = '<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px;margin-bottom:20px;">'
+          + _statBox('🎯 รายการทั้งหมด', allB.length.toLocaleString()+' รายการ', '#b8860b', '#fffbeb')
+          + _statBox('💴 ยอดเดิมพันรวม', sumAmt.toLocaleString()+' ₭', '#b8860b', '#fffbeb')
+          + _statBox('🟢 เปิดอยู่ / ✅ ตัดสินแล้ว', cntOpen.toLocaleString()+' / '+cntDone.toLocaleString(), '#16a34a', '#f0fdf4')
+          + '</div>';
+        // ตารางรายการ
+        if (!allB.length) {
+          html_content += '<div style="text-align:center;padding:40px;color:#9ca3af;">ไม่มีข้อมูลในช่วงนี้</div>';
+        } else {
+          var bx = { won:'✅ ชนะ', lost:'❌ แพ้', waiting:'⏳ รอจับคู่', partial:'🔵 จับบางส่วน', matched:'🤝 จับคู่แล้ว', full:'🤝 จับคู่แล้ว', cancelled:'↩️ ยกเลิก', refunded:'↩️ คืนเงิน' };
+          var rowsHtml = allB.map(function(b){
+            var st=b.status||'';
+            var stLabel = (b.match_status==='draw') ? '🤝 เสมอ' : (bx[st]||st||'—');
+            var stColor = st==='won'?'#16a34a':st==='lost'?'#dc2626':(b.match_status==='draw'?'#6b7280':'#d97706');
+            return '<tr style="border-bottom:1px solid #f0f0f0;">'
+              + '<td style="padding:8px;font-weight:700;color:var(--green);cursor:pointer;" onclick="openMember(\''+(b.nick||'')+'\')">'+(b.nick||'—')+'</td>'
+              + '<td style="padding:8px;font-size:12px;">'+(b.side_name||'—')+'</td>'
+              + '<td style="padding:8px;font-weight:700;text-align:right;">'+Number(b.order_amount||b.amount||0).toLocaleString()+' ₭</td>'
+              + '<td style="padding:8px;color:#888;font-size:12px;text-align:center;">× '+(b.odds||'—')+'</td>'
+              + '<td style="padding:8px;font-size:12px;color:'+stColor+';font-weight:700;">'+stLabel+'</td>'
+              + '<td style="padding:8px;font-size:11px;color:#888;">'+fmtDate(b.created_at)+'</td>'
+              + '</tr>';
+          }).join('');
+          html_content += '<table style="width:100%;border-collapse:collapse;font-size:13px;">'
+            + '<thead><tr style="background:#f9fafb;text-align:left;font-size:11px;color:#6b7280;">'
+            + '<th style="padding:8px;">สมาชิก</th><th style="padding:8px;">ฝั่ง</th>'
+            + '<th style="padding:8px;text-align:right;">ยอดเดิมพัน</th><th style="padding:8px;text-align:center;">อัตรา</th>'
+            + '<th style="padding:8px;">สถานะ</th><th style="padding:8px;">เวลา</th></tr></thead>'
+            + '<tbody>'+rowsHtml+'</tbody></table>';
+        }
+
+      } else if (type === 'fees') {
+        // ── ค่าบริการ (bet_fee) ──
+        var qf = sb.from('balance_logs').select('delta,note,ref_txn,created_at')
+          .eq('type','bet_fee').order('created_at',{ascending:false}).limit(300);
+        if (!isAll && _ovrRange.key !== 'all') qf = qf.gte('created_at', fromISO).lt('created_at', toISO);
+        var resF = await qf;
+        var feeRows = resF.data || [];
+        // ยอดรวม: ทั้งหมด + ช่วงนี้
+        var allFeeRes = await sb.from('balance_logs').select('delta').eq('type','bet_fee');
+        var feeAllSum = (allFeeRes.data||[]).reduce(function(s,r){return s+Number(r.delta||0);},0);
+        var feeRangeSum = feeRows.reduce(function(s,r){return s+Number(r.delta||0);},0);
+        html_content = '<div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:20px;">'
+          + _statBox('⚙️ ค่าบริการสะสมทั้งหมด', feeAllSum.toLocaleString()+' ₭', '#16a34a', '#f0fdf4')
+          + _statBox('📅 ค่าบริการช่วงที่เลือก', feeRangeSum.toLocaleString()+' ₭', '#b8860b', '#fffbeb')
+          + '</div>';
+        if (!feeRows.length) {
+          html_content += '<div style="text-align:center;padding:40px;color:#9ca3af;">ไม่มีข้อมูลในช่วงนี้</div>';
+        } else {
+          var feeRowsHtml = feeRows.map(function(r){
+            return '<tr style="border-bottom:1px solid #f0f0f0;">'
+              + '<td style="padding:8px;font-weight:700;color:#16a34a;text-align:right;">+'+Number(r.delta||0).toLocaleString()+' ₭</td>'
+              + '<td style="padding:8px;font-size:12px;color:#555;">'+(r.note||'—')+'</td>'
+              + '<td style="padding:8px;font-size:11px;color:#888;">'+fmtDate(r.created_at)+'</td>'
+              + '</tr>';
+          }).join('');
+          html_content += '<table style="width:100%;border-collapse:collapse;font-size:13px;">'
+            + '<thead><tr style="background:#f9fafb;text-align:left;font-size:11px;color:#6b7280;">'
+            + '<th style="padding:8px;text-align:right;">ค่าบริการ</th><th style="padding:8px;">รายละเอียด</th>'
+            + '<th style="padding:8px;">เวลา</th></tr></thead><tbody>'+feeRowsHtml+'</tbody></table>';
+        }
+
+      } else if (type === 'rewards') {
+        // ── รางวัลที่ส่ง (activity_reward) ──
+        var qr = sb.from('balance_logs').select('nick,delta,note,created_at')
+          .eq('type','activity_reward').order('created_at',{ascending:false}).limit(300);
+        if (!isAll && _ovrRange.key !== 'all') qr = qr.gte('created_at', fromISO).lt('created_at', toISO);
+        var resR = await qr;
+        var rewRows = resR.data || [];
+        var allRewRes = await sb.from('balance_logs').select('delta').eq('type','activity_reward');
+        var rewAllSum = (allRewRes.data||[]).reduce(function(s,r){return s+Number(r.delta||0);},0);
+        var rewAllCnt = (allRewRes.data||[]).length;
+        var rewRangeSum = rewRows.reduce(function(s,r){return s+Number(r.delta||0);},0);
+        html_content = '<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px;margin-bottom:20px;">'
+          + _statBox('🎁 รางวัลที่ส่งทั้งหมด', rewAllSum.toLocaleString()+' ₭', '#b8860b', '#fffbeb')
+          + _statBox('🔢 จำนวนครั้งทั้งหมด', rewAllCnt.toLocaleString()+' ครั้ง', '#7c3aed', '#f5f3ff')
+          + _statBox('📅 รางวัลช่วงที่เลือก', rewRangeSum.toLocaleString()+' ₭', '#16a34a', '#f0fdf4')
+          + '</div>';
+        if (!rewRows.length) {
+          html_content += '<div style="text-align:center;padding:40px;color:#9ca3af;">ไม่มีข้อมูลในช่วงนี้</div>';
+        } else {
+          var rewRowsHtml = rewRows.map(function(r){
+            return '<tr style="border-bottom:1px solid #f0f0f0;">'
+              + '<td style="padding:8px;font-weight:700;color:var(--green);cursor:pointer;" onclick="openMember(\''+(r.nick||'')+'\')">'+(r.nick||'—')+'</td>'
+              + '<td style="padding:8px;font-weight:700;color:#b8860b;text-align:right;">+'+Number(r.delta||0).toLocaleString()+' ₭</td>'
+              + '<td style="padding:8px;font-size:12px;color:#555;">'+(r.note||'—')+'</td>'
+              + '<td style="padding:8px;font-size:11px;color:#888;">'+fmtDate(r.created_at)+'</td>'
+              + '</tr>';
+          }).join('');
+          html_content += '<table style="width:100%;border-collapse:collapse;font-size:13px;">'
+            + '<thead><tr style="background:#f9fafb;text-align:left;font-size:11px;color:#6b7280;">'
+            + '<th style="padding:8px;">สมาชิก</th><th style="padding:8px;text-align:right;">รางวัล</th>'
+            + '<th style="padding:8px;">รายละเอียด</th><th style="padding:8px;">เวลา</th></tr></thead>'
+            + '<tbody>'+rewRowsHtml+'</tbody></table>';
+        }
       }
 
       body.innerHTML = html_content;
