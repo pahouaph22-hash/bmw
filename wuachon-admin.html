@@ -843,6 +843,7 @@ input, textarea, select, button {
         <div class="card">
           <div class="card-title">👥 รายชื่อสมาชิก
             <button onclick="loadMembers()" style="margin-left:auto;font-family:'Phetsarath','Phetsarath','Noto Sans Lao','Kanit',sans-serif;font-size:11px;font-weight:700;padding:5px 12px;border:1px solid #e0e0e0;border-radius:7px;background:#fff;color:#555;cursor:pointer;white-space:nowrap;">🔄 รีเฟรช</button>
+            <button onclick="exportMembers()" style="font-family:'Phetsarath','Phetsarath','Noto Sans Lao','Kanit',sans-serif;font-size:11px;font-weight:700;padding:5px 12px;border:1px solid #16a34a;border-radius:7px;background:#16a34a;color:#fff;cursor:pointer;white-space:nowrap;margin-left:6px;">⬇️ CSV</button>
             <span style="font-size:12px;color:#aaa;font-weight:400;" id="members-count"></span>
           </div>
           <div class="date-filter">
@@ -1272,6 +1273,7 @@ input, textarea, select, button {
               <div class="card">
                 <div class="card-title">💰 คำขอเติมเงิน (รอดำเนินการ)
                   <button onclick="loadDeposits()" style="margin-left:auto;font-family:'Kanit',sans-serif;font-size:11px;font-weight:700;padding:5px 12px;border:1px solid #e0e0e0;border-radius:7px;background:#fff;color:#555;cursor:pointer;white-space:nowrap;">🔄 รีเฟรช</button>
+                  <button onclick="exportDeposits()" style="font-family:'Kanit',sans-serif;font-size:11px;font-weight:700;padding:5px 12px;border:1px solid #16a34a;border-radius:7px;background:#16a34a;color:#fff;cursor:pointer;white-space:nowrap;margin-left:6px;">⬇️ CSV</button>
                 </div>
                 <div class="date-filter">
                   <label>📅 ตั้งแต่</label>
@@ -1373,6 +1375,7 @@ input, textarea, select, button {
               <div class="card">
                 <div class="card-title">🏧 คำขอถอนเงิน (รอดำเนินการ)
                   <button onclick="loadWithdrawals()" style="margin-left:auto;font-family:'Kanit',sans-serif;font-size:11px;font-weight:700;padding:5px 12px;border:1px solid #e0e0e0;border-radius:7px;background:#fff;color:#555;cursor:pointer;white-space:nowrap;">🔄 รีเฟรช</button>
+                  <button onclick="exportWithdrawals()" style="font-family:'Kanit',sans-serif;font-size:11px;font-weight:700;padding:5px 12px;border:1px solid #16a34a;border-radius:7px;background:#16a34a;color:#fff;cursor:pointer;white-space:nowrap;margin-left:6px;">⬇️ CSV</button>
                 </div>
                 <div class="date-filter">
                   <label>📅 ตั้งแต่</label>
@@ -1450,7 +1453,7 @@ input, textarea, select, button {
         <div class="card">
           <div class="card-title">🎯 รายการเดิมพัน P2P
             <button onclick="loadBets()" style="margin-left:auto;font-family:'Phetsarath','Phetsarath','Noto Sans Lao','Kanit',sans-serif;font-size:11px;font-weight:700;padding:5px 12px;border:1px solid #e0e0e0;border-radius:7px;background:#fff;color:#555;cursor:pointer;white-space:nowrap;">🔄 รีเฟรช</button>
-            <button onclick="loadBets()" style="margin-left:auto;font-family:'Phetsarath','Phetsarath','Noto Sans Lao','Kanit',sans-serif;font-size:11px;font-weight:700;padding:5px 12px;border:1px solid #e0e0e0;border-radius:7px;background:#fff;color:#555;cursor:pointer;white-space:nowrap;">🔄 รีเฟรช</button>
+            <button onclick="exportBets()" style="font-family:'Phetsarath','Phetsarath','Noto Sans Lao','Kanit',sans-serif;font-size:11px;font-weight:700;padding:5px 12px;border:1px solid #16a34a;border-radius:7px;background:#16a34a;color:#fff;cursor:pointer;white-space:nowrap;margin-left:6px;">⬇️ CSV</button>
             <span style="font-size:12px;color:#aaa;font-weight:400;" id="bets-count"></span>
           </div>
           <div class="date-filter">
@@ -3138,6 +3141,7 @@ let ADMIN_PASS = '';
 let _adminPassLoaded = false;
 let currentPanel = 'overview';
 let allMembers = [], allMatches = [], allDeposits = [], allWithdrawals = [], allBets = [];
+let _filteredMembers = [];
 let notifCount = 0;
 
 // ── Staff Auth ──
@@ -4528,6 +4532,7 @@ function filterMembers() {
     return matchQ && matchVip && inDateRange(m, 'mem', 'created_at');
   });
   updateDateTag('mem');
+  _filteredMembers = rows;
   document.getElementById('members-count').textContent = `(${rows.length} คน)`;
   const tb = document.getElementById('members-tbody');
   if (!rows.length) {
@@ -6715,6 +6720,103 @@ function filterWithReject(){
 
 // ── BETS / NEWS / SETTINGS / WORKLOG / REFERRAL / ACTIVITY ──
 async function loadBets(){const res=await sb.from('bets').select('*').order('created_at',{ascending:false}).limit(500);allBets=res.data||[];filterBets();}
+
+// ══════════════════════════════════════════════════════
+// EXPORT CSV — ดาวน์โหลดข้อมูลเป็นไฟล์ CSV (เปิดใน Excel ได้)
+// ══════════════════════════════════════════════════════
+function _csvEscape(v){
+  if(v===null||v===undefined) return '';
+  var s=String(v);
+  // ถ้ามี comma / quote / newline → ครอบด้วย quote + escape quote
+  if(/[",\n\r]/.test(s)) s='"'+s.replace(/"/g,'""')+'"';
+  return s;
+}
+function _downloadCSV(filename, headers, rows){
+  if(!rows||!rows.length){ showToast('⚠️ ไม่มีข้อมูลให้ดาวน์โหลดครับ','error'); return; }
+  // BOM \uFEFF เพื่อให้ Excel อ่านภาษาไทย/ลาว ถูกต้อง
+  var csv='\uFEFF';
+  csv += headers.map(function(h){return _csvEscape(h.label);}).join(',')+'\r\n';
+  rows.forEach(function(r){
+    csv += headers.map(function(h){
+      var val = typeof h.get==='function' ? h.get(r) : r[h.key];
+      return _csvEscape(val);
+    }).join(',')+'\r\n';
+  });
+  var blob=new Blob([csv],{type:'text/csv;charset=utf-8;'});
+  var url=URL.createObjectURL(blob);
+  var a=document.createElement('a');
+  var ts=new Date().toISOString().slice(0,19).replace(/[:T]/g,'-');
+  a.href=url; a.download=filename+'_'+ts+'.csv';
+  document.body.appendChild(a); a.click();
+  document.body.removeChild(a);
+  setTimeout(function(){URL.revokeObjectURL(url);},1000);
+  showToast('⬇️ ดาวน์โหลด '+rows.length+' รายการแล้วครับ');
+}
+function _fmtDateCSV(iso){
+  if(!iso) return '';
+  try{ var d=new Date(iso); return d.toLocaleString('th-TH',{year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit'}); }catch(_){ return iso; }
+}
+
+// ── Export: สมาชิก (ใช้ข้อมูลที่กรองอยู่ ถ้ามี) ──
+function exportMembers(){
+  var rows = (typeof _filteredMembers!=='undefined' && _filteredMembers && _filteredMembers.length) ? _filteredMembers : (allMembers||[]);
+  _downloadCSV('สมาชิก',[
+    {label:'Nick', key:'nick'},
+    {label:'ชื่อ', get:function(r){return (r.fname||'')+' '+(r.lname||'');}},
+    {label:'เบอร์โทร', key:'phone'},
+    {label:'ยอดเงิน', get:function(r){return Number(r.balance||0);}},
+    {label:'สถานะ', get:function(r){var f=Array.isArray(r.flags)?r.flags:[];return f.includes('blacklist')?'บัญชีดำ':f.includes('suspend')?'ระงับ':'ปกติ';}},
+    {label:'Flags', get:function(r){return Array.isArray(r.flags)?r.flags.join('|'):'';}},
+    {label:'สมัครเมื่อ', get:function(r){return _fmtDateCSV(r.created_at);}},
+  ], rows);
+}
+
+// ── Export: เติมเงิน (ทั้งหมดที่โหลด) ──
+function exportDeposits(){
+  var rows = allDeposits||[];
+  _downloadCSV('เติมเงิน',[
+    {label:'Nick', key:'nick'},
+    {label:'ชื่อ', get:function(r){return (r.fname||'')+' '+(r.lname||'');}},
+    {label:'เบอร์โทร', key:'phone'},
+    {label:'จำนวนเงิน', get:function(r){return Number(r.amount||0);}},
+    {label:'ธนาคาร', key:'bank'},
+    {label:'สถานะ', get:function(r){return r.status==='approved'?'อนุมัติ':r.status==='rejected'?'ปฏิเสธ':'รอดำเนินการ';}},
+    {label:'TXN', key:'txn'},
+    {label:'ผู้อนุมัติ', key:'approved_by'},
+    {label:'วันที่', get:function(r){return _fmtDateCSV(r.created_at);}},
+  ], rows);
+}
+
+// ── Export: ถอนเงิน (ทั้งหมดที่โหลด) ──
+function exportWithdrawals(){
+  var rows = allWithdrawals||[];
+  _downloadCSV('ถอนเงิน',[
+    {label:'Nick', key:'nick'},
+    {label:'จำนวนเงิน', get:function(r){return Number(r.amount||0);}},
+    {label:'ธนาคาร', key:'bank'},
+    {label:'เลขบัญชี', key:'acc_no'},
+    {label:'ชื่อบัญชี', key:'acc_name'},
+    {label:'สถานะ', get:function(r){return r.status==='approved'?'อนุมัติ':r.status==='rejected'?'ปฏิเสธ':'รอดำเนินการ';}},
+    {label:'TXN', key:'txn'},
+    {label:'ผู้อนุมัติ', key:'approved_by'},
+    {label:'วันที่', get:function(r){return _fmtDateCSV(r.created_at);}},
+  ], rows);
+}
+
+// ── Export: เดิมพัน (ทั้งหมดที่โหลด) ──
+function exportBets(){
+  var rows = allBets||[];
+  _downloadCSV('เดิมพัน',[
+    {label:'Nick', key:'nick'},
+    {label:'ฝั่ง', key:'side_name'},
+    {label:'ยอดเดิมพัน', get:function(r){return Number(r.order_amount||r.amount||0);}},
+    {label:'จับคู่แล้ว', get:function(r){return Number(r.matched_amount||0);}},
+    {label:'อัตรา', key:'odds'},
+    {label:'สถานะ', get:function(r){return r.match_status==='draw'?'เสมอ':r.status==='won'?'ชนะ':r.status==='lost'?'แพ้':r.status||'';}},
+    {label:'TXN', key:'txn'},
+    {label:'วันที่', get:function(r){return _fmtDateCSV(r.created_at);}},
+  ], rows);
+}
 function filterBets(){
   var from=document.getElementById('bet-date-from')?.value||'',to=document.getElementById('bet-date-to')?.value||'';
   var status=document.getElementById('bet-status-filter')?.value||'all';
