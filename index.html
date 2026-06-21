@@ -9322,7 +9322,11 @@ setInterval(() => {
     const stakeEl  = document.getElementById(`bet-stake-show-${matchId}`);
     if (amount >= 100 && side) {
       if (expectEl) expectEl.style.display = 'flex';
-      if (valEl)    valEl.textContent    = (amount * odds).toLocaleString('th-TH', {maximumFractionDigits:0}) + ' ₭';
+      // หากชนะจะได้รับ = ทุน + กำไรสุทธิ (กำไร = amount×odds, หักค่าบริการ 5% จากกำไร)
+      const _profit    = Math.floor(amount * odds);
+      const _fee       = Math.floor(_profit * (typeof _feeRate!=='undefined'?_feeRate:0.05));
+      const _totalWin  = amount + (_profit - _fee);
+      if (valEl)    valEl.textContent    = _totalWin.toLocaleString('th-TH', {maximumFractionDigits:0}) + ' ₭';
       if (stakeEl)  stakeEl.textContent  = amount.toLocaleString() + ' ₭';
     } else {
       if (expectEl) expectEl.style.display = 'none';
@@ -9443,7 +9447,11 @@ setInterval(() => {
     if (input) input.value = '';
     const expectEl = document.getElementById(`bet-expect-${matchId}`);
     if (expectEl) expectEl.style.display = 'none';
-    addBetToHistory(sideName, side==='red'?nameB:nameA, amount, (amount*odds).toFixed(0), txn, odds);
+    // คาดว่าจะได้รับ = ทุน + กำไรสุทธิ (หักค่าบริการ 5% จากกำไร)
+    const _bhProfit = Math.floor(amount * odds);
+    const _bhFee    = Math.floor(_bhProfit * (typeof _feeRate!=='undefined'?_feeRate:0.05));
+    const _bhTotal  = amount + (_bhProfit - _bhFee);
+    addBetToHistory(sideName, side==='red'?nameB:nameA, amount, _bhTotal.toFixed(0), txn, odds);
   }
 
   // เพิ่ม bet order เข้า queue พร้อม progress bar + custom join input
@@ -9550,7 +9558,10 @@ setInterval(() => {
     }
 
     const actualJoin = Math.min(joinAmt, order.remaining_amount);
-    const potential  = (actualJoin * odds).toFixed(0);
+    // หากชนะได้รับ = ทุน + กำไรสุทธิ (กำไร = actualJoin×odds, หักค่าบริการ 5% จากกำไร)
+    const _mProfit   = Math.floor(actualJoin * odds);
+    const _mFee      = Math.floor(_mProfit * (typeof _feeRate!=='undefined'?_feeRate:0.05));
+    const potential  = (actualJoin + (_mProfit - _mFee)).toFixed(0);
     const mySide     = ownerSide === 'red' ? 'blue' : 'red';
     // ชื่อวัวฝั่งตรงข้ามจริง (เพื่อให้ payout เทียบ side_name === winner ได้ถูกต้อง)
     const _nameA = document.getElementById('btn-name-a')?.textContent?.trim() || '';
@@ -9652,7 +9663,10 @@ setInterval(() => {
     window._currentUser = currentUser;
     updateBetBalanceHints();
 
-    const realPotential = (realJoin * odds).toFixed(0);
+    // คาดได้รับ = ทุน + กำไรสุทธิ (กำไร = realJoin×odds, หักค่าบริการ 5% จากกำไร)
+    const _rpProfit = Math.floor(realJoin * odds);
+    const _rpFee    = Math.floor(_rpProfit * (typeof _feeRate!=='undefined'?_feeRate:0.05));
+    const realPotential = (realJoin + (_rpProfit - _rpFee)).toFixed(0);
 
     // อัปเดต UI: progress bar + status
     const item = document.getElementById(`bq-${betId}`);
