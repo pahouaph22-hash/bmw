@@ -7692,6 +7692,8 @@ setInterval(() => {
         // ดึงยอดเงิน + flags ล่าสุดจาก Supabase ทันที
         sb.rpc('get_member_by_nick', { p_nick: currentUser.nick }).then(r => ({ data: r.data?.[0] || null, error: r.error })).then(({ data }) => {
           if (data) {
+            // sync ทุก field จาก DB ทับ session cache (กัน stale data)
+            currentUser = { ...currentUser, ...data };
             currentUser.balance    = Number(data.balance || 0);
             currentUser.flags      = Array.isArray(data.flags) ? data.flags : [];
             currentUser.admin_note = data.admin_note || '';
@@ -7859,13 +7861,8 @@ setInterval(() => {
     // ── แสดงหน้า Account ทันทีจากข้อมูลที่มีอยู่ใน session ──
     renderAvatar(currentUser);
     applyFlagUI(currentUser.flags || []);
-    document.getElementById('acc-nick').textContent          = nick;
-    document.getElementById('acc-fullname').textContent      = `${currentUser.fname||''} ${currentUser.lname||''} · ${currentUser.phone||''}`;
-    document.getElementById('acc-id').textContent            = currentUser.id || '—';
-    document.getElementById('acc-info-fullname').textContent = `${currentUser.fname||''} ${currentUser.lname||''}`;
-    document.getElementById('acc-info-nick').textContent     = nick;
-    document.getElementById('acc-info-phone').textContent    = currentUser.phone || '—';
-    document.getElementById('acc-info-id').textContent       = currentUser.id || '—';
+    // ── render DOM จาก session ก่อน (แสดงผลทันที ก่อน DB fetch เสร็จ) ──
+    _syncProfileDOM(currentUser);
     const addrEl = document.getElementById('acc-info-addr'); if(addrEl) addrEl.textContent = '—';
     updateAccBalance(currentUser.balance || 0);
     if (currentUser.referral_code) {
@@ -7909,6 +7906,8 @@ setInterval(() => {
         updateAccBalance(currentUser.balance || 0);
         applyFlagUI(currentUser.flags);
         renderAvatar(currentUser);
+        // ── sync DOM หลัง DB fetch เสร็จ (ป้องกันข้อมูลเก่าจาก session ค้างอยู่) ──
+        _syncProfileDOM(currentUser);
         // สร้าง referral_code ถ้ายังไม่มี
         if (!currentUser.referral_code) {
           const autoCode = currentUser.nick.toUpperCase().slice(0,4) + Math.floor(1000+Math.random()*9000);
@@ -7936,6 +7935,44 @@ setInterval(() => {
     loadDepHistory();
     loadWithHistory();
     loadWithdrawPanel();
+  }
+
+  // ── _syncProfileDOM: อัปเดต DOM ทุก element ใน profile ให้ตรงกับ user object ──
+  // เรียกหลัง fetch ข้อมูลจาก DB เสมอ เพื่อป้องกัน stale session ค้างในหน้า
+  function _syncProfileDOM(user) {
+    if (!user) return;
+    const nick     = user.nick     || '';
+    const fname    = user.fname    || '';
+    const lname    = user.lname    || '';
+    const phone    = user.phone    || '—';
+    const fullname = (fname + ' ' + lname).trim() || '—';
+
+    // Banner
+    const nickEl = document.getElementById('acc-nick');
+    if (nickEl) nickEl.textContent = nick;
+
+    const fullnameEl = document.getElementById('acc-fullname');
+    if (fullnameEl) fullnameEl.textContent = (fname && lname ? fullname : (fname || lname || '—')) + ' · ' + (user.phone || '—');
+
+    const idEl = document.getElementById('acc-id');
+    if (idEl) idEl.textContent = user.id || '—';
+
+    // Info tab
+    const infoFull = document.getElementById('acc-info-fullname');
+    if (infoFull) infoFull.textContent = fullname || '—';
+
+    const infoNick = document.getElementById('acc-info-nick');
+    if (infoNick) infoNick.textContent = nick || '—';
+
+    const infoPhone = document.getElementById('acc-info-phone');
+    if (infoPhone) infoPhone.textContent = phone;
+
+    const infoId = document.getElementById('acc-info-id');
+    if (infoId) infoId.textContent = user.id || '—';
+
+    // Mobile bar nick
+    const mobNick = document.getElementById('mob-bar-nick');
+    if (mobNick) mobNick.textContent = nick || '—';
   }
 
   function updateAccBalance(amount) {
