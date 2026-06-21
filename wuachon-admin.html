@@ -6310,15 +6310,20 @@ async function _approveDepositReal(id,nick,amount){
         const { data: prevDeps } = await sb.from('deposits')
           .select('id').eq('nick', nick).eq('status','approved').neq('id', id).limit(1);
         const isFirst = !prevDeps || prevDeps.length === 0;
-        // Guard 2: balance_logs ไม่มีรายการ referral_commission ที่ note มี nick นี้
-        //   (ป้องกัน double-pay กรณี approve พร้อมกัน 2 ครั้ง)
+        // Guard 2: referral_logs มี record ของ new_member_nick นี้แล้วหรือยัง (exact match — แม่นกว่า ilike)
+        //   ป้องกัน double-pay: ถ้าเคยจ่ายคอมให้สมาชิกคนนี้แล้ว = ไม่จ่ายซ้ำเด็ดขาด
+        const { data: existingRef } = await sb.from('referral_logs')
+          .select('id').eq('new_member_nick', nick).limit(1);
+        const refPaid = existingRef && existingRef.length > 0;
+        // Guard 3 (เสริม): เช็ค balance_logs ด้วย exact note match (กันกรณี referral_logs insert fail)
+        const refNote = 'ค่าคอมแนะนำ '+nick+' (เติมครั้งแรก';
         const { data: existingLog } = await sb.from('balance_logs')
           .select('id').eq('type','referral_commission')
-          .ilike('note','%'+nick+'%').limit(1);
-        const alreadyPaid = existingLog && existingLog.length > 0;
-        if (!isFirst || alreadyPaid) {
+          .ilike('note', refNote+'%').limit(1);
+        const logPaid = existingLog && existingLog.length > 0;
+        if (!isFirst || refPaid || logPaid) {
           // ไม่ใช่เติมครั้งแรก หรือจ่ายคอมไปแล้ว → ข้าม
-          console.log('[referral] ข้ามคอม — isFirst='+isFirst+' alreadyPaid='+alreadyPaid);
+          console.log('[referral] ข้ามคอม — isFirst='+isFirst+' refPaid='+refPaid+' logPaid='+logPaid);
         } else {
         // ดึง rate คอมจาก settings (default 5%)
         const { data: rateRow } = await sb.from('settings').select('value').eq('key','referralRate').maybeSingle();
@@ -6326,22 +6331,32 @@ async function _approveDepositReal(id,nick,amount){
         rate = (typeof rate === 'number') ? rate : 0.05;
         const commission = Math.floor(Number(amount) * rate);
         if (commission > 0) {
-          // จ่ายคอมเข้าบัญชีผู้แนะนำ (atomic + log อัตโนมัติ)
-          const { data: comRes } = await sb.rpc('adjust_member_balance', {
-            p_nick: referrer, p_delta: commission,
-            p_type: 'referral_commission',
-            p_note: 'ค่าคอมแนะนำ '+nick+' (เติมครั้งแรก '+Number(amount).toLocaleString()+' ₭)',
-          });
-          // บันทึกประวัติคอมมิชชัน (referral_logs) — cols จริง: ไม่มี txn
+          // ── บันทึก referral_logs ก่อน (เป็น lock กันซ้ำ) แล้วค่อยจ่ายเงิน ──
+          // ถ้า insert ซ้ำไม่ได้ (เช่นมี unique constraint) จะ throw → ไม่จ่ายเงิน
+          let refLogOk = false;
           try {
-            await sb.from('referral_logs').insert({
+            const { error: refErr } = await sb.from('referral_logs').insert({
               referrer_nick: referrer, new_member_nick: nick,
               deposit_amount: Number(amount), ref_rate: (rate*100),
               commission: commission,
             });
+            if (!refErr) refLogOk = true;
+            else console.warn('[referral_logs insert]', refErr.message);
           } catch(e) { console.warn('[referral_logs insert]', e?.message||e); }
-          if (comRes && comRes.length) {
-            showToast('🎁 จ่ายค่าคอม '+commission.toLocaleString()+' ₭ ให้ผู้แนะนำ "'+referrer+'"');
+
+          // จ่ายคอมเข้าบัญชีผู้แนะนำ (atomic + log อัตโนมัติ) — เฉพาะเมื่อบันทึก referral_logs สำเร็จ
+          // (ถ้า referral_logs ล้มเหลว = อาจมี record อยู่แล้ว = เคยจ่าย → ไม่จ่ายซ้ำ)
+          if (refLogOk) {
+            const { data: comRes } = await sb.rpc('adjust_member_balance', {
+              p_nick: referrer, p_delta: commission,
+              p_type: 'referral_commission',
+              p_note: 'ค่าคอมแนะนำ '+nick+' (เติมครั้งแรก '+Number(amount).toLocaleString()+' ₭)',
+            });
+            if (comRes && comRes.length) {
+              showToast('🎁 จ่ายค่าคอม '+commission.toLocaleString()+' ₭ ให้ผู้แนะนำ "'+referrer+'"');
+            }
+          } else {
+            console.log('[referral] ไม่จ่ายคอม — referral_logs บันทึกไม่ได้ (อาจจ่ายไปแล้ว)');
           }
         }
         }
