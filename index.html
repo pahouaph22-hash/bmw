@@ -7760,10 +7760,12 @@ setInterval(() => {
 
       if (b.status === 'won') {
         // คืนทุน(matched) + กำไรสุทธิ
-        const profit = Math.floor(matched * (odds - 1));
-        const fee    = Math.floor(profit * FEE);
-        const net    = matched + profit - fee;
-        rows.push({ cat:'bet_win', icon:'🏆', cls:'dep', label:'ชนะเดิมพัน', sub:`${sideName} · ทุน ${matched.toLocaleString()} + กำไร ${(profit-fee).toLocaleString()}`, txn:b.txn, at, sign:'+', amount:net, status:'won' });
+        // ⚠️ odds = อัตรากำไรโดยตรง (กำไร = matched × odds) — ตรงกับสูตรจ่ายเงินจริงฝั่ง admin
+        const profit    = Math.floor(matched * odds);   // กำไร = ทุน × odds
+        const fee       = Math.floor(profit * FEE);      // ค่าบริการ 5% ของกำไร
+        const profitNet = profit - fee;                  // กำไรสุทธิ
+        const net       = matched + profitNet;           // เงินรางวัลรวม = ทุน + กำไรสุทธิ
+        rows.push({ cat:'bet_win', icon:'🏆', cls:'dep', label:'ชนะเดิมพัน', sub:`${sideName} · ทุน ${matched.toLocaleString()} + กำไรสุทธิ ${profitNet.toLocaleString()} ₭`, txn:b.txn, at, sign:'+', amount:net, status:'won' });
       } else if (b.status === 'lost') {
         rows.push({ cat:'bet_lose', icon:'❌', cls:'with', label:'แพ้เดิมพัน', sub:`${sideName} · เสีย ${matched.toLocaleString()} ₭`, txn:b.txn, at, sign:'-', amount:matched, status:'lost' });
       } else if (b.status === 'refunded' || b.status === 'cancelled' || b.match_status === 'timeout') {
