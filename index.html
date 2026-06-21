@@ -7549,6 +7549,18 @@ setInterval(() => {
     subscribeMatchResults();
     refreshBalance();
     hideRegister();
+
+    // ── ดึงข้อมูลครบ (fname/lname/phone/id) จาก get_member_by_nick ก่อนแสดง profile ──
+    // เพราะ login path อาจได้ข้อมูลจาก members_public ที่ไม่มี fname/lname
+    try {
+      const _full = await sb.rpc('get_member_by_nick', { p_nick: data.nick });
+      if (!_full.error && _full.data?.length) {
+        currentUser = { ...currentUser, ..._full.data[0] };
+        currentUser.flags = Array.isArray(currentUser.flags) ? currentUser.flags : [];
+        _safeStorage.setItem('bw_user', JSON.stringify(currentUser));
+      }
+    } catch(_) { /* ถ้า fetch ล้ม ใช้ข้อมูลเดิมต่อ */ }
+
     goToMyAccount();
     // ── Remember Me ──
     if (document.getElementById('l-remember')?.checked) {
@@ -7700,6 +7712,10 @@ setInterval(() => {
             _safeStorage.setItem('bw_user', JSON.stringify(currentUser));
             updateAccBalance(currentUser.balance);
             applyFlagUI(currentUser.flags);
+            // sync DOM ถ้าหน้า profile เปิดอยู่
+            if (document.getElementById('page-myaccount')?.style.display !== 'none') {
+              _syncProfileDOM(currentUser);
+            }
           }
         });
         subscribeTxnStatus();
