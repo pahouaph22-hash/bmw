@@ -1170,8 +1170,13 @@ function calcBdPreview() {
     </div>`;
 }
 
+// ── guard กัน submit ซ้ำในขณะที่ request ยังบินอยู่ ──
+let _submitBetInFlight = false;
+
 async function submitBetDetail() {
   if (!currentUser) { showToast('กรุณาเข้าสู่ระบบก่อนครับ'); return; }
+  // ── guard: กัน double-submit (click เร็วสองครั้ง / network ช้า) ──
+  if (_submitBetInFlight) { showToast('⏳ กำลังดำเนินการ กรุณารอสักครู่ครับ'); return; }
   // เช็คว่าระบบเดิมพัน P2P เปิดอยู่ไหม
   if (!(await _isFeatureEnabled('p2pBetting'))) { showToast('⚠️ ระบบเดิมพันปิดให้บริการชั่วคราวครับ'); return; }
   // เช็ค flag ระงับของสมาชิก (จาก DB สด)
@@ -1186,57 +1191,72 @@ async function submitBetDetail() {
   const odds     = den/num;
   const emoji    = type==='tor' ? '⚔️' : '🛡️';
   const btn = document.getElementById('bd-submit');
+
+  // ── ล็อก in-flight และ disable ปุ่ม ──
+  _submitBetInFlight = true;
   if (btn) { btn.disabled=true; btn.textContent='⏳ กำลังส่ง...'; }
 
-  // ── เช็คยอดสดจาก DB ก่อน (กันวางเกินยอด/วางซ้ำ) ──
-  const { data: freshRows, error: freshErr } = await sb.rpc('get_member_by_nick', { p_nick: currentUser.nick });
-  if (freshErr || !freshRows || !freshRows.length) {
+  try {
+    // ── เช็คยอดสดจาก DB ก่อน (กันวางเกินยอด) ──
+    const { data: freshRows, error: freshErr } = await sb.rpc('get_member_by_nick', { p_nick: currentUser.nick });
+    if (freshErr || !freshRows || !freshRows.length) {
+      showToast('❌ ตรวจสอบยอดเงินไม่สำเร็จ ลองใหม่ครับ'); return;
+    }
+    const freshBal = Number(freshRows[0].balance || 0);
+    if (amount > freshBal) {
+      currentUser.balance = freshBal; updateBalanceDisplay();
+      showToast(`⚠️ ยอดเงินไม่เพียงพอครับ (เหลือ ${freshBal.toLocaleString()} ₭)`); return;
+    }
+
+    const txn = 'BET-'+Date.now()+'-'+Math.random().toString(36).slice(2,6).toUpperCase();
+
+    // ── Step 1: หักเงินก่อน (atomic) เพื่อจอง ──
+    const { data: adj, error: adjErr } = await sb.rpc('adjust_member_balance', {
+      p_nick: currentUser.nick, p_delta: -amount,
+      p_type: 'bet_place', p_note: 'วางเดิมพัน '+sideName, p_txn: txn
+    });
+    const rowsHit = (adj && adj.length && typeof adj[0].rows_hit !== 'undefined') ? Number(adj[0].rows_hit) : (adj && adj.length ? 1 : 0);
+    if (adjErr || !adj || !adj.length || rowsHit === 0) {
+      console.error('[submitBetDetail] หักเงินไม่สำเร็จ rows_hit=0 nick=', JSON.stringify(currentUser.nick));
+      showToast('❌ หักยอดไม่สำเร็จ กรุณาลองใหม่ครับ'); return;
+    }
+
+    // ── Step 2: insert bet (เงินหักแล้ว — ถ้า insert ล้มให้คืนเงิน) ──
+    const { error: betErr } = await sb.from('bets').insert({
+      match_id:matchId, nick:currentUser.nick,
+      side:sideKey, side_name:sideName,
+      amount, odds, txn, status:'waiting', match_status:'waiting',
+      order_amount:amount, matched_amount:0, remaining_amount:amount,
+      expires_at:new Date(Date.now()+2*60*60*1000).toISOString(),
+    });
+
+    if (betErr) {
+      // ── คืนเงินทันทีถ้า insert bet ล้มเหลว ──
+      await sb.rpc('adjust_member_balance', {
+        p_nick: currentUser.nick, p_delta: amount,
+        p_type: 'bet_refund', p_note: 'คืนเงิน: insert bet ล้มเหลว', p_txn: txn+'_REF'
+      });
+      console.error('[submitBetDetail] insert bet ล้มเหลว → คืนเงินแล้ว:', betErr.message);
+      showToast('❌ บันทึกเดิมพันไม่สำเร็จ เงินคืนแล้วครับ'); return;
+    }
+
+    // ── สำเร็จ: อัปเดต UI ──
+    const newBal = Number(adj[0].new_balance || 0);
+    currentUser.balance = newBal;
+    sessionStorage.setItem('bw_user', JSON.stringify(currentUser));
+    updateBalanceDisplay();
+
+    showToast(`✅ ${emoji} ${sideName} ราคา ${num}/${den} จำนวน ${amount.toLocaleString()} ₭`);
+    document.getElementById('bd-amt').value = '';
+    document.getElementById('bd-preview').innerHTML = '';
+    renderBdOrderBook();
+    await loadBets(); renderBetsList();
+
+  } finally {
+    // ── ปลด lock เสมอ ไม่ว่าจะสำเร็จหรือ error ──
+    _submitBetInFlight = false;
     if (btn) { btn.disabled=false; btn.textContent=`วางเดิมพัน ${sideName}`; }
-    showToast('❌ ตรวจสอบยอดเงินไม่สำเร็จ ลองใหม่ครับ'); return;
   }
-  const freshBal = Number(freshRows[0].balance || 0);
-  if (amount > freshBal) {
-    currentUser.balance = freshBal; updateBalanceDisplay();
-    if (btn) { btn.disabled=false; btn.textContent=`วางเดิมพัน ${sideName}`; }
-    showToast(`⚠️ ยอดเงินไม่เพียงพอครับ (เหลือ ${freshBal.toLocaleString()} ₭)`); return;
-  }
-
-  const txn = 'BET-'+Date.now()+'-'+Math.random().toString(36).slice(2,6).toUpperCase();
-  const { error } = await sb.from('bets').insert({
-    match_id:matchId, nick:currentUser.nick,
-    side:sideKey, side_name:sideName,
-    amount, odds, txn, status:'waiting', match_status:'waiting',
-    order_amount:amount, matched_amount:0, remaining_amount:amount,
-    expires_at:new Date(Date.now()+2*60*60*1000).toISOString(),
-  });
-
-  if (error) {
-    if (btn) { btn.disabled=false; btn.textContent=`วางเดิมพัน ${sideName}`; }
-    showToast('เกิดข้อผิดพลาด: '+error.message); return;
-  }
-
-  // ── หักเงินจริงที่ DB ผ่าน RPC (atomic) ──
-  const { data: adj, error: adjErr } = await sb.rpc('adjust_member_balance', { p_nick: currentUser.nick, p_delta: -amount, p_type: 'bet_place', p_note: 'วางเดิมพัน '+sideName, p_txn: txn });
-  const rowsHit = (adj && adj.length && typeof adj[0].rows_hit !== 'undefined') ? Number(adj[0].rows_hit) : (adj && adj.length ? 1 : 0);
-  if (adjErr || !adj || !adj.length || rowsHit === 0) {
-    // หักไม่สำเร็จ → ลบ bet ที่เพิ่ง insert (rollback) กันวางฟรี
-    await sb.from('bets').delete().eq('txn', txn);
-    if (btn) { btn.disabled=false; btn.textContent=`วางเดิมพัน ${sideName}`; }
-    console.error('[submitBetDetail] หักเงินไม่สำเร็จ rows_hit=0 nick=', JSON.stringify(currentUser.nick));
-    showToast('❌ หักยอดไม่สำเร็จ กรุณาลองใหม่ครับ'); return;
-  }
-
-  const newBal = Number(adj[0].new_balance || 0);
-  currentUser.balance = newBal;
-  sessionStorage.setItem('bw_user', JSON.stringify(currentUser));
-  updateBalanceDisplay();
-
-  if (btn) { btn.disabled=false; btn.textContent=`วางเดิมพัน ${sideName}`; }
-  showToast(`✅ ${emoji} ${sideName} ราคา ${num}/${den} จำนวน ${amount.toLocaleString()} ₭`);
-  document.getElementById('bd-amt').value = '';
-  document.getElementById('bd-preview').innerHTML = '';
-  renderBdOrderBook();
-  await loadBets(); renderBetsList();
 }
 </script>
 </body>

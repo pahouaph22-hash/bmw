@@ -2245,7 +2245,7 @@ input, textarea, select, button {
           ✅ <strong>RLS เปิดใช้งานแล้ว</strong> — table staff และ staff_logs ได้รับการป้องกันแล้วครับ
         </div>
       </div>
-<div class="card" style="border-left:4px solid #f59e0b;margin-top:12px;"><div class="card-title">🔧 Schema Migration (applied)</div><div style="font-size:12px;color:#888;margin-bottom:10px;">เพิ่มคอลัมน์ reason, approved_at, approved_by ในตาราง deposits/withdrawals (ถ้ายังไม่มี)</div><button class="save-btn" onclick="runSchemaMigration()" style="background:linear-gradient(135deg,#f59e0b,#d97706);">⚡ Run Migration</button></div>
+<div class="card" id="schema-migration-card" style="border-left:4px solid #f59e0b;margin-top:12px;display:none;"><div class="card-title">🔧 Schema Migration (applied)</div><div style="font-size:12px;color:#888;margin-bottom:10px;">เพิ่มคอลัมน์ reason, approved_at, approved_by ในตาราง deposits/withdrawals (ถ้ายังไม่มี)</div><button class="save-btn" onclick="runSchemaMigration()" style="background:linear-gradient(135deg,#f59e0b,#d97706);">⚡ Run Migration</button></div>
 
 
 
@@ -6065,6 +6065,9 @@ async function _finishLogin(){
   if(_pRole==='superadmin'){
     currentStaff=null;
     document.getElementById('sb-staff').style.display='';
+    // แสดงปุ่ม Schema Migration เฉพาะ superadmin
+    var _migCard=document.getElementById('schema-migration-card');
+    if(_migCard)_migCard.style.display='';
     showStaffBadge();_startSessionTimer();
     try{await _logLoginActivity('admin','superadmin','success');}catch(_){}
     if(!ADMIN_PASS)setTimeout(()=>showToast('⚠️ ยังไม่ได้ตั้งรหัสผ่าน Admin ในระบบ — ตั้งใน Settings ด่วนครับ','error'),1000);
@@ -6862,7 +6865,7 @@ function _feePreview(){
   var net=pool-fee;
   box.innerHTML='ยอดรวมผู้ชนะ '+pool.toLocaleString()+' ₭<br>หักค่าบริการ '+rate+'% = <b style="color:#d97706;">'+fee.toLocaleString()+' ₭</b><br>ผู้ชนะได้รับ = <b style="color:#16a34a;">'+net.toLocaleString()+' ₭</b>';
 }
-async function saveSettings(section){const get=id=>document.getElementById(id)?.value?.trim()??'';let key='',value={};if(section==='contact'){key='contact';value={phone1:get('set-tel'),whatsapp:get('set-whatsapp'),telegram:get('set-telegram'),lineId:get('set-line-id'),fbUrl:get('set-fb-url'),email:get('set-email'),hours:get('set-hours'),other:get('set-other')};}else if(section==='fee'){key='feeRate';value=parseFloat(get('set-fee-rate'))/100||0.07;}else if(section==='referral'){key='referralRate';value=parseFloat(get('set-ref-rate'))/100||0.05;}else{showToast('ไม่รู้จัก: '+section,'error');return;}const{error}=await sb.from('settings').upsert({key,value});if(error){showToast('❌ '+error.message,'error');return;}showToast('💾 บันทึก ✅');}
+async function saveSettings(section){const get=id=>document.getElementById(id)?.value?.trim()??'';let key='',value={};if(section==='contact'){key='contact';value={phone1:get('set-tel'),whatsapp:get('set-whatsapp'),telegram:get('set-telegram'),lineId:get('set-line-id'),fbUrl:get('set-fb-url'),email:get('set-email'),hours:get('set-hours'),other:get('set-other')};}else if(section==='fee'){key='feeRate';value=parseFloat(get('set-fee-rate'))/100||0.07;}else if(section==='referral'){key='referralRate';value=parseFloat(get('set-ref-rate'))/100||0.05;}else if(section==='siteInfo'){key='siteInfo';value={sitename1:get('sf-sitename1'),sitename2:get('sf-sitename2'),logoTop:get('sf-logo-top'),logoBottom:get('sf-logo-bottom'),logoUrl:get('sf-logo-url'),pageTitle:get('sf-pagetitle')};}else{showToast('ไม่รู้จัก: '+section,'error');return;}const{error}=await sb.from('settings').upsert({key,value});if(error){showToast('❌ '+error.message,'error');return;}showToast('💾 บันทึก ✅');}
 async function loadWorklogPanel(){
   var tb=document.getElementById('worklog-tbody');if(!tb)return;
   tb.innerHTML='<tr><td colspan="6" style="text-align:center;padding:24px;color:#aaa;">กำลังโหลด...</td></tr>';
@@ -8535,6 +8538,8 @@ function updateTxPreview()   {}
 
 
 async function runSchemaMigration(){
+  // ── เฉพาะ superadmin เท่านั้น (currentStaff===null = superadmin) ──
+  if(currentStaff!==null){showToast('⛔ เฉพาะ Super Admin เท่านั้นครับ','error');return;}
   if(!confirm('จะเพิ่มคอลัมน์ที่ขาดหายในตาราง deposits และ withdrawals\nดำเนินการต่อ?'))return;
   const sqls=[
     "ALTER TABLE public.deposits ADD COLUMN IF NOT EXISTS reason text",

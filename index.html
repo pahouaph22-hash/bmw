@@ -10419,7 +10419,17 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
   function _selectDepBank(i){ _showDepBank(i); }
-  function joinBet(el,id,side,a,b,amt,odds){ showFEToast('ฟีเจอร์นี้กำลังพัฒนาครับ'); }
+  function joinBet(el,id,side,a,b,amt,odds){
+    // joinBet จาก mock item — หา matchId จาก bet-queue section ที่ใกล้ที่สุด
+    // หรือ redirect ไป wuachon-match.html ถ้ามี matchId ใน URL/context
+    var queueEl = el && el.closest('[id^="bet-queue-"]');
+    var matchId = queueEl ? queueEl.id.replace('bet-queue-','') : null;
+    if (matchId && !isNaN(matchId)) {
+      window.location.href = 'wuachon-match.html?id=' + matchId;
+    } else {
+      showFEToast('กรุณาเปิดหน้ารายละเอียดการแข่งขันก่อนวางเดิมพันครับ');
+    }
+  }
 
   function loginWithEmail(){ showLogin(); }
   function loginWithFacebook(){ showFEToast('🔜 Facebook login ยังไม่เปิดใช้งานครับ'); }
