@@ -3834,6 +3834,54 @@ input, textarea, select, button {
       </div>
     </div>
 
+    <!-- ค่าบริการของระบบ -->
+    <div style="background:rgba(245,200,66,0.05);border:1px solid rgba(245,200,66,0.25);border-radius:18px;padding:32px;margin-bottom:24px;">
+      <div style="display:flex;align-items:center;gap:12px;margin-bottom:20px;">
+        <div style="width:44px;height:44px;border-radius:12px;background:rgba(245,200,66,0.12);display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0;">💰</div>
+        <h3 style="font-family:'Phetsarath OT','Phetsarath','Noto Sans Lao','Kanit',sans-serif;font-weight:700;font-size:18px;color:var(--gold);" data-i18n="about.fee.title">ค่าบริการของระบบ</h3>
+      </div>
+
+      <!-- คำอธิบาย -->
+      <p style="font-family:'Phetsarath OT','Phetsarath','Noto Sans Lao','Sarabun',sans-serif;font-size:14px;color:rgba(240,255,232,0.78);line-height:1.9;margin-bottom:20px;" data-i18n="about.fee.desc">
+        การใช้บริการของแพลตฟอร์ม จะมีการหักค่าบริการ <strong style="color:var(--gold);">5%</strong> จากกำไรที่ได้รับในแต่ละรายการ
+      </p>
+
+      <!-- ตัวอย่าง -->
+      <div style="background:rgba(245,200,66,0.08);border:1px solid rgba(245,200,66,0.2);border-radius:12px;padding:20px;margin-bottom:4px;">
+        <div style="font-family:'Phetsarath OT','Phetsarath','Noto Sans Lao','Kanit',sans-serif;font-size:13px;font-weight:700;color:var(--gold);margin-bottom:14px;" data-i18n="about.fee.example.title">📊 ตัวอย่างการคำนวณ</div>
+        <div style="display:grid;gap:10px;">
+
+          <div style="display:flex;align-items:center;gap:12px;">
+            <div style="width:28px;height:28px;border-radius:50%;background:rgba(74,222,128,0.15);border:1px solid rgba(74,222,128,0.3);display:flex;align-items:center;justify-content:center;font-size:13px;flex-shrink:0;">1</div>
+            <span style="font-family:'Phetsarath OT','Phetsarath','Noto Sans Lao','Sarabun',sans-serif;font-size:13.5px;color:rgba(240,255,232,0.78);line-height:1.7;" data-i18n="about.fee.example.1">หากมีกำไร <strong style="color:#4ade80;">10,000 ກີບ</strong></span>
+          </div>
+
+          <div style="display:flex;align-items:center;gap:12px;">
+            <div style="width:28px;height:28px;border-radius:50%;background:rgba(245,200,66,0.15);border:1px solid rgba(245,200,66,0.3);display:flex;align-items:center;justify-content:center;font-size:13px;flex-shrink:0;">2</div>
+            <span style="font-family:'Phetsarath OT','Phetsarath','Noto Sans Lao','Sarabun',sans-serif;font-size:13.5px;color:rgba(240,255,232,0.78);line-height:1.7;" data-i18n="about.fee.example.2">ระบบจะหักค่าบริการ <strong style="color:var(--gold);">5%</strong></span>
+          </div>
+
+          <div style="display:flex;align-items:center;gap:12px;">
+            <div style="width:28px;height:28px;border-radius:50%;background:rgba(239,68,68,0.15);border:1px solid rgba(239,68,68,0.3);display:flex;align-items:center;justify-content:center;font-size:13px;flex-shrink:0;">3</div>
+            <span style="font-family:'Phetsarath OT','Phetsarath','Noto Sans Lao','Sarabun',sans-serif;font-size:13.5px;color:rgba(240,255,232,0.78);line-height:1.7;" data-i18n="about.fee.example.3">ค่าบริการที่ถูกหัก = <strong style="color:#f87171;">500 ກີບ</strong></span>
+          </div>
+
+          <div style="height:1px;background:rgba(245,200,66,0.15);margin:4px 0;"></div>
+
+          <div style="display:flex;align-items:center;gap:12px;">
+            <div style="width:28px;height:28px;border-radius:50%;background:rgba(74,222,128,0.2);border:1px solid rgba(74,222,128,0.4);display:flex;align-items:center;justify-content:center;font-size:15px;flex-shrink:0;">✓</div>
+            <span style="font-family:'Phetsarath OT','Phetsarath','Noto Sans Lao','Sarabun',sans-serif;font-size:14px;color:rgba(240,255,232,0.95);line-height:1.7;font-weight:600;" data-i18n="about.fee.example.4">ผู้ใช้งานจะได้รับกำไรสุทธิ = <strong style="color:#4ade80;">9,500 ກີບ</strong></span>
+          </div>
+
+        </div>
+      </div>
+
+      <!-- หมายเหตุ -->
+      <p style="font-family:'Phetsarath OT','Phetsarath','Noto Sans Lao','Sarabun',sans-serif;font-size:12px;color:rgba(240,255,232,0.4);margin-top:12px;line-height:1.7;" data-i18n="about.fee.note">
+        * ค่าบริการหักจากกำไรเท่านั้น หากแพ้หรือเสมอ ไม่มีการหักค่าบริการ
+      </p>
+    </div>
+
     <!-- ช่องทางการติดต่อ (ดึงจาก DB จริง) -->
     <div style="background:rgba(255,255,255,0.04);border:1px solid rgba(39,148,63,0.25);border-radius:18px;padding:32px;margin-bottom:24px;">
       <div style="display:flex;align-items:center;gap:12px;margin-bottom:20px;">
@@ -4636,6 +4684,14 @@ var I18N = {
     'about.mission.title': 'พันธกิจของเรา',
     'about.mission.text': 'มุ่งมั่นรักษาประเพณีวัวชนด้วยเทคโนโลยีสมัยใหม่ เพื่อให้ทุกคนเข้าถึงได้เท่าเทียม',
     'about.rules.title': 'กฎระเบียบการใช้งาน',
+    'about.fee.title': 'ค่าบริการของระบบ',
+    'about.fee.desc': 'การใช้บริการของแพลตฟอร์ม จะมีการหักค่าบริการ 5% จากกำไรที่ได้รับในแต่ละรายการ',
+    'about.fee.example.title': '📊 ตัวอย่างการคำนวณ',
+    'about.fee.example.1': 'หากมีกำไร 10,000 ກີບ',
+    'about.fee.example.2': 'ระบบจะหักค่าบริการ 5%',
+    'about.fee.example.3': 'ค่าบริการที่ถูกหัก = 500 ກີບ',
+    'about.fee.example.4': 'ผู้ใช้งานจะได้รับกำไรสุทธิ = 9,500 ກີບ',
+    'about.fee.note': '* ค่าบริการหักจากกำไรเท่านั้น หากแพ้หรือเสมอ ไม่มีการหักค่าบริการ',
     'about.rule1': 'ผู้ใช้งานต้องรับผิดชอบข้อมูลบัญชีของตนเอง เก็บรหัสผ่านเป็นความลับ และไม่เปิดเผยให้ผู้อื่น',
     'about.rule2': 'ห้ามใช้บัญชีผู้อื่น หรือสร้างหลายบัญชีเพื่อแสวงหาผลประโยชน์โดยมิชอบ',
     'about.rule3': 'การเติมเงินและถอนเงินต้องเป็นไปตามเงื่อนไขของระบบ และผ่านช่องทางที่กำหนดเท่านั้น',
@@ -4826,6 +4882,14 @@ var I18N = {
     'about.mission.title': 'ພາລະກິດຂອງເຮົາ',
     'about.mission.text': 'ມຸ່ງໝັ້ນຮັກສາປະເພນີງົວຊົນດ້ວຍເທກໂນໂລຊີສະໄໝໃໝ່ ເພື່ອໃຫ້ທຸກຄົນເຂົ້າເຖິງໄດ້ເທົ່າທຽມ',
     'about.rules.title': 'ກົດລະບຽບການນຳໃຊ້',
+    'about.fee.title': 'ຄ່າບໍລິການຂອງລະບົບ',
+    'about.fee.desc': 'ການນຳໃຊ້ບໍລິການຂອງແພລດຟອມ ຈະມີການຫັກຄ່າບໍລິການ 5% ຈາກກຳໄລທີ່ໄດ້ຮັບໃນແຕ່ລະລາຍການ',
+    'about.fee.example.title': '📊 ຕົວຢ່າງການຄຳນວນ',
+    'about.fee.example.1': 'ຖ້າມີກຳໄລ 10,000 ກີບ',
+    'about.fee.example.2': 'ລະບົບຈະຫັກຄ່າບໍລິການ 5%',
+    'about.fee.example.3': 'ຄ່າບໍລິການທີ່ຖືກຫັກ = 500 ກີບ',
+    'about.fee.example.4': 'ຜູ້ໃຊ້ງານຈະໄດ້ຮັບກຳໄລສຸດທິ = 9,500 ກີບ',
+    'about.fee.note': '* ຄ່າບໍລິການຫັກຈາກກຳໄລເທົ່ານັ້ນ ຖ້າແພ້ຫຼືເສໝີ ບໍ່ມີການຫັກຄ່າບໍລິການ',
     'about.rule1': 'ຜູ້ນຳໃຊ້ຕ້ອງຮັບຜິດຊອບຂໍ້ມູນບັນຊີຂອງຕົນເອງ ເກັບລະຫັດຜ່ານເປັນຄວາມລັບ ແລະ ບໍ່ເປີດເຜີຍໃຫ້ຜູ້ອື່ນ',
     'about.rule2': 'ຫ້າມໃຊ້ບັນຊີຜູ້ອື່ນ ຫຼື ສ້າງຫຼາຍບັນຊີເພື່ອສະແຫວງຫາຜົນປະໂຫຍດໂດຍບໍ່ຊອບ',
     'about.rule3': 'ການເຕີມເງິນ ແລະ ຖອນເງິນຕ້ອງເປັນໄປຕາມເງື່ອນໄຂຂອງລະບົບ ແລະ ຜ່ານຊ່ອງທາງທີ່ກຳນົດເທົ່ານັ້ນ',
@@ -5016,6 +5080,14 @@ var I18N = {
     'about.mission.title': 'Our Mission',
     'about.mission.text': 'To preserve and modernize bull fighting traditions using cutting-edge technology, making it accessible to everyone equally.',
     'about.rules.title': 'Terms of Use',
+    'about.fee.title': 'Service Fee',
+    'about.fee.desc': 'Platform usage incurs a service fee of 5% deducted from profit on each transaction.',
+    'about.fee.example.title': '📊 Calculation Example',
+    'about.fee.example.1': 'If profit = 10,000 ₭',
+    'about.fee.example.2': 'System deducts 5% service fee',
+    'about.fee.example.3': 'Fee deducted = 500 ₭',
+    'about.fee.example.4': 'Net profit received = 9,500 ₭',
+    'about.fee.note': '* Fee applies to profit only. No fee if you lose or draw.',
     'about.rule1': 'Users are responsible for their own account information, must keep passwords confidential, and must not share them with others.',
     'about.rule2': 'Using another person\u2019s account or creating multiple accounts for improper gain is prohibited.',
     'about.rule3': 'Deposits and withdrawals must comply with system conditions and go through designated channels only.',
