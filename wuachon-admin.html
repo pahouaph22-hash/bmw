@@ -2245,7 +2245,7 @@ input, textarea, select, button {
           ✅ <strong>RLS เปิดใช้งานแล้ว</strong> — table staff และ staff_logs ได้รับการป้องกันแล้วครับ
         </div>
       </div>
-<div class="card" id="schema-migration-card" style="border-left:4px solid #f59e0b;margin-top:12px;display:none;"><div class="card-title">🔧 Schema Migration (applied)</div><div style="font-size:12px;color:#888;margin-bottom:10px;">เพิ่มคอลัมน์ reason, approved_at, approved_by ในตาราง deposits/withdrawals (ถ้ายังไม่มี)</div><button class="save-btn" onclick="runSchemaMigration()" style="background:linear-gradient(135deg,#f59e0b,#d97706);">⚡ Run Migration</button></div>
+<div class="card" style="border-left:4px solid #f59e0b;margin-top:12px;"><div class="card-title">🔧 Schema Migration (applied)</div><div style="font-size:12px;color:#888;margin-bottom:10px;">เพิ่มคอลัมน์ reason, approved_at, approved_by ในตาราง deposits/withdrawals (ถ้ายังไม่มี)</div><button class="save-btn" onclick="runSchemaMigration()" style="background:linear-gradient(135deg,#f59e0b,#d97706);">⚡ Run Migration</button></div>
 
 
 
@@ -6065,9 +6065,6 @@ async function _finishLogin(){
   if(_pRole==='superadmin'){
     currentStaff=null;
     document.getElementById('sb-staff').style.display='';
-    // แสดงปุ่ม Schema Migration เฉพาะ superadmin
-    var _migCard=document.getElementById('schema-migration-card');
-    if(_migCard)_migCard.style.display='';
     showStaffBadge();_startSessionTimer();
     try{await _logLoginActivity('admin','superadmin','success');}catch(_){}
     if(!ADMIN_PASS)setTimeout(()=>showToast('⚠️ ยังไม่ได้ตั้งรหัสผ่าน Admin ในระบบ — ตั้งใน Settings ด่วนครับ','error'),1000);
@@ -6865,7 +6862,7 @@ function _feePreview(){
   var net=pool-fee;
   box.innerHTML='ยอดรวมผู้ชนะ '+pool.toLocaleString()+' ₭<br>หักค่าบริการ '+rate+'% = <b style="color:#d97706;">'+fee.toLocaleString()+' ₭</b><br>ผู้ชนะได้รับ = <b style="color:#16a34a;">'+net.toLocaleString()+' ₭</b>';
 }
-async function saveSettings(section){const get=id=>document.getElementById(id)?.value?.trim()??'';let key='',value={};if(section==='contact'){key='contact';value={phone1:get('set-tel'),whatsapp:get('set-whatsapp'),telegram:get('set-telegram'),lineId:get('set-line-id'),fbUrl:get('set-fb-url'),email:get('set-email'),hours:get('set-hours'),other:get('set-other')};}else if(section==='fee'){key='feeRate';value=parseFloat(get('set-fee-rate'))/100||0.07;}else if(section==='referral'){key='referralRate';value=parseFloat(get('set-ref-rate'))/100||0.05;}else if(section==='siteInfo'){key='siteInfo';value={sitename1:get('sf-sitename1'),sitename2:get('sf-sitename2'),logoTop:get('sf-logo-top'),logoBottom:get('sf-logo-bottom'),logoUrl:get('sf-logo-url'),pageTitle:get('sf-pagetitle')};}else{showToast('ไม่รู้จัก: '+section,'error');return;}const{error}=await sb.from('settings').upsert({key,value});if(error){showToast('❌ '+error.message,'error');return;}showToast('💾 บันทึก ✅');}
+async function saveSettings(section){const get=id=>document.getElementById(id)?.value?.trim()??'';let key='',value={};if(section==='contact'){key='contact';value={phone1:get('set-tel'),whatsapp:get('set-whatsapp'),telegram:get('set-telegram'),lineId:get('set-line-id'),fbUrl:get('set-fb-url'),email:get('set-email'),hours:get('set-hours'),other:get('set-other')};}else if(section==='fee'){key='feeRate';value=parseFloat(get('set-fee-rate'))/100||0.07;}else if(section==='referral'){key='referralRate';value=parseFloat(get('set-ref-rate'))/100||0.05;}else{showToast('ไม่รู้จัก: '+section,'error');return;}const{error}=await sb.from('settings').upsert({key,value});if(error){showToast('❌ '+error.message,'error');return;}showToast('💾 บันทึก ✅');}
 async function loadWorklogPanel(){
   var tb=document.getElementById('worklog-tbody');if(!tb)return;
   tb.innerHTML='<tr><td colspan="6" style="text-align:center;padding:24px;color:#aaa;">กำลังโหลด...</td></tr>';
@@ -7889,16 +7886,47 @@ async function addStaff(){
   if(!user||user.length<3){showToast('⚠️ Username ≥3 ตัว','error');return;}
   if(!/^[a-z0-9_]+$/.test(user)){showToast('⚠️ Username ใช้ a-z, 0-9, _ เท่านั้น','error');return;}
   if(!pass||pass.length<6){showToast('⚠️ รหัสผ่าน ≥6 ตัว','error');return;}
-  const{data:ex}=await sb.rpc('admin_check_staff_username',{p_username:user}).then(r=>({data:r.data?.[0]||null,error:r.error}));
-  if(ex){showToast('❌ Username "'+user+'" มีอยู่แล้ว','error');return;}
-  const hash=await hashPassword(pass);
-  const{data:newStaff,error:e1}=await sb.from('staff').insert({username:user,password:hash,role,is_active:true,created_at:new Date().toISOString()}).select().maybeSingle();
-  if(e1){showToast('❌ '+e1.message,'error');return;}
-  if(newStaff?.id){try{await sb.from('staff').update({name:nameVal,must_change_password:true,must_setup_2fa:true,totp_secret:null}).eq('id',newStaff.id);}catch(_){}}
-  await sb.from('staff_logs').insert({staff_username:_adminNick(),action:'add_staff',detail:'เพิ่มพนักงาน "'+nameVal+'" ('+user+') โดย '+_adminNick()});
-  _showStaffCreatedPopup(nameVal,user,pass,role);
-  ['new-staff-name','new-staff-user','new-staff-pass'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
-  await loadStaffPanel();switchStaffSec('list');
+
+  // ── disable ปุ่มกัน double-click ──
+  const btn=document.querySelector('#staff-sec-add .save-btn');
+  if(btn){btn.disabled=true;btn.textContent='⏳ กำลังบันทึก...';}
+
+  try{
+    const hash=await hashPassword(pass);
+
+    // ── เรียก RPC admin_create_staff (SECURITY DEFINER ข้าม RLS) ──
+    const{data:rpcData,error:rpcErr}=await sb.rpc('admin_create_staff',{
+      p_name:nameVal, p_username:user, p_password:hash, p_role:role
+    });
+
+    if(rpcErr){
+      const msg=rpcErr.message||'';
+      if(msg.includes('USERNAME_EXISTS')){
+        showToast('❌ Username "'+user+'" มีอยู่แล้วครับ','error');
+      } else if(msg.includes('function')&&msg.includes('does not exist')){
+        // RPC ยังไม่ได้สร้าง → fallback insert โดยตรง (ต้อง disable RLS ใน Supabase)
+        showToast('⚠️ กรุณารัน CREATE_STAFF_RPC.sql ใน Supabase ก่อนครับ','error');
+        console.error('[addStaff] RPC admin_create_staff ไม่มีใน DB — รัน SQL migration ก่อน');
+      } else {
+        showToast('❌ '+msg,'error');
+      }
+      return;
+    }
+
+    const newStaff=Array.isArray(rpcData)?rpcData[0]:rpcData;
+    // บันทึก activity log
+    try{await sb.from('staff_logs').insert({
+      staff_username:_adminNick(),action:'add_staff',
+      detail:'เพิ่มพนักงาน "'+nameVal+'" ('+user+') role:'+role+' โดย '+_adminNick()
+    });}catch(_){}
+
+    _showStaffCreatedPopup(nameVal,user,pass,role);
+    ['new-staff-name','new-staff-user','new-staff-pass'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
+    await loadStaffPanel();switchStaffSec('list');
+
+  } finally {
+    if(btn){btn.disabled=false;btn.textContent='💾 เพิ่มพนักงาน';}
+  }
 }
 function _showStaffCreatedPopup(name,username,tempPass,role){
   var ex=document.getElementById('staff-created-popup');if(ex)ex.remove();
@@ -7929,7 +7957,7 @@ async function loadStaffPanel(){
   try{
     const[sRes,lRes]=await Promise.all([sb.rpc('admin_get_all_staff').then(r=>({data:r.data,error:r.error})),sb.from('staff_logs').select('*',{count:'exact',head:true})]);
     _allStaff=sRes.data||[];
-    if(_allStaff.length&&!_allStaff[0].hasOwnProperty('name')){
+    if(_allStaff.length&&!_allStaff[0].hasOwnProperty('full_name')){
       const{data:wlogs}=await sb.from('staff_logs').select('nick,note').eq('action','add_staff');
       const nm={};(wlogs||[]).forEach(w=>{const m=w.note?.match(/เพิ่มพนักงาน "([^"]+)"/);if(m)nm[w.nick]=m[1];});
       _allStaff=_allStaff.map(s=>({...s,name:s.name||nm[s.username]||s.username}));
@@ -7951,7 +7979,7 @@ function _renderStaffList(){
     var ob=[];
     if(s.must_change_password)ob.push('<span style="background:#fffbeb;color:#92400e;padding:2px 7px;border-radius:6px;font-size:10px;font-weight:700">⚠️ ยังไม่เปลี่ยน Pass</span>');
     if(s.must_setup_2fa)ob.push('<span style="background:#fff5f5;color:#dc2626;padding:2px 7px;border-radius:6px;font-size:10px;font-weight:700">🔐 ยังไม่ตั้ง 2FA</span>');
-    return'<tr style="border-bottom:1px solid #f5f5f3"><td style="padding:10px 12px"><div style="font-weight:700;font-size:13px">'+(s.name||s.username||'—')+'</div>'+(ob.length?'<div style="display:flex;gap:4px;margin-top:4px;flex-wrap:wrap">'+ob.join('')+'</div>':'')+'</td><td style="padding:10px 12px;font-size:13px;color:#555">'+(s.username||'—')+'</td><td style="padding:10px 12px"><span style="padding:3px 10px;border-radius:20px;font-size:11px;font-weight:700;'+(rb[s.role]||'')+'">'+(rl[s.role]||s.role||'—')+'</span></td><td style="padding:10px 12px;text-align:center">'+sb2+'</td><td style="padding:10px 12px;font-size:11px;color:#aaa">'+(s.last_login?fmtDate(s.last_login):'—')+'</td><td style="padding:10px 12px"><div style="display:flex;gap:4px"><button onclick="toggleStaff(\''+s.id+'\',\''+s.is_active+'\')" style="padding:4px 10px;background:'+(s.is_active?'#fff':'#f0fdf4')+';color:'+(s.is_active?'#dc2626':'#16a34a')+';border:1px solid '+(s.is_active?'#dc2626':'#16a34a')+';border-radius:6px;font-size:11px;font-weight:700;cursor:pointer">'+(s.is_active?'⏸':'▶')+'</button><button onclick="resetStaffPassword(\''+s.id+'\',\''+s.username+'\')" style="padding:4px 10px;background:#fff;color:#d97706;border:1px solid #d97706;border-radius:6px;font-size:11px;font-weight:700;cursor:pointer">🔑</button></div></td></tr>';
+    return'<tr style="border-bottom:1px solid #f5f5f3"><td style="padding:10px 12px"><div style="font-weight:700;font-size:13px">'+(s.full_name||s.username||'—')+'</div>'+(ob.length?'<div style="display:flex;gap:4px;margin-top:4px;flex-wrap:wrap">'+ob.join('')+'</div>':'')+'</td><td style="padding:10px 12px;font-size:13px;color:#555">'+(s.username||'—')+'</td><td style="padding:10px 12px"><span style="padding:3px 10px;border-radius:20px;font-size:11px;font-weight:700;'+(rb[s.role]||'')+'">'+(rl[s.role]||s.role||'—')+'</span></td><td style="padding:10px 12px;text-align:center">'+sb2+'</td><td style="padding:10px 12px;font-size:11px;color:#aaa">'+(s.last_login?fmtDate(s.last_login):'—')+'</td><td style="padding:10px 12px"><div style="display:flex;gap:4px"><button onclick="toggleStaff(\''+s.id+'\',\''+s.is_active+'\')" style="padding:4px 10px;background:'+(s.is_active?'#fff':'#f0fdf4')+';color:'+(s.is_active?'#dc2626':'#16a34a')+';border:1px solid '+(s.is_active?'#dc2626':'#16a34a')+';border-radius:6px;font-size:11px;font-weight:700;cursor:pointer">'+(s.is_active?'⏸':'▶')+'</button><button onclick="resetStaffPassword(\''+s.id+'\',\''+s.username+'\')" style="padding:4px 10px;background:#fff;color:#d97706;border:1px solid #d97706;border-radius:6px;font-size:11px;font-weight:700;cursor:pointer">🔑</button></div></td></tr>';
   }).join('');
 }
 async function toggleStaff(id,isActive){const ns=isActive==='true'||isActive===true?false:true;await sb.from('staff').update({is_active:ns}).eq('id',id);showToast(ns?'✅ เปิด':'⏸ ปิด');await loadStaffPanel();}
@@ -8538,8 +8566,6 @@ function updateTxPreview()   {}
 
 
 async function runSchemaMigration(){
-  // ── เฉพาะ superadmin เท่านั้น (currentStaff===null = superadmin) ──
-  if(currentStaff!==null){showToast('⛔ เฉพาะ Super Admin เท่านั้นครับ','error');return;}
   if(!confirm('จะเพิ่มคอลัมน์ที่ขาดหายในตาราง deposits และ withdrawals\nดำเนินการต่อ?'))return;
   const sqls=[
     "ALTER TABLE public.deposits ADD COLUMN IF NOT EXISTS reason text",
