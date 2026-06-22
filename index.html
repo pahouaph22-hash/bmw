@@ -4110,29 +4110,52 @@ input, textarea, select, button {
                 <div id="dep-bank-badge" style="display:none;font-family:'Phetsarath OT','Phetsarath','Noto Sans Lao','Kanit',sans-serif;font-size:10px;font-weight:700;padding:2px 9px;border-radius:999px;background:rgba(74,222,128,.15);color:#4ade80;border:1px solid rgba(74,222,128,.3);">✅ เปิดใช้งาน</div>
               </div>
               <div style="padding:16px;">
-                <div style="display:flex;align-items:center;gap:14px;">
-                  <!-- QR Code -->
-                  <div id="dep-qr-wrap" style="flex-shrink:0;width:100px;height:100px;background:#fff;border-radius:10px;display:flex;align-items:center;justify-content:center;overflow:hidden;">
+                <!-- ── QR Code (center, full-width บนมือถือ) ── -->
+                <div style="text-align:center;margin-bottom:14px;">
+                  <div id="dep-qr-wrap" style="display:inline-flex;align-items:center;justify-content:center;width:140px;height:140px;background:#fff;border-radius:12px;overflow:hidden;margin-bottom:8px;">
                     <div id="dep-qr-placeholder" style="text-align:center;padding:8px;">
-                      <div style="font-size:28px;">📷</div>
+                      <div style="font-size:36px;">📷</div>
                       <div style="font-size:9px;color:#aaa;font-family:'Phetsarath OT','Phetsarath','Noto Sans Lao','Kanit',sans-serif;margin-top:3px;">QR Code</div>
                     </div>
                     <img id="dep-qr-img" src="" style="display:none;width:100%;height:100%;object-fit:contain;">
                   </div>
-                  <!-- ข้อมูลบัญชี -->
-                  <div style="flex:1;">
-                    <div style="font-size:11px;color:rgba(240,255,232,0.4);font-family:'Phetsarath OT','Phetsarath','Noto Sans Lao','Kanit',sans-serif;margin-bottom:4px;">ธนาคาร / ช่องทาง</div>
-                    <div style="font-family:'Phetsarath OT','Phetsarath','Noto Sans Lao','Kanit',sans-serif;font-weight:700;font-size:15px;color:var(--cream);" id="dep-bank-name">—</div>
-                    <div style="font-size:11px;color:rgba(240,255,232,0.4);font-family:'Phetsarath OT','Phetsarath','Noto Sans Lao','Kanit',sans-serif;margin-top:8px;margin-bottom:4px;">เลขบัญชี</div>
-                    <div style="display:flex;align-items:center;gap:8px;">
-                      <div style="font-family:'Phetsarath OT','Phetsarath','Noto Sans Lao','Kanit',sans-serif;font-weight:900;font-size:18px;color:var(--gold);letter-spacing:1px;" id="dep-acc-no">—</div>
-                      <button onclick="copyDepAccNo()" style="font-family:'Phetsarath OT','Phetsarath','Noto Sans Lao','Kanit',sans-serif;font-size:11px;font-weight:700;padding:4px 10px;border-radius:6px;border:1px solid rgba(245,200,66,0.3);background:transparent;color:var(--gold);cursor:pointer;">📋 คัดลอก</button>
-                    </div>
-                    <div style="font-size:11px;color:rgba(240,255,232,0.4);font-family:'Phetsarath OT','Phetsarath','Noto Sans Lao','Kanit',sans-serif;margin-top:6px;">
-                      ชื่อบัญชี: <span style="color:var(--cream);font-family:'Phetsarath OT','Phetsarath','Noto Sans Lao','Kanit',sans-serif;font-weight:500;" id="dep-acc-name">—</span>
-                    </div>
-                    <div id="dep-bank-note-wrap" style="display:none;font-size:11px;color:rgba(240,255,232,0.35);margin-top:4px;"><span id="dep-acc-note"></span></div>
+                  <!-- ปุ่มคัดลอก QR (แสดงเมื่อมีรูป) -->
+                  <div id="dep-copy-qr-wrap" style="display:none;">
+                    <button onclick="copyDepQR()" id="dep-copy-qr-btn"
+                      style="font-family:'Phetsarath OT','Phetsarath','Noto Sans Lao','Kanit',sans-serif;font-size:12px;font-weight:700;padding:6px 16px;border-radius:8px;border:1px solid rgba(245,200,66,0.35);background:rgba(245,200,66,0.08);color:var(--gold);cursor:pointer;transition:background .2s;">
+                      🖼️ คัดลอกรูป QR Code
+                    </button>
                   </div>
+                </div>
+
+                <!-- ── ข้อมูลบัญชี (แบบ stack — ครบทุก field) ── -->
+                <div style="background:rgba(255,255,255,0.04);border-radius:10px;padding:14px 16px;display:grid;gap:10px;">
+
+                  <!-- ธนาคาร -->
+                  <div>
+                    <div style="font-size:10px;color:rgba(240,255,232,0.4);font-family:'Phetsarath OT','Phetsarath','Noto Sans Lao','Kanit',sans-serif;margin-bottom:3px;">ธนาคาร / ช่องทาง</div>
+                    <div style="font-family:'Phetsarath OT','Phetsarath','Noto Sans Lao','Kanit',sans-serif;font-weight:700;font-size:15px;color:var(--cream);" id="dep-bank-name">—</div>
+                  </div>
+
+                  <!-- เลขบัญชี + ปุ่มคัดลอก -->
+                  <div>
+                    <div style="font-size:10px;color:rgba(240,255,232,0.4);font-family:'Phetsarath OT','Phetsarath','Noto Sans Lao','Kanit',sans-serif;margin-bottom:5px;">เลขบัญชี</div>
+                    <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap;">
+                      <div style="font-family:'Phetsarath OT','Phetsarath','Noto Sans Lao','Kanit',sans-serif;font-weight:900;font-size:20px;color:var(--gold);letter-spacing:2px;word-break:break-all;flex:1;" id="dep-acc-no">—</div>
+                      <button onclick="copyDepAccNo()" id="dep-copy-accno-btn"
+                        style="flex-shrink:0;font-family:'Phetsarath OT','Phetsarath','Noto Sans Lao','Kanit',sans-serif;font-size:12px;font-weight:700;padding:6px 14px;border-radius:8px;border:1px solid rgba(245,200,66,0.35);background:rgba(245,200,66,0.08);color:var(--gold);cursor:pointer;transition:background .2s;white-space:nowrap;">
+                        📋 คัดลอก
+                      </button>
+                    </div>
+                  </div>
+
+                  <!-- ชื่อบัญชี -->
+                  <div>
+                    <div style="font-size:10px;color:rgba(240,255,232,0.4);font-family:'Phetsarath OT','Phetsarath','Noto Sans Lao','Kanit',sans-serif;margin-bottom:3px;">ชื่อบัญชี</div>
+                    <div style="font-family:'Phetsarath OT','Phetsarath','Noto Sans Lao','Kanit',sans-serif;font-weight:600;font-size:14px;color:var(--cream);" id="dep-acc-name">—</div>
+                  </div>
+
+                  <div id="dep-bank-note-wrap" style="display:none;font-size:11px;color:rgba(240,255,232,0.35);"><span id="dep-acc-note"></span></div>
                 </div>
               </div>
             </div>
@@ -8394,8 +8417,10 @@ setInterval(() => {
         qrImg.src = qrUrl;
         qrImg.style.display = 'block';
         qrPh.style.display  = 'none';
+        const _qrCWs = document.getElementById('dep-copy-qr-wrap'); if(_qrCWs) _qrCWs.style.display='block';
       } else {
         qrImg.style.display = 'none';
+        const _qrCWh = document.getElementById('dep-copy-qr-wrap'); if(_qrCWh) _qrCWh.style.display='none';
         qrPh.style.display  = 'block';
       }
     }
@@ -8415,11 +8440,19 @@ setInterval(() => {
       showFEToast('⚠️ ยังไม่มีเลขบัญชีให้คัดลอกครับ');
       return;
     }
+    const _flashBtn = (id) => {
+      const btn = document.getElementById(id);
+      if (!btn) return;
+      const orig = btn.innerHTML;
+      btn.innerHTML = '✅ คัดลอกแล้ว!';
+      setTimeout(() => btn.innerHTML = orig, 2000);
+    };
     // ทาง 1: ใช้ Clipboard API (browser ทันสมัย + HTTPS)
     try {
       if (navigator.clipboard && navigator.clipboard.writeText) {
         await navigator.clipboard.writeText(accno);
         showFEToast(`✅ คัดลอกเลขบัญชี ${accno} แล้วครับ`);
+        _flashBtn('dep-copy-accno-btn');
         return;
       }
     } catch(_) { /* fall through to fallback */ }
@@ -8441,6 +8474,40 @@ setInterval(() => {
     } catch(_) {}
     // ทาง 3: ถ้าทั้ง 2 วิธีล้มเหลว แสดงเลขให้ user copy เอง
     showFEToast(`📋 เลขบัญชี: ${accno} (กรุณาคัดลอกด้วยตัวเองครับ)`);
+  }
+
+  async function copyDepQR() {
+    const img = document.getElementById('dep-qr-img');
+    const btn = document.getElementById('dep-copy-qr-btn');
+    if (!img || img.style.display === 'none' || !img.src || img.src === window.location.href) {
+      showFEToast('⚠️ ไม่มี QR Code'); return;
+    }
+    const _flash = () => {
+      if (!btn) return;
+      const o = btn.innerHTML;
+      btn.innerHTML = '✅ คัดลอกแล้ว!';
+      setTimeout(() => btn.innerHTML = o, 2000);
+    };
+    try {
+      // วิธี 1: Clipboard API + ClipboardItem (Chrome/Edge)
+      const res  = await fetch(img.src);
+      const blob = await res.blob();
+      if (navigator.clipboard && window.ClipboardItem) {
+        await navigator.clipboard.write([new ClipboardItem({ 'image/png': blob })]);
+        showFEToast('🖼️ คัดลอกรูป QR แล้วครับ!'); _flash(); return;
+      }
+      // วิธี 2: fallback — download รูปแทน (iOS/Firefox)
+      const url = URL.createObjectURL(blob);
+      const a   = document.createElement('a');
+      a.href = url; a.download = 'qr-deposit.png';
+      document.body.appendChild(a); a.click();
+      document.body.removeChild(a); URL.revokeObjectURL(url);
+      showFEToast('💾 บันทึกรูป QR แล้วครับ!'); _flash();
+    } catch(e) {
+      // วิธี 3: เปิดรูปใน tab ใหม่ (กด hold เพื่อบันทึก บน iOS)
+      window.open(img.src, '_blank');
+      showFEToast('🖼️ เปิดรูป QR ใน tab ใหม่ — กด hold เพื่อบันทึกครับ');
+    }
   }
 
   window.setWithAmount = window._real_setWithAmount = function setWithAmount(n) { document.getElementById('with-amount').value = n; }
@@ -10798,6 +10865,7 @@ document.addEventListener('DOMContentLoaded', () => {
   window._real_updateDepAmount = window.updateDepAmount = updateDepAmount;
   window._real_loadDepBanks = window.loadDepBanks = loadDepBanks;
   window._real_copyDepAccNo = window.copyDepAccNo = copyDepAccNo;
+  window._real_copyDepQR    = window.copyDepQR    = copyDepQR;
   window._real_updateMobNavUser = window.updateMobNavUser = updateMobNavUser;
   window._real_mobNavActive = window.mobNavActive = mobNavActive;
   window._real_mobNavAccount = window.mobNavAccount = mobNavAccount;
