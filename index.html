@@ -1707,6 +1707,103 @@ fns.forEach(function(fn){
   .page { display: none; }
   .page.active { display: block; }
 
+  /* ── SCHEDULE FILTER BAR ── */
+  .sched-filter-bar {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 10px;
+    background: rgba(255,248,236,0.04);
+    border: 1px solid rgba(245,200,66,0.14);
+    border-radius: 14px;
+    padding: 14px 16px;
+    margin-bottom: 20px;
+  }
+  .sched-filter-group {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    flex: 1;
+    min-width: 160px;
+  }
+  .sched-filter-label {
+    font-family: 'Phetsarath OT','Phetsarath','Noto Sans Lao','Kanit',sans-serif;
+    font-size: 12px;
+    color: rgba(255,248,236,0.45);
+    white-space: nowrap;
+  }
+  .sched-filter-input {
+    flex: 1;
+    background: rgba(255,248,236,0.06);
+    border: 1px solid rgba(245,200,66,0.18);
+    border-radius: 8px;
+    padding: 7px 10px;
+    font-family: 'Phetsarath OT','Phetsarath','Noto Sans Lao','Kanit',sans-serif;
+    font-size: 13px;
+    color: var(--cream);
+    outline: none;
+    transition: border-color .2s;
+    min-width: 0;
+    color-scheme: dark;
+  }
+  .sched-filter-input:focus { border-color: var(--gold); }
+  .sched-filter-input::-webkit-calendar-picker-indicator { filter: invert(0.7); cursor: pointer; }
+  .sched-filter-sep {
+    font-size: 12px;
+    color: rgba(255,248,236,0.3);
+    padding: 0 2px;
+  }
+  .sched-filter-divider {
+    width: 1px;
+    height: 32px;
+    background: rgba(255,248,236,0.1);
+    flex-shrink: 0;
+  }
+  .sched-filter-search-btn {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 18px;
+    background: var(--green2, #16a34a);
+    border: none;
+    border-radius: 9px;
+    color: #fff;
+    font-family: 'Phetsarath OT','Phetsarath','Noto Sans Lao','Kanit',sans-serif;
+    font-size: 13px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: opacity .2s;
+    white-space: nowrap;
+  }
+  .sched-filter-search-btn:hover { opacity: .85; }
+  .sched-filter-clear-btn {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    padding: 8px 14px;
+    background: rgba(239,68,68,0.12);
+    border: 1px solid rgba(239,68,68,0.3);
+    border-radius: 9px;
+    color: #f87171;
+    font-family: 'Phetsarath OT','Phetsarath','Noto Sans Lao','Kanit',sans-serif;
+    font-size: 13px;
+    cursor: pointer;
+    transition: background .2s;
+    white-space: nowrap;
+  }
+  .sched-filter-clear-btn:hover { background: rgba(239,68,68,0.22); }
+  .sched-filter-result-bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    font-family: 'Phetsarath OT','Phetsarath','Noto Sans Lao','Kanit',sans-serif;
+    font-size: 12px;
+    color: rgba(255,248,236,0.45);
+    margin-bottom: 14px;
+    min-height: 20px;
+  }
+  .sched-filter-result-bar .hit { color: var(--gold); font-weight: 700; }
+
   .schedule-section {
     padding: 48px 40px 60px;
     max-width: 860px;
@@ -3370,6 +3467,48 @@ input, textarea, select, button {
 
       <!-- วัวชน -->
       <div class="sport-tab-panel active" id="sched-panel-bull">
+      <!-- ── SCHEDULE FILTER BAR ── -->
+      <div class="sched-filter-bar" id="sched-filter-bar">
+
+        <!-- 📅 วันที่เดียว -->
+        <div class="sched-filter-group">
+          <span class="sched-filter-label">📅 วันที่</span>
+          <input type="date" id="sf-date" class="sched-filter-input"
+                 onchange="schedFilterSearch()" title="เลือกวันที่">
+        </div>
+
+        <!-- ⏰ เวลา -->
+        <div class="sched-filter-group" style="min-width:130px;flex:0 1 auto;">
+          <span class="sched-filter-label">⏰ เวลา</span>
+          <input type="time" id="sf-time" class="sched-filter-input"
+                 onchange="schedFilterSearch()" title="เลือกเวลา">
+        </div>
+
+        <div class="sched-filter-divider"></div>
+
+        <!-- 📆 ช่วงวันที่ -->
+        <div class="sched-filter-group">
+          <span class="sched-filter-label">📆 ตั้งแต่</span>
+          <input type="date" id="sf-date-from" class="sched-filter-input"
+                 onchange="schedFilterSearch()">
+          <span class="sched-filter-sep">–</span>
+          <input type="date" id="sf-date-to" class="sched-filter-input"
+                 onchange="schedFilterSearch()">
+        </div>
+
+        <div class="sched-filter-divider"></div>
+
+        <!-- ปุ่ม -->
+        <button class="sched-filter-search-btn" onclick="schedFilterSearch()">🔍 ค้นหา</button>
+        <button class="sched-filter-clear-btn" id="sf-clear-btn"
+                onclick="schedFilterClear()" style="display:none;">✕ ล้าง</button>
+      </div>
+
+      <!-- result label -->
+      <div class="sched-filter-result-bar" id="sf-result-bar" style="display:none;">
+        <span id="sf-result-text"></span>
+      </div>
+
       <div id="schedule-fb-wrap">
         <div style="text-align:center;padding:48px;color:rgba(255,248,236,0.4);font-family:'Phetsarath OT','Phetsarath','Noto Sans Lao','Kanit',sans-serif;">
           <div style="font-size:32px;margin-bottom:12px;">⏳</div>กำลังโหลด...
@@ -4039,7 +4178,7 @@ input, textarea, select, button {
           <div style="text-align:center;margin-bottom:14px;">
             <div style="font-size:32px;margin-bottom:6px;">🏦</div>
             <div style="font-family:'Phetsarath OT','Phetsarath','Noto Sans Lao','Kanit',sans-serif;font-weight:700;font-size:14px;color:var(--gold);margin-bottom:4px;">ยังไม่มีบัญชีธนาคาร</div>
-            <div style="font-size:12px;color:rgba(240,255,232,0.5);">เพิ่มบัญชีถอนเงินได้สูงสุด 3 บัญชีครับ</div>
+            <div style="font-size:12px;color:rgba(240,255,232,0.5);">เพิ่มบัญชีถอนเงินได้ไม่จำกัดจำนวนครับ</div>
           </div>
           <!-- ฟอร์มเพิ่มบัญชี -->
           <div id="add-bank-form-wrap">
@@ -4074,57 +4213,16 @@ input, textarea, select, button {
 
       <!-- ── กรณีผูกบัญชีแล้ว ── -->
       <div id="with-has-bank" style="display:none;">
-        <!-- ═══ 3 บัญชีธนาคาร ═══ -->
+        <!-- ── บัญชีธนาคาร (ไม่จำกัดจำนวน, render โดย JS) ── -->
         <div style="margin-bottom:14px;">
           <div style="font-family:'Phetsarath OT','Phetsarath','Noto Sans Lao','Kanit',sans-serif;font-size:11px;font-weight:700;color:rgba(240,255,232,0.45);letter-spacing:.5px;margin-bottom:10px;">🏦 บัญชีถอนเงินของคุณ <span style="color:rgba(240,255,232,0.3);font-weight:400;">(เลือกบัญชีที่ต้องการถอน)</span></div>
 
-          <!-- บัญชีที่ 1 -->
-          <div id="bank-card-1" onclick="_selectBank(1)" style="background:rgba(39,148,63,0.08);border:2px solid rgba(39,148,63,0.4);border-radius:10px;padding:12px 14px;margin-bottom:8px;cursor:pointer;transition:all .2s;">
-            <div style="display:flex;align-items:center;justify-content:space-between;">
-              <div style="display:flex;align-items:center;gap:10px;">
-                <div id="bank-radio-1" style="width:18px;height:18px;border-radius:50%;border:2px solid rgba(39,148,63,0.6);background:transparent;flex-shrink:0;display:flex;align-items:center;justify-content:center;"></div>
-                <div>
-                  <div style="font-family:'Phetsarath OT','Phetsarath','Noto Sans Lao','Kanit',sans-serif;font-size:11px;color:rgba(240,255,232,0.4);margin-bottom:2px;">บัญชีที่ 1</div>
-                  <div id="with-display-bank" style="font-family:'Phetsarath OT','Phetsarath','Noto Sans Lao','Kanit',sans-serif;font-weight:700;font-size:13px;color:var(--cream);">—</div>
-                  <div id="with-display-accno" style="font-family:'Phetsarath OT','Phetsarath','Noto Sans Lao','Kanit',sans-serif;font-size:12px;color:var(--gold);margin-top:1px;">—</div>
-                  <div id="with-display-accname" style="font-size:11px;color:rgba(240,255,232,0.5);margin-top:1px;">—</div>
-                </div>
-              </div>
-              <div style="font-size:18px;">🏦</div>
-            </div>
-          </div>
+          <!-- Dynamic bank cards -->
+          <div id="bank-cards-list"></div>
 
-          <!-- บัญชีที่ 2 -->
-          <div id="bank-card-2" onclick="_selectBank(2)" style="background:rgba(255,255,255,0.04);border:2px solid rgba(255,255,255,0.1);border-radius:10px;padding:12px 14px;margin-bottom:8px;cursor:pointer;transition:all .2s;" class="bank-card-inactive">
-            <div style="display:flex;align-items:center;justify-content:space-between;">
-              <div style="display:flex;align-items:center;gap:10px;">
-                <div id="bank-radio-2" style="width:18px;height:18px;border-radius:50%;border:2px solid rgba(255,255,255,0.2);background:transparent;flex-shrink:0;"></div>
-                <div id="bank-card-2-content">
-                  <div style="font-family:'Phetsarath OT','Phetsarath','Noto Sans Lao','Kanit',sans-serif;font-size:11px;color:rgba(240,255,232,0.4);margin-bottom:2px;">บัญชีที่ 2</div>
-                  <div id="with-display-bank2" style="font-family:'Phetsarath OT','Phetsarath','Noto Sans Lao','Kanit',sans-serif;font-weight:700;font-size:13px;color:rgba(240,255,232,0.5);">— ยังไม่ได้เพิ่ม —</div>
-                </div>
-              </div>
-              <button id="btn-add-bank2" onclick="event.stopPropagation();_showAddBankForm(2)" style="font-family:'Phetsarath OT','Phetsarath','Noto Sans Lao','Kanit',sans-serif;font-size:11px;padding:5px 12px;border-radius:8px;border:1px solid rgba(245,200,66,0.4);background:rgba(245,200,66,0.08);color:var(--gold);cursor:pointer;">➕ เพิ่ม</button>
-            </div>
-          </div>
-
-          <!-- บัญชีที่ 3 -->
-          <div id="bank-card-3" onclick="_selectBank(3)" style="background:rgba(255,255,255,0.04);border:2px solid rgba(255,255,255,0.1);border-radius:10px;padding:12px 14px;margin-bottom:14px;cursor:pointer;transition:all .2s;" class="bank-card-inactive">
-            <div style="display:flex;align-items:center;justify-content:space-between;">
-              <div style="display:flex;align-items:center;gap:10px;">
-                <div id="bank-radio-3" style="width:18px;height:18px;border-radius:50%;border:2px solid rgba(255,255,255,0.2);background:transparent;flex-shrink:0;"></div>
-                <div id="bank-card-3-content">
-                  <div style="font-family:'Phetsarath OT','Phetsarath','Noto Sans Lao','Kanit',sans-serif;font-size:11px;color:rgba(240,255,232,0.4);margin-bottom:2px;">บัญชีที่ 3</div>
-                  <div id="with-display-bank3" style="font-family:'Phetsarath OT','Phetsarath','Noto Sans Lao','Kanit',sans-serif;font-weight:700;font-size:13px;color:rgba(240,255,232,0.5);">— ยังไม่ได้เพิ่ม —</div>
-                </div>
-              </div>
-              <button id="btn-add-bank3" onclick="event.stopPropagation();_showAddBankForm(3)" style="font-family:'Phetsarath OT','Phetsarath','Noto Sans Lao','Kanit',sans-serif;font-size:11px;padding:5px 12px;border-radius:8px;border:1px solid rgba(245,200,66,0.4);background:rgba(245,200,66,0.08);color:var(--gold);cursor:pointer;">➕ เพิ่ม</button>
-            </div>
-          </div>
-
-          <!-- ฟอร์มเพิ่มบัญชี 2/3 (hidden) -->
+          <!-- ฟอร์มเพิ่ม/แก้ไขบัญชี (hidden) -->
           <div id="add-bank-inline-form" style="display:none;background:rgba(245,200,66,0.06);border:1px solid rgba(245,200,66,0.25);border-radius:10px;padding:14px;margin-bottom:12px;">
-            <div style="font-family:'Phetsarath OT','Phetsarath','Noto Sans Lao','Kanit',sans-serif;font-size:12px;font-weight:700;color:var(--gold);margin-bottom:10px;" id="add-bank-form-title">➕ เพิ่มบัญชีที่ 2</div>
+            <div style="font-family:'Phetsarath OT','Phetsarath','Noto Sans Lao','Kanit',sans-serif;font-size:12px;font-weight:700;color:var(--gold);margin-bottom:10px;" id="add-bank-form-title">➕ เพิ่มบัญชีใหม่</div>
             <select class="acc-input" id="add-bank-name-new" style="margin-bottom:8px;">
               <option value="">ເລືອກທະນາຄານ / เลือกธนาคาร</option>
               <optgroup label="🇱🇦 ທະນາຄານລາວ">
@@ -4144,11 +4242,15 @@ input, textarea, select, button {
             </select>
             <input class="acc-input" type="text" id="add-bank-accno-new" placeholder="เลขบัญชี" style="margin-bottom:8px;">
             <input class="acc-input" type="text" id="add-bank-accname-new" placeholder="ชื่อเจ้าของบัญชี" style="margin-bottom:10px;">
+            <input type="hidden" id="add-bank-edit-index" value="-1">
             <div style="display:flex;gap:8px;">
               <button class="acc-btn acc-btn-with" onclick="_saveNewBank()" style="flex:1;padding:10px;">💾 บันทึกบัญชี</button>
               <button onclick="_hideAddBankForm()" style="font-family:'Phetsarath OT','Phetsarath','Noto Sans Lao','Kanit',sans-serif;padding:10px 16px;border-radius:10px;border:1px solid rgba(255,255,255,0.15);background:transparent;color:rgba(240,255,232,0.5);cursor:pointer;font-size:13px;">✕</button>
             </div>
           </div>
+
+          <!-- ปุ่มเพิ่มบัญชีใหม่ -->
+          <button onclick="_showAddBankForm(-1)" style="width:100%;padding:10px;border-radius:10px;border:1px dashed rgba(245,200,66,0.3);background:rgba(245,200,66,0.05);color:var(--gold);font-family:'Phetsarath OT','Phetsarath','Noto Sans Lao','Kanit',sans-serif;font-size:13px;cursor:pointer;transition:background .2s;margin-bottom:14px;" onmouseover="this.style.background='rgba(245,200,66,0.1)'" onmouseout="this.style.background='rgba(245,200,66,0.05)'">➕ เพิ่มบัญชีธนาคารใหม่</button>
         </div>
 
         <!-- ฟอร์มถอนเงิน -->
@@ -8346,72 +8448,38 @@ setInterval(() => {
   if (!currentUser) return;
     // ดึงข้อมูล 3 บัญชีพร้อม balance
     const { data } = await sb.from('members')
-      .select('bank_name,bank_accno,bank_accname,bank2_name,bank2_accno,bank2_accname,bank3_name,bank3_accno,bank3_accname,balance')
+      .select('bank_name,bank_accno,bank_accname,bank2_name,bank2_accno,bank2_accname,bank3_name,bank3_accno,bank3_accname,bank_accounts,balance')
       .eq('nick', currentUser.nick).maybeSingle();
 
     if (data) {
-      currentUser.bank_name     = data.bank_name;
-      currentUser.bank_accno    = data.bank_accno;
-      currentUser.bank_accname  = data.bank_accname;
-      currentUser.bank2_name    = data.bank2_name;
-      currentUser.bank2_accno   = data.bank2_accno;
-      currentUser.bank2_accname = data.bank2_accname;
-      currentUser.bank3_name    = data.bank3_name;
-      currentUser.bank3_accno   = data.bank3_accno;
-      currentUser.bank3_accname = data.bank3_accname;
-      currentUser.balance       = data.balance;
+      currentUser.balance = data.balance;
       updateAccBalance(data.balance || 0);
+
+      // ── ใช้ bank_accounts JSONB array ถ้ามี ──
+      // ถ้ายังไม่มี (DB เก่า) ให้ migrate จาก 3 columns ทันที
+      if (data.bank_accounts && Array.isArray(data.bank_accounts) && data.bank_accounts.length > 0) {
+        currentUser.bank_accounts = data.bank_accounts;
+      } else {
+        // สร้าง array จาก columns เดิม
+        const legacy = [];
+        if (data.bank_accno)  legacy.push({ name: data.bank_name||'',  accno: data.bank_accno,  accname: data.bank_accname||''  });
+        if (data.bank2_accno) legacy.push({ name: data.bank2_name||'', accno: data.bank2_accno, accname: data.bank2_accname||'' });
+        if (data.bank3_accno) legacy.push({ name: data.bank3_name||'', accno: data.bank3_accno, accname: data.bank3_accname||'' });
+        currentUser.bank_accounts = legacy;
+      }
     }
 
-    const hasBank1 = !!(currentUser.bank_accno);
-    const hasBank2 = !!(currentUser.bank2_accno);
-    const hasBank3 = !!(currentUser.bank3_accno);
-    const hasAnyBank = hasBank1 || hasBank2 || hasBank3;
+    const hasAnyBank = !!(currentUser.bank_accounts?.length);
+    const hasBank1 = hasAnyBank; // compat
 
     document.getElementById('with-no-bank').style.display  = hasAnyBank ? 'none'  : 'block';
     document.getElementById('with-has-bank').style.display = hasAnyBank ? 'block' : 'none';
 
+    // ── render บัญชีทั้งหมดจาก bank_accounts array ──
     if (hasAnyBank) {
-      // ── บัญชีที่ 1 ──
-      if (hasBank1) {
-        document.getElementById('with-display-bank').textContent    = currentUser.bank_name    || '—';
-        document.getElementById('with-display-accno').textContent   = currentUser.bank_accno   || '—';
-        document.getElementById('with-display-accname').textContent = currentUser.bank_accname || '—';
-        document.getElementById('btn-add-bank2') && (document.getElementById('btn-add-bank2').style.display = 'none');
-      }
-
-      // ── บัญชีที่ 2 ──
-      if (hasBank2) {
-        const c2 = document.getElementById('bank-card-2-content');
-        if (c2) c2.innerHTML = `
-          <div style="font-family:'Kanit',sans-serif;font-size:11px;color:rgba(240,255,232,0.4);margin-bottom:2px;">บัญชีที่ 2</div>
-          <div style="font-family:'Kanit',sans-serif;font-weight:700;font-size:13px;color:var(--cream)">${currentUser.bank2_name||'—'}</div>
-          <div style="font-family:'Kanit',sans-serif;font-size:12px;color:var(--gold);margin-top:1px">${currentUser.bank2_accno||'—'}</div>
-          <div style="font-size:11px;color:rgba(240,255,232,0.5);margin-top:1px">${currentUser.bank2_accname||'—'}</div>`;
-        const btn2 = document.getElementById('btn-add-bank2');
-        if (btn2) btn2.style.display = 'none';
-      } else {
-        const btn2 = document.getElementById('btn-add-bank2');
-        if (btn2) btn2.style.display = 'block';
-      }
-
-      // ── บัญชีที่ 3 ──
-      if (hasBank3) {
-        const c3 = document.getElementById('bank-card-3-content');
-        if (c3) c3.innerHTML = `
-          <div style="font-family:'Kanit',sans-serif;font-size:11px;color:rgba(240,255,232,0.4);margin-bottom:2px;">บัญชีที่ 3</div>
-          <div style="font-family:'Kanit',sans-serif;font-weight:700;font-size:13px;color:var(--cream)">${currentUser.bank3_name||'—'}</div>
-          <div style="font-family:'Kanit',sans-serif;font-size:12px;color:var(--gold);margin-top:1px">${currentUser.bank3_accno||'—'}</div>
-          <div style="font-size:11px;color:rgba(240,255,232,0.5);margin-top:1px">${currentUser.bank3_accname||'—'}</div>`;
-        const btn3 = document.getElementById('btn-add-bank3');
-        if (btn3) btn3.style.display = 'none';
-      } else {
-        const btn3 = document.getElementById('btn-add-bank3');
-        if (btn3) { btn3.style.display = hasBank2 ? 'block' : 'none'; }
-      }
-
-      // เลือกบัญชีแรกที่มีเป็น default
-      _selectBank(hasBank1 ? 1 : hasBank2 ? 2 : 3);
+      _renderBankCards(currentUser.bank_accounts || []);
+      // เลือกบัญชีแรกเป็น default
+      _selectBank(0);
     }
   }
 
@@ -8429,8 +8497,8 @@ setInterval(() => {
     if (!bankName)  { showFEToast('⚠️ กรุณาเลือกธนาคารครับ'); return; }
     if (!accNo)     { showFEToast('⚠️ กรุณากรอกเลขบัญชีครับ'); return; }
     if (!accName)   { showFEToast('⚠️ กรุณากรอกชื่อเจ้าของบัญชีครับ'); return; }
-    if (!/^[0-9]{10,15}$/.test(accNo)) {
-      showFEToast('⚠️ เลขบัญชีไม่ถูกต้อง (ตัวเลข 10-15 หลัก)'); return;
+    if (!/^[0-9]{6,32}$/.test(accNo)) {
+      showFEToast('⚠️ เลขบัญชีไม่ถูกต้อง (ตัวเลข 6-32 หลัก)'); return;
     }
 
     // ── ยืนยัน session nick ก่อน (เผื่อ RLS ต้องใช้) ──
@@ -8454,10 +8522,15 @@ setInterval(() => {
       }
     }
 
+    // อัปเดต bank_accounts array
     currentUser.bank_name    = bankName;
     currentUser.bank_accno   = accNo;
     currentUser.bank_accname = accName;
+    currentUser.bank_accounts = [{ name: bankName, accno: accNo, accname: accName }];
     _safeStorage.setItem('bw_user', JSON.stringify(currentUser));
+
+    // บันทึก bank_accounts ลง DB ด้วย
+    await sb.from('members').update({ bank_accounts: currentUser.bank_accounts }).eq('nick', currentUser.nick).then(()=>{});
 
     showFEToast('✅ เพิ่มบัญชีธนาคารสำเร็จแล้วครับ!');
     loadWithdrawPanel();
@@ -9986,29 +10059,23 @@ setInterval(() => {
     document.getElementById('reg-success').style.display = 'none';
     window.scrollTo(0, 0);
   }
-  window.showSchedule = window._real_showSchedule = async function showSchedule() {
-    // ── FLAG: no_game / blacklist → redirect ออกจาก schedule ──
-    const _sf = (window.currentUser || window._currentUser)?.flags || [];
-    if (_sf.includes('no_game') || _sf.includes('blacklist') || _sf.includes('cheater')) {
-      showFEToast('🚫 บัญชีของคุณถูกระงับสิทธิ์การเดิมพัน — กรุณาติดต่อ Admin ครับ');
-      return;
-    }
-    document.getElementById('main-content').style.display = 'none';
-    document.getElementById('page-register').style.display = 'none';
-    document.getElementById('page-schedule').style.display = 'block';
-    window.scrollTo(0, 0);
-    setTimeout(applyLang, 100);
-    // mock data ถูกลบออกแล้ว — โหลดจาก Supabase โดยตรง
+  // ── Schedule Filter state ──
+  let _allMatches = [];   // cache matches ทั้งหมดที่โหลดมา
+
+  // ── render การ์ดการแข่งขัน ──
+  function _renderScheduleList(list) {
     const wrap = document.getElementById('schedule-fb-wrap');
     if (!wrap) return;
-    wrap.innerHTML = `<div style="text-align:center;padding:48px;color:rgba(255,248,236,0.4);font-family:'Phetsarath','Noto Sans Lao','Kanit',sans-serif;"><div style="font-size:32px;margin-bottom:12px;">⏳</div>${t('schedule.loading')}</div>`;
-    const { data } = await sb.from('matches').select('*').in('status',['upcoming','live']).order('date',{ascending:true}).order('created_at',{ascending:false});
-    if (!data?.length) {
-      wrap.innerHTML = `<div style="text-align:center;padding:48px;color:rgba(255,248,236,0.4);font-family:'Phetsarath','Noto Sans Lao','Kanit',sans-serif;"><div style="font-size:32px;margin-bottom:12px;">🐂</div>${t('schedule.empty')}</div>`;
+    if (!list.length) {
+      const hasFilter = _schedHasFilter();
+      wrap.innerHTML = `<div style="text-align:center;padding:40px;color:rgba(255,248,236,0.4);font-family:'Phetsarath OT','Phetsarath','Noto Sans Lao','Kanit',sans-serif;">
+        <div style="font-size:28px;margin-bottom:10px;">${hasFilter ? '🔍' : '🐂'}</div>
+        ${hasFilter ? 'ไม่พบการแข่งขันที่ตรงกับเงื่อนไขที่ค้นหาครับ' : 'ยังไม่มีตารางการแข่งขันครับ'}
+      </div>`;
       return;
     }
     wrap.innerHTML = '';
-    data.forEach(m => {
+    list.forEach(m => {
       const isLive = m.status==='live', isDone = m.status==='done';
       const statusLabel = isLive?'<span class="live-dot"></span>● LIVE':isDone?t('hist.done'):'⏳ รอแข่ง';
       const statusClass = isLive?'status-live':isDone?'status-done':'status-upcoming';
@@ -10047,6 +10114,123 @@ setInterval(() => {
       `;
       wrap.appendChild(card);
     });
+  }
+
+  function _schedGetInputs() {
+    return {
+      date:     (document.getElementById('sf-date')?.value     || '').trim(),
+      time:     (document.getElementById('sf-time')?.value     || '').trim(),
+      dateFrom: (document.getElementById('sf-date-from')?.value|| '').trim(),
+      dateTo:   (document.getElementById('sf-date-to')?.value  || '').trim(),
+    };
+  }
+
+  function _schedHasFilter() {
+    const v = _schedGetInputs();
+    return !!(v.date || v.time || v.dateFrom || v.dateTo);
+  }
+
+  // ── แปลง m.date (DD/MM/YYYY หรือ DD.MM.YYYY) → 'YYYY-MM-DD' เพื่อเปรียบเทียบ ──
+  function _parseMatchDate(raw) {
+    if (!raw) return null;
+    // รองรับ DD/MM/YYYY และ DD.MM.YYYY (flatpickr บันทึก d/m/Y)
+    const sep = raw.includes('/') ? '/' : raw.includes('.') ? '.' : null;
+    if (!sep) return raw.slice(0,10); // fallback: ถ้าเป็น ISO อยู่แล้ว
+    const parts = raw.split(sep);
+    if (parts.length !== 3) return null;
+    const [dd, mm, yyyy] = parts;
+    // yyyy อาจเป็น พ.ศ. (2569) หรือ ค.ศ. (2026) — แปลงเป็น ค.ศ. ถ้าเกิน 2500
+    const year = parseInt(yyyy) > 2500 ? parseInt(yyyy) - 543 : parseInt(yyyy);
+    return `${year}-${mm.padStart(2,'0')}-${dd.padStart(2,'0')}`;
+  }
+
+  function _schedApplyFilter() {
+    const { date, time, dateFrom, dateTo } = _schedGetInputs();
+    let list = [..._allMatches];
+
+    // ── กรองวันที่ (แปลง m.date ก่อนเปรียบเทียบ) ──
+    if (date) {
+      // date จาก input[type=date] = 'YYYY-MM-DD' เสมอ
+      list = list.filter(m => _parseMatchDate(m.date) === date);
+    } else {
+      if (dateFrom) list = list.filter(m => {
+        const d = _parseMatchDate(m.date);
+        return d && d >= dateFrom;
+      });
+      if (dateTo) list = list.filter(m => {
+        const d = _parseMatchDate(m.date);
+        return d && d <= dateTo;
+      });
+    }
+
+    // ── กรองเวลา (ตรงกับ HH:MM ที่เลือก) ──
+    if (time) {
+      list = list.filter(m => m.time && m.time.replace(' น.','').trim().slice(0,5) === time.slice(0,5));
+    }
+
+    // ── update result bar ──
+    const resultBar  = document.getElementById('sf-result-bar');
+    const resultText = document.getElementById('sf-result-text');
+    const clearBtn   = document.getElementById('sf-clear-btn');
+    const hasFilter  = _schedHasFilter();
+
+    if (hasFilter && resultBar && resultText) {
+      let parts = [];
+      if (date)     parts.push(`📅 ${date}`);
+      if (time)     parts.push(`⏰ ${time}`);
+      if (!date && dateFrom) parts.push(`ตั้งแต่ ${dateFrom}`);
+      if (!date && dateTo)   parts.push(`ถึง ${dateTo}`);
+      resultText.innerHTML = `กรอง: <span class="hit">${parts.join(' · ')}</span> — พบ <span class="hit">${list.length}</span> รายการ`;
+      resultBar.style.display = 'flex';
+    } else if (resultBar) {
+      resultBar.style.display = 'none';
+    }
+
+    if (clearBtn) clearBtn.style.display = hasFilter ? 'flex' : 'none';
+    return list;
+  }
+
+  window.schedFilterSearch = function schedFilterSearch() {
+    const filtered = _schedApplyFilter();
+    _renderScheduleList(filtered);
+  };
+
+  window.schedFilterClear = function schedFilterClear() {
+    const ids = ['sf-date','sf-time','sf-date-from','sf-date-to'];
+    ids.forEach(id => { const el = document.getElementById(id); if(el) el.value = ''; });
+    const resultBar = document.getElementById('sf-result-bar');
+    const clearBtn  = document.getElementById('sf-clear-btn');
+    if (resultBar) resultBar.style.display = 'none';
+    if (clearBtn)  clearBtn.style.display  = 'none';
+    _renderScheduleList(_allMatches);
+  };
+
+  window.showSchedule = window._real_showSchedule = async function showSchedule() {
+    // ── FLAG: no_game / blacklist → redirect ออกจาก schedule ──
+    const _sf = (window.currentUser || window._currentUser)?.flags || [];
+    if (_sf.includes('no_game') || _sf.includes('blacklist') || _sf.includes('cheater')) {
+      showFEToast('🚫 บัญชีของคุณถูกระงับสิทธิ์การเดิมพัน — กรุณาติดต่อ Admin ครับ');
+      return;
+    }
+    document.getElementById('main-content').style.display = 'none';
+    document.getElementById('page-register').style.display = 'none';
+    document.getElementById('page-schedule').style.display = 'block';
+    window.scrollTo(0, 0);
+    setTimeout(applyLang, 100);
+    // ── โหลด matches จาก Supabase (upcoming + live) ──
+    const wrap = document.getElementById('schedule-fb-wrap');
+    if (!wrap) return;
+    wrap.innerHTML = `<div style="text-align:center;padding:48px;color:rgba(255,248,236,0.4);font-family:'Phetsarath OT','Phetsarath','Noto Sans Lao','Kanit',sans-serif;"><div style="font-size:32px;margin-bottom:12px;">⏳</div>${t('schedule.loading')}</div>`;
+
+    const { data } = await sb.from('matches').select('*').in('status',['upcoming','live']).order('date',{ascending:true}).order('created_at',{ascending:false});
+    _allMatches = data || [];
+
+    // ── แสดงผลทั้งหมด (filter ค้างอยู่ถ้าเปิดซ้ำ) ──
+    if (_schedHasFilter()) {
+      schedFilterSearch();
+    } else {
+      _renderScheduleList(_allMatches);
+    }
   }
   window.hideSchedule = window._real_hideSchedule = function hideSchedule() {
     document.getElementById('page-schedule').style.display  = 'none';
@@ -10369,49 +10553,79 @@ document.addEventListener('DOMContentLoaded', () => {
   // ════════════════════════════════
   // 3-BANK SYSTEM HELPERS
   // ════════════════════════════════
-  var _selectedBankSlot = 1;
+  // ── ระบบบัญชีธนาคาร (ไม่จำกัดจำนวน) ──
+  var _selectedBankIdx = 0; // 0-based index ใน bank_accounts array
 
-  function _selectBank(slot) {
-    _selectedBankSlot = slot;
-    [1,2,3].forEach(function(n) {
-      var card  = document.getElementById('bank-card-' + n);
-      var radio = document.getElementById('bank-radio-' + n);
-      var isMe  = (n === slot);
-      if (card) {
-        card.style.borderColor = isMe ? 'rgba(39,148,63,0.7)' : 'rgba(255,255,255,0.1)';
-        card.style.background  = isMe ? 'rgba(39,148,63,0.12)' : 'rgba(255,255,255,0.04)';
-      }
-      if (radio) {
-        radio.style.background  = isMe ? '#27943F' : 'transparent';
-        radio.style.borderColor = isMe ? '#27943F' : 'rgba(255,255,255,0.2)';
-        radio.innerHTML = isMe
-          ? '<div style="width:8px;height:8px;border-radius:50%;background:#fff;"></div>'
-          : '';
-      }
-    });
+  // render การ์ดบัญชีทั้งหมดจาก array
+  function _renderBankCards(accounts) {
+    var list = document.getElementById('bank-cards-list');
+    if (!list) return;
+    if (!accounts || !accounts.length) { list.innerHTML = ''; return; }
+    list.innerHTML = accounts.map(function(b, i) {
+      var isSelected = (i === _selectedBankIdx);
+      return `<div id="dyn-bank-card-${i}" onclick="_selectBank(${i})" style="
+          background:${isSelected ? 'rgba(39,148,63,0.12)' : 'rgba(255,255,255,0.04)'};
+          border:2px solid ${isSelected ? 'rgba(39,148,63,0.7)' : 'rgba(255,255,255,0.1)'};
+          border-radius:10px;padding:12px 14px;margin-bottom:8px;cursor:pointer;transition:all .2s;">
+        <div style="display:flex;align-items:center;justify-content:space-between;">
+          <div style="display:flex;align-items:center;gap:10px;">
+            <div style="width:18px;height:18px;border-radius:50%;border:2px solid ${isSelected ? '#27943F' : 'rgba(255,255,255,0.2)'};
+              background:${isSelected ? '#27943F' : 'transparent'};flex-shrink:0;display:flex;align-items:center;justify-content:center;">
+              ${isSelected ? '<div style="width:8px;height:8px;border-radius:50%;background:#fff;"></div>' : ''}
+            </div>
+            <div>
+              <div style="font-family:'Phetsarath OT','Kanit',sans-serif;font-size:11px;color:rgba(240,255,232,0.4);margin-bottom:2px;">บัญชีที่ ${i+1}</div>
+              <div style="font-family:'Phetsarath OT','Kanit',sans-serif;font-weight:700;font-size:13px;color:var(--cream);">${b.name||'—'}</div>
+              <div style="font-family:'Phetsarath OT','Kanit',sans-serif;font-size:12px;color:var(--gold);margin-top:1px;">${b.accno||'—'}</div>
+              <div style="font-size:11px;color:rgba(240,255,232,0.5);margin-top:1px;">${b.accname||'—'}</div>
+            </div>
+          </div>
+          <div style="display:flex;gap:6px;align-items:center;">
+            <button onclick="event.stopPropagation();_showAddBankForm(${i})" title="แก้ไข"
+              style="font-size:11px;padding:4px 10px;border-radius:7px;border:1px solid rgba(245,200,66,0.3);background:rgba(245,200,66,0.06);color:var(--gold);cursor:pointer;">✏️</button>
+            <button onclick="event.stopPropagation();_deleteBankAccount(${i})" title="ลบ"
+              style="font-size:11px;padding:4px 10px;border-radius:7px;border:1px solid rgba(248,113,113,0.3);background:rgba(248,113,113,0.06);color:#f87171;cursor:pointer;">🗑️</button>
+          </div>
+        </div>
+      </div>`;
+    }).join('');
+  }
+
+  function _selectBank(idx) {
+    _selectedBankIdx = idx;
+    _renderBankCards(currentUser.bank_accounts || []);
   }
 
   function _getSelectedBank() {
-    if (!currentUser) return { name:'', accno:'', accname:'' };
-    var s = _selectedBankSlot;
-    if (s === 1) return { name: currentUser.bank_name||'',  accno: currentUser.bank_accno||'',  accname: currentUser.bank_accname||'' };
-    if (s === 2) return { name: currentUser.bank2_name||'', accno: currentUser.bank2_accno||'', accname: currentUser.bank2_accname||'' };
-    if (s === 3) return { name: currentUser.bank3_name||'', accno: currentUser.bank3_accno||'', accname: currentUser.bank3_accname||'' };
-    return { name:'', accno:'', accname:'' };
+    var accounts = currentUser?.bank_accounts || [];
+    var b = accounts[_selectedBankIdx];
+    if (!b) return { name:'', accno:'', accname:'' };
+    return { name: b.name||'', accno: b.accno||'', accname: b.accname||'' };
   }
 
-  var _addingBankSlot = 2;
-
-  function _showAddBankForm(slot) {
-    _addingBankSlot = slot;
+  function _showAddBankForm(editIdx) {
+    // editIdx = -1 เพิ่มใหม่, 0+ = แก้ไข index นั้น
     var form  = document.getElementById('add-bank-inline-form');
     var title = document.getElementById('add-bank-form-title');
+    var idxEl = document.getElementById('add-bank-edit-index');
+    if (idxEl) idxEl.value = editIdx;
     if (form)  form.style.display = 'block';
-    if (title) title.textContent  = '➕ เพิ่มบัญชีที่ ' + slot;
-    ['add-bank-name-new','add-bank-accno-new','add-bank-accname-new'].forEach(function(id) {
-      var el = document.getElementById(id);
-      if (el) el.value = '';
-    });
+
+    if (editIdx >= 0) {
+      var b = (currentUser.bank_accounts || [])[editIdx] || {};
+      if (title) title.textContent = '✏️ แก้ไขบัญชีที่ ' + (editIdx+1);
+      var sel = document.getElementById('add-bank-name-new');
+      if (sel) sel.value = b.name || '';
+      var no  = document.getElementById('add-bank-accno-new');
+      if (no)  no.value  = b.accno || '';
+      var nm  = document.getElementById('add-bank-accname-new');
+      if (nm)  nm.value  = b.accname || '';
+    } else {
+      if (title) title.textContent = '➕ เพิ่มบัญชีใหม่';
+      ['add-bank-name-new','add-bank-accno-new','add-bank-accname-new'].forEach(function(id) {
+        var el = document.getElementById(id); if (el) el.value = '';
+      });
+    }
     setTimeout(function() {
       if (form) form.scrollIntoView({ behavior: 'smooth', block: 'center' });
     }, 100);
@@ -10422,8 +10636,30 @@ document.addEventListener('DOMContentLoaded', () => {
     if (form) form.style.display = 'none';
   }
 
+  async function _deleteBankAccount(idx) {
+    if (!confirm('ยืนยันการลบบัญชีที่ ' + (idx+1) + ' ออก?')) return;
+    try { await sb.rpc('set_current_nick', { p_nick: currentUser.nick }); } catch(_) {}
+    var { data, error } = await sb.rpc('delete_bank_account', { p_nick: currentUser.nick, p_index: idx });
+    if (error) {
+      // fallback: update ตรงถ้า RPC ยังไม่มี
+      var acc = [...(currentUser.bank_accounts||[])];
+      acc.splice(idx, 1);
+      var { error: e2 } = await sb.from('members').update({ bank_accounts: acc }).eq('nick', currentUser.nick);
+      if (e2) { showFEToast('❌ ลบบัญชีไม่สำเร็จ: ' + e2.message); return; }
+      currentUser.bank_accounts = acc;
+    } else {
+      currentUser.bank_accounts = Array.isArray(data) ? data : (currentUser.bank_accounts||[]).filter((_,i)=>i!==idx);
+    }
+    _safeStorage.setItem('bw_user', JSON.stringify(currentUser));
+    _selectedBankIdx = 0;
+    _renderBankCards(currentUser.bank_accounts);
+    document.getElementById('with-no-bank').style.display  = currentUser.bank_accounts.length ? 'none'  : 'block';
+    document.getElementById('with-has-bank').style.display = currentUser.bank_accounts.length ? 'block' : 'none';
+    showFEToast('🗑️ ลบบัญชีแล้วครับ');
+  }
+
   async function _saveNewBank() {
-    var slot     = _addingBankSlot;
+    var editIdx  = parseInt(document.getElementById('add-bank-edit-index')?.value ?? '-1');
     var bname    = (document.getElementById('add-bank-name-new')?.value || '').trim();
     var baccno   = (document.getElementById('add-bank-accno-new')?.value || '').trim().replace(/-/g,'');
     var baccname = (document.getElementById('add-bank-accname-new')?.value || '').trim();
@@ -10431,43 +10667,38 @@ document.addEventListener('DOMContentLoaded', () => {
     if (!bname)   { showFEToast('⚠️ กรุณาเลือกธนาคารครับ'); return; }
     if (!baccno)  { showFEToast('⚠️ กรุณากรอกเลขบัญชีครับ'); return; }
     if (!baccname){ showFEToast('⚠️ กรุณากรอกชื่อเจ้าของบัญชีครับ'); return; }
-    if (!/^[0-9]{10,15}$/.test(baccno)) {
-      showFEToast('⚠️ เลขบัญชีไม่ถูกต้อง (ตัวเลข 10-15 หลัก)'); return;
+    if (!/^[0-9]{6,32}$/.test(baccno)) {
+      showFEToast('⚠️ เลขบัญชีไม่ถูกต้อง (ตัวเลข 6-32 หลัก)'); return;
     }
 
-    // ── ยืนยัน session nick ก่อน ──
     try { await sb.rpc('set_current_nick', { p_nick: currentUser.nick }); } catch(_) {}
 
-    // ── ใช้ RPC (SECURITY DEFINER) ข้ามปัญหา RLS ──
-    var rpc_res = await sb.rpc('update_member_bank', {
-      p_nick: currentUser.nick, p_slot: slot,
+    // เรียก RPC upsert_bank_account (editIdx -1 = เพิ่มใหม่)
+    var { data, error } = await sb.rpc('upsert_bank_account', {
+      p_nick: currentUser.nick, p_index: editIdx,
       p_name: bname, p_accno: baccno, p_accname: baccname
     });
 
-    if (rpc_res.error) {
-      var em = rpc_res.error.message || '';
+    if (error) {
       // fallback ถ้า RPC ยังไม่ถูกสร้าง
-      if (em.includes('function') && em.includes('does not exist')) {
-        var updates = {};
-        if (slot === 2) { updates.bank2_name = bname; updates.bank2_accno = baccno; updates.bank2_accname = baccname; }
-        if (slot === 3) { updates.bank3_name = bname; updates.bank3_accno = baccno; updates.bank3_accname = baccname; }
-        var save_res = await sb.from('members').update(updates).eq('nick', currentUser.nick);
-        if (save_res.error) { showFEToast('❌ เพิ่มบัญชีไม่สำเร็จ: ' + save_res.error.message); return; }
-        Object.assign(currentUser, updates);
-      } else {
-        showFEToast('❌ ' + em); return;
-      }
+      var acc = [...(currentUser.bank_accounts||[])];
+      var entry = { name: bname, accno: baccno, accname: baccname };
+      if (editIdx >= 0) { acc[editIdx] = entry; } else { acc.push(entry); }
+      var { error: e2 } = await sb.from('members').update({ bank_accounts: acc }).eq('nick', currentUser.nick);
+      if (e2) { showFEToast('❌ บันทึกไม่สำเร็จ: ' + e2.message); return; }
+      currentUser.bank_accounts = acc;
     } else {
-      var updates2 = {};
-      if (slot === 2) { updates2.bank2_name = bname; updates2.bank2_accno = baccno; updates2.bank2_accname = baccname; }
-      if (slot === 3) { updates2.bank3_name = bname; updates2.bank3_accno = baccno; updates2.bank3_accname = baccname; }
-      Object.assign(currentUser, updates2);
+      currentUser.bank_accounts = Array.isArray(data) ? data
+        : (()=>{ var a=[...(currentUser.bank_accounts||[])]; var e={name:bname,accno:baccno,accname:baccname}; if(editIdx>=0){a[editIdx]=e;}else{a.push(e);} return a; })();
     }
 
     _safeStorage.setItem('bw_user', JSON.stringify(currentUser));
     _hideAddBankForm();
-    showFEToast('✅ เพิ่มบัญชีที่ ' + slot + ' สำเร็จแล้วครับ!');
-    loadWithdrawPanel();
+    _selectedBankIdx = editIdx >= 0 ? editIdx : (currentUser.bank_accounts.length - 1);
+    _renderBankCards(currentUser.bank_accounts);
+    document.getElementById('with-no-bank').style.display  = 'none';
+    document.getElementById('with-has-bank').style.display = 'block';
+    showFEToast(editIdx >= 0 ? '✅ แก้ไขบัญชีสำเร็จแล้วครับ!' : '✅ เพิ่มบัญชีใหม่สำเร็จแล้วครับ!');
   }
 
 
