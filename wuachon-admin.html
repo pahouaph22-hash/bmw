@@ -1194,13 +1194,43 @@ input, textarea, select, button {
         </div><!-- end add-panel-football -->
 
         <div id="match-sec-active" class="match-sec">
-              
+              <!-- ── Date Range Filter ── -->
+              <div class="date-filter">
+                <label>📅 วันแข่ง ตั้งแต่</label>
+                <input type="date" class="date-input" id="match-active-date-from" onchange="filterMatches()">
+                <label>ถึง</label>
+                <input type="date" class="date-input" id="match-active-date-to" onchange="filterMatches()">
+                <button class="btn-date-today" onclick="setMatchDateToday('active')">วันนี้</button>
+                <button class="btn-date-today" style="background:#f0f4ff;border-color:#3b82f6;color:#3b82f6;" onclick="setMatchDateThisMonth('active')">เดือนนี้</button>
+                <button class="btn-date-clear" onclick="clearMatchDate('active')">✕ ล้าง</button>
+                <span id="match-active-date-tag" style="font-size:11px;color:#666;display:none;"></span>
+              </div>
+              <!-- ── Search ── -->
+              <div style="margin-bottom:12px;display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
+                <input class="search-input" id="match-search-active" placeholder="🔍 ค้นหารหัส / รุ่น / ชื่อวัว / เจ้าของ / สถานที่..." oninput="filterMatches()" style="flex:1;min-width:240px;">
+                <span id="match-search-active-count" style="font-family:Kanit,sans-serif;font-size:11px;color:#888;"></span>
+              </div>
               <div id="matches-tab-active"></div>
             </div>
 
             <!-- Pane 3: จบการแข่งขัน -->
             <div id="match-sec-done" class="match-sec">
-              
+              <!-- ── Date Range Filter ── -->
+              <div class="date-filter">
+                <label>📅 วันแข่ง ตั้งแต่</label>
+                <input type="date" class="date-input" id="match-done-date-from" onchange="filterMatches()">
+                <label>ถึง</label>
+                <input type="date" class="date-input" id="match-done-date-to" onchange="filterMatches()">
+                <button class="btn-date-today" onclick="setMatchDateToday('done')">วันนี้</button>
+                <button class="btn-date-today" style="background:#f0f4ff;border-color:#3b82f6;color:#3b82f6;" onclick="setMatchDateThisMonth('done')">เดือนนี้</button>
+                <button class="btn-date-clear" onclick="clearMatchDate('done')">✕ ล้าง</button>
+                <span id="match-done-date-tag" style="font-size:11px;color:#666;display:none;"></span>
+              </div>
+              <!-- ── Search ── -->
+              <div style="margin-bottom:12px;display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
+                <input class="search-input" id="match-search-done" placeholder="🔍 ค้นหารหัส / รุ่น / ชื่อวัว / ผู้ชนะ..." oninput="filterMatches()" style="flex:1;min-width:240px;">
+                <span id="match-search-done-count" style="font-family:Kanit,sans-serif;font-size:11px;color:#888;"></span>
+              </div>
               <div id="matches-tab-done"></div>
             </div>
 
@@ -1252,6 +1282,19 @@ input, textarea, select, button {
                 <div class="card-title">⚖️ รอตัดสินผล
                   <button onclick="loadVerdict()" style="margin-left:auto;font-family:'Kanit',sans-serif;font-size:11px;font-weight:700;padding:5px 12px;border:1px solid #e0e0e0;border-radius:7px;background:#fff;color:#555;cursor:pointer;">🔄 รีเฟรช</button>
                 </div>
+                <div class="date-filter">
+                  <label>📅 วันแข่ง ตั้งแต่</label>
+                  <input type="date" class="date-input" id="verdict-pending-date-from" onchange="filterVerdict()">
+                  <label>ถึง</label>
+                  <input type="date" class="date-input" id="verdict-pending-date-to" onchange="filterVerdict()">
+                  <button class="btn-date-today" onclick="setVerdictDateToday('pending')">วันนี้</button>
+                  <button class="btn-date-today" style="background:#f0f4ff;border-color:#3b82f6;color:#3b82f6;" onclick="setVerdictDateThisMonth('pending')">เดือนนี้</button>
+                  <button class="btn-date-clear" onclick="clearVerdictDate('pending')">✕ ล้าง</button>
+                </div>
+                <div style="margin-bottom:12px;display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
+                  <input class="search-input" id="verdict-search-pending" placeholder="🔍 ค้นหารหัส / รุ่น / ชื่อวัว / เจ้าของ..." oninput="filterVerdict()" style="flex:1;min-width:240px;">
+                  <span id="verdict-search-pending-count" style="font-family:Kanit,sans-serif;font-size:11px;color:#888;"></span>
+                </div>
                 <div id="verdict-pending"><div style="text-align:center;padding:24px;color:#aaa;">กำลังโหลด...</div></div>
               </div>
             </div>
@@ -1261,6 +1304,19 @@ input, textarea, select, button {
               <div class="card">
                 <div class="card-title">✅ ตัดสินแล้ว
                   <button onclick="loadVerdict()" style="margin-left:auto;font-family:'Kanit',sans-serif;font-size:11px;font-weight:700;padding:5px 12px;border:1px solid #e0e0e0;border-radius:7px;background:#fff;color:#555;cursor:pointer;">🔄 รีเฟรช</button>
+                </div>
+                <div class="date-filter">
+                  <label>📅 วันแข่ง ตั้งแต่</label>
+                  <input type="date" class="date-input" id="verdict-done-date-from" onchange="filterVerdict()">
+                  <label>ถึง</label>
+                  <input type="date" class="date-input" id="verdict-done-date-to" onchange="filterVerdict()">
+                  <button class="btn-date-today" onclick="setVerdictDateToday('done')">วันนี้</button>
+                  <button class="btn-date-today" style="background:#f0f4ff;border-color:#3b82f6;color:#3b82f6;" onclick="setVerdictDateThisMonth('done')">เดือนนี้</button>
+                  <button class="btn-date-clear" onclick="clearVerdictDate('done')">✕ ล้าง</button>
+                </div>
+                <div style="margin-bottom:12px;display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
+                  <input class="search-input" id="verdict-search-done" placeholder="🔍 ค้นหารหัส / ชื่อวัว / ผู้ชนะ..." oninput="filterVerdict()" style="flex:1;min-width:240px;">
+                  <span id="verdict-search-done-count" style="font-family:Kanit,sans-serif;font-size:11px;color:#888;"></span>
                 </div>
                 <div id="verdict-done"><div style="text-align:center;padding:24px;color:#aaa;">กำลังโหลด...</div></div>
               </div>
@@ -1306,6 +1362,7 @@ input, textarea, select, button {
                   <button onclick="exportDeposits()" style="font-family:'Kanit',sans-serif;font-size:11px;font-weight:700;padding:5px 12px;border:1px solid #16a34a;border-radius:7px;background:#16a34a;color:#fff;cursor:pointer;white-space:nowrap;margin-left:6px;">⬇️ CSV</button>
                 </div>
                 <div class="date-filter">
+                  <input class="search-input" id="dep-search" placeholder="🔍 ค้นหา Nick / TXN / ธนาคาร..." oninput="filterDeposits()" style="flex:1;min-width:200px;">
                   <label>📅 ตั้งแต่</label>
                   <input type="date" class="date-input" id="dep-date-from" onchange="filterDeposits()">
                   <label>ถึง</label>
@@ -1330,6 +1387,7 @@ input, textarea, select, button {
                   <button onclick="filterDepDone()" style="margin-left:auto;font-family:'Kanit',sans-serif;font-size:11px;font-weight:700;padding:5px 12px;border:1px solid #e0e0e0;border-radius:7px;background:#fff;color:#555;cursor:pointer;white-space:nowrap;">🔄 รีเฟรช</button>
                 </div>
                 <div class="date-filter">
+                  <input class="search-input" id="dep-done-search" placeholder="🔍 Nick / TXN / ธนาคาร..." oninput="filterDepDone()" style="flex:1;min-width:180px;">
                   <label>📅 ตั้งแต่</label>
                   <input type="date" class="date-input" id="dep-done-from" onchange="filterDepDone()">
                   <label>ถึง</label>
@@ -1354,6 +1412,7 @@ input, textarea, select, button {
                   <button onclick="filterDepReject()" style="margin-left:auto;font-family:'Kanit',sans-serif;font-size:11px;font-weight:700;padding:5px 12px;border:1px solid #e0e0e0;border-radius:7px;background:#fff;color:#555;cursor:pointer;white-space:nowrap;">🔄 รีเฟรช</button>
                 </div>
                 <div class="date-filter">
+                  <input class="search-input" id="dep-reject-search" placeholder="🔍 Nick / TXN / เหตุผล..." oninput="filterDepReject()" style="flex:1;min-width:180px;">
                   <label>📅 ตั้งแต่</label>
                   <input type="date" class="date-input" id="dep-reject-from" onchange="filterDepReject()">
                   <label>ถึง</label>
@@ -1408,6 +1467,7 @@ input, textarea, select, button {
                   <button onclick="exportWithdrawals()" style="font-family:'Kanit',sans-serif;font-size:11px;font-weight:700;padding:5px 12px;border:1px solid #16a34a;border-radius:7px;background:#16a34a;color:#fff;cursor:pointer;white-space:nowrap;margin-left:6px;">⬇️ CSV</button>
                 </div>
                 <div class="date-filter">
+                  <input class="search-input" id="with-search" placeholder="🔍 Nick / TXN / ธนาคาร / เลขบัญชี..." oninput="filterWithdrawals()" style="flex:1;min-width:200px;">
                   <label>📅 ตั้งแต่</label>
                   <input type="date" class="date-input" id="with-date-from" onchange="filterWithdrawals()">
                   <label>ถึง</label>
@@ -1432,6 +1492,7 @@ input, textarea, select, button {
                   <button onclick="filterWithDone()" style="margin-left:auto;font-family:'Kanit',sans-serif;font-size:11px;font-weight:700;padding:5px 12px;border:1px solid #e0e0e0;border-radius:7px;background:#fff;color:#555;cursor:pointer;white-space:nowrap;">🔄 รีเฟรช</button>
                 </div>
                 <div class="date-filter">
+                  <input class="search-input" id="with-done-search" placeholder="🔍 Nick / TXN / ธนาคาร..." oninput="filterWithDone()" style="flex:1;min-width:180px;">
                   <label>📅 ตั้งแต่</label>
                   <input type="date" class="date-input" id="with-done-from" onchange="filterWithDone()">
                   <label>ถึง</label>
@@ -1456,6 +1517,7 @@ input, textarea, select, button {
                   <button onclick="filterWithReject()" style="margin-left:auto;font-family:'Kanit',sans-serif;font-size:11px;font-weight:700;padding:5px 12px;border:1px solid #e0e0e0;border-radius:7px;background:#fff;color:#555;cursor:pointer;white-space:nowrap;">🔄 รีเฟรช</button>
                 </div>
                 <div class="date-filter">
+                  <input class="search-input" id="with-reject-search" placeholder="🔍 Nick / TXN / เหตุผล..." oninput="filterWithReject()" style="flex:1;min-width:180px;">
                   <label>📅 ตั้งแต่</label>
                   <input type="date" class="date-input" id="with-reject-from" onchange="filterWithReject()">
                   <label>ถึง</label>
@@ -4826,23 +4888,126 @@ function filterMatches_() {
   if (cntA) cntA.textContent = `(${activeRows.length})`;
   if (cntD) cntD.textContent = `(${doneRows.length})`;
 
-  // render active (upcoming + live)
+  // เก็บไว้สำหรับ filter
+  window._matchActiveRows = activeRows;
+  window._matchDoneRows   = doneRows;
+
+  // render ผ่าน filter
+  filterMatches();
+}
+
+// ── แปลง m.date (DD/MM/YYYY) → ISO เพื่อเปรียบเทียบ ──
+function _matchDateToISO(raw) {
+  if (!raw) return '';
+  const sep = raw.includes('/') ? '/' : raw.includes('.') ? '.' : null;
+  if (!sep) return raw.slice(0,10);
+  const parts = raw.split(sep);
+  if (parts.length !== 3) return '';
+  const [dd, mm, yyyy] = parts;
+  const year = parseInt(yyyy) > 2500 ? parseInt(yyyy) - 543 : parseInt(yyyy);
+  return `${year}-${String(mm).padStart(2,'0')}-${String(dd).padStart(2,'0')}`;
+}
+
+// ── ปุ่ม "วันนี้" / "เดือนนี้" / "ล้าง" สำหรับ matches ──
+function setMatchDateToday(sec) {
+  const today = new Date().toISOString().slice(0,10);
+  const from = document.getElementById(`match-${sec}-date-from`);
+  const to   = document.getElementById(`match-${sec}-date-to`);
+  if (from) from.value = today;
+  if (to)   to.value   = today;
+  filterMatches();
+}
+function setMatchDateThisMonth(sec) {
+  const now = new Date();
+  const first = new Date(now.getFullYear(), now.getMonth(), 1).toISOString().slice(0,10);
+  const last  = new Date(now.getFullYear(), now.getMonth()+1, 0).toISOString().slice(0,10);
+  const from = document.getElementById(`match-${sec}-date-from`);
+  const to   = document.getElementById(`match-${sec}-date-to`);
+  if (from) from.value = first;
+  if (to)   to.value   = last;
+  filterMatches();
+}
+function clearMatchDate(sec) {
+  const from = document.getElementById(`match-${sec}-date-from`);
+  const to   = document.getElementById(`match-${sec}-date-to`);
+  if (from) from.value = '';
+  if (to)   to.value   = '';
+  filterMatches();
+}
+
+// ── filter matches ตาม search + date range ──
+function filterMatches() {
+  const filterRows = (rows, query, dateFrom, dateTo) => {
+    return rows.filter(m => {
+      // กรองตามช่วงวันที่ก่อน
+      if (dateFrom || dateTo) {
+        const iso = _matchDateToISO(m.date);
+        if (!iso) return false;
+        if (dateFrom && iso < dateFrom) return false;
+        if (dateTo   && iso > dateTo)   return false;
+      }
+      // กรองตาม search query
+      if (!query) return true;
+      const q = query.toLowerCase();
+      return [m.code, m.round, m.location, m.name_a, m.name_b,
+              m.owner_a, m.owner_b, m.winner, m.date, m.time]
+        .some(v => v && String(v).toLowerCase().includes(q));
+    });
+  };
+
+  const qA = document.getElementById('match-search-active')?.value?.trim() || '';
+  const qD = document.getElementById('match-search-done')?.value?.trim()   || '';
+  const fromA = document.getElementById('match-active-date-from')?.value || '';
+  const toA   = document.getElementById('match-active-date-to')?.value   || '';
+  const fromD = document.getElementById('match-done-date-from')?.value   || '';
+  const toD   = document.getElementById('match-done-date-to')?.value     || '';
+
+  // tag แสดงช่วงวันที่ที่เลือก
+  ['active','done'].forEach(sec => {
+    const from = sec==='active'?fromA:fromD;
+    const to   = sec==='active'?toA:toD;
+    const tag  = document.getElementById(`match-${sec}-date-tag`);
+    if (tag) {
+      if (from || to) {
+        tag.textContent = `📅 ${from||'...'} → ${to||'...'}`;
+        tag.style.display = 'inline';
+      } else tag.style.display = 'none';
+    }
+  });
+
+  const activeRows = window._matchActiveRows || [];
+  const doneRows   = window._matchDoneRows   || [];
+
+  const filteredA = filterRows(activeRows, qA, fromA, toA);
+  const filteredD = filterRows(doneRows,   qD, fromD, toD);
+
+  // count badges
+  const cntElA = document.getElementById('match-search-active-count');
+  const cntElD = document.getElementById('match-search-done-count');
+  if (cntElA) cntElA.textContent = qA ? `พบ ${filteredA.length} จาก ${activeRows.length}` : '';
+  if (cntElD) cntElD.textContent = qD ? `พบ ${filteredD.length} จาก ${doneRows.length}`   : '';
+
+  // render active
   const elA = document.getElementById('matches-tab-active');
   if (elA) {
-    if (!activeRows.length) {
-      elA.innerHTML = '<div style="text-align:center;padding:32px;color:#aaa;"><div style="font-size:28px;margin-bottom:8px;">🐂</div>ไม่มีรายการแข่งขันที่กำลังจะมาถึงครับ</div>';
+    if (!filteredA.length) {
+      elA.innerHTML = qA
+        ? `<div style="text-align:center;padding:32px;color:#aaa;"><div style="font-size:28px;margin-bottom:8px;">🔍</div>ไม่พบรายการที่ตรงกับ "${qA}" ครับ</div>`
+        : '<div style="text-align:center;padding:32px;color:#aaa;"><div style="font-size:28px;margin-bottom:8px;">🐂</div>ไม่มีรายการแข่งขันที่กำลังจะมาถึงครับ</div>';
     } else {
-      elA.innerHTML = renderMatchTable(activeRows, false);
+      elA.innerHTML = renderMatchTable(filteredA, false);
     }
   }
 
   // render done
   const elD = document.getElementById('matches-tab-done');
   if (elD) {
-    if (!doneRows.length) {
-      elD.innerHTML = '<div style="text-align:center;padding:32px;color:#aaa;"><div style="font-size:28px;margin-bottom:8px;">🏁</div>ยังไม่มีการแข่งขันที่จบแล้วครับ</div>';
+    if (!filteredD.length) {
+      elD.innerHTML = qD
+        ? `<div style="text-align:center;padding:32px;color:#aaa;"><div style="font-size:28px;margin-bottom:8px;">🔍</div>ไม่พบรายการที่ตรงกับ "${qD}" ครับ</div>`
+        : '<div style="text-align:center;padding:32px;color:#aaa;"><div style="font-size:28px;margin-bottom:8px;">🏁</div>ยังไม่มีการแข่งขันที่จบแล้วครับ</div>';
     } else {
-      elD.innerHTML = renderMatchTable(doneRows, true);
+      elD.innerHTML = renderMatchTable(filteredD, true);
     }
   }
 }
@@ -5483,8 +5648,70 @@ async function loadVerdict() {
     .in('status',['upcoming','live','done']).order('date',{ascending:true}).limit(500);
   const pending = (data||[]).filter(m => (m.status==='done') && !m.winner);
   const done    = (data||[]).filter(m => m.winner);
-  renderVerdictPending(pending);
-  renderVerdictDone(done);
+  window._verdictPendingRows = pending;
+  window._verdictDoneRows    = done;
+  filterVerdict();
+}
+
+// ── ปุ่ม date helper สำหรับ verdict ──
+function setVerdictDateToday(sec) {
+  const today = new Date().toISOString().slice(0,10);
+  const f = document.getElementById(`verdict-${sec}-date-from`);
+  const t = document.getElementById(`verdict-${sec}-date-to`);
+  if (f) f.value = today; if (t) t.value = today;
+  filterVerdict();
+}
+function setVerdictDateThisMonth(sec) {
+  const now = new Date();
+  const first = new Date(now.getFullYear(), now.getMonth(), 1).toISOString().slice(0,10);
+  const last  = new Date(now.getFullYear(), now.getMonth()+1, 0).toISOString().slice(0,10);
+  const f = document.getElementById(`verdict-${sec}-date-from`);
+  const t = document.getElementById(`verdict-${sec}-date-to`);
+  if (f) f.value = first; if (t) t.value = last;
+  filterVerdict();
+}
+function clearVerdictDate(sec) {
+  const f = document.getElementById(`verdict-${sec}-date-from`);
+  const t = document.getElementById(`verdict-${sec}-date-to`);
+  if (f) f.value = ''; if (t) t.value = '';
+  filterVerdict();
+}
+
+// ── filter verdict ตาม search + date ──
+function filterVerdict() {
+  const filterRows = (rows, q, dateFrom, dateTo) => {
+    return rows.filter(m => {
+      if (dateFrom || dateTo) {
+        const iso = (typeof _matchDateToISO === 'function') ? _matchDateToISO(m.date) : (m.date||'').slice(0,10);
+        if (!iso) return false;
+        if (dateFrom && iso < dateFrom) return false;
+        if (dateTo   && iso > dateTo)   return false;
+      }
+      if (!q) return true;
+      const qq = q.toLowerCase();
+      return [m.code, m.round, m.location, m.name_a, m.name_b,
+              m.owner_a, m.owner_b, m.winner, m.date]
+        .some(v => v && String(v).toLowerCase().includes(qq));
+    });
+  };
+  const qP = document.getElementById('verdict-search-pending')?.value?.trim() || '';
+  const qD = document.getElementById('verdict-search-done')?.value?.trim()    || '';
+  const fromP = document.getElementById('verdict-pending-date-from')?.value || '';
+  const toP   = document.getElementById('verdict-pending-date-to')?.value   || '';
+  const fromD = document.getElementById('verdict-done-date-from')?.value    || '';
+  const toD   = document.getElementById('verdict-done-date-to')?.value      || '';
+  const pending = window._verdictPendingRows || [];
+  const done    = window._verdictDoneRows    || [];
+  const fP = filterRows(pending, qP, fromP, toP);
+  const fD = filterRows(done,    qD, fromD, toD);
+
+  const cntP = document.getElementById('verdict-search-pending-count');
+  const cntD = document.getElementById('verdict-search-done-count');
+  if (cntP) cntP.textContent = qP ? `พบ ${fP.length} จาก ${pending.length}` : '';
+  if (cntD) cntD.textContent = qD ? `พบ ${fD.length} จาก ${done.length}`    : '';
+
+  renderVerdictPending(fP);
+  renderVerdictDone(fD);
 }
 
 function renderVerdictPending(rows) {
@@ -7030,9 +7257,13 @@ function filterDeposits(){
   updateDateTag('dep');
   var from=document.getElementById('dep-date-from')?.value||'';
   var to=document.getElementById('dep-date-to')?.value||'';
+  var q=(document.getElementById('dep-search')?.value||'').trim().toLowerCase();
   var rows=allDeposits.filter(function(d){
     var ld = localDateOf(d.created_at);
-    return d.status==='pending'&&(!from||ld>=from)&&(!to||ld<=to);
+    if(!(d.status==='pending'&&(!from||ld>=from)&&(!to||ld<=to))) return false;
+    if(!q) return true;
+    return [d.nick,d.bank,d.txn,d.fname,d.lname,d.phone]
+      .some(function(v){return v && String(v).toLowerCase().includes(q);});
   });
   var tb=document.getElementById('dep-tbody');if(!tb)return;
   if(!rows.length){
@@ -7073,7 +7304,13 @@ function filterDeposits(){
 }
 function filterDepDone(){
   var from=document.getElementById('dep-done-from')?.value||'',to=document.getElementById('dep-done-to')?.value||'';
-  var rows=allDeposits.filter(function(d){var ld=localDateOf(d.approved_at||d.created_at);return d.status==='approved'&&(!from||ld>=from)&&(!to||ld<=to);});
+  var q=(document.getElementById('dep-done-search')?.value||'').trim().toLowerCase();
+  var rows=allDeposits.filter(function(d){
+    var ld=localDateOf(d.approved_at||d.created_at);
+    if(!(d.status==='approved'&&(!from||ld>=from)&&(!to||ld<=to))) return false;
+    if(!q) return true;
+    return [d.nick,d.bank,d.txn,d.approved_by].some(function(v){return v && String(v).toLowerCase().includes(q);});
+  });
   var tb=document.getElementById('dep-done-tbody');if(!tb)return;
   if(!rows.length){tb.innerHTML='<tr><td colspan="6" style="text-align:center;padding:28px;color:#aaa;">ไม่มีรายการ</td></tr>';return;}
   tb.innerHTML=rows.map(function(d){
@@ -7094,7 +7331,13 @@ function filterDepDone(){
 }
 function filterDepReject(){
   var from=document.getElementById('dep-reject-from')?.value||'',to=document.getElementById('dep-reject-to')?.value||'';
-  var rows=allDeposits.filter(function(d){var ld=localDateOf(d.created_at);return d.status==='rejected'&&(!from||ld>=from)&&(!to||ld<=to);});
+  var q=(document.getElementById('dep-reject-search')?.value||'').trim().toLowerCase();
+  var rows=allDeposits.filter(function(d){
+    var ld=localDateOf(d.created_at);
+    if(!(d.status==='rejected'&&(!from||ld>=from)&&(!to||ld<=to))) return false;
+    if(!q) return true;
+    return [d.nick,d.bank,d.txn,d.reason,d.note].some(function(v){return v && String(v).toLowerCase().includes(q);});
+  });
   var tb=document.getElementById('dep-reject-tbody');if(!tb)return;
   if(!rows.length){tb.innerHTML='<tr><td colspan="4" style="text-align:center;padding:28px;color:#aaa;">ไม่มีรายการ</td></tr>';return;}
   tb.innerHTML=rows.map(function(d){
@@ -7141,8 +7384,13 @@ function filterWithdrawals(){
   updateDateTag('with');
   var from=document.getElementById('with-date-from')?.value||'';
   var to=document.getElementById('with-date-to')?.value||'';
+  var q=(document.getElementById('with-search')?.value||'').trim().toLowerCase();
   var rows=allWithdrawals.filter(function(w){
-    var ld=localDateOf(w.created_at);return w.status==='pending'&&(!from||ld>=from)&&(!to||ld<=to);
+    var ld=localDateOf(w.created_at);
+    if(!(w.status==='pending'&&(!from||ld>=from)&&(!to||ld<=to))) return false;
+    if(!q) return true;
+    return [w.nick,w.bank,w.acc_no,w.acc_name,w.txn]
+      .some(function(v){return v && String(v).toLowerCase().includes(q);});
   });
   var tb=document.getElementById('with-tbody');if(!tb)return;
   if(!rows.length){
@@ -7173,9 +7421,14 @@ function filterWithdrawals(){
 }
 function filterWithDone(){
   var from=document.getElementById('with-done-from')?.value||'',to=document.getElementById('with-done-to')?.value||'';
+  var q=(document.getElementById('with-done-search')?.value||'').trim().toLowerCase();
   var rows=allWithdrawals.filter(function(w){
     var dt=(w.approved_at||w.created_at||'');
-    var ld=localDateOf(dt);return w.status==='approved'&&(!from||ld>=from)&&(!to||ld<=to);
+    var ld=localDateOf(dt);
+    if(!(w.status==='approved'&&(!from||ld>=from)&&(!to||ld<=to))) return false;
+    if(!q) return true;
+    return [w.nick,w.bank,w.acc_no,w.acc_name,w.txn,w.approved_by]
+      .some(function(v){return v && String(v).toLowerCase().includes(q);});
   });
   var tb=document.getElementById('with-done-tbody');if(!tb)return;
   if(!rows.length){
@@ -7199,7 +7452,14 @@ function filterWithDone(){
 }
 function filterWithReject(){
   var from=document.getElementById('with-reject-from')?.value||'',to=document.getElementById('with-reject-to')?.value||'';
-  var rows=allWithdrawals.filter(function(w){var ld=localDateOf(w.created_at);return w.status==='rejected'&&(!from||ld>=from)&&(!to||ld<=to);});
+  var q=(document.getElementById('with-reject-search')?.value||'').trim().toLowerCase();
+  var rows=allWithdrawals.filter(function(w){
+    var ld=localDateOf(w.created_at);
+    if(!(w.status==='rejected'&&(!from||ld>=from)&&(!to||ld<=to))) return false;
+    if(!q) return true;
+    return [w.nick,w.bank,w.acc_no,w.txn,w.reason]
+      .some(function(v){return v && String(v).toLowerCase().includes(q);});
+  });
   var tb=document.getElementById('with-reject-tbody');if(!tb)return;
   if(!rows.length){tb.innerHTML='<tr><td colspan="4" style="text-align:center;padding:28px;color:#aaa;">ไม่มีรายการ</td></tr>';return;}
   tb.innerHTML=rows.map(function(w){return'<tr><td style="font-weight:700;cursor:pointer;color:var(--green)" onclick="openMember(\''+( w.nick||'')+'\')">'+( w.nick||'—')+'</td><td style="font-weight:700;color:#dc2626">'+Number(w.amount||0).toLocaleString()+' ₭</td><td style="font-size:12px;color:#888">'+(w.reason||w.note||'—')+'</td><td style="font-size:11px;color:#888">'+fmtDate(w.created_at)+'</td></tr>';}).join('');
