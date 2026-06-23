@@ -558,6 +558,36 @@ input, textarea, select, button {
       <!-- OVERVIEW -->
       <div class="panel active" id="panel-overview">
 
+        <!-- ══ SYSTEM HEALTH CHECK ══ -->
+        <div id="health-check-card" style="background:linear-gradient(135deg,rgba(16,185,129,0.06),rgba(245,200,66,0.04));border:1px solid rgba(16,185,129,0.2);border-radius:12px;padding:14px 18px;margin-bottom:18px;">
+          <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;margin-bottom:10px;">
+            <div style="display:flex;align-items:center;gap:8px;">
+              <span id="health-status-dot" style="width:10px;height:10px;border-radius:50%;background:#10b981;display:inline-block;box-shadow:0 0 8px #10b981;animation:hcPulse 2s infinite;"></span>
+              <span style="font-family:Kanit,sans-serif;font-weight:700;font-size:14px;color:#374151;">🩺 สถานะระบบ</span>
+              <span id="health-overall" style="font-family:Kanit,sans-serif;font-size:12px;color:#10b981;font-weight:600;">กำลังตรวจสอบ...</span>
+            </div>
+            <button onclick="runHealthCheck()" style="font-family:Kanit,sans-serif;font-size:11px;padding:5px 12px;border-radius:6px;border:1px solid #10b981;background:rgba(16,185,129,0.08);color:#10b981;cursor:pointer;">🔄 ตรวจสอบ</button>
+          </div>
+          <div id="health-grid" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:8px;font-family:Kanit,sans-serif;font-size:12px;">
+            <div class="hc-item" id="hc-dep-pending"><span class="hc-icon">⏳</span> <span class="hc-label">Deposit ค้าง</span> <span class="hc-val">—</span></div>
+            <div class="hc-item" id="hc-with-pending"><span class="hc-icon">⏳</span> <span class="hc-label">Withdraw ค้าง</span> <span class="hc-val">—</span></div>
+            <div class="hc-item" id="hc-bet-orphan"><span class="hc-icon">🎯</span> <span class="hc-label">Bet Orphan</span> <span class="hc-val">—</span></div>
+            <div class="hc-item" id="hc-neg-balance"><span class="hc-icon">⚠️</span> <span class="hc-label">Balance ติดลบ</span> <span class="hc-val">—</span></div>
+            <div class="hc-item" id="hc-active-24h"><span class="hc-icon">👥</span> <span class="hc-label">Active 24h</span> <span class="hc-val">—</span></div>
+            <div class="hc-item" id="hc-bets-today"><span class="hc-icon">📊</span> <span class="hc-label">เดิมพันวันนี้</span> <span class="hc-val">—</span></div>
+          </div>
+          <style>
+            @keyframes hcPulse { 0%,100%{opacity:1}50%{opacity:0.5} }
+            .hc-item { padding:7px 10px; background:#fff; border:1px solid #e5e7eb; border-radius:7px; display:flex; align-items:center; gap:6px; font-size:11px; }
+            .hc-item.hc-warn { background:rgba(245,158,11,0.08); border-color:rgba(245,158,11,0.3); }
+            .hc-item.hc-err  { background:rgba(239,68,68,0.08); border-color:rgba(239,68,68,0.3); }
+            .hc-label { color:#6b7280; }
+            .hc-val { font-weight:700; color:#111827; margin-left:auto; }
+            .hc-warn .hc-val { color:#d97706; }
+            .hc-err  .hc-val { color:#dc2626; }
+          </style>
+        </div>
+
         <!-- ══ DATE RANGE FILTER ══ -->
         <div style="background:#fff;border:1px solid #e5e7eb;border-radius:12px;padding:14px 18px;margin-bottom:18px;display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
           <span style="font-family:'Kanit',sans-serif;font-weight:700;font-size:13px;color:#374151;">📅 ช่วงเวลา:</span>
@@ -3530,6 +3560,97 @@ function loadAll() {
 }
 
 // ===== OVERVIEW =====
+async function runHealthCheck() {
+  const setItem = (id, val, status='ok') => {
+    const el = document.getElementById(id);
+    if (!el) return;
+    const valEl = el.querySelector('.hc-val');
+    if (valEl) valEl.textContent = val;
+    el.classList.remove('hc-warn','hc-err');
+    if (status === 'warn') el.classList.add('hc-warn');
+    if (status === 'err')  el.classList.add('hc-err');
+  };
+
+  let warnings = 0, errors = 0;
+
+  try {
+    // 1. Deposit pending > 30 min
+    const dep = await sb.from('deposits').select('id,created_at').eq('status','pending');
+    const depOld = (dep.data||[]).filter(d => (Date.now() - new Date(d.created_at).getTime()) > 30*60*1000).length;
+    const depCount = (dep.data||[]).length;
+    setItem('hc-dep-pending', depCount + (depOld ? ' (' + depOld + ' เก่า)' : ''),
+            depOld > 0 ? 'warn' : (depCount > 5 ? 'warn' : 'ok'));
+    if (depOld > 0) warnings++;
+
+    // 2. Withdrawal pending > 30 min
+    const wd = await sb.from('withdrawals').select('id,created_at').eq('status','pending');
+    const wdOld = (wd.data||[]).filter(d => (Date.now() - new Date(d.created_at).getTime()) > 30*60*1000).length;
+    const wdCount = (wd.data||[]).length;
+    setItem('hc-with-pending', wdCount + (wdOld ? ' (' + wdOld + ' เก่า)' : ''),
+            wdOld > 0 ? 'warn' : (wdCount > 5 ? 'warn' : 'ok'));
+    if (wdOld > 0) warnings++;
+
+    // 3. Bet orphan (เร็วๆ — สุ่มตรวจ bets 100 รายการล่าสุด)
+    const recentBets = await sb.from('bets').select('id,txn,created_at').order('created_at',{ascending:false}).limit(100);
+    let orphans = 0;
+    if (recentBets.data?.length) {
+      const txns = recentBets.data.map(b => b.txn).filter(Boolean);
+      const logs = await sb.from('balance_logs').select('ref_txn').in('ref_txn', txns);
+      const logSet = new Set((logs.data||[]).map(l => l.ref_txn));
+      orphans = txns.filter(t => !logSet.has(t)).length;
+    }
+    setItem('hc-bet-orphan', orphans + ' รายการ', orphans > 0 ? 'err' : 'ok');
+    if (orphans > 0) errors++;
+
+    // 4. Balance ติดลบ
+    const neg = await sb.from('members').select('nick').lt('balance', 0);
+    const negCount = (neg.data||[]).length;
+    setItem('hc-neg-balance', negCount + ' คน', negCount > 0 ? 'err' : 'ok');
+    if (negCount > 0) errors++;
+
+    // 5. Active users 24h
+    const since24h = new Date(Date.now() - 24*60*60*1000).toISOString();
+    const active = await sb.from('balance_logs').select('nick').gte('created_at', since24h);
+    const uniqActive = new Set((active.data||[]).map(l => l.nick)).size;
+    setItem('hc-active-24h', uniqActive + ' คน', 'ok');
+
+    // 6. Bets today
+    const startOfDay = new Date(); startOfDay.setHours(0,0,0,0);
+    const todayBets = await sb.from('bets').select('id', { count:'exact', head:true }).gte('created_at', startOfDay.toISOString());
+    setItem('hc-bets-today', (todayBets.count || 0) + ' รายการ', 'ok');
+
+    // overall status
+    const dot = document.getElementById('health-status-dot');
+    const overall = document.getElementById('health-overall');
+    if (errors > 0) {
+      if (dot)     dot.style.background = '#dc2626', dot.style.boxShadow = '0 0 8px #dc2626';
+      if (overall) overall.textContent = `❌ พบ ${errors} ปัญหาด่วน · ${warnings} เตือน`, overall.style.color = '#dc2626';
+    } else if (warnings > 0) {
+      if (dot)     dot.style.background = '#d97706', dot.style.boxShadow = '0 0 8px #d97706';
+      if (overall) overall.textContent = `⚠️ พบ ${warnings} รายการที่ควรตรวจ`, overall.style.color = '#d97706';
+    } else {
+      if (dot)     dot.style.background = '#10b981', dot.style.boxShadow = '0 0 8px #10b981';
+      if (overall) overall.textContent = '✅ ระบบทำงานปกติ', overall.style.color = '#10b981';
+    }
+  } catch (e) {
+    console.error('Health check error:', e);
+    const overall = document.getElementById('health-overall');
+    if (overall) overall.textContent = '⚠️ ตรวจสอบไม่สำเร็จ', overall.style.color = '#d97706';
+  }
+}
+
+// auto run ทุก 60 วินาที เมื่ออยู่หน้า overview
+let _hcInterval = null;
+function startHealthCheckAutoRun() {
+  if (_hcInterval) return;
+  runHealthCheck();
+  _hcInterval = setInterval(() => {
+    if (document.getElementById('panel-overview')?.classList.contains('active')) {
+      runHealthCheck();
+    }
+  }, 60000);
+}
+
 async function loadOverview() {
   // ── Get date range ──
   if (!_ovrRange.from) {
@@ -4761,12 +4882,19 @@ function renderMatchTable(rows, isDone) {
 
     return `<tr style="${isDone ? 'background:#fafaf8;' : ''}">
       <td>${m.code ? `<span class="match-code">${m.code}</span>` : '—'}</td>
-      <td><strong>${m.round||'—'}</strong><br><span style="font-size:11px;color:#aaa;">${m.date||''} ${m.time||''}</span></td>
+      <td>
+        <strong>${m.round||'—'}</strong><br>
+        <span style="font-size:11px;color:#aaa;">${m.date||''} ${m.time||''}</span>
+        ${isDone ? '' : `<br><button class="btn btn-gold" style="font-size:10px;margin-top:3px;padding:3px 8px;" onclick="editMatchDateTime('${m.id}','${m.date||''}','${m.time||''}')">✏️ แก้วัน/เวลา</button>`}
+      </td>
       <td>${m.name_a||'—'}<br><span style="font-size:11px;color:#aaa;">${m.owner_a||''} ${m.weight_a?'·'+m.weight_a+'กก':''}</span></td>
       <td>${m.name_b||'—'}<br><span style="font-size:11px;color:#aaa;">${m.owner_b||''} ${m.weight_b?'·'+m.weight_b+'กก':''}</span></td>
       <td style="font-family:'Phetsarath','Phetsarath','Noto Sans Lao','Kanit',sans-serif;font-weight:700;">${Number(m.prize||0).toLocaleString()} ₭</td>
       ${extraCols}
-      <td><button class="btn btn-red" onclick="deleteMatch('${m.id}')">ลบ</button></td>
+      <td style="white-space:nowrap;">
+        ${isDone ? '' : `<button class="btn btn-gold" style="font-size:11px;margin-right:4px;" onclick="openEditMatchModal('${m.id}')">📝 แก้ไข</button>`}
+        <button class="btn btn-red" onclick="deleteMatch('${m.id}')">ลบ</button>
+      </td>
     </tr>`;
   }).join('') + '</tbody></table>';
 }
@@ -4987,6 +5115,349 @@ async function editStreamUrl(matchId, currentUrl) {
   if (error) { showToast('❌ บันทึกไม่สำเร็จ: ' + error.message, 'error'); return; }
   showToast(url.trim() ? '✅ บันทึก Stream URL แล้วครับ' : '✅ ลบ Stream URL แล้วครับ');
   loadMatches();
+}
+
+async function editMatchDateTime(matchId, currentDate, currentTime) {
+  // สร้าง modal แก้ไขวันที่+เวลา
+  const overlay = document.createElement('div');
+  overlay.id = 'edit-dt-modal';
+  overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.6);display:flex;align-items:center;justify-content:center;z-index:99999;';
+  overlay.innerHTML = `
+    <div style="background:#fff;border-radius:14px;padding:24px;width:92%;max-width:420px;box-shadow:0 20px 60px rgba(0,0,0,0.3);">
+      <div style="font-family:'Phetsarath OT','Phetsarath','Noto Sans Lao','Kanit',sans-serif;font-size:17px;font-weight:700;color:#1B6B2F;margin-bottom:6px;">📅 แก้ไขวันที่และเวลาแข่งขัน</div>
+      <div style="font-size:12px;color:#888;margin-bottom:18px;font-family:'Phetsarath OT','Phetsarath','Noto Sans Lao','Kanit',sans-serif;">ระบุวันและเวลาใหม่สำหรับการแข่งขันนี้</div>
+
+      <div style="margin-bottom:12px;">
+        <label style="display:block;font-family:'Phetsarath OT','Phetsarath','Noto Sans Lao','Kanit',sans-serif;font-size:13px;font-weight:600;color:#444;margin-bottom:5px;">📅 วันที่แข่งขัน</label>
+        <input id="edit-dt-date" type="text" readonly placeholder="คลิกเลือกวันที่"
+          style="width:100%;padding:10px 12px;border:1.5px solid #d4d4d0;border-radius:8px;font-family:'Phetsarath OT','Phetsarath','Noto Sans Lao','Kanit',sans-serif;font-size:14px;background:#fafafa;cursor:pointer;">
+      </div>
+
+      <div style="margin-bottom:20px;">
+        <label style="display:block;font-family:'Phetsarath OT','Phetsarath','Noto Sans Lao','Kanit',sans-serif;font-size:13px;font-weight:600;color:#444;margin-bottom:5px;">⏰ เวลาแข่งขัน</label>
+        <input id="edit-dt-time" type="text" readonly placeholder="เลือกเวลา"
+          style="width:100%;padding:10px 12px;border:1.5px solid #d4d4d0;border-radius:8px;font-family:'Phetsarath OT','Phetsarath','Noto Sans Lao','Kanit',sans-serif;font-size:14px;background:#fafafa;cursor:pointer;">
+      </div>
+
+      <div style="display:flex;gap:8px;">
+        <button onclick="document.getElementById('edit-dt-modal').remove()"
+          style="flex:1;padding:11px;border-radius:9px;border:1.5px solid #d4d4d0;background:#fff;color:#666;font-family:'Phetsarath OT','Phetsarath','Noto Sans Lao','Kanit',sans-serif;font-size:13px;font-weight:600;cursor:pointer;">
+          ยกเลิก
+        </button>
+        <button id="edit-dt-save-btn"
+          style="flex:1.5;padding:11px;border-radius:9px;border:none;background:linear-gradient(135deg,#1B6B2F,#27943F);color:#fff;font-family:'Phetsarath OT','Phetsarath','Noto Sans Lao','Kanit',sans-serif;font-size:13px;font-weight:700;cursor:pointer;">
+          💾 บันทึก
+        </button>
+      </div>
+    </div>`;
+  document.body.appendChild(overlay);
+
+  // ── set ค่าเริ่มต้น และ init flatpickr ──
+  const dateEl = document.getElementById('edit-dt-date');
+  const timeEl = document.getElementById('edit-dt-time');
+  if (dateEl) dateEl.value = currentDate || '';
+  if (timeEl) timeEl.value = currentTime || '';
+
+  // init flatpickr (ใช้ format เดียวกับตอน add: d/m/Y และ H:i)
+  try {
+    if (typeof flatpickr !== 'undefined') {
+      flatpickr('#edit-dt-date', {
+        locale: 'th', dateFormat: 'd/m/Y',
+        defaultDate: currentDate || null,
+        disableMobile: false,
+      });
+      flatpickr('#edit-dt-time', {
+        enableTime: true, noCalendar: true,
+        dateFormat: 'H:i', time_24hr: true,
+        defaultDate: currentTime || null,
+      });
+    }
+  } catch (e) { console.warn('flatpickr init error:', e); }
+
+  // ── handler บันทึก ──
+  document.getElementById('edit-dt-save-btn').onclick = async () => {
+    const newDate = (dateEl?.value || '').trim();
+    const newTime = (timeEl?.value || '').trim();
+
+    if (!newDate) { showToast('⚠️ กรุณาเลือกวันที่ครับ', 'error'); return; }
+    if (!newTime) { showToast('⚠️ กรุณาเลือกเวลาครับ', 'error'); return; }
+
+    const btn = document.getElementById('edit-dt-save-btn');
+    if (btn) { btn.disabled = true; btn.textContent = '⏳ กำลังบันทึก...'; }
+
+    const { error } = await sb.from('matches')
+      .update({ date: newDate, time: newTime })
+      .eq('id', matchId);
+
+    if (error) {
+      showToast('❌ บันทึกไม่สำเร็จ: ' + error.message, 'error');
+      if (btn) { btn.disabled = false; btn.textContent = '💾 บันทึก'; }
+      return;
+    }
+
+    // บันทึก staff log
+    try {
+      await sb.from('staff_logs').insert({
+        staff_username: _adminNick(),
+        action: 'edit_match_datetime',
+        detail: `แก้วัน/เวลาแข่ง match=${matchId} → ${newDate} ${newTime}`
+      });
+    } catch (_) {}
+
+    showToast('✅ บันทึกวันและเวลาใหม่แล้วครับ');
+    document.getElementById('edit-dt-modal').remove();
+    loadMatches();
+  };
+
+  // ปิด modal ด้วย Esc หรือ click ที่ overlay
+  overlay.addEventListener('click', (e) => {
+    if (e.target === overlay) overlay.remove();
+  });
+}
+
+async function openEditMatchModal(matchId) {
+  // ดึงข้อมูล match ล่าสุดจาก DB
+  const { data: m, error } = await sb.from('matches').select('*').eq('id', matchId).maybeSingle();
+  if (error || !m) {
+    showToast('❌ ไม่พบข้อมูลคู่แข่งขัน: ' + (error?.message||'unknown'), 'error');
+    return;
+  }
+
+  // สร้าง modal
+  const overlay = document.createElement('div');
+  overlay.id = 'edit-match-modal';
+  overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.65);display:flex;align-items:flex-start;justify-content:center;z-index:99999;overflow-y:auto;padding:20px;';
+  overlay.innerHTML = `
+    <div style="background:#fff;border-radius:14px;padding:24px;width:100%;max-width:720px;box-shadow:0 20px 60px rgba(0,0,0,0.4);margin:auto;font-family:'Phetsarath OT','Phetsarath','Noto Sans Lao','Kanit',sans-serif;">
+
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:18px;border-bottom:1px solid #eee;padding-bottom:14px;">
+        <div>
+          <div style="font-size:18px;font-weight:700;color:#1B6B2F;">📝 แก้ไขรายการแข่งขันวัวชน</div>
+          <div style="font-size:12px;color:#888;margin-top:3px;">รหัสคู่: <strong>${m.code || '—'}</strong></div>
+        </div>
+        <button onclick="document.getElementById('edit-match-modal').remove()" style="background:none;border:none;font-size:22px;color:#aaa;cursor:pointer;line-height:1;">✕</button>
+      </div>
+
+      <!-- ── ข้อมูลพื้นฐาน ── -->
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:14px;">
+        <div>
+          <label style="display:block;font-size:13px;font-weight:600;color:#444;margin-bottom:5px;">รุ่น</label>
+          <input id="em-round" type="text" value="${(m.round||'').replace(/"/g,'&quot;')}" placeholder="เช่น รุ่นแชมเปียน"
+            style="width:100%;padding:9px 11px;border:1.5px solid #d4d4d0;border-radius:8px;font-size:13px;">
+        </div>
+        <div>
+          <label style="display:block;font-size:13px;font-weight:600;color:#444;margin-bottom:5px;">สถานที่</label>
+          <input id="em-location" type="text" value="${(m.location||'').replace(/"/g,'&quot;')}" placeholder="สนาม..."
+            style="width:100%;padding:9px 11px;border:1.5px solid #d4d4d0;border-radius:8px;font-size:13px;">
+        </div>
+      </div>
+
+      <!-- ── วันที่และเวลา ── -->
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:14px;">
+        <div>
+          <label style="display:block;font-size:13px;font-weight:600;color:#444;margin-bottom:5px;">📅 วันที่</label>
+          <input id="em-date" type="text" readonly value="${m.date||''}" placeholder="คลิกเลือกวันที่"
+            style="width:100%;padding:9px 11px;border:1.5px solid #d4d4d0;border-radius:8px;font-size:13px;background:#fafafa;cursor:pointer;">
+        </div>
+        <div>
+          <label style="display:block;font-size:13px;font-weight:600;color:#444;margin-bottom:5px;">⏰ เวลา</label>
+          <input id="em-time" type="text" readonly value="${m.time||''}" placeholder="เลือกเวลา"
+            style="width:100%;padding:9px 11px;border:1.5px solid #d4d4d0;border-radius:8px;font-size:13px;background:#fafafa;cursor:pointer;">
+        </div>
+      </div>
+
+      <!-- ── ฝ่ายแดง ── -->
+      <div style="background:rgba(239,68,68,0.04);border:1px solid rgba(239,68,68,0.2);border-radius:10px;padding:14px;margin-bottom:12px;">
+        <div style="font-weight:700;color:#c8102e;margin-bottom:10px;font-size:14px;">🔴 ฝ่ายเจ้าบ้าน (แดง)</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr 100px;gap:10px;margin-bottom:10px;">
+          <div>
+            <label style="display:block;font-size:12px;color:#666;margin-bottom:4px;">ชื่อวัว</label>
+            <input id="em-name-a" value="${(m.name_a||'').replace(/"/g,'&quot;')}" placeholder="ชื่อวัว A"
+              style="width:100%;padding:8px 10px;border:1.5px solid #d4d4d0;border-radius:7px;font-size:13px;">
+          </div>
+          <div>
+            <label style="display:block;font-size:12px;color:#666;margin-bottom:4px;">เจ้าของ</label>
+            <input id="em-owner-a" value="${(m.owner_a||'').replace(/"/g,'&quot;')}" placeholder="ชื่อเจ้าของ"
+              style="width:100%;padding:8px 10px;border:1.5px solid #d4d4d0;border-radius:7px;font-size:13px;">
+          </div>
+          <div>
+            <label style="display:block;font-size:12px;color:#666;margin-bottom:4px;">น้ำหนัก (กก.)</label>
+            <input id="em-weight-a" type="number" value="${m.weight_a||''}" placeholder="520"
+              style="width:100%;padding:8px 10px;border:1.5px solid #d4d4d0;border-radius:7px;font-size:13px;">
+          </div>
+        </div>
+        <div style="display:flex;align-items:center;gap:10px;">
+          <div id="em-prev-a" style="width:60px;height:60px;border-radius:50%;border:2px solid rgba(239,68,68,0.4);background:rgba(239,68,68,0.06);display:flex;align-items:center;justify-content:center;font-size:28px;overflow:hidden;flex-shrink:0;">
+            ${m.photo_a ? `<img src="${m.photo_a}" style="width:100%;height:100%;object-fit:cover;" onerror="this.parentElement.innerHTML='🐂'">` : '🐂'}
+          </div>
+          <div style="flex:1;">
+            <input type="file" id="em-photo-a" accept="image/*" style="display:none;" onchange="previewMatchPhoto(this,'em-prev-a')">
+            <button type="button" onclick="document.getElementById('em-photo-a').click()" style="font-size:11px;padding:6px 12px;border-radius:6px;border:1px solid rgba(239,68,68,0.3);background:rgba(239,68,68,0.06);color:#ef4444;cursor:pointer;">📁 เปลี่ยนรูป</button>
+            <span style="font-size:11px;color:#aaa;margin-left:8px;">(เว้นว่างเพื่อใช้รูปเดิม)</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── ฝ่ายน้ำเงิน ── -->
+      <div style="background:rgba(59,130,246,0.04);border:1px solid rgba(59,130,246,0.2);border-radius:10px;padding:14px;margin-bottom:12px;">
+        <div style="font-weight:700;color:#1e40af;margin-bottom:10px;font-size:14px;">🔵 ฝ่ายทีมเยือน (น้ำเงิน)</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr 100px;gap:10px;margin-bottom:10px;">
+          <div>
+            <label style="display:block;font-size:12px;color:#666;margin-bottom:4px;">ชื่อวัว</label>
+            <input id="em-name-b" value="${(m.name_b||'').replace(/"/g,'&quot;')}" placeholder="ชื่อวัว B"
+              style="width:100%;padding:8px 10px;border:1.5px solid #d4d4d0;border-radius:7px;font-size:13px;">
+          </div>
+          <div>
+            <label style="display:block;font-size:12px;color:#666;margin-bottom:4px;">เจ้าของ</label>
+            <input id="em-owner-b" value="${(m.owner_b||'').replace(/"/g,'&quot;')}" placeholder="ชื่อเจ้าของ"
+              style="width:100%;padding:8px 10px;border:1.5px solid #d4d4d0;border-radius:7px;font-size:13px;">
+          </div>
+          <div>
+            <label style="display:block;font-size:12px;color:#666;margin-bottom:4px;">น้ำหนัก (กก.)</label>
+            <input id="em-weight-b" type="number" value="${m.weight_b||''}" placeholder="510"
+              style="width:100%;padding:8px 10px;border:1.5px solid #d4d4d0;border-radius:7px;font-size:13px;">
+          </div>
+        </div>
+        <div style="display:flex;align-items:center;gap:10px;">
+          <div id="em-prev-b" style="width:60px;height:60px;border-radius:50%;border:2px solid rgba(59,130,246,0.4);background:rgba(59,130,246,0.06);display:flex;align-items:center;justify-content:center;font-size:28px;overflow:hidden;flex-shrink:0;">
+            ${m.photo_b ? `<img src="${m.photo_b}" style="width:100%;height:100%;object-fit:cover;" onerror="this.parentElement.innerHTML='🐃'">` : '🐃'}
+          </div>
+          <div style="flex:1;">
+            <input type="file" id="em-photo-b" accept="image/*" style="display:none;" onchange="previewMatchPhoto(this,'em-prev-b')">
+            <button type="button" onclick="document.getElementById('em-photo-b').click()" style="font-size:11px;padding:6px 12px;border-radius:6px;border:1px solid rgba(59,130,246,0.3);background:rgba(59,130,246,0.06);color:#3b82f6;cursor:pointer;">📁 เปลี่ยนรูป</button>
+            <span style="font-size:11px;color:#aaa;margin-left:8px;">(เว้นว่างเพื่อใช้รูปเดิม)</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── รางวัล + URL ── -->
+      <div style="display:grid;grid-template-columns:1fr 1.5fr;gap:12px;margin-bottom:18px;">
+        <div>
+          <label style="display:block;font-size:13px;font-weight:600;color:#444;margin-bottom:5px;">💰 รางวัล (₭)</label>
+          <input id="em-prize" type="number" value="${m.prize||''}" placeholder="500000"
+            style="width:100%;padding:9px 11px;border:1.5px solid #d4d4d0;border-radius:8px;font-size:13px;">
+        </div>
+        <div>
+          <label style="display:block;font-size:13px;font-weight:600;color:#444;margin-bottom:5px;">🔗 URL ถ่ายทอดสด</label>
+          <input id="em-stream" type="text" value="${(m.stream_url||'').replace(/"/g,'&quot;')}" placeholder="https://youtube.com/..."
+            style="width:100%;padding:9px 11px;border:1.5px solid #d4d4d0;border-radius:8px;font-size:13px;">
+        </div>
+      </div>
+
+      <!-- ── ปุ่ม action ── -->
+      <div style="display:flex;gap:10px;padding-top:14px;border-top:1px solid #eee;">
+        <button onclick="document.getElementById('edit-match-modal').remove()"
+          style="flex:1;padding:12px;border-radius:9px;border:1.5px solid #d4d4d0;background:#fff;color:#666;font-size:13px;font-weight:600;cursor:pointer;">
+          ยกเลิก
+        </button>
+        <button id="em-save-btn" onclick="saveEditMatch('${matchId}')"
+          style="flex:2;padding:12px;border-radius:9px;border:none;background:linear-gradient(135deg,#1B6B2F,#27943F);color:#fff;font-size:13px;font-weight:700;cursor:pointer;">
+          💾 บันทึกการแก้ไข
+        </button>
+      </div>
+    </div>`;
+  document.body.appendChild(overlay);
+
+  // init flatpickr สำหรับ date/time
+  try {
+    if (typeof flatpickr !== 'undefined') {
+      flatpickr('#em-date', {
+        locale: 'th', dateFormat: 'd/m/Y',
+        defaultDate: m.date || null,
+      });
+      flatpickr('#em-time', {
+        enableTime: true, noCalendar: true,
+        dateFormat: 'H:i', time_24hr: true,
+        defaultDate: m.time || null,
+      });
+    }
+  } catch (e) { console.warn('flatpickr init error:', e); }
+
+  // click overlay to close (ยกเว้น click ใน modal)
+  overlay.addEventListener('click', (e) => {
+    if (e.target === overlay) overlay.remove();
+  });
+}
+
+async function saveEditMatch(matchId) {
+  const get = id => (document.getElementById(id)?.value || '').trim();
+  const round    = get('em-round');
+  const location = get('em-location');
+  const date     = get('em-date');
+  const time     = get('em-time');
+  const name_a   = get('em-name-a');
+  const owner_a  = get('em-owner-a');
+  const weight_a = get('em-weight-a');
+  const name_b   = get('em-name-b');
+  const owner_b  = get('em-owner-b');
+  const weight_b = get('em-weight-b');
+  const prize    = get('em-prize');
+  const stream   = get('em-stream');
+
+  // validation
+  if (!round)   { showToast('⚠️ กรุณากรอกรุ่นการแข่งขัน', 'error'); return; }
+  if (!date)    { showToast('⚠️ กรุณาเลือกวันที่แข่งขัน', 'error'); return; }
+  if (!time)    { showToast('⚠️ กรุณาเลือกเวลาแข่งขัน', 'error'); return; }
+  if (!name_a)  { showToast('⚠️ กรุณากรอกชื่อวัวฝ่ายแดง', 'error'); return; }
+  if (!name_b)  { showToast('⚠️ กรุณากรอกชื่อวัวฝ่ายน้ำเงิน', 'error'); return; }
+
+  const btn = document.getElementById('em-save-btn');
+  if (btn) { btn.disabled = true; btn.textContent = '⏳ กำลังบันทึก...'; }
+
+  try {
+    // อัปโหลดรูปใหม่ถ้ามี
+    const photoFileA = document.getElementById('em-photo-a')?.files?.[0];
+    const photoFileB = document.getElementById('em-photo-b')?.files?.[0];
+
+    let photo_a_url = null, photo_b_url = null;
+    if (photoFileA) {
+      if (btn) btn.textContent = '⏳ อัปโหลดรูปแดง...';
+      photo_a_url = await uploadToStorage(photoFileA, 'match-photos');
+    }
+    if (photoFileB) {
+      if (btn) btn.textContent = '⏳ อัปโหลดรูปน้ำเงิน...';
+      photo_b_url = await uploadToStorage(photoFileB, 'match-photos');
+    }
+
+    // สร้าง update object — เฉพาะ field ที่ต้องการอัปเดต
+    const updates = {
+      round, location, date, time,
+      name_a, owner_a, weight_a: weight_a ? Number(weight_a) : null,
+      name_b, owner_b, weight_b: weight_b ? Number(weight_b) : null,
+      prize: prize ? Number(prize) : 0,
+      stream_url: stream || null,
+    };
+    if (photo_a_url) updates.photo_a = photo_a_url;
+    if (photo_b_url) updates.photo_b = photo_b_url;
+
+    if (btn) btn.textContent = '⏳ กำลังบันทึก...';
+    const { error } = await sb.from('matches').update(updates).eq('id', matchId);
+
+    if (error) {
+      showToast('❌ บันทึกไม่สำเร็จ: ' + error.message, 'error');
+      if (btn) { btn.disabled = false; btn.textContent = '💾 บันทึกการแก้ไข'; }
+      return;
+    }
+
+    // บันทึก staff log
+    try {
+      await sb.from('staff_logs').insert({
+        staff_username: _adminNick(),
+        action: 'edit_match_full',
+        detail: `แก้รายละเอียดคู่แข่งขัน match=${matchId} (${round} · ${name_a} vs ${name_b})`
+      });
+    } catch(_) {}
+
+    showToast('✅ บันทึกการแก้ไขเรียบร้อยแล้วครับ');
+    document.getElementById('edit-match-modal').remove();
+    loadMatches();
+    loadVerdict();
+    loadOverview();
+
+  } catch (e) {
+    showToast('❌ เกิดข้อผิดพลาด: ' + e.message, 'error');
+    if (btn) { btn.disabled = false; btn.textContent = '💾 บันทึกการแก้ไข'; }
+  }
 }
 
 async function deleteMatch(id) {
@@ -6067,6 +6538,7 @@ async function _finishLogin(){
     document.getElementById('sb-staff').style.display='';
     showStaffBadge();_startSessionTimer();
     try{await _logLoginActivity('admin','superadmin','success');}catch(_){}
+    startHealthCheckAutoRun();
     if(!ADMIN_PASS)setTimeout(()=>showToast('⚠️ ยังไม่ได้ตั้งรหัสผ่าน Admin ในระบบ — ตั้งใน Settings ด่วนครับ','error'),1000);
     loadAll();
   }else if(_pRole==='staff'&&_pStaffRow){
@@ -6074,7 +6546,7 @@ async function _finishLogin(){
     try{await sb.from('staff').update({last_login:new Date().toISOString()}).eq('id',_pStaffRow.id);}catch(_){}
     try{await logStaffAction(_pStaffRow.username,'login','เข้าสู่ระบบ');}catch(_){}
     try{await _logLoginActivity(_pStaffRow.username,'staff','success');}catch(_){}
-    switchPanel('overview');loadAll();applyStaffPermissions(_pStaffRow.role);
+    switchPanel('overview');loadAll();applyStaffPermissions(_pStaffRow.role);startHealthCheckAutoRun();
     setTimeout(()=>_checkStaffOnboarding(_pStaffRow),1000);
   }
   _pUser=null;_pRole=null;_pStaffRow=null;
